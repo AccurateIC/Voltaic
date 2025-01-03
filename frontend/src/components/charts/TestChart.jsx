@@ -147,7 +147,7 @@ const TestChart = () => {
       setUvColor(palette.complement);
       setRefLineColor({ h: 0, s: 0, l: 0, a: 1 });
       setCursorBgColor({ h: 200, s: 0.10, l: 0.82, a: 0.25 });
-    } else if (currentTheme === 'corporate') { // light theme
+    } else if (currentTheme === 'winter ') { // light theme
       setPvColor(baseColor)
       setUvColor(palette.complement);
       setRefLineColor({ h: 0, s: 0, l: 0, a: 1 });

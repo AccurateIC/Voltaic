@@ -9,7 +9,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
     const savedTheme = localStorage.getItem('theme');
     if (!savedTheme) {
       if (prefersDark) return 'business'
-      else return 'corporate';
+      else return 'winter';
     } else return savedTheme;
   });
 
@@ -20,7 +20,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'corporate' ? 'business' : 'corporate');
+    setTheme(prevTheme => prevTheme === 'winter' ? 'business' : 'winter');
   };
 
   return (
