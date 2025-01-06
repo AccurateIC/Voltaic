@@ -1,26 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
-import { useMessageBus } from '../lib/MessageBus';
+import { useMessageBus } from "../lib/MessageBus";
 
 const ThemeSwitcher = ({ size = 64 }) => {
-  const publishToMessageBus = useMessageBus('theme-switch'); // create a channel to publish theme switch events
-  const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const publishToMessageBus = useMessageBus("theme-switch"); // create a channel to publish theme switch events
+  const prefersDark = () =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
   const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem("theme");
     if (!savedTheme) {
-      if (prefersDark) return 'business'
-      else return 'winter';
+      if (prefersDark) return "business";
+      else return "winter";
     } else return savedTheme;
   });
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
     publishToMessageBus({ time: Date.now(), message: theme });
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'winter' ? 'business' : 'winter');
+    setTheme((prevTheme) => (prevTheme === "winter" ? "business" : "winter"));
   };
 
   return (
@@ -30,7 +31,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
         type="checkbox"
         className="theme-controller"
         onChange={toggleTheme}
-        checked={theme === 'business'}
+        checked={theme === "business"}
       />
       <Sun className="swap-off" size={size} />
       <Moon className="swap-on" size={size} />
