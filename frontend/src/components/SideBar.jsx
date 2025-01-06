@@ -1,6 +1,5 @@
 // /src/components/SideBar.jsx
 import { NavLink } from "react-router";
-import TestChart from "./charts/TestChart";
 
 const SideBar = () => {
   return (
@@ -11,6 +10,20 @@ const SideBar = () => {
           className={({ isActive }) => isActive ? "active" : ""}
           end
         >Dashboard</NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/engine"
+          className={({ isActive }) => isActive ? "active" : ""}
+          end
+        >Engine</NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/generator"
+          className={({ isActive }) => isActive ? "active" : ""}
+          end
+        >Generator</NavLink>
       </li>
       <li>
         <details open>
