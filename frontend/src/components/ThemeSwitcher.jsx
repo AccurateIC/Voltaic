@@ -3,14 +3,16 @@ import { Sun, Moon } from "lucide-react";
 import { useMessageBus } from "../lib/MessageBus";
 
 const ThemeSwitcher = ({ size = 64 }) => {
-  const publishToMessageBus = useMessageBus("theme-switch"); // create a channel to publish theme switch events
+  const lightTheme = "corporate"
+  const darkTheme = "business"
+  const publishToMessageBus = useMessageBus("theme-switch");
   const prefersDark = () =>
     window.matchMedia("(prefers-color-scheme: dark)").matches;
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (!savedTheme) {
-      if (prefersDark) return "business";
-      else return "winter";
+      if (prefersDark) return darkTheme;
+      else return lightTheme;
     } else return savedTheme;
   });
 
@@ -21,7 +23,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "winter" ? "business" : "winter"));
+    setTheme((prevTheme) => (prevTheme === lightTheme ? darkTheme : lightTheme));
   };
 
   return (

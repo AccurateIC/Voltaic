@@ -4,6 +4,7 @@ import ResponsiveGridLayout from "react-grid-layout";
 import { useMessageBus } from "../lib/MessageBus";
 import { Toolbar } from "../components/Toolbar";
 import { toast } from "sonner";
+import { CircleGauge, PlugZap, Zap } from "lucide-react";
 
 const defaultLayout = [
   { w: 3, h: 7, x: 0, y: 0, i: "a", moved: false, static: false },
@@ -66,7 +67,7 @@ function Engine() {
         <ResponsiveGridLayout
           className="layout"
           layout={layout}
-          cols={12}
+          cols={32}
           rowHeight={30}
           breakpoints={breakpoints}
           width={rglContainerWidth} // TODO: find a better way to get screen width?
@@ -77,23 +78,75 @@ function Engine() {
           onWidthChange={handleWidthChange}
           onBreakpointChange={handleBreakpointChange}
         >
-          <div key="a" className="bg-base-200">
-            a
+          <div key="a" className="bg-base-200 flex items-center justify-center">
+            <div
+              className="radial-progress"
+              style={
+                {
+                  "--value": "70",
+                  "--size": "12rem",
+                  "--thickness": "2rem",
+                } /* as React.CSSProperties */
+              }
+              aria-valuenow={70}
+              role="progressbar"
+            >
+              70%
+            </div>
           </div>
           <div key="b" className="bg-base-200">
             b
           </div>
+          {/* Oil Pressure */}
           <div key="c" className="bg-base-200">
-            c
+            <div className="stats bg-base-200 shadow w-full h-full">
+              <div className="stat  flex flex-col gap-5 items-center justify-center">
+                <div className="stat-title">Oil Pressure</div>
+                <div className="stat-value flex items-center text-5xl">
+                  <div>
+                    <CircleGauge size={64} />
+                  </div>
+                  <div>2.06 Bar</div>
+                </div>
+                <div className="stat-desc">Pressure Normal</div>
+              </div>
+            </div>
           </div>
-          <div key="d" className="bg-base-200">
-            a
+          {/* Voltage */}
+          <div
+            key="d"
+            className="bg-transparent flex items-center justify-center"
+          >
+            <div className="stats bg-base-200 shadow w-full h-full">
+              <div className="stat  flex flex-col gap-5 items-center justify-center">
+                <div className="stat-title">Battery Voltage</div>
+                <div className="stat-value flex items-center text-5xl">
+                  <div>
+                    <Zap size={64} />
+                  </div>
+                  <div>12.7 Volts</div>
+                </div>
+                <div className="stat-desc">Discharging</div>
+              </div>
+            </div>
           </div>
           <div key="e" className="bg-base-200">
             b
           </div>
+          {/* Charge Voltage */}
           <div key="f" className="bg-base-200">
-            c
+            <div className="stats bg-base-200 shadow w-full h-full">
+              <div className="stat  flex flex-col gap-5 items-center justify-center">
+                <div className="stat-title">Charge Alt Voltage</div>
+                <div className="stat-value flex items-center text-5xl">
+                  <div>
+                    <PlugZap size={64} />
+                  </div>
+                  <div>11.2 Volts</div>
+                </div>
+                <div className="stat-desc">Discharging</div>
+              </div>
+            </div>
           </div>
         </ResponsiveGridLayout>
       </div>
