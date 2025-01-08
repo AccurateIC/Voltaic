@@ -2,8 +2,11 @@
 import { toast, Toaster } from 'sonner'
 import GoogleIcon from "../assets/google-g-logo.svg"
 import GithubIcon from "../assets/github-mark.svg";
+import { useNavigate } from "react-router";
+import ThemeSwitcher from "../components/ThemeSwitcher";
 
 const Login = () => {
+  const navigate = useNavigate();
   const handleGoogleSignIn = () => {
     console.log("google sign in clicked");
     toast.error("Google sign in functionality not implemented");
@@ -15,7 +18,6 @@ const Login = () => {
   };
 
   return (
-    // Add this outer wrapper with relative positioning
     <div className="relative min-h-screen">
       <Toaster richColors={true} />
       {/* Add these two divs for the background effect */}
@@ -38,7 +40,7 @@ const Login = () => {
                 <input type="password" placeholder="Password" className="input input-md w-full"></input>
               </label>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center" onClick={() => { console.log("clicked"); navigate("/") }}>
               <button className="btn btn-neutral rounded-xl mt-5">Sign in to account</button>
             </div>
           </fieldset>
