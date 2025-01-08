@@ -1,0 +1,22 @@
+{
+    "mainsL1Volts": {
+        "value": 0,
+        "unit": "volt",
+        "isAnomaly": false
+    },
+    "mainsL2Volts": {
+        "value": 0,
+        "unit": "volt" ,
+        "isAnomaly": false
+    },
+    "mainsL3Volts": {
+        "value": 0,
+        "unit": "volt" ,
+        "isAnomaly": false
+    },
+    "engFuelLevel": {
+        "value": 54,
+        "unit": "litre",
+        "isAnomaly": false
+    }
+}
