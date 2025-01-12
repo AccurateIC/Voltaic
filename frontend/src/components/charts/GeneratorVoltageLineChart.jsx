@@ -13,7 +13,8 @@ export const GeneratorVoltageLineChart = ({ timeStamp, l1Voltage, l2Voltage, l3V
     }
   }, [l1Voltage]);
 
-
+  
+  console.log(l1IsAnomaly);
   return (
     <div className="h-[400px] w-full">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
