@@ -14,11 +14,12 @@ export const Reports = () => {
     l3Voltage: 0,
     engineFuelLevel: -1,
     l1IsAnomaly: true,
-    l2IsAnomaly: false,
+    l2IsAnomaly: true,
     l3IsAnomaly: true,
   });
   const handleWsMessage = useCallback((message) => {
     console.log(message);
+  
     setStats({
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
@@ -31,11 +32,10 @@ export const Reports = () => {
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
       l1IsAnomaly: true,
       l2IsAnomaly: true,
-      l3IsAnomaly: true,
+      l3IsAnomaly: false,
     });
   }, []);
   const { send, isConnected } = useWebSocket(handleWsMessage);
-
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
