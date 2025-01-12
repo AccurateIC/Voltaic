@@ -10,7 +10,7 @@ const EVENTS = {
 };
 
 const webSocketUrl = import.meta.env.VITE_DATA_WEBSOCKET_SERVER_URL;
-
+console.log(webSocketUrl)
 const listeners = new Map();
 const messageQueue = [];
 let socket = null;
@@ -77,7 +77,7 @@ const connect = () => {
       const data = JSON.parse(ev.data);
       emitEvent(EVENTS.MESSAGE, data);
     } catch (err) {
-      console.error(EVENTS.error, err)
+      console.error(EVENTS.ERROR, err)
       // emitEvent(EVENTS.MESSAGE, ev.data); // send string if json parsing failed?
     }
   };

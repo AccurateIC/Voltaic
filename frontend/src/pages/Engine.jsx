@@ -4,7 +4,9 @@ import ResponsiveGridLayout from "react-grid-layout";
 import { useMessageBus } from "../lib/MessageBus";
 import { Toolbar } from "../components/Toolbar";
 import { toast } from "sonner";
-import { CircleGauge, PlugZap, Zap } from "lucide-react";
+import { FaOilCan, FaBolt, FaBatteryFull } from "react-icons/fa";
+import ReactSpeedometer from "react-d3-speedometer";
+import GaugeChart from "react-gauge-chart";
 
 const defaultLayout = [
   { w: 3, h: 7, x: 0, y: 0, i: "a", moved: false, static: false },
@@ -70,7 +72,7 @@ function Engine() {
           cols={32}
           rowHeight={30}
           breakpoints={breakpoints}
-          width={rglContainerWidth} // TODO: find a better way to get screen width?
+          width={rglContainerWidth}
           isDraggable={isLayoutEditable}
           isResizable={isLayoutEditable}
           onLayoutChange={handleLayoutChange}
@@ -78,74 +80,152 @@ function Engine() {
           onWidthChange={handleWidthChange}
           onBreakpointChange={handleBreakpointChange}
         >
-          <div key="a" className="bg-base-200 flex items-center justify-center">
-            <div
-              className="radial-progress"
-              style={
-                {
-                  "--value": "70",
-                  "--size": "12rem",
-                  "--thickness": "2rem",
-                } /* as React.CSSProperties */
-              }
-              aria-valuenow={70}
-              role="progressbar"
+          {/* ENGINE SPEED */}
+          <div
+            key="a"
+            className="bg-base-200 flex items-center justify-center"
+            style={{
+              width: "400px", // Increased width
+              height: "400px", // Increased height
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              flexDirection: "column",
+            }}
+          >
+            <h2
+              style={{
+                marginBottom: "5px",
+                marginTop: "75px",
+                fontSize: "18px",
+                fontWeight: "bold",
+              }}
             >
-              70%
+              {" "}
+              {/* Slightly larger text */}
+              ENGINE SPEED
+            </h2>
+            <ReactSpeedometer
+              value={1500}
+              minValue={0}
+              maxValue={2000}
+              segments={5}
+              needleColor="#FF0000"
+              startColor="#4CAF50"
+              endColor="#FF0000"
+              textColor="#000"
+              height={250} // Increased height of the speedometer
+              width={300} // Increased width of the speedometer
+              ringWidth={35} // Increased ring width for proportion
+              needleHeightRatio={0.7} // Adjusted needle size for better visibility
+              valueTextFontSize="16px" // Slightly larger value text font
+              currentValueText="${value} RPM"
+            />
+          </div>
+
+          {/* FUEL QUANTITY */}
+          <div
+            key="b"
+            className="bg-base-200 flex flex-col items-center justify-center"
+            style={{
+              width: "100%",
+              height: "100%",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              flexDirection: "column",
+            }}
+          >
+            <h2
+              style={{
+                font: "black",
+                marginBottom: "15px",
+                marginTop: "05px",
+                fontSize: "18px",
+                fontWeight: "bold",
+              }}
+            >
+              FUEL QUANTITY
+            </h2>
+            <div style={{ width: "370px", height: "300px" }}>
+              <GaugeChart
+                id="fuel-quantity-gauge"
+                nrOfLevels={25}
+                colors={["#FF5F6D", "#FFC371", "#5BE12C"]}
+                arcWidth={0.3}
+                percent={0.21}
+                needleColor="#000"
+                style={{ width: "100%", height: "100%" }}
+              />
             </div>
           </div>
-          <div key="b" className="bg-base-200">
-            b
-          </div>
+
           {/* Oil Pressure */}
-          <div key="c" className="bg-base-200">
-            <div className="stats bg-base-200 shadow w-full h-full">
-              <div className="stat  flex flex-col gap-5 items-center justify-center">
-                <div className="stat-title">Oil Pressure</div>
-                <div className="stat-value flex items-center text-5xl">
-                  <div>
-                    <CircleGauge size={64} />
-                  </div>
-                  <div>2.06 Bar</div>
-                </div>
-                <div className="stat-desc">Pressure Normal</div>
+          <div key="c" className="bg-base-200 ">
+            <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
+              <h2>Oil Pressure</h2>
+              <div className="text-7xl mt-4">
+                <FaOilCan />
+                <p className="font-bold text-3xl mt-4">2.06 bar</p>
               </div>
             </div>
           </div>
-          {/* Voltage */}
+
           <div
             key="d"
             className="bg-transparent flex items-center justify-center"
           >
-            <div className="stats bg-base-200 shadow w-full h-full">
-              <div className="stat  flex flex-col gap-5 items-center justify-center">
-                <div className="stat-title">Battery Voltage</div>
-                <div className="stat-value flex items-center text-5xl">
-                  <div>
-                    <Zap size={64} />
-                  </div>
-                  <div>12.7 Volts</div>
-                </div>
-                <div className="stat-desc">Discharging</div>
+            <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
+              <h2>Charge Alt Voltage</h2>
+              <div className="text-6xl mb-6 mt-7">
+                <FaBolt />
               </div>
+              <p className="font-bold text-3xl">11.2 V</p>
             </div>
           </div>
+
           <div key="e" className="bg-base-200">
-            b
+            {/* Custom Fuel Level Meter */}
+            <div
+              key="c"
+              className="bg-base-200 flex flex-col items-center p-4 font-bold"
+            >
+              <h2>Fuel Level</h2>
+              <div className="flex flex-col items-center">
+                <div className="text-sm font-medium mb-2">50L</div>
+                <div
+                  style={{
+                    width: "50px",
+                    height: "300px",
+                    border: "2px solid #4caf50",
+                    position: "relative",
+                    backgroundColor: "#e0e0e0",
+                    borderRadius: "50px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "0",
+                      width: "100%",
+                      height: `${(25 / 50) * 100}%`,
+                      backgroundColor: "#4caf50",
+                    }}
+                  ></div>
+                </div>
+                <div className="text-sm font-medium mt-2">0L</div>
+              </div>
+              <div className="mt-2 font-medium">25L</div>{" "}
+            </div>
           </div>
+
           {/* Charge Voltage */}
           <div key="f" className="bg-base-200">
-            <div className="stats bg-base-200 shadow w-full h-full">
-              <div className="stat  flex flex-col gap-5 items-center justify-center">
-                <div className="stat-title">Charge Alt Voltage</div>
-                <div className="stat-value flex items-center text-5xl">
-                  <div>
-                    <PlugZap size={64} />
-                  </div>
-                  <div>11.2 Volts</div>
-                </div>
-                <div className="stat-desc">Discharging</div>
+            <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
+              <h2>Battery Voltage</h2>
+              <div className="text-7xl mb-4 mt-4">
+                <FaBatteryFull />
               </div>
+              <p className="font-bold text-3xl">12.7 V</p>
             </div>
           </div>
         </ResponsiveGridLayout>
