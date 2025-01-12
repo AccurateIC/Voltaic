@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
 import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
-// import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
+import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { useWebSocket } from "../lib/WebSocketConnection";
 import { CiBellOn } from 'react-icons/ci';
 import { FaBell } from 'react-icons/fa';
@@ -15,6 +15,9 @@ export const Reports = () => {
     l1Voltage: 0,
     l2Voltage: 0,
     l3Voltage: 0,
+    l1Current: 0,
+    l2Current: 0,
+    l3Current: 0,
     engineFuelLevel: -1,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
@@ -33,13 +36,14 @@ export const Reports = () => {
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      l1IsAnomaly: true,
+      l1IsAnomaly: false,
       l2IsAnomaly: false,
       l3IsAnomaly: true,
     });
   }, []);
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
+ 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       <div className="min-h-[400px] bg-base-200">
@@ -66,11 +70,11 @@ export const Reports = () => {
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
-        <GeneratorVoltageLineChart
+        <GeneratorCurrentLineChart
           timeStamp={stats.timeStamp}
-          l1Voltage={stats.l1Voltage}
-          l2Voltage={stats.l2Voltage}
-          l3Voltage={stats.l3Voltage}
+          l1Current={stats.l1Current}
+          l2Current={stats.l2Current}
+          l3Current={stats.l3Current}
           l1IsAnomaly={stats.l1IsAnomaly}
           l2IsAnomaly={stats.l2IsAnomaly}
           l3IsAnomaly={stats.l3IsAnomaly}
