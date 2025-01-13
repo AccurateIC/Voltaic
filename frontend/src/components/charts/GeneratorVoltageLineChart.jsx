@@ -1,11 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-export const GeneratorVoltageLineChart = ({ timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, }) => {
+export const GeneratorVoltageLineChart = ({
+  timeStamp,
+  l1Voltage,
+  l2Voltage,
+  l3Voltage,
+  l1IsAnomaly,
+  l2IsAnomaly,
+  l3IsAnomaly,
+}) => {
   const [data, setData] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false); // Track if notification list should be shown
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Refs to track whether notifications have been shown for each anomaly
   const l1NotificationRef = useRef(false);
@@ -15,14 +32,49 @@ export const GeneratorVoltageLineChart = ({ timeStamp, l1Voltage, l2Voltage, l3V
   useEffect(() => {
     // Update chart data
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
-      setData(currentData => {
+      setData((currentData) => {
         if (currentData.length > 48) currentData.shift(); // remove the oldest entry
 
-        return [...currentData, { time: new Date(timeStamp).toLocaleTimeString(), L1: l1Voltage, L2: l2Voltage, L3: l3Voltage }];
-      })
+        return [
+          ...currentData,
+          {
+            time: new Date(timeStamp).toLocaleTimeString(),
+            L1: l1Voltage,
+            L2: l2Voltage,
+            L3: l3Voltage,
+          },
+        ];
+      });
     }
-  }, [l1Voltage]);
+  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage]);
 
+  useEffect(() => {
+    const updateNotifications = (phase, isAnomaly, ref) => {
+      if (isAnomaly && !ref.current) {
+        setNotifications((prev) => [
+          ...prev,
+          { id: phase, message: `Anomaly detected in ${phase} phase!` },
+        ]);
+        ref.current = true; // Mark as shown
+      }
+
+      if (!isAnomaly && ref.current) {
+        setNotifications((prev) =>
+          prev.filter((notification) => notification.id !== phase)
+        );
+        ref.current = false; // Reset flag when anomaly is cleared
+      }
+    };
+
+    updateNotifications("L1", l1IsAnomaly, l1NotificationRef);
+    updateNotifications("L2", l2IsAnomaly, l2NotificationRef);
+    updateNotifications("L3", l3IsAnomaly, l3NotificationRef);
+  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
+
+  // Handle the notification toggle
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
 
   return (
     <div className="h-[400px] w-full relative">
@@ -69,7 +121,6 @@ export const GeneratorVoltageLineChart = ({ timeStamp, l1Voltage, l2Voltage, l3V
               strokeWidth={2}
               dot={false}
             />
-
             <Line
               type="monotone"
               dataKey="L3"

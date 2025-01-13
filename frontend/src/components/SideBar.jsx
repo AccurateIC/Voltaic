@@ -48,7 +48,7 @@ const SideBar = () => {
           Reports
         </NavLink>
       </li>
-      <li>
+      {/* <li>
         <details open>
           <summary>Parent</summary>
           <ul>
@@ -81,10 +81,10 @@ const SideBar = () => {
             </li>
           </ul>
         </details>
-      </li>
-      <li>
+      </li> */}
+      {/* <li>
         <a>Item 3</a>
-      </li>
+      </li> */}
     </ul>
   );
 };
