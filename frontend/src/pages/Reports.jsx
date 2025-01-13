@@ -37,8 +37,8 @@ export const Reports = () => {
       l3Current: Math.round(message?.genL3Current?.value),
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
       l1IsAnomaly: false,
-      l2IsAnomaly: false,
-      l3IsAnomaly: true,
+      l2IsAnomaly: true,
+      l3IsAnomaly: false,
     });
   }, []);
   const { send, isConnected } = useWebSocket(handleWsMessage);
