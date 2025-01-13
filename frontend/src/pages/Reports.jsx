@@ -4,9 +4,8 @@ import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart"
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { useWebSocket } from "../lib/WebSocketConnection";
-import { CiBellOn } from 'react-icons/ci';
-import { FaBell } from 'react-icons/fa';
-
+import { CiBellOn } from "react-icons/ci";
+import { FaBell } from "react-icons/fa";
 
 export const Reports = () => {
   const [stats, setStats] = useState({
@@ -25,7 +24,7 @@ export const Reports = () => {
   });
   const handleWsMessage = useCallback((message) => {
     console.log(message);
-  
+
     setStats({
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
@@ -43,7 +42,6 @@ export const Reports = () => {
   }, []);
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
- 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       <div className="min-h-[400px] bg-base-200">
