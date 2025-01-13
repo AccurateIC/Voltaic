@@ -10,7 +10,7 @@ const EVENTS = {
 };
 
 const webSocketUrl = import.meta.env.VITE_DATA_WEBSOCKET_SERVER_URL;
-console.log(webSocketUrl)
+console.log(webSocketUrl);
 const listeners = new Map();
 const messageQueue = [];
 let socket = null;

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
 import {
@@ -10,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
+import renderCustomDot from "./renderCustomDot"; 
 export const GeneratorVoltageLineChart = ({
   timeStamp,
   l1Voltage,
@@ -106,28 +107,29 @@ export const GeneratorVoltageLineChart = ({
             <Tooltip />
             <Legend />
             <Line
-              type="monotone"
+              type="line"
               dataKey="L1"
               stroke="#CAA98F" // Very light terra cotta
               name="L1 Phase"
               strokeWidth={2}
-              dot={false}
+              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
             />
             <Line
-              type="monotone"
+              type="line"
               dataKey="L2"
               stroke="#B3CC99" // Very light olive
               name="L2 Phase"
               strokeWidth={2}
-              dot={false}
+              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
             />
             <Line
-              type="monotone"
+              // type="monotone"
+              type="line"
               dataKey="L3"
               stroke="#99B3CC" // Very light steel blue
               name="L3 Phase"
               strokeWidth={2}
-              dot={false}
+              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>
