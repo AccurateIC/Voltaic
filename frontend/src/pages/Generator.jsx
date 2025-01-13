@@ -41,20 +41,11 @@ const VoltageStatCard = ({ value, name, status, kind }) => {
 
   switch (kind) {
     case "voltage":
-<<<<<<< Updated upstream
-=======
       maxValue = 250;
->>>>>>> Stashed changes
       units = "Volts";
       icon = <PlugZap size={64} />;
       break;
     case "current":
-<<<<<<< Updated upstream
-      units = "Ampere";
-      icon = <Zap size={64} />;
-    default:
-      break;
-=======
       maxValue = 20;
       units = "Ampere";
       icon = <Zap size={64} />;
@@ -67,22 +58,15 @@ const VoltageStatCard = ({ value, name, status, kind }) => {
     default:
       maxValue = 100; 
       units = "Units";
->>>>>>> Stashed changes
   }
 
   return (
     <div className="flex flex-col justify-center items-center gap-4">
       <div className="text-3xl font-semibold">{name}</div>
       <div className="flex flex-row items-center gap-2">
-<<<<<<< Updated upstream
         <span>{icon}</span>
         <span className="text-4xl font-bold">
           {value} {units}
-=======
-        {icon}
-        <span className="text-3xl font-bold">
-          {Math.round(displayValue)} {units}
->>>>>>> Stashed changes
         </span>
       </div>
       <div className="text-base-content">{status}</div>
@@ -121,7 +105,6 @@ export const Generator = () => {
     l1Current: 0,
     l2Current: 0,
     l3Current: 0,
-<<<<<<< Updated upstream
   });
   const handleWsMessage = useCallback((message) => {
     console.log("Ws Message: ", message);
@@ -221,74 +204,6 @@ export const Generator = () => {
           status={"Discharging"}
         />{" "}
       </div>
-=======
-    l1L2Voltage: 0,
-    l2L3Voltage: 0,
-    l3L1Voltage: 0,
-  });
-
-  const handleWsMessage = useCallback((message) => {
-    setStats({
-      l1Voltage: Math.round(message?.genL1Volts?.value || 0),
-      l2Voltage: Math.round(message?.genL2Volts?.value || 0),
-      l3Voltage: Math.round(message?.genL3Volts?.value || 0),
-      l1Current: Math.round(message?.genL1Current?.value || 0),
-      l2Current: Math.round(message?.genL2Current?.value || 0),
-      l3Current: Math.round(message?.genL3Current?.value || 0),
-      l1L2Voltage: Math.round(message?.genL1L2Volts?.value || 0),
-      l2L3Voltage: Math.round(message?.genL2L3Volts?.value || 0),
-      l3L1Voltage: Math.round(message?.genL3L1Volts?.value || 0),
-    });
-  }, []);
-
-  const { send, isConnected } = useWebSocket(handleWsMessage);
-
-  console.log("WebSocket Connected:", isConnected);
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
-      {["l1Voltage", "l2Voltage", "l3Voltage"].map((key) => (
-        <div
-          key={key}
-          className="min-h-[400px] bg-base-200 flex items-center justify-center"
-        >
-          <VoltageStatCard
-            kind="voltage"
-            name={key.replace("Voltage", " Voltage")}
-            value={stats[key]}
-            status=""
-          />
-        </div>
-      ))}
-
-      {["l1Current", "l2Current", "l3Current"].map((key) => (
-        <div
-          key={key}
-          className="min-h-[400px] bg-base-200 flex items-center justify-center"
-        >
-          <VoltageStatCard
-            kind="current"
-            name={key.replace("Current", " Current")}
-            value={stats[key]}
-            status=""
-          />
-        </div>
-      ))}
-
-      {["l1L2Voltage", "l2L3Voltage", "l3L1Voltage"].map((key) => (
-        <div
-          key={key}
-          className="min-h-[400px] bg-base-200 flex items-center justify-center"
-        >
-          <VoltageStatCard
-            kind="lineVoltage"
-            name={key.replace("Voltage", " Voltage")}
-            value={stats[key]}
-            status=""
-          />
-        </div>
-      ))}
->>>>>>> Stashed changes
     </div>
   );
 };
