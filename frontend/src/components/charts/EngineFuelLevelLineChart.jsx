@@ -1,16 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     if (fuelLevel !== -1) {
-      setData(currentData => {
+      setData((currentData) => {
         if (currentData.length > 48) currentData.shift(); // remove the oldest entry
 
-        return [...currentData, { time: new Date(timeStamp).toLocaleTimeString(), fuelLevel: fuelLevel }];
-      })
+        return [
+          ...currentData,
+          {
+            time: new Date(timeStamp).toLocaleTimeString(),
+            fuelLevel: fuelLevel,
+          },
+        ];
+      });
     }
   }, [fuelLevel, timeStamp]);
   return (
@@ -30,10 +45,14 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="time"
-              label={{ value: 'Time', position: 'bottom', offset: 0 }}
+              label={{ value: "Time", position: "bottom", offset: 0 }}
             />
             <YAxis
-              label={{ value: 'Fuel Level (%)', angle: -90, position: 'insideLeft' }}
+              label={{
+                value: "Fuel Level (%)",
+                angle: -90,
+                position: "insideLeft",
+              }}
               ticks={[0, 50, 100, 150, 200]}
             />
             <Tooltip />

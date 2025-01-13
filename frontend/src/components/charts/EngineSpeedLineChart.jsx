@@ -1,19 +1,32 @@
-import { useEffect, useState } from "react"
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useEffect, useState } from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 export const EngineSpeedLineChart = ({ value, timeStamp }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     if (value !== undefined) {
-      setData(currentData => {
+      setData((currentData) => {
         if (currentData.length > 48) currentData.shift(); // remove the oldest entry
 
-        return [...currentData, { time: new Date(timeStamp).toLocaleTimeString(), engineSpeed: value }];
-      })
+        return [
+          ...currentData,
+          {
+            time: new Date(timeStamp).toLocaleTimeString(),
+            engineSpeed: value,
+          },
+        ];
+      });
     }
   }, [value]);
-
 
   return (
     <div className="h-[400px] w-full">
@@ -26,14 +39,20 @@ export const EngineSpeedLineChart = ({ value, timeStamp }) => {
               top: 5,
               right: 30,
               left: 20,
-              bottom: 20
+              bottom: 20,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time"
-              label={{ value: "Time", position: "bottom", offset: 0 }} />
+            <XAxis
+              dataKey="time"
+              label={{ value: "Time", position: "bottom", offset: 0 }}
+            />
             <YAxis
-              label={{ value: "Engine Speed (RPM)", angle: -90, position: 'insideleft' }}
+              label={{
+                value: "Engine Speed (RPM)",
+                angle: -90,
+                position: "insideleft",
+              }}
               ticks={[0, 500, 1000, 1500, 2000]}
             />
             <Tooltip />
@@ -48,6 +67,6 @@ export const EngineSpeedLineChart = ({ value, timeStamp }) => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div >
-  )
-}
+    </div>
+  );
+};

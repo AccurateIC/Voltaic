@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
 import {
   LineChart,
@@ -123,8 +123,7 @@ export const GeneratorVoltageLineChart = ({
               dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
             />
             <Line
-              // type="monotone"
-              type="line"
+              type="l"
               dataKey="L3"
               stroke="#99B3CC" // Very light steel blue
               name="L3 Phase"
