@@ -31,7 +31,7 @@
 //           ...currentData,
 //           {
 //             time: new Date(timeStamp).toLocaleTimeString(),
-//             L1: l1Current,
+//             L1: l1Current,   
 //             L2: l2Current,
 //             L3: l3Current,
 //           },
