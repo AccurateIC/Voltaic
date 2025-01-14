@@ -3,11 +3,10 @@ import { Sun, Moon } from "lucide-react";
 import { useMessageBus } from "../lib/MessageBus";
 
 const ThemeSwitcher = ({ size = 64 }) => {
-  const lightTheme = "corporate"
-  const darkTheme = "business"
+  const lightTheme = "corporate";
+  const darkTheme = "business";
   const publishToMessageBus = useMessageBus("theme-switch");
-  const prefersDark = () =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (!savedTheme) {
@@ -29,12 +28,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
   return (
     // <label className="swap swap-rotate hover:scale-110 transition-transform duration-100 ease-in-out btn btn-circle btn-ghost">
     <label className="swap swap-rotate transition-transform duration-100 ease-in-out btn btn-circle btn-ghost">
-      <input
-        type="checkbox"
-        className="theme-controller"
-        onChange={toggleTheme}
-        checked={theme === "business"}
-      />
+      <input type="checkbox" className="theme-controller" onChange={toggleTheme} checked={theme === "business"} />
       <Sun className="swap-off" size={size} />
       <Moon className="swap-on" size={size} />
     </label>
