@@ -6,6 +6,7 @@ import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrent
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { useWebSocket } from "../lib/WebSocketConnection";
 
+
 export const Reports = () => {
   const [stats, setStats] = useState({
     timeStamp: new Date(),
@@ -18,10 +19,10 @@ export const Reports = () => {
     l3Current: 0,
     oilPress: 0.0,
     engineFuelLevel: -1,
-    l1IsAnomaly: true,
+    l1IsAnomaly: false,
     l2IsAnomaly: false,
     l3IsAnomaly: true,
-    oilPressIsAnomaly: false,
+    oilPressIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {
@@ -29,7 +30,7 @@ export const Reports = () => {
       "Current oil pressure anomaly flag:",
       message?.oilPressIsAnomaly
     );
-    setStats({
+    setStats({  
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
       l1Voltage: Math.round(message?.genL1Volts?.value),
@@ -42,7 +43,7 @@ export const Reports = () => {
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
       l1IsAnomaly: false,
       l2IsAnomaly: false,
-      l3IsAnomaly: false,
+      l3IsAnomaly: true,
       oilPressIsAnomaly: true,
     });
   }, []);

@@ -99,8 +99,8 @@
 //     </div>
 //   );
 // };
-import { useState, useEffect, useRef } from "react";
-import { CiBellOn } from "react-icons/ci"; 
+import React, { useState, useEffect, useRef } from "react";
+import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
 import {
   LineChart,
   Line,
@@ -111,7 +111,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import renderCustomDot from "./renderCustomDot"; 
+import renderCustomDot from "./renderCustomDot"; // Assuming you have this custom dot renderer
 
 export const GeneratorCurrentLineChart = ({
   timeStamp,
@@ -132,7 +132,7 @@ export const GeneratorCurrentLineChart = ({
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    
+    // Update chart data
     if (l1Current !== 0 && l2Current !== 0 && l3Current !== 0) {
       setData((currentData) => {
         if (currentData.length > 48) currentData.shift(); // Remove the oldest entry
@@ -152,6 +152,8 @@ export const GeneratorCurrentLineChart = ({
       });
     }
 
+    // Handle notifications
+    // For L1 phase
     if (l1IsAnomaly && !l1NotificationRef.current) {
       setNotifications((prevNotifications) => [
         ...prevNotifications,
@@ -201,6 +203,7 @@ export const GeneratorCurrentLineChart = ({
 
   }, [l1Current, l2Current, l3Current, timeStamp, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
 
+  // Handle the notification toggle
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
@@ -265,38 +268,7 @@ export const GeneratorCurrentLineChart = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Notification Bell Icon */}
-      <div
-        className="relative cursor-pointer"
-        onClick={toggleNotifications}
-        style={{ position: "absolute", top: "20px", right: "20px" }}
-      >
-        <CiBellOn size={30} color="black" />
-        {notifications.length > 0 && (
-          <div
-            className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex justify-center items-center text-xs"
-            style={{ fontSize: "12px" }}
-          >
-            {notifications.length}
-          </div>
-        )}
-      </div>
-
-      {/* Notification Dropdown */}
-      {showNotifications && notifications.length > 0 && (
-        <div
-          className="absolute top-12 right-0 bg-white border border-gray-300 shadow-md w-60 max-h-60 overflow-y-auto"
-          style={{ zIndex: 10 }}
-        >
-          <ul className="p-2">
-            {notifications.map((notification, index) => (
-              <li key={index} className="p-2 border-b">
-                {notification.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+     
     </div>
   );
 };
