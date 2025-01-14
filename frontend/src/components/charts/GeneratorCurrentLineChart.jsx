@@ -99,8 +99,8 @@
 //     </div>
 //   );
 // };
-import React, { useState, useEffect, useRef } from "react";
-import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
+import { useState, useEffect, useRef } from "react";
+import { CiBellOn } from "react-icons/ci"; 
 import {
   LineChart,
   Line,
@@ -111,7 +111,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import renderCustomDot from "./renderCustomDot"; // Assuming you have this custom dot renderer
+import renderCustomDot from "./renderCustomDot"; 
 
 export const GeneratorCurrentLineChart = ({
   timeStamp,
@@ -132,7 +132,7 @@ export const GeneratorCurrentLineChart = ({
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    // Update chart data
+    
     if (l1Current !== 0 && l2Current !== 0 && l3Current !== 0) {
       setData((currentData) => {
         if (currentData.length > 48) currentData.shift(); // Remove the oldest entry
@@ -152,8 +152,6 @@ export const GeneratorCurrentLineChart = ({
       });
     }
 
-    // Handle notifications
-    // For L1 phase
     if (l1IsAnomaly && !l1NotificationRef.current) {
       setNotifications((prevNotifications) => [
         ...prevNotifications,
@@ -203,7 +201,6 @@ export const GeneratorCurrentLineChart = ({
 
   }, [l1Current, l2Current, l3Current, timeStamp, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
 
-  // Handle the notification toggle
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };

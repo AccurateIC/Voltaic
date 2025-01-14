@@ -120,7 +120,7 @@ export const OilPressureLineChart = () => {
               stroke="#B3CC99" // Light Olive for oil pressure
               name="Oil Pressure"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
               activeDot={{ r: 8 }}
             />
           </LineChart>

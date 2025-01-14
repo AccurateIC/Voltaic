@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import  { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
 import {
   LineChart,
@@ -11,7 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import renderCustomDot from "./renderCustomDot"; 
+import renderCustomDot from "./renderCustomDot";
 export const GeneratorVoltageLineChart = ({
   timeStamp,
   l1Voltage,
@@ -25,58 +25,90 @@ export const GeneratorVoltageLineChart = ({
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Refs to track whether notifications have been shown for each anomaly
   const l1NotificationRef = useRef(false);
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    // Update chart data
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
-      setData((currentData) => {
-        if (currentData.length > 48) currentData.shift(); // remove the oldest entry
+      setData((voltageData) => {
+        if (voltageData.length > 48) voltageData.shift();
 
         return [
-          ...currentData,
+          ...voltageData,
           {
             time: new Date(timeStamp).toLocaleTimeString(),
             L1: l1Voltage,
             L2: l2Voltage,
             L3: l3Voltage,
+            l1IsAnomaly,
+            l2IsAnomaly,
+            l3IsAnomaly,
           },
         ];
       });
     }
-  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage]);
 
-  useEffect(() => {
-    const updateNotifications = (phase, isAnomaly, ref) => {
-      if (isAnomaly && !ref.current) {
-        setNotifications((prev) => [
-          ...prev,
-          { id: phase, message: `Anomaly detected in ${phase} phase!` },
-        ]);
-        ref.current = true; // Mark as shown
-      }
+    if (l1IsAnomaly && !l1NotificationRef.voltage) {
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L1", message: "Anomaly detected in L1 phase!" },
+      ]);
+      l1NotificationRef.voltage = true;
+    }
 
-      if (!isAnomaly && ref.current) {
-        setNotifications((prev) =>
-          prev.filter((notification) => notification.id !== phase)
-        );
-        ref.current = false; // Reset flag when anomaly is cleared
-      }
-    };
+    if (!l1IsAnomaly && l1NotificationRef.voltage) {
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L1")
+      );
+      l1NotificationRef.voltage = false;
+    }
 
-    updateNotifications("L1", l1IsAnomaly, l1NotificationRef);
-    updateNotifications("L2", l2IsAnomaly, l2NotificationRef);
-    updateNotifications("L3", l3IsAnomaly, l3NotificationRef);
-  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
+    // For L2 phase
+    if (l2IsAnomaly && !l2NotificationRef.voltage) {
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L2", message: "Anomaly detected in L2 phase!" },
+      ]);
+      l2NotificationRef.voltage = true; // Mark as shown
+    }
 
-  // Handle the notification toggle
+    if (!l2IsAnomaly && l2NotificationRef.voltage) {
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L2")
+      );
+      l2NotificationRef.voltage = false; // Reset flag when anomaly is cleared
+    }
+
+    // For L3 phase
+    if (l3IsAnomaly && !l3NotificationRef.voltage) {
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L3", message: "Anomaly detected in L3 phase!" },
+      ]);
+      l3NotificationRef.voltage = true; // Mark as shown
+    }
+
+    if (!l3IsAnomaly && l3NotificationRef.voltage) {
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L3")
+      );
+      l3NotificationRef.voltage = false;
+    }
+  }, [
+    l1Voltage,
+    l2Voltage,
+    l3Voltage,
+    timeStamp,
+    l1IsAnomaly,
+    l2IsAnomaly,
+    l3IsAnomaly,
+  ]);
+
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
-
+  console.log(l1Voltage);
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
@@ -102,14 +134,14 @@ export const GeneratorVoltageLineChart = ({
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={["auto", "auto"]} // Auto-scale based on data
+              domain={["auto", "auto"]}
             />
             <Tooltip />
             <Legend />
             <Line
               type="line"
               dataKey="L1"
-              stroke="#CAA98F" // Very light terra cotta
+              stroke="#CAA98F"
               name="L1 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
@@ -117,7 +149,7 @@ export const GeneratorVoltageLineChart = ({
             <Line
               type="line"
               dataKey="L2"
-              stroke="#B3CC99" // Very light olive
+              stroke="#B3CC99"
               name="L2 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
