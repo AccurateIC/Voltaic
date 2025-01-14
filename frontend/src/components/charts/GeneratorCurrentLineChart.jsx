@@ -106,7 +106,7 @@ export const GeneratorCurrentLineChart = ({
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
-  console.log(l1Current);
+ 
 
   return (
     <div className="h-[400px] w-full relative">

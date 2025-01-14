@@ -22,13 +22,13 @@ export const Reports = () => {
     l1IsAnomaly: false,
     l2IsAnomaly: false,
     l3IsAnomaly: true,
-    oilPressIsAnomaly: true,
+    // oilPressIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {
     console.log(
       "Current oil pressure anomaly flag:",
-      message?.oilPressIsAnomaly
+      message
     );
     setStats({  
       timeStamp: message?.timestamp,
@@ -41,10 +41,10 @@ export const Reports = () => {
       l3Current: Math.round(message?.genL3Current?.value),
       oilPress: message?.oilPress,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      l1IsAnomaly: false,
-      l2IsAnomaly: false,
-      l3IsAnomaly: true,
-      oilPressIsAnomaly: true,
+      l1IsAnomaly:message?.genL1Volts?.is_anomaly,
+      l2IsAnomaly:message?.genL2Volts?.is_anomaly,
+      l3IsAnomaly:message?.genL3Volts?.is_anomaly,
+      // oilPressIsAnomaly: true,
     });
   }, []);
 
