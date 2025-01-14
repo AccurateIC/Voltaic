@@ -16,7 +16,7 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel }) => {
   useEffect(() => {
     if (fuelLevel !== -1) {
       setData((currentData) => {
-        if (currentData.length > 48) currentData.shift(); // remove the oldest entry
+        if (currentData.length > 48) currentData.shift(); 
 
         return [
           ...currentData,

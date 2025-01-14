@@ -20,7 +20,6 @@ export const OilPressureLineChart = () => {
   const oilPressureNotificationRef = useRef(false);
 
   useEffect(() => {
-    
     const socket = new WebSocket("ws://localhost:8766");
 
     socket.onopen = () => {
@@ -30,16 +29,14 @@ export const OilPressureLineChart = () => {
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
 
-      const oilPressureData = message.engOilPress; 
-      const timestamp = message.timestamp;  
+      const oilPressureData = message.engOilPress;
+      const timestamp = message.timestamp;
 
-    
       if (oilPressureData) {
         const oilPressure = oilPressureData.value;
 
-        
         setData((currentData) => {
-          if (currentData.length >= 48) currentData.shift(); 
+          if (currentData.length >= 48) currentData.shift();
           return [
             ...currentData,
             {
@@ -62,7 +59,8 @@ export const OilPressureLineChart = () => {
           setNotifications((prev) =>
             prev.filter((notification) => notification.id !== "oilPressure")
           );
-          oilPressureNotificationRef.current = false;  }
+          oilPressureNotificationRef.current = false;
+        }
       }
     };
 
@@ -79,7 +77,6 @@ export const OilPressureLineChart = () => {
     };
   }, []);
 
-  
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
@@ -100,9 +97,9 @@ export const OilPressureLineChart = () => {
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
-              dataKey="time"  // Ensure that the data key for X-Axis is 'time' in your data structure
+              dataKey="time"
               label={{ value: "Time", position: "bottom", offset: 0 }}
-              tick={{ textAnchor: "end" }}  // Rotate the X-axis labels for better visibility
+              tick={{ textAnchor: "end" }}
             />
             <YAxis
               label={{
@@ -110,14 +107,14 @@ export const OilPressureLineChart = () => {
                 angle: -90,
                 position: "insideLeft",
               }}
-              ticks={[0, 2,  4, 6]} // You can adjust these ticks as necessary
+              ticks={[0, 2, 4, 6]}
             />
             <Tooltip />
             <Legend />
             <Line
               type="monotone"
               dataKey="oilPressure"
-              stroke="#B3CC99" // Light Olive for oil pressure
+              stroke="#B3CC99"
               name="Oil Pressure"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
