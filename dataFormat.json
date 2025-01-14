@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-01-07T17:13:05.591783",
+  "engSpeed": {
+    "value": 1484.7419898685573,
+    "unit": "Rpm",
+    "is_anomaly": false
+  },
+  "engOilPress": {
+    "value": 2.295151714382542,
+    "unit": "Bar",
+    "is_anomaly": false
+  },
+  "engBatteryVolts": {
+    "value": 11.549376889287128,
+    "unit": "Volts",
+    "is_anomaly": false
+  },
+  "engChargeAltVolts": {
+    "value": 11.59536196822505,
+    "unit": "Volts",
+    "is_anomaly": true
+  },
+  "genL1Volts": {
+    "value": 234.4857984578225,
+    "unit": "Volts",
+    "is_anomaly": false
+  },
+  "genL2Volts": {
+    "value": 232.5521181959884,
+    "unit": "Volts",
+    "is_anomaly": false
+  },
+  "genL3Volts": {
+    "value": 230.1789740510108,
+    "unit": "Volts",
+    "is_anomaly": false
+  },
+  "genL1Current": {
+    "value": 17.910471343258077,
+    "unit": "Ampere",
+    "is_anomaly": false
+  },
+  "genL2Current": {
+    "value": 17.50548266735437,
+    "unit": "Ampere",
+    "is_anomaly": false
+  },
+  "genL3Current": {
+    "value": 17.50548266735437,
+    "unit": "Ampere",
+    "is_anomaly": false
+  }
+}
