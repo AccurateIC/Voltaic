@@ -125,37 +125,9 @@ export const OilPressureLineChart = () => {
       </div>
 
       {/* Notification Bell Icon */}
-      <div
-        className="relative cursor-pointer"
-        onClick={toggleNotifications}
-        style={{ position: "absolute", top: "20px", right: "20px" }}
-      >
-        <CiBellOn size={30} color="black" />
-        {notifications.length > 0 && (
-          <div
-            className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex justify-center items-center text-xs"
-            style={{ fontSize: "12px" }}
-          >
-            {notifications.length}
-          </div>
-        )}
-      </div>
+      
 
-      {/* Notification Dropdown */}
-      {showNotifications && notifications.length > 0 && (
-        <div
-          className="absolute top-12 right-0 bg-white border border-gray-300 shadow-md w-60 max-h-60 overflow-y-auto"
-          style={{ zIndex: 10 }}
-        >
-          <ul className="p-2">
-            {notifications.map((notification, index) => (
-              <li key={index} className="p-2 border-b">
-                {notification.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+     
     </div>
   );
 };

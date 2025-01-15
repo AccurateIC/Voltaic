@@ -22,14 +22,14 @@ export const Reports = () => {
     l1IsAnomaly: false,
     l2IsAnomaly: false,
     l3IsAnomaly: true,
-    oilPressIsAnomaly: true,
+    l1CIsAnomaly: false,
+    l2CIsAnomaly:false,
+    l3CIsAnomaly:false,
+     oilPressIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {
-    console.log(
-      "Current oil pressure anomaly flag:",
-      message?.oilPressIsAnomaly
-    );
+    console.log(  message );
     setStats({  
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
@@ -39,19 +39,21 @@ export const Reports = () => {
       l1Current: Math.round(message?.genL1Current?.value),
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
-      oilPress: message?.oilPress,
+      oilPress: message?.engOilPress.value,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      l1IsAnomaly: message?.gen,
-      l2IsAnomaly: false,
-      l3IsAnomaly: true,
-      oilPressIsAnomaly: true,
+      l1IsAnomaly:message?.genL1Volts?.is_anomaly,
+      l2IsAnomaly:message?.genL2Volts?.is_anomaly,
+      l3IsAnomaly:message?.genL3Volts?.is_anomaly,
+      l1CIsAnomaly:message?.genL1L2L3Current?.is_anomaly,
+      l2CIsAnomaly:true,
+      l3CIsAnomaly:true,
       
     });
-    console.log(message);  
+
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
-
+ 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       <div className="min-h-[400px] bg-base-200">
@@ -83,9 +85,9 @@ export const Reports = () => {
           l1Current={stats.l1Current}
           l2Current={stats.l2Current}
           l3Current={stats.l3Current}
-          l1IsAnomaly={stats.l1IsAnomaly}
-          l2IsAnomaly={stats.l2IsAnomaly}
-          l3IsAnomaly={stats.l3IsAnomaly}
+          l1IsAnomaly={stats.l1CIsAnomaly}
+          l2IsAnomaly={stats.l2CIsAnomaly}
+          l3IsAnomaly={stats.l3CIsAnomaly}
         />
       </div>
 

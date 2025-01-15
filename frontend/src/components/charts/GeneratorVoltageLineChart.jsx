@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
@@ -26,11 +25,10 @@ export const GeneratorVoltageLineChart = ({
   l2IsAnomaly,
   l3IsAnomaly,
 }) => {
-  const dispatch = useDispatch(); 
-  const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const [data, setData] = useState([]);  // chart datahold
 
   useEffect(() => {
-   
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       setData((voltageData) => {
         if (voltageData.length > 48) voltageData.shift();
@@ -51,6 +49,7 @@ export const GeneratorVoltageLineChart = ({
       dispatch(
         addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" })
       );
+      console.log("Anomaly detected in L1 phase!");
     } else {
       dispatch(removeNotification("L1"));
     }
@@ -58,7 +57,9 @@ export const GeneratorVoltageLineChart = ({
     if (l2IsAnomaly) {
       dispatch(
         addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" })
+        
       );
+      console.log("Anomaly detected in L2 phase!");
     } else {
       dispatch(removeNotification("L2"));
     }
@@ -67,6 +68,7 @@ export const GeneratorVoltageLineChart = ({
       dispatch(
         addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" })
       );
+      console.log("Anomaly detected in L3 phase!");
     } else {
       dispatch(removeNotification("L3"));
     }
@@ -116,7 +118,7 @@ export const GeneratorVoltageLineChart = ({
   stroke="#CAA98F"
   name="L1 Phase"
   strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L1IsAnomaly)}
+  dot={(props) => renderCustomDot(props, l1IsAnomaly)}  
 />
 <Line
   type="line"
@@ -124,7 +126,7 @@ export const GeneratorVoltageLineChart = ({
   stroke="#B3CC99"
   name="L2 Phase"
   strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L2IsAnomaly)}
+  dot={(props) => renderCustomDot(props, l2IsAnomaly)}  
 />
 <Line
   type="line"
@@ -132,7 +134,7 @@ export const GeneratorVoltageLineChart = ({
   stroke="#99B3CC"
   name="L3 Phase"
   strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L3IsAnomaly)}
+  dot={(props) => renderCustomDot(props, l3IsAnomaly)}  
 />
 
           </LineChart>
