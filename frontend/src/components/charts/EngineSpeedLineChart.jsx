@@ -8,14 +8,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-export const EngineSpeedLineChart = ({ value, timeStamp }) => {
+import renderCustomDot from "./renderCustomDot";
+export const EngineSpeedLineChart = ({
+  timeStamp,
+  value,
+  engSpeedIsAnomaly,
+}) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     if (value !== undefined) {
       setData((currentData) => {
-        if (currentData.length > 48) currentData.shift(); // remove the oldest entry
+        if (currentData.length > 48) currentData.shift();
 
         return [
           ...currentData,
@@ -59,10 +63,10 @@ export const EngineSpeedLineChart = ({ value, timeStamp }) => {
             <Line
               type="monotone"
               dataKey="engineSpeed"
-              stroke="#2563eb"
+              stroke="#B3CC99"
               name="Engine Speed"
               strokeWidth={2}
-              dot={false}
+              dot={(props) => renderCustomDot(props, engSpeedIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

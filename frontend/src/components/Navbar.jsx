@@ -39,39 +39,49 @@
 // export default Navbar;
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addNotification, removeNotification } from "../redux/notificationSlice"; // Import actions
+import {
+  addNotification,
+  removeNotification,
+} from "../redux/notificationSlice"; // Import actions
 import Profile from "./Profile";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
 
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   const dispatch = useDispatch();
-  
+
   // Get notifications from Redux
-  const notifications = useSelector((state) => state.notifications.notifications);
+  const notifications = useSelector(
+    (state) => state.notifications.notifications
+  );
 
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     // Check for anomalies and add notifications if necessary
     if (l1IsAnomaly) {
-      dispatch(addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" }));
+      dispatch(
+        addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" })
+      );
     } else {
       dispatch(removeNotification("L1"));
     }
 
     if (l2IsAnomaly) {
-      dispatch(addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" }));
+      dispatch(
+        addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" })
+      );
     } else {
       dispatch(removeNotification("L2"));
     }
 
     if (l3IsAnomaly) {
-      dispatch(addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" }));
+      dispatch(
+        addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" })
+      );
     } else {
       dispatch(removeNotification("L3"));
     }
-
   }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]); // Re-run when anomalies change
 
   const toggleNotifications = () => {

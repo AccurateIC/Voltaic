@@ -6,11 +6,11 @@ import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrent
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { useWebSocket } from "../lib/WebSocketConnection";
 
-
 export const Reports = () => {
   const [stats, setStats] = useState({
     timeStamp: new Date(),
     engineSpeed: 1480,
+    engSpeedIsAnomaly: true,
     l1Voltage: 0,
     l2Voltage: 0,
     l3Voltage: 0,
@@ -23,14 +23,14 @@ export const Reports = () => {
     l2IsAnomaly: false,
     l3IsAnomaly: true,
     l1CIsAnomaly: false,
-    l2CIsAnomaly:false,
-    l3CIsAnomaly:false,
-     oilPressIsAnomaly: true,
+    l2CIsAnomaly: false,
+    l3CIsAnomaly: false,
+    oilPressIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {
-    console.log(  message );
-    setStats({  
+    console.log(message);
+    setStats({
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
       l1Voltage: Math.round(message?.genL1Volts?.value),
@@ -39,27 +39,30 @@ export const Reports = () => {
       l1Current: Math.round(message?.genL1Current?.value),
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
-      oilPress: message?.engOilPress.value,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      l1IsAnomaly:message?.genL1Volts?.is_anomaly,
-      l2IsAnomaly:message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly:message?.genL3Volts?.is_anomaly,
-      l1CIsAnomaly:message?.genL1L2L3Current?.is_anomaly,
-      l2CIsAnomaly:true,
-      l3CIsAnomaly:true,
-      
+      l1IsAnomaly: message?.genL1Volts?.is_anomaly,
+      l2IsAnomaly: message?.genL2Volts?.is_anomaly,
+      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
+      l1CIsAnomaly: message?.genL1Current?.is_anomaly,
+      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
+      // l3CIsAnomaly:message?.genL3Current?.is_anomaly,
+      l3CIsAnomaly: message?.genL3Current?.is_anomaly,
+      oilPress: message?.engOilPress.value,
+      oilPressIsAnomaly: message?.engOilPress.is_anomaly,
+      //oilPressIsAnomaly: true,
+      engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
     });
-
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
- 
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       <div className="min-h-[400px] bg-base-200">
         <EngineSpeedLineChart
-          value={stats.engineSpeed}
           timeStamp={stats.timeStamp}
+          value={stats.engineSpeed}
+          engSpeedIsAnomaly={stats.engSpeedIsAnomaly}
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
@@ -93,8 +96,8 @@ export const Reports = () => {
 
       <div className="min-h-[400px] bg-base-200">
         <OilPressureLineChart
-          oilPressure={stats.oilPress}
           timeStamp={stats.timeStamp}
+          oilPressure={stats.oilPress}
           oilPressureIsAnomaly={stats.oilPressIsAnomaly}
         />
       </div>

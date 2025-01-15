@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { CiBellOn } from "react-icons/ci";
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
+import {
+  addNotification,
+  removeNotification,
+} from "../../redux/notificationSlice";
 import renderCustomDot from "./renderCustomDot";
 import {
   LineChart,
@@ -12,124 +16,75 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export const OilPressureLineChart = () => {
+export const OilPressureLineChart = ({
+  timeStamp,
+  oilPressure,
+  oilPressureIsAnomaly,
+}) => {
+  const dispatch = useDispatch();
   const [data, setData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const oilPressureNotificationRef = useRef(false);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8766");
+    if (oilPressure !== 0) {
+      setData((prevData) => {
+        if (prevData.length > 48) prevData.shift();
 
-    socket.onopen = () => {
-      console.log("Connected to WebSocket server.");
-    };
+        return [
+          ...prevData,
+          {
+            time: new Date(timeStamp).toLocaleTimeString(),
+            oilPressure,
+            oilPressureIsAnomaly,
+          },
+        ];
+      });
+    }
 
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      const oilPressureData = message.engOilPress;
-      const timestamp = message.timestamp;
-
-      if (oilPressureData) {
-        const oilPressure = oilPressureData.value;
-
-        setData((currentData) => {
-          if (currentData.length >= 48) currentData.shift();
-          return [
-            ...currentData,
-            {
-              time: new Date(timestamp).toLocaleTimeString(),
-              oilPressure: oilPressure,
-            },
-          ];
-        });
-
-        // Handle anomaly notification
-        if (oilPressureData.is_anomaly && !oilPressureNotificationRef.current) {
-          setNotifications((prev) => [
-            ...prev,
-            { id: "oilPressure", message: `Anomaly detected in oil pressure!` },
-          ]);
-          oilPressureNotificationRef.current = true; // Mark as shown
-        }
-
-        if (!oilPressureData.is_anomaly && oilPressureNotificationRef.current) {
-          setNotifications((prev) =>
-            prev.filter((notification) => notification.id !== "oilPressure")
-          );
-          oilPressureNotificationRef.current = false;
-        }
-      }
-    };
-
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    socket.onclose = () => {
-      console.log("WebSocket connection closed.");
-    };
-
-    return () => {
-      socket.close();
-    };
-  }, []);
-
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
+    if (oilPressureIsAnomaly && !oilPressureNotificationRef.current) {
+      dispatch(
+        addNotification({
+          id: "oilPressure",
+          message: "Fuel pressure anomaly detected!",
+          type: "fuel",
+        })
+      );
+      oilPressureNotificationRef.current = true;
+    } else if (!oilPressureIsAnomaly && oilPressureNotificationRef.current) {
+      dispatch(removeNotification({ id: "oilPressure", type: "fuel" }));
+      oilPressureNotificationRef.current = false;
+    }
+  }, [timeStamp, oilPressure, oilPressureIsAnomaly, dispatch]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
-          >
+          <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="time"
-              label={{ value: "Time", position: "bottom", offset: 0 }}
-              tick={{ textAnchor: "end" }}
-            />
+            <XAxis dataKey="time" />
             <YAxis
               label={{
-                value: "Oil Pressure (Bar)",
+                value: "Pressure (Bar)",
                 angle: -90,
                 position: "insideLeft",
               }}
-              ticks={[0, 2, 4, 6]}
             />
             <Tooltip />
             <Legend />
             <Line
               type="monotone"
               dataKey="oilPressure"
-              stroke="#B3CC99"
+              stroke="#CAA98F"
               name="Oil Pressure"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
-              activeDot={{ r: 8 }}
+              dot={(props) => renderCustomDot(props, oilPressureIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Notification Bell Icon */}
-      
-
-     
     </div>
   );
 };
-
-export default OilPressureLineChart;
