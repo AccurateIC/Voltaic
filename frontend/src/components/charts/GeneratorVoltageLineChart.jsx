@@ -32,10 +32,14 @@ export const GeneratorVoltageLineChart = ({
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
+  // console.log("first.............")
+
   useEffect(() => {
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       setData((voltageData) => {
-        if (voltageData.length > 20) voltageData.shift();
+         console.log(timestamp);
+         
+        if (voltageData.length > 150) voltageData.shift();
 
         return [
           ...voltageData,
@@ -137,24 +141,27 @@ export const GeneratorVoltageLineChart = ({
             <Legend />
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L1"
-              stroke="#CAA98F"
+              stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, l1IsAnomaly)}
             />
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L2"
-              stroke="#B3CC99"
+              stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, l2IsAnomaly)}
             />
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L3"
-              stroke="#99B3CC"
+              stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, l3IsAnomaly)}
