@@ -35,9 +35,9 @@ export const GeneratorVoltageLineChart = ({
   // console.log("first.............")
 
   useEffect(() => {
+    
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       setData((voltageData) => {
-         console.log(timestamp);
          
         if (voltageData.length > 150) voltageData.shift();
 
@@ -111,18 +111,13 @@ export const GeneratorVoltageLineChart = ({
 );
 
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[500px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
+            margin={{ top: 1, right: 30, bottom: 30, left: 20} }
           >
             <CartesianGrid strokeDasharray="1 1" />
             <XAxis
@@ -138,7 +133,13 @@ export const GeneratorVoltageLineChart = ({
               domain={["auto", "auto"]}
             />
             <Tooltip />
-            <Legend />
+            <Legend
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="voltage"
+              wrapperStyle={{ paddingBottom: 15 }}
+            />
             <Line
               type="line"
               isAnimationActive={false}
@@ -166,6 +167,7 @@ export const GeneratorVoltageLineChart = ({
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, l3IsAnomaly)}
             />
+            
           </LineChart>
         </ResponsiveContainer>
       </div>

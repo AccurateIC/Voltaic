@@ -21,9 +21,9 @@ export const GeneratorCurrentLineChart = ({
   l1Current,
   l2Current,
   l3Current,
-  l1IsAnomaly,
-  l2IsAnomaly,
-  l3IsAnomaly,
+  l1CIsAnomaly,
+  l2CIsAnomaly,
+  l3CIsAnomaly,
 }) => {
   const dispatch = useDispatch();
   const [data, setData] = useState([]);
@@ -44,15 +44,15 @@ export const GeneratorCurrentLineChart = ({
             L1: l1Current,
             L2: l2Current,
             L3: l3Current,
-            l1IsAnomaly,
-            l2IsAnomaly,
-            l3IsAnomaly,
+            l1CIsAnomaly,
+            l2CIsAnomaly,
+            l3CIsAnomaly,
           },
         ];
       });
     }
 
-    if (l1IsAnomaly && !l1NotificationRef.current) {
+    if (l1CIsAnomaly && !l1NotificationRef.current) {
       dispatch(
         addNotification({
           id: "L1",
@@ -61,12 +61,12 @@ export const GeneratorCurrentLineChart = ({
         })
       );
       l1NotificationRef.current = true;
-    } else if (!l1IsAnomaly && l1NotificationRef.current) {
+    } else if (!l1CIsAnomaly && l1NotificationRef.current) {
       dispatch(removeNotification({ id: "L1", type: "current" }));
       l1NotificationRef.current = false;
     }
 
-    if (l2IsAnomaly && !l2NotificationRef.current) {
+    if (l2CIsAnomaly && !l2NotificationRef.current) {
       dispatch(
         addNotification({
           id: "L2",
@@ -75,12 +75,12 @@ export const GeneratorCurrentLineChart = ({
         })
       );
       l2NotificationRef.current = true;
-    } else if (!l2IsAnomaly && l2NotificationRef.current) {
+    } else if (!l2CIsAnomaly && l2NotificationRef.current) { //isAnomaly--false, current--true
       dispatch(removeNotification({ id: "L2", type: "current" }));
       l2NotificationRef.current = false;
     }
 
-    if (l3IsAnomaly && !l3NotificationRef.current) {
+    if (l3CIsAnomaly && !l3NotificationRef.current) {
       dispatch(
         addNotification({
           id: "L3",
@@ -89,7 +89,7 @@ export const GeneratorCurrentLineChart = ({
         })
       );
       l3NotificationRef.current = true;
-    } else if (!l3IsAnomaly && l3NotificationRef.current) {
+    } else if (!l3CIsAnomaly && l3NotificationRef.current) {
       dispatch(removeNotification({ id: "L3", type: "current" }));
       l3NotificationRef.current = false;
     }
@@ -98,18 +98,18 @@ export const GeneratorCurrentLineChart = ({
     l1Current,
     l2Current,
     l3Current,
-    l1IsAnomaly,
-    l2IsAnomaly,
-    l3IsAnomaly,
+    l1CIsAnomaly,
+    l2CIsAnomaly,
+    l3CIsAnomaly,
     dispatch,
   ]);
 
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[500px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={data} margin={{ top: 10, right: 30, bottom: 30, left: 20} }>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -128,7 +128,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l1IsAnomaly)}
+              dot={(props) => renderCustomDot(props,  l1CIsAnomaly)}
             />
             <Line
               type="line"
@@ -137,7 +137,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l2IsAnomaly)}
+              dot={(props) => renderCustomDot(props, l2CIsAnomaly)}
             />
             <Line
               type="line"
@@ -146,7 +146,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l3IsAnomaly)}
+              dot={(props) => renderCustomDot(props, l3CIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

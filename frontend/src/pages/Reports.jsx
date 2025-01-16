@@ -11,14 +11,15 @@ export const Reports = () => {
     timeStamp: new Date(),
     engineSpeed: 1480,
     engSpeedIsAnomaly: true,
-    l1Voltage: 0,
-    l2Voltage: 0,
-    l3Voltage: 0,
-    l1Current: 0,
-    l2Current: 0,
-    l3Current: 0,
+    engineFuelLevel: -1, //less than 5= low,
+    l1Voltage: 1,
+    l2Voltage: 2,
+    l3Voltage: 3,
+    l1Current: 1,
+    l2Current: 2,
+    l3Current: 3,
     oilPress: 0.0,
-    engineFuelLevel: -1,
+    fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
     l3IsAnomaly: true,
@@ -36,22 +37,25 @@ export const Reports = () => {
       l1Voltage: Math.round(message?.genL1Volts?.value),
       l2Voltage: Math.round(message?.genL2Volts?.value),
       l3Voltage: Math.round(message?.genL3Volts?.value),
-      l1Current: Math.round(message?.genL1Current?.value),
-      l2Current: Math.round(message?.genL2Current?.value),
-      l3Current: Math.round(message?.genL3Current?.value),
+      l1Current: 5,
+      l2Current: 6,
+      l3Current: 9,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
+      fuelLevelISAnomaly: message?.engineFuelLevel?.is_anomaly,
       l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
-      l1CIsAnomaly: message?.genL1Current?.is_anomaly,
-      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
-      // l3CIsAnomaly:message?.genL3Current?.is_anomaly,
-      l3CIsAnomaly: message?.genL3Current?.is_anomaly,
+      l3IsAnomaly:true,
+      l1CIsAnomaly: true,
+      l2CIsAnomaly: true,
+      l3CIsAnomaly: true,
       oilPress: message?.engOilPress.value,
       oilPressIsAnomaly: message?.engOilPress.is_anomaly,
       //oilPressIsAnomaly: true,
       engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
     });
+    console.log(stats.l3Current);
+    console.log(stats.l3CIsAnomaly);
+    console.log(message?.genL3Current?.is_anomaly);
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
@@ -67,8 +71,9 @@ export const Reports = () => {
       </div>
       <div className="min-h-[400px] bg-base-200">
         <EngineFuelLevelLineChart
-          fuelLevel={stats.engineFuelLevel}
           timeStamp={stats.timeStamp}
+          fuelLevel={stats.engineFuelLevel}
+          fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
         />
       </div>
       <div className="min-h-[400px] bg-base-200">

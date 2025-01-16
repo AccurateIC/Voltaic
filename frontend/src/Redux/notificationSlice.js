@@ -12,20 +12,19 @@ const notificationSlice = createSlice({
   name: "notifications",
   initialState,
   reducers: {
-    // Action to add a notification for current or voltage anomaly
+    
     addNotification: (state, action) => {
       const { id, message, type } = action.payload;
 
       if (type === "current" && !state.currentAnomalies[id]) {
         state.notifications.push(action.payload);
-        state.currentAnomalies[id] = true; // Mark current anomaly as active
+        state.currentAnomalies[id] = true; 
       } else if (type === "voltage" && !state.voltageAnomalies[id]) {
         state.notifications.push(action.payload);
-        state.voltageAnomalies[id] = true; // Mark voltage anomaly as active
+        state.voltageAnomalies[id] = true; 
       }
     },
 
-    // Action to remove a notification for current or voltage anomaly
     removeNotification: (state, action) => {
       const { id, type } = action.payload;
 
@@ -34,13 +33,12 @@ const notificationSlice = createSlice({
       );
 
       if (type === "current") {
-        state.currentAnomalies[id] = false; // Mark current anomaly as inactive
+        state.currentAnomalies[id] = false; 
       } else if (type === "voltage") {
-        state.voltageAnomalies[id] = false; // Mark voltage anomaly as inactive
+        state.voltageAnomalies[id] = false; 
       }
     },
 
-    // Clear all notifications (for example, reset button)
     clearNotifications: (state) => {
       state.notifications = [];
       state.currentAnomalies = { L1: false, L2: false, L3: false };

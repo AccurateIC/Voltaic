@@ -62,7 +62,7 @@ export const OilPressureLineChart = ({
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={data}margin={{ top: 10, right: 30, bottom: 30, left: 20} }>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -70,18 +70,27 @@ export const OilPressureLineChart = ({
                 value: "Pressure (Bar)",
                 angle: -90,
                 position: "insideLeft",
-              }}
+              }}domain={["auto", "auto"]}
             />
             <Tooltip />
-            <Legend />
+            {/* <Legend
+                         layout="horizontal"
+                         verticalAlign="top"
+                         align="center"
+                         iconType="voltage"
+                         wrapperStyle={{ paddingBottom: 15 }}
+                       /> */}
             <Line
-              type="monotone"
+              type="line"
+              isAnimationActive={false}
               dataKey="oilPressure"
-              stroke="#CAA98F"
-              name="Oil Pressure"
+              stroke="#5278d1"
+              // name="Oil Pressure"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, oilPressureIsAnomaly)}
+              
             />
+           
           </LineChart>
         </ResponsiveContainer>
       </div>
