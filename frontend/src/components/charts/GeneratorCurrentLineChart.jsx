@@ -127,7 +127,7 @@ export const GeneratorCurrentLineChart = ({
               dataKey="time"
               label={{ value: "Time", position: "bottom", offset: 0 }}
             />
-            <YAxis
+            <YAxis              n bv        
               label={{
                 value: "Current (V)",
                 angle: -90,

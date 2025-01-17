@@ -129,16 +129,7 @@ export const Generator = () => {
           kind="voltage"
           name={"L1 Voltage"}
           value={stats?.l1Voltage}
-          status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={stats?.l2Voltage}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -146,8 +137,17 @@ export const Generator = () => {
         <VoltageStatCard
           kind="voltage"
           name={"L2 Voltage"}
+          value={stats?.l2Voltage}
+          // status={"Discharging"}
+        />{" "}
+      </div>
+      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
+        {" "}
+        <VoltageStatCard
+          kind="voltage"
+          name={"L3 Voltage"}
           value={stats?.l3Voltage}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -156,7 +156,7 @@ export const Generator = () => {
           kind="current"
           name={"L1 Current"}
           value={stats?.l1Current}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -165,7 +165,7 @@ export const Generator = () => {
           kind="current"
           name={"L2 Current"}
           value={stats?.l2Current}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -174,7 +174,16 @@ export const Generator = () => {
           kind="current"
           name={"L3 Current"}
           value={stats?.l3Current}
-          status={"Discharging"}
+          // status={"Discharging"}
+        />{" "}
+      </div>
+      {/* <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
+        {" "}
+        <VoltageStatCard
+          kind="voltage"
+          name={"L1 Voltage"}
+          value={12.7}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -183,7 +192,7 @@ export const Generator = () => {
           kind="voltage"
           name={"L1 Voltage"}
           value={12.7}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
       </div>
       <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
@@ -192,18 +201,9 @@ export const Generator = () => {
           kind="voltage"
           name={"L1 Voltage"}
           value={12.7}
-          status={"Discharging"}
+          // status={"Discharging"}
         />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={12.7}
-          status={"Discharging"}
-        />{" "}
-      </div>
+      </div> */}
     </div>
   );
 };

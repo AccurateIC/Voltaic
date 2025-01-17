@@ -1,6 +1,3 @@
-// 
-
-// src/main.jsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -12,15 +9,15 @@ import TestChart from "./components/charts/TestChart.jsx";
 import Engine from "./pages/Engine.jsx";
 import { Generator } from "./pages/Generator.jsx";
 import { Reports } from "./pages/Reports.jsx";
-import { Provider } from "react-redux"; // Import Provider from react-redux
-import store from "./Redux/store.js"; // Import your Redux store
+import { Maintenance } from "./pages/Maintenance.jsx"; 
+import { Provider } from "react-redux";
+import store from "./Redux/store.js";
 import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
 
-// Wrap the entire app with Redux Provider
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Provider store={store}> {/* Wrap with Redux Provider */}
+    <Provider store={store}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
@@ -29,6 +26,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="maintenance" element={<Maintenance />} />
           </Route>
           <Route path="/login" element={<Login />} />
         </Routes>

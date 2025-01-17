@@ -1,21 +1,8 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import {
-  addNotification,
-  removeNotification,
-} from "../../redux/notificationSlice";
+import { addNotification, removeNotification } from "../../redux/notificationSlice";
 import renderCustomDot from "./renderCustomDot";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export const GeneratorVoltageLineChart = ({
   timeStamp,
@@ -26,11 +13,14 @@ export const GeneratorVoltageLineChart = ({
   l2IsAnomaly,
   l3IsAnomaly,
 }) => {
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();
   const [data, setData] = useState([]);
 
+  const l1NotificationRef = useRef(false);
+  const l2NotificationRef = useRef(false);
+  const l3NotificationRef = useRef(false);
+
   useEffect(() => {
-   
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       setData((voltageData) => {
         if (voltageData.length > 48) voltageData.shift();
@@ -42,45 +32,59 @@ export const GeneratorVoltageLineChart = ({
             L1: l1Voltage,
             L2: l2Voltage,
             L3: l3Voltage,
+            l1IsAnomaly,
+            l2IsAnomaly,
+            l3IsAnomaly,
           },
         ];
       });
     }
 
-    if (l1IsAnomaly) {
+    // Handling L1 voltage anomaly notification
+    if (l1IsAnomaly && !l1NotificationRef.current) {
       dispatch(
-        addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" })
+        addNotification({
+          id: "L1",
+          message: "Voltage anomaly detected in L1 phase!",
+          type: "voltage",
+        })
       );
-    } else {
-      dispatch(removeNotification("L1"));
+      l1NotificationRef.current = true;
+    } else if (!l1IsAnomaly && l1NotificationRef.current) {
+      dispatch(removeNotification({ id: "L1", type: "voltage" }));
+      l1NotificationRef.current = false;
     }
 
-    if (l2IsAnomaly) {
+    // Handling L2 voltage anomaly notification
+    if (l2IsAnomaly && !l2NotificationRef.current) {
       dispatch(
-        addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" })
+        addNotification({
+          id: "L2",
+          message: "Voltage anomaly detected in L2 phase!",
+          type: "voltage",
+        })
       );
-    } else {
-      dispatch(removeNotification("L2"));
+      l2NotificationRef.current = true;
+    } else if (!l2IsAnomaly && l2NotificationRef.current) {
+      dispatch(removeNotification({ id: "L2", type: "voltage" }));
+      l2NotificationRef.current = false;
     }
 
-    if (l3IsAnomaly) {
+    // Handling L3 voltage anomaly notification
+    if (l3IsAnomaly && !l3NotificationRef.current) {
       dispatch(
-        addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" })
+        addNotification({
+          id: "L3",
+          message: "Voltage anomaly detected in L3 phase!",
+          type: "voltage",
+        })
       );
-    } else {
-      dispatch(removeNotification("L3"));
+      l3NotificationRef.current = true;
+    } else if (!l3IsAnomaly && l3NotificationRef.current) {
+      dispatch(removeNotification({ id: "L3", type: "voltage" }));
+      l3NotificationRef.current = false;
     }
-  }, [
-    timeStamp,
-    l1Voltage,
-    l2Voltage,
-    l3Voltage,
-    l1IsAnomaly,
-    l2IsAnomaly,
-    l3IsAnomaly,
-    dispatch,
-  ]);
-
+  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]);
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
@@ -99,6 +103,7 @@ export const GeneratorVoltageLineChart = ({
             <XAxis
               dataKey="time"
               label={{ value: "Time", position: "bottom", offset: 0 }}
+              
             />
             <YAxis
               label={{
@@ -111,33 +116,32 @@ export const GeneratorVoltageLineChart = ({
             <Tooltip />
             <Legend />
             <Line
-  type="line"
-  dataKey="L1"
-  stroke="#CAA98F"
-  name="L1 Phase"
-  strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L1IsAnomaly)}
-/>
-<Line
-  type="line"
-  dataKey="L2"
-  stroke="#B3CC99"
-  name="L2 Phase"
-  strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L2IsAnomaly)}
-/>
-<Line
-  type="line"
-  dataKey="L3"
-  stroke="#99B3CC"
-  name="L3 Phase"
-  strokeWidth={2}
-  dot={(props) => renderCustomDot(props, props.payload.L3IsAnomaly)}
-/>
-
+              type="line"
+              dataKey="L1"
+              stroke="#CAA98F"
+              name="L1 Phase"
+              strokeWidth={2}
+              dot={(props) => renderCustomDot(props, l1IsAnomaly)}
+            />
+            <Line
+              type="line"
+              dataKey="L2"
+              stroke="#B3CC99"
+              name="L2 Phase"
+              strokeWidth={2}
+              dot={(props) => renderCustomDot(props, l2IsAnomaly)}
+            />
+            <Line
+              type="line"
+              dataKey="L3"
+              stroke="#99B3CC"
+              name="L3 Phase"
+              strokeWidth={2}
+              dot={(props) => renderCustomDot(props, l3IsAnomaly)}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
-  );
+);
 };

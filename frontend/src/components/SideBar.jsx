@@ -1,9 +1,12 @@
-// /src/components/SideBar.jsx
 import { NavLink } from "react-router";
+import { FaTachometerAlt, FaCog, FaPlug, FaFileAlt } from 'react-icons/fa';
 
 const SideBar = () => {
   return (
-    <ul className="menu bg-base-200 w-56">
+<ul
+      className="menu w-56"
+      style={{ backgroundColor: "rgba(177, 213, 189, 1)" }}
+    >
       <li>
         <NavLink
           to="/"
@@ -12,7 +15,7 @@ const SideBar = () => {
           }
           end
         >
-          Dashboard
+          <FaTachometerAlt className="mr-2" /> Dashboard
         </NavLink>
       </li>
       <li>
@@ -23,7 +26,7 @@ const SideBar = () => {
           }
           end
         >
-          Engine
+          <FaCog className="mr-2" /> Engine
         </NavLink>
       </li>
       <li>
@@ -34,7 +37,7 @@ const SideBar = () => {
           }
           end
         >
-          Generator
+          <FaPlug className="mr-2" /> Generator
         </NavLink>
       </li>
       <li>
@@ -45,9 +48,20 @@ const SideBar = () => {
           }
           end
         >
-          Reports
+          <FaFileAlt className="mr-2" /> Reports
         </NavLink>
       </li>
+      {/* <li>
+        <NavLink
+          to="/maintenance"
+          className={({ isActive }) =>
+            isActive ? "active bg-base-content text-base-300" : ""
+          }
+          end
+        >
+          Predictive Maintenance
+        </NavLink>
+      </li> */}
       {/* <li>
         <details open>
           <summary>Parent</summary>

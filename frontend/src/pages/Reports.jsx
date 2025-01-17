@@ -94,6 +94,17 @@ export const Reports = () => {
           oilPressureIsAnomaly={stats.oilPressIsAnomaly}
         />
       </div>
+      <div className="min-h-[400px] bg-base-200">
+        <GeneratorCurrentLineChart
+          timeStamp={stats.timeStamp}
+          l1Current={stats.l1Current}                   
+          l2Current={stats.l2Current}
+          l3Current={stats.l3Current}
+          l1IsAnomaly={stats.l1IsAnomaly}
+          l2IsAnomaly={stats.l2IsAnomaly}
+          l3IsAnomaly={stats.l3IsAnomaly}
+        />
+      </div>
     </div>
   );
 };

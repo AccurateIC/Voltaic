@@ -21,7 +21,7 @@ function Engine() {
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
   const cols = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
 
-  const [shouldToolbarBeVisible, setShouldToolbarBeVisible] = useState(true);
+  const [shouldToolbarBeVisible, setShouldToolbarBeVisible] = useState(false);
   const [rglContainerWidth, setRglContainerWidth] = useState(1650);
   const [layout, setLayout] = useState(() => {
     const savedLayout = localStorage.getItem("engine-page-layout");
@@ -59,9 +59,12 @@ function Engine() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ backgroundColor: "rgba(48, 48, 48, 1)" }}
+    >
       {shouldToolbarBeVisible && (
-        <div className="flex justify-center w-full mb-4">
+        <div className="flex justify-center mr-3 mb-4">
           <Toolbar />
         </div>
       )}
@@ -80,13 +83,12 @@ function Engine() {
           onWidthChange={handleWidthChange}
           onBreakpointChange={handleBreakpointChange}
         >
-          {/* ENGINE SPEED */}
           <div
             key="a"
             className="bg-base-200 flex items-center justify-center"
             style={{
-              width: "400px", // Increased width
-              height: "400px", // Increased height
+              width: "400px",
+              height: "400px",
               boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
               borderRadius: "8px",
               flexDirection: "column",
@@ -101,7 +103,6 @@ function Engine() {
               }}
             >
               {" "}
-              {/* Slightly larger text */}
               ENGINE SPEED
             </h2>
             <ReactSpeedometer
@@ -113,16 +114,15 @@ function Engine() {
               startColor="#4CAF50"
               endColor="#FF0000"
               textColor="#000"
-              height={250} // Increased height of the speedometer
-              width={300} // Increased width of the speedometer
-              ringWidth={35} // Increased ring width for proportion
-              needleHeightRatio={0.7} // Adjusted needle size for better visibility
-              valueTextFontSize="16px" // Slightly larger value text font
+              height={250}
+              width={300}
+              ringWidth={35}
+              needleHeightRatio={0.7}
+              valueTextFontSize="16px"
               currentValueText="${value} RPM"
             />
           </div>
 
-          {/* FUEL QUANTITY */}
           <div
             key="b"
             className="bg-base-200 flex flex-col items-center justify-center"
@@ -136,15 +136,16 @@ function Engine() {
           >
             <h2
               style={{
-                font: "black",
+                color: "black",
                 marginBottom: "15px",
-                marginTop: "05px",
+                marginTop: "5px", 
                 fontSize: "18px",
                 fontWeight: "bold",
               }}
             >
               FUEL QUANTITY
             </h2>
+
             <div style={{ width: "370px", height: "300px" }}>
               <GaugeChart
                 id="fuel-quantity-gauge"
@@ -153,17 +154,16 @@ function Engine() {
                 arcWidth={0.3}
                 percent={0.21}
                 needleColor="#000"
+                textColor="black"
                 style={{ width: "100%", height: "100%" }}
               />
             </div>
           </div>
-
-          {/* Oil Pressure */}
           <div key="c" className="bg-base-200 ">
             <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
-              <h2>Oil Pressure</h2>
-              <div className="text-7xl mt-4">
-                <FaOilCan />
+              <h2>OIL PRESSURE</h2>
+              <div className="text-8xl mt-4">
+                <FaOilCan style={{ color: "rgba(177, 213, 180, 1)" }} />
                 <p className="font-bold text-3xl mt-4">2.06 bar</p>
               </div>
             </div>
@@ -174,21 +174,20 @@ function Engine() {
             className="bg-transparent flex items-center justify-center"
           >
             <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
-              <h2>Charge Alt Voltage</h2>
+              <h2>CHARGE ALT VOLTAGE</h2>
               <div className="text-6xl mb-6 mt-7">
-                <FaBolt />
+                <FaBolt style={{ color: "rgba(177, 213, 180, 1)" }} />
               </div>
               <p className="font-bold text-3xl">11.2 V</p>
             </div>
           </div>
 
           <div key="e" className="bg-base-200">
-            {/* Custom Fuel Level Meter */}
             <div
               key="c"
               className="bg-base-200 flex flex-col items-center p-4 font-bold"
             >
-              <h2>Fuel Level</h2>
+              <h2>FUEL LEVEL</h2>
               <div className="flex flex-col items-center">
                 <div className="text-sm font-medium mb-2">50L</div>
                 <div
@@ -218,12 +217,11 @@ function Engine() {
             </div>
           </div>
 
-          {/* Charge Voltage */}
           <div key="f" className="bg-base-200">
             <div className="stats bg-base-200 shadow w-full h-full flex flex-col items-center justify-center font-bold">
-              <h2>Battery Voltage</h2>
+              <h2>BATTERY VOLTAGE</h2>
               <div className="text-7xl mb-4 mt-4">
-                <FaBatteryFull />
+                <FaBatteryFull style={{ color: "rgba(177, 213, 180, 1)" }} />
               </div>
               <p className="font-bold text-3xl">12.7 V</p>
             </div>
