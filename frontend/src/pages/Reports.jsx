@@ -4,11 +4,14 @@ import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart"
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
+import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
 import { useWebSocket } from "../lib/WebSocketConnection";
 
 export const Reports = () => {
   const [stats, setStats] = useState({
     timeStamp: new Date(),
+    batteryVolts:0,
+    chargeAltVolts:0,
     engineSpeed: 1480,
     engSpeedIsAnomaly: true,
     engineFuelLevel: -1, //less than 5= low,
@@ -27,12 +30,16 @@ export const Reports = () => {
     l2CIsAnomaly: false,
     l3CIsAnomaly: false,
     oilPressIsAnomaly: true,
+    batteryVoltsIsAnomaly: true,
+    chargeAltVoltsIsAnomaly:true,
   });
 
   const handleWsMessage = useCallback((message) => {
     console.log(message);
     setStats({
       timeStamp: message?.timestamp,
+      batteryVolts: Math.round(message?.engBatteryVolts?.value),
+      chargeAltVolts: Math.round(message?.engChargeAltVolts?.value),
       engineSpeed: Math.round(message?.engSpeed?.value),
       l1Voltage: Math.round(message?.genL1Volts?.value),
       l2Voltage: Math.round(message?.genL2Volts?.value),
@@ -44,19 +51,21 @@ export const Reports = () => {
       fuelLevelISAnomaly: message?.engineFuelLevel?.is_anomaly,
       l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly:true,
-      l1CIsAnomaly: true,
-      l2CIsAnomaly: false,
-      l3CIsAnomaly: true,
+      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
+      l1CIsAnomaly: message?.genL1Current?.is_anomaly,
+      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
+      l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress.value,
-      oilPressIsAnomaly:false,
+      oilPressIsAnomaly:message?.engOilPress.is_anomaly,
       //oilPressIsAnomaly: true,
       engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
+      batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
+      chargeAltVoltsIsAnomaly:message?.engChargeAltVolts?.is_anomaly,
     });
     console.log(stats.l1CIsAnomaly);
     console.log(stats.l2CIsAnomaly);
-    // console.log(message?.engOilPress.is_anomaly);
-    // console.log(stats.oilPressIsAnomaly);
+     console.log(stats.batteryVoltsIsAnomaly);
+     console.log(stats.chargeAltVoltsIsAnomaly);
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
@@ -105,6 +114,15 @@ export const Reports = () => {
           timeStamp={stats.timeStamp}
           oilPressure={stats.oilPress}
           oilPressureIsAnomaly={stats.oilPressIsAnomaly}
+        />
+      </div>
+      <div className="min-h-[400px] bg-base-200">
+        <BatteryChargeLineChart
+          timeStamp={stats.timeStamp}
+          batteryVolts={stats.batteryVolts}
+          chargeAltVolts={stats.chargeAltVolts}
+          batteryVoltsIsAnomaly={stats.batteryVoltsIsAnomaly}
+          chargeAltVoltsIsAnomaly={stats.chargeAltVoltsIsAnomaly}
         />
       </div>
     </div>
