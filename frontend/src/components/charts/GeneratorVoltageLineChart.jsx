@@ -20,10 +20,14 @@ export const GeneratorVoltageLineChart = ({
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
+  // console.log("first.............")
+
   useEffect(() => {
+    
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       setData((voltageData) => {
-        if (voltageData.length > 48) voltageData.shift();
+         
+        if (voltageData.length > 150) voltageData.shift();
 
         return [
           ...voltageData,
@@ -40,7 +44,6 @@ export const GeneratorVoltageLineChart = ({
       });
     }
 
-    // Handling L1 voltage anomaly notification
     if (l1IsAnomaly && !l1NotificationRef.current) {
       dispatch(
         addNotification({
@@ -55,7 +58,6 @@ export const GeneratorVoltageLineChart = ({
       l1NotificationRef.current = false;
     }
 
-    // Handling L2 voltage anomaly notification
     if (l2IsAnomaly && !l2NotificationRef.current) {
       dispatch(
         addNotification({
@@ -70,7 +72,6 @@ export const GeneratorVoltageLineChart = ({
       l2NotificationRef.current = false;
     }
 
-    // Handling L3 voltage anomaly notification
     if (l3IsAnomaly && !l3NotificationRef.current) {
       dispatch(
         addNotification({
@@ -84,22 +85,29 @@ export const GeneratorVoltageLineChart = ({
       dispatch(removeNotification({ id: "L3", type: "voltage" }));
       l3NotificationRef.current = false;
     }
-  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]);
+  },
+  [
+    timeStamp,
+    l1Voltage,
+    l2Voltage,
+    l3Voltage,
+    l1IsAnomaly,
+    l2IsAnomaly,
+    l3IsAnomaly,
+    dispatch,
+  ]
+);
+
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[500px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
+            margin={{ top: 1, right: 30, bottom: 30, left: 20} }
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="1 1" />
             <XAxis
               dataKey="time"
               label={{ value: "Time", position: "bottom", offset: 0 }}
@@ -114,31 +122,42 @@ export const GeneratorVoltageLineChart = ({
               domain={["auto", "auto"]}
             />
             <Tooltip />
-            <Legend />
-            <Line
-              type="line"
-              dataKey="L1"
-              stroke="#CAA98F"
-              name="L1 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l1IsAnomaly)}
+            <Legend
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="voltage"
+              wrapperStyle={{ paddingBottom: 15 }}
             />
-            <Line
-              type="line"
-              dataKey="L2"
-              stroke="#B3CC99"
-              name="L2 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l2IsAnomaly)}
-            />
-            <Line
-              type="line"
-              dataKey="L3"
-              stroke="#99B3CC"
-              name="L3 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l3IsAnomaly)}
-            />
+           <Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L1"
+  stroke="#5dd12c"
+  name="L1 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
+/>
+<Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L2"
+  stroke="#ede907"
+  name="L2 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l2IsAnomaly)}
+/>
+<Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L3"
+  stroke="#5278d1"
+  name="L3 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
+/>
+
+            
           </LineChart>
         </ResponsiveContainer>
       </div>
