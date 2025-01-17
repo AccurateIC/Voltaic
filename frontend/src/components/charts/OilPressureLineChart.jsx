@@ -58,7 +58,7 @@ export const OilPressureLineChart = ({
   }, [timeStamp, oilPressure, oilPressureIsAnomaly, dispatch]);
 
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[500px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">

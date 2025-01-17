@@ -120,7 +120,13 @@ export const GeneratorCurrentLineChart = ({
               }}
             />
             <Tooltip />
-            <Legend />
+            <Legend
+                          layout="horizontal"
+                          verticalAlign="top"
+                          align="center"
+                          iconType="voltage"
+                          wrapperStyle={{ paddingBottom: 15 }}
+                        />
             <Line
               type="line"
               isAnimationActive={false}
