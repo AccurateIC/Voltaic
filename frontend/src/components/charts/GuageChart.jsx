@@ -8,12 +8,10 @@ export const GaugeChart = ({
   size = 300,
   primaryColor = "#82ca9d",
 }) => {
-  // Calculate rotation angle for the needle
   const range = max - min;
   const percentage = (value - min) / range;
-  const rotationAngle = -90 + percentage * 180; // -90 to 90 degrees
+  const rotationAngle = -90 + percentage * 180;
 
-  // Generate tick marks
   const generateTicks = () => {
     const ticks = [];
     const numTicks = 10;
@@ -22,7 +20,6 @@ export const GaugeChart = ({
       const tickAngle = -90 + i * (180 / numTicks);
       const isLongTick = i % 2 === 0;
 
-      // Calculate tick line coordinates using trigonometry
       const innerRadius = isLongTick ? size * 0.35 : size * 0.38;
       const outerRadius = size * 0.4;
 
@@ -35,7 +32,6 @@ export const GaugeChart = ({
       const endY =
         size / 2 + outerRadius * Math.sin((tickAngle * Math.PI) / 180);
 
-      // Add tick label for long ticks
       let label = null;
       if (isLongTick) {
         const labelValue = min + (i * range) / numTicks;

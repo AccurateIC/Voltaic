@@ -6,46 +6,57 @@ import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrent
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { useWebSocket } from "../lib/WebSocketConnection";
 
-
 export const Reports = () => {
   const [stats, setStats] = useState({
     timeStamp: new Date(),
     engineSpeed: 1480,
-    l1Voltage: 0,
-    l2Voltage: 0,
-    l3Voltage: 0,
-    l1Current: 0,
-    l2Current: 0,
-    l3Current: 0,
+    engSpeedIsAnomaly: true,
+    engineFuelLevel: -1, //less than 5= low,
+    l1Voltage: 1,
+    l2Voltage: 2,
+    l3Voltage: 3,
+    l1Current: 1,
+    l2Current: 2,
+    l3Current: 3,
     oilPress: 0.0,
-    engineFuelLevel: -1,
+    fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
     l3IsAnomaly: true,
-    // oilPressIsAnomaly: true,
+    l1CIsAnomaly: false,
+    l2CIsAnomaly: false,
+    l3CIsAnomaly: false,
+    oilPressIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {
-    console.log(
-      "Current oil pressure anomaly flag:",
-      message
-    );
-    setStats({  
+    console.log(message);
+    setStats({
       timeStamp: message?.timestamp,
       engineSpeed: Math.round(message?.engSpeed?.value),
       l1Voltage: Math.round(message?.genL1Volts?.value),
       l2Voltage: Math.round(message?.genL2Volts?.value),
       l3Voltage: Math.round(message?.genL3Volts?.value),
-      l1Current: Math.round(message?.genL1Current?.value),
-      l2Current: Math.round(message?.genL2Current?.value),
-      l3Current: Math.round(message?.genL3Current?.value),
-      oilPress: message?.oilPress,
+      l1Current: 5,
+      l2Current: 6,
+      l3Current: 9,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      l1IsAnomaly:message?.genL1Volts?.is_anomaly,
-      l2IsAnomaly:message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly:message?.genL3Volts?.is_anomaly,
-      // oilPressIsAnomaly: true,
+      fuelLevelISAnomaly: message?.engineFuelLevel?.is_anomaly,
+      l1IsAnomaly: message?.genL1Volts?.is_anomaly,
+      l2IsAnomaly: message?.genL2Volts?.is_anomaly,
+      l3IsAnomaly:true,
+      l1CIsAnomaly: true,
+      l2CIsAnomaly: false,
+      l3CIsAnomaly: true,
+      oilPress: message?.engOilPress.value,
+      oilPressIsAnomaly:false,
+      //oilPressIsAnomaly: true,
+      engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
     });
+    console.log(stats.l1CIsAnomaly);
+    console.log(stats.l2CIsAnomaly);
+    // console.log(message?.engOilPress.is_anomaly);
+    // console.log(stats.oilPressIsAnomaly);
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
@@ -54,14 +65,16 @@ export const Reports = () => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       <div className="min-h-[400px] bg-base-200">
         <EngineSpeedLineChart
-          value={stats.engineSpeed}
           timeStamp={stats.timeStamp}
+          value={stats.engineSpeed}
+          engSpeedIsAnomaly={stats.engSpeedIsAnomaly}
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
         <EngineFuelLevelLineChart
-          fuelLevel={stats.engineFuelLevel}
           timeStamp={stats.timeStamp}
+          fuelLevel={stats.engineFuelLevel}
+          fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
@@ -81,16 +94,16 @@ export const Reports = () => {
           l1Current={stats.l1Current}
           l2Current={stats.l2Current}
           l3Current={stats.l3Current}
-          l1IsAnomaly={stats.l1IsAnomaly}
-          l2IsAnomaly={stats.l2IsAnomaly}
-          l3IsAnomaly={stats.l3IsAnomaly}
+          l1CIsAnomaly={stats.l1CIsAnomaly}
+          l2CIsAnomaly={stats.l2CIsAnomaly}
+          l3CIsAnomaly={stats.l3CIsAnomaly}
         />
       </div>
 
       <div className="min-h-[400px] bg-base-200">
         <OilPressureLineChart
-          oilPressure={stats.oilPress}
           timeStamp={stats.timeStamp}
+          oilPressure={stats.oilPress}
           oilPressureIsAnomaly={stats.oilPressIsAnomaly}
         />
       </div>

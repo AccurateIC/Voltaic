@@ -1,10 +1,11 @@
 
+
 import { createSlice } from "@reduxjs/toolkit";
 
-
 const initialState = {
-  notifications: [],
-  activeAnomalies: { L1: false, L2: false, L3: false }, 
+  notifications: [],  
+  currentAnomalies: { L1: false, L2: false, L3: false }, 
+  voltageAnomalies: { L1: false, L2: false, L3: false },
 };
 
 const notificationSlice = createSlice({
@@ -13,27 +14,39 @@ const notificationSlice = createSlice({
   reducers: {
     
     addNotification: (state, action) => {
-      const { id, message } = action.payload;
-      if (!state.activeAnomalies[id]) {
+      const { id, message, type } = action.payload;
+
+      if (type === "current" && !state.currentAnomalies[id]) {
         state.notifications.push(action.payload);
-        state.activeAnomalies[id] = true; 
+        state.currentAnomalies[id] = true; 
+      } else if (type === "voltage" && !state.voltageAnomalies[id]) {
+        state.notifications.push(action.payload);
+        state.voltageAnomalies[id] = true; 
       }
     },
-   
+
     removeNotification: (state, action) => {
-      const id = action.payload;
+      const { id, type } = action.payload;
+
       state.notifications = state.notifications.filter(
         (notification) => notification.id !== id
       );
-      state.activeAnomalies[id] = false; 
+
+      if (type === "current") {
+        state.currentAnomalies[id] = false; 
+      } else if (type === "voltage") {
+        state.voltageAnomalies[id] = false; 
+      }
     },
+
     clearNotifications: (state) => {
       state.notifications = [];
-      state.activeAnomalies = { L1: false, L2: false, L3: false };
+      state.currentAnomalies = { L1: false, L2: false, L3: false };
+      state.voltageAnomalies = { L1: false, L2: false, L3: false };
     },
   },
 });
 
-export const { addNotification, removeNotification, clearNotifications } =
-  notificationSlice.actions;
+export const { addNotification, removeNotification, clearNotifications } = notificationSlice.actions;
+
 export default notificationSlice.reducer;

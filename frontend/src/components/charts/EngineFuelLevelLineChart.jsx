@@ -9,38 +9,39 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import renderCustomDot from "./renderCustomDot";
 
-export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel }) => {
+export const EngineFuelLevelLineChart = ({
+  timeStamp,
+  fuelLevel,
+  fuelLevelISAnomaly,
+}) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     if (fuelLevel !== -1) {
       setData((currentData) => {
-        if (currentData.length > 48) currentData.shift(); 
+        if (currentData.length > 48) currentData.shift();
 
         return [
           ...currentData,
           {
             time: new Date(timeStamp).toLocaleTimeString(),
             fuelLevel: fuelLevel,
+            fuelLevelISAnomaly,
           },
         ];
       });
     }
   }, [fuelLevel, timeStamp]);
   return (
-    <div className="h-[400px] w-full">
+    <div className="h-[500px] w-full ">
       <h2 className="text-lg font-semibold p-4">Engine Fuel Level Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
+            margin={{ top: 15, right: 30, bottom: 30, left: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
@@ -53,16 +54,24 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel }) => {
                 angle: -90,
                 position: "insideLeft",
               }}
-              ticks={[0, 50, 100, 150, 200]}
+              domain={["auto", "auto"]}
             />
             <Tooltip />
+            {/* <Legend
+                          layout="horizontal"
+                          verticalAlign="top"
+                          align="center"
+                          iconType="voltage"
+                          wrapperStyle={{ paddingBottom: 15 }}
+                        /> */}
             <Line
-              type="monotone"
+              type="line"
+              isAnimationActive={false}
               dataKey="fuelLevel"
-              stroke="#2563eb"
+              stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={false}
+              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

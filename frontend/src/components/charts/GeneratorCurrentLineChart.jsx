@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CiBellOn } from "react-icons/ci";
+import { useDispatch } from "react-redux";
+import {
+  addNotification,
+  removeNotification,
+} from "../../redux/notificationSlice";
 import renderCustomDot from "./renderCustomDot";
 import {
   LineChart,
@@ -17,13 +21,12 @@ export const GeneratorCurrentLineChart = ({
   l1Current,
   l2Current,
   l3Current,
-  l1IsAnomaly,
-  l2IsAnomaly,
-  l3IsAnomaly,
+  l1CIsAnomaly,
+  l2CIsAnomaly,
+  l3CIsAnomaly,
 }) => {
+  const dispatch = useDispatch();
   const [data, setData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const l1NotificationRef = useRef(false);
   const l2NotificationRef = useRef(false);
@@ -32,7 +35,7 @@ export const GeneratorCurrentLineChart = ({
   useEffect(() => {
     if (l1Current !== 0 && l2Current !== 0 && l3Current !== 0) {
       setData((currentData) => {
-        if (currentData.length > 48) currentData.shift();
+        if (currentData.length > 150) currentData.shift();
 
         return [
           ...currentData,
@@ -41,126 +44,109 @@ export const GeneratorCurrentLineChart = ({
             L1: l1Current,
             L2: l2Current,
             L3: l3Current,
-            l1IsAnomaly,
-            l2IsAnomaly,
-            l3IsAnomaly,
+            l1CIsAnomaly,
+            l2CIsAnomaly,
+            l3CIsAnomaly,
           },
         ];
       });
     }
 
-    if (l1IsAnomaly && !l1NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L1", message: "Anomaly detected in L1 phase!" },
-      ]);
-      l1NotificationRef.current = true;
-    }
-
-    if (!l1IsAnomaly && l1NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L1")
+    if (l1CIsAnomaly && !l1NotificationRef.current) {
+      dispatch(
+        addNotification({
+          id: "L1",
+          message: "Current anomaly detected in L1 phase!",
+          type: "current",
+        })
       );
+      l1NotificationRef.current = true;
+    } else if (!l1CIsAnomaly && l1NotificationRef.current) {
+      dispatch(removeNotification({ id: "L1", type: "current" }));
       l1NotificationRef.current = false;
     }
 
-    if (l2IsAnomaly && !l2NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L2", message: "Anomaly detected in L2 phase!" },
-      ]);
-      l2NotificationRef.current = true;
-    }
-
-    if (!l2IsAnomaly && l2NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L2")
+    if (l2CIsAnomaly && !l2NotificationRef.current) {
+      dispatch(
+        addNotification({
+          id: "L2",
+          message: "Current anomaly detected in L2 phase!",
+          type: "current",
+        })
       );
+      l2NotificationRef.current = true;
+    } else if (!l2CIsAnomaly && l2NotificationRef.current) { //isAnomaly--false, current--true
+      dispatch(removeNotification({ id: "L2", type: "current" }));
       l2NotificationRef.current = false;
     }
 
-    if (l3IsAnomaly && !l3NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L3", message: "Anomaly detected in L3 phase!" },
-      ]);
-      l3NotificationRef.current = true;
-    }
-
-    if (!l3IsAnomaly && l3NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L3")
+    if (l3CIsAnomaly && !l3NotificationRef.current) {
+      dispatch(
+        addNotification({
+          id: "L3",
+          message: "Current anomaly detected in L3 phase!",
+          type: "current",
+        })
       );
+      l3NotificationRef.current = true;
+    } else if (!l3CIsAnomaly && l3NotificationRef.current) {
+      dispatch(removeNotification({ id: "L3", type: "current" }));
       l3NotificationRef.current = false;
     }
   }, [
+    timeStamp,
     l1Current,
     l2Current,
     l3Current,
-    timeStamp,
-    l1IsAnomaly,
-    l2IsAnomaly,
-    l3IsAnomaly,
+    l1CIsAnomaly,
+    l2CIsAnomaly,
+    l3CIsAnomaly,
+    dispatch,
   ]);
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
- 
-
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[500px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
-          >
+          <LineChart data={data} margin={{ top: 10, right: 30, bottom: 30, left: 20} }>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="time"
-              label={{ value: "Time", position: "bottom", offset: 0 }}
-            />
-            <YAxis              n bv        
+            <XAxis dataKey="time" />
+            <YAxis
               label={{
-                value: "Current (V)",
+                value: "Current (A)",
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={["auto", "auto"]}
             />
             <Tooltip />
             <Legend />
-
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L1"
-              stroke="#CAA98F"
+              stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l1CIsAnomaly)}
             />
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L2"
-              stroke="#B3CC99"
+              stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l2IsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
             />
             <Line
               type="line"
+              isAnimationActive={false}
               dataKey="L3"
-              stroke="#99B3CC"
+              stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l3CIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>
