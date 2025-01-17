@@ -128,7 +128,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props,  l1CIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l1CIsAnomaly)}
             />
             <Line
               type="line"
@@ -137,7 +137,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l2CIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
             />
             <Line
               type="line"
@@ -146,7 +146,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l3CIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.l3CIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

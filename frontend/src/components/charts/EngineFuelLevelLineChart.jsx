@@ -28,6 +28,7 @@ export const EngineFuelLevelLineChart = ({
           {
             time: new Date(timeStamp).toLocaleTimeString(),
             fuelLevel: fuelLevel,
+            fuelLevelISAnomaly,
           },
         ];
       });
@@ -70,7 +71,7 @@ export const EngineFuelLevelLineChart = ({
               stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, fuelLevelISAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

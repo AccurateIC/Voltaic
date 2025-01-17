@@ -27,6 +27,7 @@ export const EngineSpeedLineChart = ({
           {
             time: new Date(timeStamp).toLocaleTimeString(),
             engineSpeed: value,
+            engSpeedIsAnomaly,
           },
         ];
       });
@@ -69,7 +70,7 @@ export const EngineSpeedLineChart = ({
               stroke="#5278d1"
               name="Engine Speed"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, engSpeedIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.engSpeedIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

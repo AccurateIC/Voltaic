@@ -46,16 +46,17 @@ export const Reports = () => {
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
       l3IsAnomaly:true,
       l1CIsAnomaly: true,
-      l2CIsAnomaly: true,
+      l2CIsAnomaly: false,
       l3CIsAnomaly: true,
       oilPress: message?.engOilPress.value,
-      oilPressIsAnomaly: message?.engOilPress.is_anomaly,
+      oilPressIsAnomaly:false,
       //oilPressIsAnomaly: true,
       engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
     });
-    console.log(stats.l3Current);
-    console.log(stats.l3CIsAnomaly);
-    console.log(message?.genL3Current?.is_anomaly);
+    console.log(stats.l1CIsAnomaly);
+    console.log(stats.l2CIsAnomaly);
+    // console.log(message?.engOilPress.is_anomaly);
+    // console.log(stats.oilPressIsAnomaly);
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
@@ -93,9 +94,9 @@ export const Reports = () => {
           l1Current={stats.l1Current}
           l2Current={stats.l2Current}
           l3Current={stats.l3Current}
-          l1IsAnomaly={stats.l1CIsAnomaly}
-          l2IsAnomaly={stats.l2CIsAnomaly}
-          l3IsAnomaly={stats.l3CIsAnomaly}
+          l1CIsAnomaly={stats.l1CIsAnomaly}
+          l2CIsAnomaly={stats.l2CIsAnomaly}
+          l3CIsAnomaly={stats.l3CIsAnomaly}
         />
       </div>
 

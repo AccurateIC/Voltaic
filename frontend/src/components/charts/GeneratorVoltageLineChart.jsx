@@ -140,33 +140,34 @@ export const GeneratorVoltageLineChart = ({
               iconType="voltage"
               wrapperStyle={{ paddingBottom: 15 }}
             />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L1"
-              stroke="#5dd12c"
-              name="L1 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l1IsAnomaly)}
-            />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L2"
-              stroke="#ede907"
-              name="L2 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l2IsAnomaly)}
-            />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L3"
-              stroke="#5278d1"
-              name="L3 Phase"
-              strokeWidth={2}
-              dot={(props) => renderCustomDot(props, l3IsAnomaly)}
-            />
+           <Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L1"
+  stroke="#5dd12c"
+  name="L1 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
+/>
+<Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L2"
+  stroke="#ede907"
+  name="L2 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l2IsAnomaly)}
+/>
+<Line
+  type="line"
+  isAnimationActive={false}
+  dataKey="L3"
+  stroke="#5278d1"
+  name="L3 Phase"
+  strokeWidth={2}
+  dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
+/>
+
             
           </LineChart>
         </ResponsiveContainer>

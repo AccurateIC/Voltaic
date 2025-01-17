@@ -87,7 +87,7 @@ export const OilPressureLineChart = ({
               stroke="#5278d1"
               // name="Oil Pressure"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, oilPressureIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.oilPressureIsAnomaly)}
               
             />
            
