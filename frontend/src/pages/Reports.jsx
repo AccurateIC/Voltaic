@@ -49,7 +49,7 @@ export const Reports = () => {
       l3Current: 9,
       engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
       fuelLevelISAnomaly: message?.engineFuelLevel?.is_anomaly,
-      l1IsAnomaly: message?.genL1Volts?.is_anomaly,
+      l1IsAnomaly: true,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
       l3IsAnomaly: message?.genL3Volts?.is_anomaly,
       l1CIsAnomaly: message?.genL1Current?.is_anomaly,
