@@ -35,10 +35,10 @@
 //   // console.log("first.............")
 
 //   useEffect(() => {
-    
+
 //     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
 //       setData((voltageData) => {
-         
+
 //         if (voltageData.length > 150) voltageData.shift();
 
 //         return [
@@ -168,7 +168,6 @@
 //   dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
 // />
 
-            
 //           </LineChart>
 //         </ResponsiveContainer>
 //       </div>
@@ -176,12 +175,14 @@
 //   );
 // };
 
-
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addNotification, removeNotification } from "../../redux/notificationSlice";
-import { addVoltageData } from "../../Redux/graphSlice"; 
-import { selectVoltageData } from "../../Redux/graphSlice"; 
+import {
+  addNotification,
+  removeNotification,
+} from "../../redux/notificationSlice";
+import { addVoltageData } from "../../Redux/graphSlice";
+import { selectVoltageData } from "../../Redux/graphSlice";
 import renderCustomDot from "./renderCustomDot";
 import {
   LineChart,
@@ -286,12 +287,32 @@ export const GeneratorVoltageLineChart = ({
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={graphData} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
+          <LineChart
+            data={graphData}
+            margin={{ top: 1, right: 30, bottom: 30, left: 20 }}
+          >
             <CartesianGrid strokeDasharray="1 1" />
-            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
-            <YAxis label={{ value: "Voltage (V)", angle: -90, position: "insideLeft" }} domain={["auto", "auto"]} />
+            <XAxis
+              dataKey="time"
+              label={{ value: "Time", position: "bottom", offset: 0 }}
+            />
+            <YAxis
+              label={{
+                value: "Voltage (V)",
+                angle: -90,
+                position: "insideLeft",
+              }}
+              domain={[0,300]}
+              
+            />
             <Tooltip />
-            <Legend layout="horizontal" verticalAlign="top" align="center" iconType="voltage" wrapperStyle={{ paddingBottom: 15 }} />
+            <Legend
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="voltage"
+              wrapperStyle={{ paddingBottom: 15 }}
+            />
             <Line
               type="line"
               isAnimationActive={false}

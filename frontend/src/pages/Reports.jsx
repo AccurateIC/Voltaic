@@ -59,7 +59,8 @@ export const Reports = () => {
       oilPressIsAnomaly:message?.engOilPress.is_anomaly,
       //oilPressIsAnomaly: true,
       engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
-      batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
+      // batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
+      batteryVoltsIsAnomaly:true,
       chargeAltVoltsIsAnomaly:message?.engChargeAltVolts?.is_anomaly,
     });
     console.log(stats.l1CIsAnomaly);

@@ -84,7 +84,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addEngineSpeedData } from "../../Redux/graphSlice"; // Import the action
 import { selectEngineSpeedData } from "../../Redux/graphSlice"; // Selector to access state
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid,Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot"; 
 
 export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedIsAnomaly }) => {
@@ -110,9 +110,16 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedIsAnomaly }) =>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={engineSpeedData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
-            <YAxis label={{ value: "Engine Speed (RPM)", angle: -90, position: "insideLeft", dy: 60 }} domain={["auto", "auto"]} />
+            <XAxis dataKey="time" /><YAxis label={{ value: "Engine Speed (RPM)", angle: -90, position: "insideLeft", dy: 60 }} domain={[0,2000]} />
+            
             <Tooltip />
+             <Legend
+                          layout="horizontal"
+                          verticalAlign="top"
+                          align="center"
+                          iconType="engine"
+                          wrapperStyle={{ paddingBottom: 15 }}
+                        />
             <Line
               type="line"
               isAnimationActive={false}

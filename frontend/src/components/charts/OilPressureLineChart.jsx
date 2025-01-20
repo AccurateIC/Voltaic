@@ -104,7 +104,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addOilPressureData } from "../../redux/graphSlice"; // Import the action
 import { selectOilPressureData } from "../../redux/graphSlice"; // Selector to access the data
 import { addNotification, removeNotification } from "../../redux/notificationSlice"; // Notification actions
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid,Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot"; // Custom dot rendering
 
 export const OilPressureLineChart = ({ timeStamp, oilPressure, oilPressureIsAnomaly }) => {
@@ -153,9 +153,16 @@ export const OilPressureLineChart = ({ timeStamp, oilPressure, oilPressureIsAnom
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={["auto", "auto"]}
+              domain={[0,5]}
             />
             <Tooltip />
+                <Legend
+                                      layout="horizontal"
+                                      verticalAlign="top"
+                                      align="center"
+                                      iconType="engine"
+                                      wrapperStyle={{ paddingBottom: 15 }}
+                                    />
             <Line
               type="line"
               isAnimationActive={false}

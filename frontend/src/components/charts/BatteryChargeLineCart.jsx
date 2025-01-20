@@ -90,18 +90,21 @@
 //   );
 // };
 
-
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addBatteryData } from "../../redux/graphSlice"; // Action to add battery data
 import { selectBatteryData } from "../../redux/graphSlice"; // Selector to get battery data
-import { addNotification, removeNotification } from "../../redux/notificationSlice"; // Notification actions
+import {
+  addNotification,
+  removeNotification,
+} from "../../redux/notificationSlice"; // Notification actions
 import {
   CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
   Tooltip,
+  Legend,
   XAxis,
   YAxis,
 } from "recharts";
@@ -159,7 +162,10 @@ export const BatteryChargeLineChart = ({
         })
       );
       chargeAltVoltsNotificationRef.current = true;
-    } else if (!chargeAltVoltsIsAnomaly && chargeAltVoltsNotificationRef.current) {
+    } else if (
+      !chargeAltVoltsIsAnomaly &&
+      chargeAltVoltsNotificationRef.current
+    ) {
       dispatch(removeNotification({ id: "chargeAltVolts", type: "chargeAlt" }));
       chargeAltVoltsNotificationRef.current = false;
     }
@@ -177,7 +183,10 @@ export const BatteryChargeLineChart = ({
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={batteryData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart
+            data={batteryData}
+            margin={{ top: 10, right: 30, bottom: 30, left: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -187,10 +196,16 @@ export const BatteryChargeLineChart = ({
                 position: "insideLeft",
                 dy: 60,
               }}
-              domain={["auto", "auto"]}
+              domain={[0,15]}
             />
             <Tooltip />
-
+            <Legend
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="engine"
+              wrapperStyle={{ paddingBottom: 15 }}
+            />
             <Line
               type="line"
               isAnimationActive={false}

@@ -85,7 +85,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addFuelLevelData } from "../../Redux/graphSlice"; // Import the action
 import { selectFuelLevelData } from "../../Redux/graphSlice"; // Selector to access state
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid,Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot"; 
 
 export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnomaly }) => {
@@ -112,8 +112,15 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
           <LineChart data={fuelLevelData} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
-            <YAxis label={{ value: "Fuel Level (%)", angle: -90, position: "insideLeft" }} domain={[0, "auto"]} />
+            <YAxis label={{ value: "Fuel Level (%)", angle: -90, position: "insideLeft" }} domain={[0,60]} />
             <Tooltip />
+                <Legend
+                                      layout="horizontal"
+                                      verticalAlign="top"
+                                      align="center"
+                                      iconType="engine"
+                                      wrapperStyle={{ paddingBottom: 15 }}
+                                    />
             <Line
               type="line"
               isAnimationActive={false}

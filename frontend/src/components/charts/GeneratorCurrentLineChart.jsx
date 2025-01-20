@@ -275,7 +275,7 @@ export const GeneratorCurrentLineChart = ({
                 value: "Current (A)",
                 angle: -90,
                 position: "insideLeft",
-              }}
+              }}domain={[0,30]}
             />
             <Tooltip />
             <Legend
