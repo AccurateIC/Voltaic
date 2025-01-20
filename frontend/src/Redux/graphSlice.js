@@ -7,11 +7,7 @@ const initialState = {
   engineSpeedData: [],
   oilPressureData: [],
   batteryData: [],
-  addBatteryData: (state, action) => {
-    state.batteryData.push(action.payload);
 
-    if (state.batteryData.length > 150) state.batteryData.shift();
-  },
 };
 
 const graphSlice = createSlice({
@@ -19,37 +15,39 @@ const graphSlice = createSlice({
   initialState,
   reducers: {
     addVoltageData: (state, action) => {
-      if (state.voltageData.length >= 150) {
-        state.voltageData.shift();
-      }
-      state.voltageData.push(action.payload);
+     
+      if (state.voltageData.length >= 1000) {
+        state.voltageData.shift(); }
+      state.voltageData.push(action.payload); 
     },
     addCurrentData: (state, action) => {
+     
       if (state.currentData.length >= 150) {
-        state.currentData.shift();
+        state.currentData.shift(); 
       }
-      state.currentData.push(action.payload);
+      state.currentData.push(action.payload); 
     },
     addFuelLevelData: (state, action) => {
       state.fuelLevelData.push(action.payload);
-
-      if (state.fuelLevelData.length > 48) state.fuelLevelData.shift();
+      
+      if (state.fuelLevelData.length > 150) state.fuelLevelData.shift();
     },
     addEngineSpeedData: (state, action) => {
       state.engineSpeedData.push(action.payload);
-
+      
       if (state.engineSpeedData.length > 150) state.engineSpeedData.shift();
     },
     addOilPressureData: (state, action) => {
       state.oilPressureData.push(action.payload);
-
-      if (state.oilPressureData.length > 48) state.oilPressureData.shift();
+  
+      if (state.oilPressureData.length > 900) state.oilPressureData.shift();
     },
     addBatteryData: (state, action) => {
       state.batteryData.push(action.payload);
-      if (state.batteryData.length > 150) state.batteryData.shift();
+      if (state.batteryData.length > 150) state.batteryData.shift(); 
     },
     clearGraphData: (state) => {
+     
       state.voltageData = [];
       state.currentData = [];
     },
