@@ -13,15 +13,15 @@ export const Reports = () => {
     batteryVolts: 0,
     chargeAltVolts: 0,
     engineSpeed: 1480,
-    engSpeedIsAnomaly: true,
-    engineFuelLevel: -1, //less than 5= low,
+    engSpeedDisplayIsAnomaly: true,
+    engineFuelLevel:2 , //less than 5= low,
     l1Voltage: 1,
     l2Voltage: 2,
     l3Voltage: 3,
     l1Current: 1,
     l2Current: 2,
     l3Current: 3,
-    oilPress: 0.0,
+    oilPress: 1,
     fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
@@ -35,39 +35,42 @@ export const Reports = () => {
   });
 
   const handleWsMessage = useCallback((message) => {
+    
     console.log(message);
     setStats({
       timeStamp: message?.timestamp,
       batteryVolts: Math.round(message?.engBatteryVolts?.value),
       chargeAltVolts: Math.round(message?.engChargeAltVolts?.value),
-      engineSpeed: Math.round(message?.engSpeed?.value),
+      engineSpeed: Math.round(message?.engSpeedDisplay?.value),
       l1Voltage: Math.round(message?.genL1Volts?.value),
       l2Voltage: Math.round(message?.genL2Volts?.value),
       l3Voltage: Math.round(message?.genL3Volts?.value),
-      l1Current: 5,
-      l2Current: 6,
-      l3Current: 9,
-      engineFuelLevel: Math.round(message?.engineFuelLevel?.value),
-      fuelLevelISAnomaly: message?.engineFuelLevel?.is_anomaly,
-      l1IsAnomaly: true,
+      l1Current: Math.round(message?.genL1Current?.value),
+      l2Current: Math.round(message?.genL2Current?.value),
+      l3Current: Math.round(message?.genL3Current?.value),
+      engineFuelLevel: Math.round(message?.engineFuelLevelUnits?.value),
+      fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly,
+      l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
       l3IsAnomaly: message?.genL3Volts?.is_anomaly,
       l1CIsAnomaly: message?.genL1Current?.is_anomaly,
       l2CIsAnomaly: message?.genL2Current?.is_anomaly,
       l3CIsAnomaly: message?.genL3Current?.is_anomaly,
-      oilPress: message?.engOilPress.value,
-      oilPressIsAnomaly: message?.engOilPress.is_anomaly,
+      oilPress: message?.engOilPress?.value,
+      oilPressIsAnomaly: message?.engOilPress?.is_anomaly,
       //oilPressIsAnomaly: true,
-      engSpeedIsAnomaly: message?.engSpeed?.is_anomaly,
-      // batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
-      batteryVoltsIsAnomaly: true,
+      engSpeedDisplayIsAnomaly:true,
+       batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
+      // batteryVoltsIsAnomaly: true,
       chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
     });
-    console.log(stats.l1CIsAnomaly);
-    console.log(stats.l2CIsAnomaly);
-    console.log(stats.batteryVoltsIsAnomaly);
+    console.log(stats.l1CIsAnomaly);engineSpeed
+    console.log(stats.engineSpeed);
+    console.log(stats.l3Voltage);
+    console.log(stats.engSpeedDisplayIsAnomaly);
     console.log(stats.chargeAltVoltsIsAnomaly);
   }, []);
+  
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
@@ -77,7 +80,7 @@ export const Reports = () => {
         <EngineSpeedLineChart
           timeStamp={stats.timeStamp}
           value={stats.engineSpeed}
-          engSpeedIsAnomaly={stats.engSpeedIsAnomaly}
+          engSpeedDisplayIsAnomaly={stats.engSpeedDisplayIsAnomaly}
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
