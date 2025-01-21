@@ -17,7 +17,7 @@ const SideBar = () => {
         >
           <FaTachometerAlt className="mr-2" /> Dashboard
         </NavLink>
-      </li>
+      </li> 
       <li>
         <NavLink
           to="/engine"

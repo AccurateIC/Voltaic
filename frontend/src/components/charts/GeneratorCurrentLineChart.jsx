@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   addNotification,
   removeNotification,
 } from "../../redux/notificationSlice";
+import { addCurrentData } from "../../Redux/graphSlice";
+import { selectCurrentData } from "../../Redux/graphSlice";
 import renderCustomDot from "./renderCustomDot";
 import {
   LineChart,
@@ -21,35 +23,31 @@ export const GeneratorCurrentLineChart = ({
   l1Current,
   l2Current,
   l3Current,
+  l1l2l3Current,
   l1CIsAnomaly,
   l2CIsAnomaly,
   l3CIsAnomaly,
 }) => {
   const dispatch = useDispatch();
-  const [data, setData] = useState([]);
+  const currentData = useSelector(selectCurrentData);
 
   const l1NotificationRef = useRef(false);
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    if (l1Current !== 0 && l2Current !== 0 && l3Current !== 0) {
-      setData((currentData) => {
-        if (currentData.length > 150) currentData.shift();
-
-        return [
-          ...currentData,
-          {
-            time: new Date(timeStamp).toLocaleTimeString(),
-            L1: l1Current,
-            L2: l2Current,
-            L3: l3Current,
-            l1CIsAnomaly,
-            l2CIsAnomaly,
-            l3CIsAnomaly,
-          },
-        ];
-      });
+    if (l1Current !== 0 || l2Current !== 0 || l3Current !== 0) {
+      dispatch(
+        addCurrentData({
+          time: new Date(timeStamp).toLocaleTimeString(),
+          L1: l1Current,
+          L2: l2Current,
+          L3: l3Current,
+          l1CIsAnomaly,
+          l2CIsAnomaly,
+          l3CIsAnomaly,
+        })
+      );
     }
 
     if (l1CIsAnomaly && !l1NotificationRef.current) {
@@ -75,7 +73,7 @@ export const GeneratorCurrentLineChart = ({
         })
       );
       l2NotificationRef.current = true;
-    } else if (!l2CIsAnomaly && l2NotificationRef.current) { //isAnomaly--false, current--true
+    } else if (!l2CIsAnomaly && l2NotificationRef.current) {
       dispatch(removeNotification({ id: "L2", type: "current" }));
       l2NotificationRef.current = false;
     }
@@ -104,12 +102,28 @@ export const GeneratorCurrentLineChart = ({
     dispatch,
   ]);
 
+  // console.log("Current",l1l2l3Current);
+
   return (
-    <div className="h-[500px] w-full relative">
-      <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
+    <div className="h-[400px] w-full relative pb-6">
+      <h2 className="text-lg font-semibold p-4 ">Generator Current Monitor</h2>
+
+      <div className="absolute top-1 right-4 text-xl font-semibold p-4 ">
+        <span>Total Current: </span>
+        <span
+         className="font-bold text-lg text-red-600"
+         style={{
+           padding: "5px",
+           borderRadius: "5px",
+         }}>{l1l2l3Current} Amp</span>
+      </div>
+
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 10, right: 30, bottom: 30, left: 20} }>
+          <LineChart
+            data={currentData}
+            margin={{ top: 10, right: 30, bottom: 30, left: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -118,15 +132,16 @@ export const GeneratorCurrentLineChart = ({
                 angle: -90,
                 position: "insideLeft",
               }}
+               domain={[0,30]}
             />
             <Tooltip />
             <Legend
-                          layout="horizontal"
-                          verticalAlign="top"
-                          align="center"
-                          iconType="voltage"
-                          wrapperStyle={{ paddingBottom: 15 }}
-                        />
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="current"
+              wrapperStyle={{ paddingBottom: 15 }}
+            />
             <Line
               type="line"
               isAnimationActive={false}
@@ -134,7 +149,9 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l1CIsAnomaly)}
+              dot={(props) =>
+                renderCustomDot(props, props.payload.l1CIsAnomaly)
+              }
             />
             <Line
               type="line"
@@ -143,7 +160,9 @@ export const GeneratorCurrentLineChart = ({
               stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
+              dot={(props) =>
+                renderCustomDot(props, props.payload.l2CIsAnomaly)
+              }
             />
             <Line
               type="line"
@@ -152,7 +171,9 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l3CIsAnomaly)}
+              dot={(props) =>
+                renderCustomDot(props, props.payload.l3CIsAnomaly)
+              }
             />
           </LineChart>
         </ResponsiveContainer>
