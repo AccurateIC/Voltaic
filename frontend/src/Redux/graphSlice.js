@@ -23,7 +23,7 @@ const graphSlice = createSlice({
         state.voltageData.shift();
       }
       state.voltageData.push(action.payload);
-      console.log("Voltage Redex array0");
+      // console.log("Voltage Redex array0");
       // console.log(typeof);
     },
     addCurrentData: (state, action) => {
@@ -31,8 +31,8 @@ const graphSlice = createSlice({
         state.currentData.shift();
       }
       state.currentData.push(action.payload);
-      console.log("Current Redex array0");
-      console.log(state.graphData);
+      // console.log("Current Redex array0");
+      // console.log(state.graphData);
     },
    
     addFuelLevelData: (state, action) => {
@@ -43,7 +43,8 @@ const graphSlice = createSlice({
     addEngineSpeedData: (state, action) => {
       state.engineSpeedData.push(action.payload);
 
-      if (state.engineSpeedData.length > 150) state.engineSpeedData.shift();
+      if (state.engineSpeedData.length > 150)
+         state.engineSpeedData.shift();
     },
     addOilPressureData: (state, action) => {
       state.oilPressureData.push(action.payload);

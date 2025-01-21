@@ -59,11 +59,11 @@ export const Reports = () => {
       l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress?.value,
       oilPressIsAnomaly: message?.engOilPress?.is_anomaly,
-      engSpeedDisplayIsAnomaly: true,
+      engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
       batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
       chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
     });
-    console.log(stats.engSpeedDisplayIsAnomaly);
+    console.log(message?.engSpeedDisplay?.is_anomaly);
     // console.log(message?.genL2Current?.value);
     // console.log(message?.genL3Current?.value);
     // console.log(message?.genL1Current?.is_anomaly);
