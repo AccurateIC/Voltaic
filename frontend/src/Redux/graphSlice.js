@@ -7,11 +7,11 @@ const initialState = {
   engineSpeedData: [],
   oilPressureData: [],
   batteryData: [],
-  addBatteryData: (state, action) => {
-    state.batteryData.push(action.payload);
+  // addBatteryData: (state, action) => {
+  //   state.batteryData.push(action.payload);
 
-    if (state.batteryData.length > 150) state.batteryData.shift();
-  },
+  //   if (state.batteryData.length > 150) state.batteryData.shift();
+  // },
 };
 
 const graphSlice = createSlice({
@@ -23,13 +23,18 @@ const graphSlice = createSlice({
         state.voltageData.shift();
       }
       state.voltageData.push(action.payload);
+      console.log("Voltage Redex array0");
+      console.log(state.voltageData);
     },
     addCurrentData: (state, action) => {
       if (state.currentData.length >= 150) {
         state.currentData.shift();
       }
       state.currentData.push(action.payload);
+      console.log("Current Redex array0");
+      console.log(state.graphData);
     },
+   
     addFuelLevelData: (state, action) => {
       state.fuelLevelData.push(action.payload);
 
@@ -68,5 +73,6 @@ export const selectFuelLevelData = (state) => state.graphData.fuelLevelData;
 export const selectEngineSpeedData = (state) => state.graphData.engineSpeedData;
 export const selectVoltageData = (state) => state.graphData.voltageData;
 export const selectCurrentData = (state) => state.graphData.currentData;
+
 
 export default graphSlice.reducer;

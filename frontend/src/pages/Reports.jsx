@@ -18,10 +18,10 @@ export const Reports = () => {
     l1Voltage: 1,
     l2Voltage: 2,
     l3Voltage: 3,
-    l1Current: 1,
-    l2Current: 2,
-    l3Current: 3,
-    oilPress: 1,
+    l1Current: null,
+    l2Current: null,
+    l3Current: null,
+    oilPress: 4,
     fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
@@ -64,14 +64,14 @@ export const Reports = () => {
       // batteryVoltsIsAnomaly: true,
       chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
     });
-    console.log(stats.l1CIsAnomaly);engineSpeed
-    console.log(stats.engineSpeed);
-    console.log(stats.l3Voltage);
-    console.log(stats.engSpeedDisplayIsAnomaly);
-    console.log(stats.chargeAltVoltsIsAnomaly);
+    // console.log(typeof(message?.genL1Current?.value));
+    // console.log(message?.genL2Current?.value);
+    // console.log(message?.genL3Current?.value);
+    // console.log(message?.genL1Current?.is_anomaly);
+    // console.log(message?.genL2Current?.is_anomaly);
   }, []);
   
-
+  
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
   return (

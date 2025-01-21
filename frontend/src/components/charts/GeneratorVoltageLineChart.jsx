@@ -30,14 +30,14 @@ export const GeneratorVoltageLineChart = ({
   l3IsAnomaly,
 }) => {
   const dispatch = useDispatch();
-  const graphData = useSelector(selectVoltageData); // Get the graph data from Redux
+  const graphData = useSelector(selectVoltageData); 
 
-  const l1NotificationRef = useRef(false); // Use refs to track notifications
+  const l1NotificationRef = useRef(false); 
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    // Dispatch graph data to Redux
+  
     if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
       dispatch(
         addVoltageData({
@@ -52,7 +52,7 @@ export const GeneratorVoltageLineChart = ({
       );
     }
 
-    // Handle notifications for L1 phase anomaly
+ 
     if (l1IsAnomaly && !l1NotificationRef.current) {
       dispatch(
         addNotification({
@@ -61,13 +61,13 @@ export const GeneratorVoltageLineChart = ({
           type: "voltage",
         })
       );
-      l1NotificationRef.current = true; // Set to true to prevent duplicate notifications
+      l1NotificationRef.current = true; 
     } else if (!l1IsAnomaly && l1NotificationRef.current) {
       dispatch(removeNotification({ id: "L1", type: "voltage" }));
-      l1NotificationRef.current = false; // Reset when anomaly is resolved
+      l1NotificationRef.current = false; 
     }
 
-    // Handle notifications for L2 phase anomaly
+   
     if (l2IsAnomaly && !l2NotificationRef.current) {
       dispatch(
         addNotification({
@@ -76,13 +76,12 @@ export const GeneratorVoltageLineChart = ({
           type: "voltage",
         })
       );
-      l2NotificationRef.current = true; // Set to true to prevent duplicate notifications
+      l2NotificationRef.current = true; 
     } else if (!l2IsAnomaly && l2NotificationRef.current) {
       dispatch(removeNotification({ id: "L2", type: "voltage" }));
-      l2NotificationRef.current = false; // Reset when anomaly is resolved
+      l2NotificationRef.current = false; 
     }
 
-    // Handle notifications for L3 phase anomaly
     if (l3IsAnomaly && !l3NotificationRef.current) {
       dispatch(
         addNotification({
