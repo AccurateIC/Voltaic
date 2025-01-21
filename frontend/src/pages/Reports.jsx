@@ -58,7 +58,7 @@ export const Reports = () => {
       l2CIsAnomaly: message?.genL2Current?.is_anomaly,
       l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress?.value,
-      oilPressIsAnomaly: message?.engOilPress?.is_anomaly,
+      oilPressIsAnomaly: true,
       engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
       batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
       chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
@@ -75,6 +75,7 @@ export const Reports = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
+      
       <div className="min-h-[400px] bg-base-200">
         <EngineSpeedLineChart
           timeStamp={stats.timeStamp}
