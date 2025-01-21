@@ -75,6 +75,7 @@ export const Reports = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
+      
       <div className="min-h-[400px] bg-base-200">
         <EngineSpeedLineChart
           timeStamp={stats.timeStamp}
