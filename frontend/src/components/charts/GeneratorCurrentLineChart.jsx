@@ -23,6 +23,7 @@ export const GeneratorCurrentLineChart = ({
   l1Current,
   l2Current,
   l3Current,
+  l1l2l3Current,
   l1CIsAnomaly,
   l2CIsAnomaly,
   l3CIsAnomaly,
@@ -35,7 +36,7 @@ export const GeneratorCurrentLineChart = ({
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    if (l1Current !== 0 && l2Current !== 0 && l3Current !== 0) {
+    if (l1Current !== 0 || l2Current !== 0 || l3Current !== 0) {
       dispatch(
         addCurrentData({
           time: new Date(timeStamp).toLocaleTimeString(),
@@ -101,9 +102,22 @@ export const GeneratorCurrentLineChart = ({
     dispatch,
   ]);
 
+  // console.log("Current",l1l2l3Current);
+
   return (
-    <div className="h-[500px] w-full relative">
-      <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
+    <div className="h-[500px] w-full relative pb-6">
+      <h2 className="text-lg font-semibold p-4 ">Generator Current Monitor</h2>
+
+      <div className="absolute top-1 right-4 text-xl font-semibold p-4 ">
+        <span>Total Current: </span>
+        <span
+         className="font-bold text-lg text-red-600"
+         style={{
+           padding: "5px",
+           borderRadius: "5px",
+         }}>{l1l2l3Current} Amp</span>
+      </div>
+
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
@@ -118,7 +132,7 @@ export const GeneratorCurrentLineChart = ({
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={[0,15,30]}
+               domain={[0,30]}
             />
             <Tooltip />
             <Legend

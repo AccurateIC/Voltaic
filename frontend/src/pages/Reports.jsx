@@ -14,13 +14,14 @@ export const Reports = () => {
     chargeAltVolts: 0,
     engineSpeed: 1480,
     engSpeedDisplayIsAnomaly: true,
-    engineFuelLevel:2 , //less than 5= low,
+    engineFuelLevel: 2, //less than 5= low,
     l1Voltage: 1,
     l2Voltage: 2,
     l3Voltage: 3,
-    l1Current: null,
-    l2Current: null,
-    l3Current: null,
+    l1Current: 0,
+    l2Current: 0,
+    l3Current: 0,
+    l1l2l3Current: 0,
     oilPress: 4,
     fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
@@ -35,7 +36,6 @@ export const Reports = () => {
   });
 
   const handleWsMessage = useCallback((message) => {
-    
     console.log(message);
     setStats({
       timeStamp: message?.timestamp,
@@ -48,8 +48,9 @@ export const Reports = () => {
       l1Current: Math.round(message?.genL1Current?.value),
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
+      l1l2l3Current: Math.round(message?.genL1L2L3Current?.value),
       engineFuelLevel: Math.round(message?.engineFuelLevelUnits?.value),
-      fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly,
+      fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly, 
       l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
       l3IsAnomaly: message?.genL3Volts?.is_anomaly,
@@ -58,20 +59,18 @@ export const Reports = () => {
       l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress?.value,
       oilPressIsAnomaly: message?.engOilPress?.is_anomaly,
-      //oilPressIsAnomaly: true,
-      engSpeedDisplayIsAnomaly:true,
-       batteryVoltsIsAnomaly:message?.engBatteryVolts?.is_anomaly,
-      // batteryVoltsIsAnomaly: true,
+      engSpeedDisplayIsAnomaly: true,
+      batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
       chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
     });
-    // console.log(typeof(message?.genL1Current?.value));
+    console.log(stats.engSpeedDisplayIsAnomaly);
     // console.log(message?.genL2Current?.value);
     // console.log(message?.genL3Current?.value);
     // console.log(message?.genL1Current?.is_anomaly);
     // console.log(message?.genL2Current?.is_anomaly);
+    // console.log(typeof(message?.genL1Volts?.value))
   }, []);
-  
-  
+
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
   return (
@@ -91,6 +90,18 @@ export const Reports = () => {
         />
       </div>
       <div className="min-h-[400px] bg-base-200">
+        <GeneratorCurrentLineChart
+          timeStamp={stats.timeStamp}
+          l1Current={stats.l1Current}
+          l2Current={stats.l2Current}
+          l3Current={stats.l3Current}
+          l1l2l3Current={stats.l1l2l3Current}
+          l1CIsAnomaly={stats.l1CIsAnomaly}
+          l2CIsAnomaly={stats.l2CIsAnomaly}
+          l3CIsAnomaly={stats.l3CIsAnomaly}
+        />
+      </div>
+      <div className="min-h-[400px] bg-base-200">
         <GeneratorVoltageLineChart
           timeStamp={stats.timeStamp}
           l1Voltage={stats.l1Voltage}
@@ -99,17 +110,6 @@ export const Reports = () => {
           l1IsAnomaly={stats.l1IsAnomaly}
           l2IsAnomaly={stats.l2IsAnomaly}
           l3IsAnomaly={stats.l3IsAnomaly}
-        />
-      </div>
-      <div className="min-h-[400px] bg-base-200">
-        <GeneratorCurrentLineChart
-          timeStamp={stats.timeStamp}
-          l1Current={stats.l1Current}
-          l2Current={stats.l2Current}
-          l3Current={stats.l3Current}
-          l1CIsAnomaly={stats.l1CIsAnomaly}
-          l2CIsAnomaly={stats.l2CIsAnomaly}
-          l3CIsAnomaly={stats.l3CIsAnomaly}
         />
       </div>
 

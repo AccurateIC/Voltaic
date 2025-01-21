@@ -24,7 +24,7 @@ const graphSlice = createSlice({
       }
       state.voltageData.push(action.payload);
       console.log("Voltage Redex array0");
-      console.log(state.voltageData);
+      // console.log(typeof);
     },
     addCurrentData: (state, action) => {
       if (state.currentData.length >= 150) {

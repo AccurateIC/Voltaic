@@ -38,7 +38,7 @@ export const GeneratorVoltageLineChart = ({
 
   useEffect(() => {
   
-    if (l1Voltage !== 0 && l2Voltage !== 0 && l3Voltage !== 0) {
+    if (l1Voltage !== 0 || l2Voltage !== 0 || l3Voltage !== 0) {
       dispatch(
         addVoltageData({
           time: new Date(timeStamp).toLocaleTimeString(),

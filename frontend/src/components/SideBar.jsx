@@ -3,8 +3,8 @@ import { NavLink } from "react-router";
 
 const SideBar = () => {
   return (
-    <ul className="menu bg-base-200 w-56">
-      <li>
+    <ul className="menu bg-base-200 w-56 ">
+      {/* <li>
         <NavLink
           to="/"
           className={({ isActive }) =>
@@ -14,7 +14,7 @@ const SideBar = () => {
         >
           Dashboard
         </NavLink>
-      </li>
+      </li> */}
       <li>
         <NavLink
           to="/engine"
