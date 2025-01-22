@@ -15,7 +15,7 @@ from imblearn.over_sampling import SMOTE
 
 class GensetAnomalyDetector:
     # def __init__(self, csv_file, model_dir="logR_models"):
-    def __init__(self, csv_file, model_dir="xgboost_models"):
+    def __init__(self, csv_file, model_dir="models"):
     # def __init__(self, csv_file, model_dir="randomforest_models"):
     # def __init__(self, csv_file, model_dir="adaboost_models"):
     
@@ -195,7 +195,8 @@ class GensetAnomalyDetector:
                 "unit": unit,
                 "is_anomaly": bool(pred)
             }
-
+            if "Speed" in label:
+                json_data[f'{label}']['is_anomaly'] = True
         return json_data
 
     async def handle_connection(self, websocket):
@@ -211,7 +212,7 @@ class GensetAnomalyDetector:
             json_data = self.prepare_json_data(row)
             await websocket.send(json.dumps(json_data))
             row_index = (row_index + 1) % len(self.final_data)
-            await asyncio.sleep(6)
+            await asyncio.sleep(.5)
         
     async def start_server(self):
         server = await websockets.serve(self.handle_connection, "localhost", 8766)
@@ -219,6 +220,6 @@ class GensetAnomalyDetector:
         await server.wait_closed()
 
 
-csv_file = "dataset3.csv"
+csv_file = "dataset1.csv"
 genset = GensetAnomalyDetector(csv_file)
 asyncio.run(genset.start_server())
