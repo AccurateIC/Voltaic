@@ -48,7 +48,7 @@ const Login = () => {
             onSubmit={(e) => {
               e.preventDefault();
               console.log("Form submitted");
-              navigate("/");
+              navigate("/engine");
             }}
           >
             <fieldset className="fieldset gap-5 flex flex-col">

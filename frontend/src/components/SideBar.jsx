@@ -7,7 +7,7 @@ const SideBar = () => {
       className="menu w-56"
       style={{ backgroundColor: "rgba(177, 213, 189, 1)" }}
     >
-      <li>
+      {/* <li>
         <NavLink
           to="/"
           className={({ isActive }) =>
@@ -17,7 +17,7 @@ const SideBar = () => {
         >
           <FaTachometerAlt className="mr-2" /> Dashboard
         </NavLink>
-      </li> 
+      </li>  */}
       <li>
         <NavLink
           to="/engine"

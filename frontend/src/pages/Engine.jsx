@@ -1,4 +1,3 @@
-// src/pages/Engine.jsx
 import { useEffect, useState } from "react";
 import ResponsiveGridLayout from "react-grid-layout";
 import { useMessageBus } from "../lib/MessageBus";
