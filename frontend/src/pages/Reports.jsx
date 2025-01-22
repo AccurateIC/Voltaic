@@ -49,21 +49,21 @@ export const Reports = () => {
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
       l1l2l3Current: Math.round(message?.genL1L2L3Current?.value),
-      engineFuelLevel: Math.round(message?.engineFuelLevelUnits?.value),
+      engineFuelLevel: true,
       fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly, 
       l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly: true,
+      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
       l1CIsAnomaly: message?.genL1Current?.is_anomaly,
-      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
-      l3CIsAnomaly: true,
+      l2CIsAnomaly: true,
+      l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress?.value,
-      oilPressIsAnomaly: true,
+      oilPressIsAnomaly:true,
       engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
-      batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
-      chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
+      batteryVoltsIsAnomaly: true,
+      chargeAltVoltsIsAnomaly: true,
     });
-    console.log(message?.oilPressIsAnomaly?.is_anomaly);
+    console.log(message?.engSpeedDisplay?.is_anomaly);
     // console.log(message?.genL2Current?.value);
     // console.log(message?.genL3Current?.value);
     // console.log(message?.genL1Current?.is_anomaly);
@@ -74,6 +74,7 @@ export const Reports = () => {
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
   return (
+    
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full">
       
       <div className="min-h-[400px] bg-base-200">
