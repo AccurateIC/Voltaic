@@ -22,11 +22,11 @@ createRoot(document.getElementById("root")).render(
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<App />} />
-            <Route path="testchart" element={<TestChart />} />
+            {/* <Route path="testchart" element={<TestChart />} /> */}
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="maintenance" element={<Maintenance />} />
+            {/* <Route path="maintenance" element={<Maintenance />} /> */}
           </Route>
           <Route path="/login" element={<Login />} />
         </Routes>

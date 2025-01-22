@@ -43,7 +43,7 @@ import { CiBellOn } from "react-icons/ci";
 import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
 import { useDispatch, useSelector } from "react-redux";
-import Logo from "../assets/accurate.svg";
+ import Logo from "../assets/accurate.svg";
 import {
   addNotification,
   removeNotification,

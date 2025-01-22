@@ -110,7 +110,6 @@ export const GeneratorVoltageLineChart = ({
             <XAxis
               dataKey="time"
               label={{ value: "Time", position: "bottom", offset: 0 }}
-              
             />
             <YAxis
               label={{

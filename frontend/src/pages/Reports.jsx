@@ -49,20 +49,23 @@ export const Reports = () => {
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
       l1l2l3Current: Math.round(message?.genL1L2L3Current?.value),
-      engineFuelLevel: true,
+      engineFuelLevel: Math.round(message?.engineFuelLevelUnits?.value),
       fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly, 
       l1IsAnomaly: message?.genL1Volts?.is_anomaly,
       l2IsAnomaly: message?.genL2Volts?.is_anomaly,
       l3IsAnomaly: message?.genL3Volts?.is_anomaly,
+      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
       l1CIsAnomaly: message?.genL1Current?.is_anomaly,
-      l2CIsAnomaly: true,
+      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
       l3CIsAnomaly: message?.genL3Current?.is_anomaly,
       oilPress: message?.engOilPress?.value,
-      oilPressIsAnomaly:true,
-      engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
-      batteryVoltsIsAnomaly: true,
-      chargeAltVoltsIsAnomaly: true,
+      oilPressIsAnomaly:message?.engOilPress?.is_anomaly,
+      // engSpeedDisplayIsAnomaly: true,
+       engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
+      batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
+      chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
     });
+    console.log("SPeed");
     console.log(message?.engSpeedDisplay?.is_anomaly);
     // console.log(message?.genL2Current?.value);
     // console.log(message?.genL3Current?.value);
@@ -74,9 +77,30 @@ export const Reports = () => {
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
   return (
-    
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full ">
-      
+    <div>
+      <div className="display: inline-block bg-white" color="white">
+      <select className="bg-#B1D5BD" color="white" >
+        <option value="">Properties</option> {/* Placeholder option */}
+        <option value="option1">Property 1</option>
+        <option value="option2">Property 2</option>
+        <option value="option3">Property 3</option>
+      </select>
+      <select className="bg-#B1D5BD" color="white" >
+        <option value="">Time Filter</option> {/* Placeholder option */}
+        <option value="option1">15 mins</option>
+        <option value="option2">30 mins</option>
+        <option value="option3">1 hrs</option>
+      </select>
+      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
+     
+        <div className="min-h-[400px] bg-base-200">
+        <EngineFuelLevelLineChart
+          timeStamp={stats.timeStamp}
+          fuelLevel={stats.engineFuelLevel}
+          fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
+        />
+      </div>
       <div className="min-h-[400px] bg-base-200">
         <EngineSpeedLineChart
           timeStamp={stats.timeStamp}
@@ -84,13 +108,7 @@ export const Reports = () => {
           engSpeedDisplayIsAnomaly={stats.engSpeedDisplayIsAnomaly}
         />
       </div>
-      <div className="min-h-[400px] bg-base-200">
-        <EngineFuelLevelLineChart
-          timeStamp={stats.timeStamp}
-          fuelLevel={stats.engineFuelLevel}
-          fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
-        />
-      </div>
+    
       <div className="min-h-[400px] bg-base-200">
         <GeneratorCurrentLineChart
           timeStamp={stats.timeStamp}
@@ -131,6 +149,7 @@ export const Reports = () => {
           chargeAltVoltsIsAnomaly={stats.chargeAltVoltsIsAnomaly}
         />
       </div>
+    </div>
     </div>
   );
 };
