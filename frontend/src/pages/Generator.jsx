@@ -1,11 +1,10 @@
 import { PlugZap, Zap } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useWebSocket } from "../lib/WebSocketConnection";
-import ReactSpeedometer from "react-d3-speedometer";
 
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
-  const steps = 100; 
-  const stepTime = duration / steps; 
+  const steps = 100;
+  const stepTime = duration / steps;
   const increment = (endValue - startValue) / steps;
 
   let currentStep = 0;
@@ -19,19 +18,54 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
     if (currentStep < steps) {
       setTimeout(updateValue, stepTime);
     } else {
-      setValue(endValue); 
+      setValue(endValue);
     }
   };
 
   updateValue();
 };
 
-const VoltageStatCard = ({ value, name, status, kind }) => {
+const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
+  const percentage = (value / maxValue) * 100;
+  const degree = (percentage * 180) / 100;
+  const circumference = Math.PI * 90;
+  const arcLength = (degree / 360) * circumference;
+
+  return (
+    <svg
+    viewBox="0 0 100 50"
+    className="w-full h-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Background Arc */}
+    <path
+      d="M5,50 A45,45 0 0,1 95,50"
+      fill="none"
+      stroke="#e0e0e0"
+      strokeWidth="10"
+    />
+    {/* Foreground Arc */}
+    <path
+      d="M5,50 A45,45 0 0,1 95,50"
+      fill="none"
+      stroke={color}
+      strokeWidth="10"
+      strokeDasharray={`${arcLength} ${circumference - arcLength}`}
+      strokeDashoffset="0"
+      transform="rotate(-90,50,50)"
+    />
+  </svg>
+  );
+};
+
+const VoltageStatCard = ({ value, name, status, kind, color }) => {
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
     if (Math.abs(displayValue - value) > 1) {
-      smoothTransition(displayValue, value, setDisplayValue, 1500); // Slow, smooth transition
+      smoothTransition(displayValue, value, setDisplayValue, 1500);
+    } else {
+      setDisplayValue(value);
     }
   }, [value]);
 
@@ -42,57 +76,35 @@ const VoltageStatCard = ({ value, name, status, kind }) => {
   switch (kind) {
     case "voltage":
       maxValue = 250;
-      units = "Volts";
+      units = "V";
       icon = <PlugZap size={64} />;
       break;
     case "current":
       maxValue = 20;
-      units = "Ampere";
+      units = "Amp";
       icon = <Zap size={64} />;
       break;
     case "lineVoltage":
       maxValue = 440;
-      units = "Volts";
+      units = "V";
       icon = <PlugZap size={64} />;
       break;
     default:
-      maxValue = 100; 
+      maxValue = 100;
       units = "Units";
   }
 
   return (
-    <div className="flex flex-col justify-center items-center gap-4">
-      <div className="text-3xl font-semibold">{name}</div>
-      <div className="flex flex-row items-center gap-2">
-        <span>{icon}</span>
-        <span className="text-4xl font-bold">
-          {value} {units}
-        </span>
-      </div>
-      <div className="text-base-content">{status}</div>
-
-      <ReactSpeedometer
-        width={250} 
-        height={160}
-        maxValue={maxValue}
+    <div className="flex flex-col justify-center items-center gap-4 bg-base-200 p-4 rounded-lg shadow">
+      <div className="text-xl font-semibold text-gray-700">{name}</div>
+      <HalfCircleSpeedometer
         value={Math.round(displayValue)}
-        segments={5}
-        needleColor="#000"
-        textColor="#000"
-        segmentColors={["#d3d3d3", "#a8d396", "#86c232", "#4CAF50", "#5BE12C"]}
-        customSegmentStops={[
-          0,
-          maxValue * 0.2,
-          maxValue * 0.4,
-          maxValue * 0.6,
-          maxValue * 0.8,
-          maxValue,
-        ]}
-        currentValueText={`${Math.round(displayValue)}${
-          units === "Volts" ? "V" : "A"
-        }`}
-        forceRender={false}
+        maxValue={maxValue}
+        color={color || "#86c232"}
       />
+      <div className="text-3xl font-bold text-gray-800">
+        {Math.round(displayValue)} {units}
+      </div>
     </div>
   );
 };
@@ -106,77 +118,67 @@ export const Generator = () => {
     l2Current: 0,
     l3Current: 0,
   });
+
   const handleWsMessage = useCallback((message) => {
     console.log("Ws Message: ", message);
     setStats({
-      l1Voltage: Math.round(message?.genL1Volts.value),
-      l2Voltage: Math.round(message?.genL2Volts.value),
-      l3Voltage: Math.round(message?.genL3Volts.value),
-      l1Current: Math.round(message?.genL1Current.value),
-      l2Current: Math.round(message?.genL2Current.value),
-      l3Current: Math.round(message?.genL3Current.value),
+      l1Voltage: Math.round(message?.genL1Volts.value || 0),
+      l2Voltage: Math.round(message?.genL2Volts.value || 0),
+      l3Voltage: Math.round(message?.genL3Volts.value || 0),
+      l1Current: Math.round(message?.genL1Current.value || 0),
+      l2Current: Math.round(message?.genL2Current.value || 0),
+      l3Current: Math.round(message?.genL3Current.value || 0),
     });
   }, []);
+
   const { send, isConnected } = useWebSocket(handleWsMessage);
 
-  console.log(isConnected);
+  useEffect(() => {
+    console.log("WebSocket connected:", isConnected);
+  }, [isConnected]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-2 h-full">
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={stats?.l1Voltage}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L2 Voltage"}
-          value={stats?.l2Voltage}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L3 Voltage"}
-          value={stats?.l3Voltage}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="current"
-          name={"L1 Current"}
-          value={stats?.l1Current}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="current"
-          name={"L2 Current"}
-          value={stats?.l2Current}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="current"
-          name={"L3 Current"}
-          value={stats?.l3Current}
-          // status={"Discharging"}
-        />{" "}
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
+      <VoltageStatCard
+        kind="voltage"
+        name={"L1 Voltage"}
+        value={stats.l1Voltage}
+        color="#B1D5BD"
+      />
+      <VoltageStatCard
+        kind="voltage"
+        name={"L2 Voltage"}
+        value={stats.l2Voltage}
+        color="#B1D5BD"
+      />
+      <VoltageStatCard
+        kind="voltage"
+        name={"L3 Voltage"}
+        value={stats.l3Voltage}
+        color="#B1D5BD"
+      />
+      <VoltageStatCard
+        kind="current"
+        name={"L1 Current"}
+        value={stats.l1Current}
+        color="#B1D5BD"
+      />
+      <VoltageStatCard
+        kind="current"
+        name={"L2 Current"}
+        value={stats.l2Current}
+        color="#B1D5BD"
+      />
+      <VoltageStatCard
+        kind="current"
+        name={"L3 Current"}
+        value={stats.l3Current}
+        color="#B1D5BD"
+      />
+    </div>
+  );
+};
+
       {/* <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
         {" "}
         <VoltageStatCard
@@ -204,6 +206,3 @@ export const Generator = () => {
           // status={"Discharging"}
         />{" "}
       </div> */}
-    </div>
-  );
-};

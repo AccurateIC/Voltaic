@@ -7,7 +7,7 @@ const ThemeSwitcher = ({ size = 64 }) => {
   const darkTheme = "business";
   const publishToMessageBus = useMessageBus("theme-switch");
   const prefersDark = () =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
+    window.matchMedia("(prefers-color-scheme: light)").matches;
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (!savedTheme) {

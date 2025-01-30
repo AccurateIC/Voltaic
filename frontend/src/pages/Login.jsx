@@ -25,7 +25,7 @@ const Login = () => {
         className="w-[30%] h-full flex flex-col justify-center items-center relative"
         style={{ backgroundColor: "rgba(177, 213, 189, 1)" }}
       >
-        <h1 className="text-3xl font-bold mb-4">AccurateIC | GenSet</h1>
+        <h1 className="text-3xl font-bold mb-4">NEURO-GEN</h1>
         {/* <p className="text-center px-6">Sign in to get started.</p> */}
 
         <div className="bg-gray-100 p-8 ml-[rem] rounded-xl shadow-lg w-[300px] h-[400px]">
@@ -73,7 +73,10 @@ const Login = () => {
                 </label>
               </div>
               <div className="flex justify-center">
-                <button type="submit" className="btn btn-neutral rounded-xl mt-5">
+                <button
+                  type="submit"
+                  className="btn rounded-md mt-2 bg-[#B1D5BD] text-black hover:bg-[#9FC5AA] transition-all"
+                >
                   Sign In
                 </button>
               </div>
@@ -82,18 +85,29 @@ const Login = () => {
 
           <div className="flex items-center gap-4 my-4">
             <hr className="border-t w-full" />
-            <span className="text-gray-500 text-sm whitespace-nowrap">or sign in with</span>
+            <span className="text-gray-500 text-sm whitespace-nowrap">
+              or sign in with
+            </span>
             <hr className="border-t w-full" />
           </div>
 
           <div className="flex items-center justify-center gap-6">
-            <button className="btn btn-square flex items-center justify-center w-10 h-10" onClick={handleGoogleSignIn}>
+            <button
+              className="btn btn-square flex items-center justify-center w-10 h-10"
+              onClick={handleGoogleSignIn}
+            >
               <img src={GoogleIcon} alt="Google Logo" className="w-6 h-6" />
             </button>
-            <button className="btn btn-square flex items-center justify-center w-10 h-10" onClick={handleGithubSignIn}>
+            <button
+              className="btn btn-square flex items-center justify-center w-10 h-10"
+              onClick={handleGithubSignIn}
+            >
               <img src={GithubIcon} alt="GitHub Logo" className="w-6 h-6" />
             </button>
-            <button className="btn btn-square flex items-center justify-center w-10 h-10" aria-label="Sign in with Heart">
+            <button
+              className="btn btn-square flex items-center justify-center w-10 h-10"
+              aria-label="Sign in with Heart"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -116,8 +130,7 @@ const Login = () => {
       <div
         className="w-[70%] h-full bg-cover bg-center relative"
         style={{ backgroundImage: `url(${BackImage})` }}
-      >
-      </div>
+      ></div>
     </div>
   );
 };
