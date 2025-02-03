@@ -60,3 +60,4 @@ The backend code for voltaic.
 2. Lucid (ORM): https://lucid.adonisjs.com/docs/introduction
 3. VineJS (validation Library): https://vinejs.dev/docs/introduction
 4. Japa (Testing Framework): https://japa.dev/docs/introduction
+5. Transmit (SSE): https://docs.adonisjs.com/guides/digging-deeper/transmit
