@@ -28,6 +28,8 @@ The backend code for voltaic.
 
 3. The backend runs on port 3333.
 
+4. If your database is not configured, install sqlite & postgres. Then run the migrations:fresh command as shown in the documentation below. This will create the necessary database structure so that the backend can use the database.
+
 ## Relevant Know How About the Structure
 
 - The project uses a backend framework known as AdonisJS.
