@@ -9,6 +9,8 @@ The backend code for voltaic.
 0. Prerequisites
    - node
    - npm
+   - sqlite
+   - postgres
 
 1. Install dependencies:
 
