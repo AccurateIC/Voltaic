@@ -52,6 +52,7 @@ The backend code for voltaic.
   - Define your logic to interact with the incoming requests inside the methods of the controller. This is the place where you interact with the database.
   - Ideally, each request that has incoming data must be validated using the built in validation library called `vine`. This is a fast validation library and is benchmarked to be faster than `zod`. Due to the completeness of the backend framework all such necessary libraries are included.
   - You make new validator using the command `node ace make:validator <validator_name>`. The validators are used inside the controllers to validate the bodies of incoming requests.
+  - If blunders are not made, the framework can handle HTTP errors by itself and will send the correct errors to the client. This is because of the validations that we use and the integration of the database with the ORM. Thus, ideally, no error handling is required inside the controllers. The framework can o that for you if you follow the guidelines.
   - The framework uses Server Sent Events instead of WebSockets to communicate with the Frontend in the current iteration, since they are faster with less overhead. The libary is called `transmit` and has server side and client side counterparts: 
     - https://github.com/adonisjs/transmit-client
     - https://github.com/adonisjs/transmit
