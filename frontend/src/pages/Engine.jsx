@@ -58,7 +58,7 @@ const Engine = () => {
       <div className="flex flex-col flex-1 gap-4 ">
         {/* Engine Speed */}
         <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-          <div className="w-full sm:w-[20rem] md:w-[25rem] lg:w-[25rem] 2xl:w-[40.5rem] 2xl:h-[27rem] lg:h-[18rem] bg-base-200 text-black flex flex-col items-center font-semibold pt-4 px-4 rounded-lg shadow-md">
+          <div className="w-full sm:w-[20rem] md:w-[25rem] lg:w-[25rem] 2xl:w-[40rem] 2xl:h-[27rem] lg:h-[18rem] bg-base-200 text-black flex flex-col items-center font-semibold pt-4 px-4 rounded-lg shadow-md">
             <h2 className="text-md lg:text-md 2xl:text-xl">ENGINE SPEED</h2>
             <div className="w-full h-full flex items-center justify-center">
               <GaugeComponent
@@ -66,11 +66,11 @@ const Engine = () => {
                 maxValue={2500}
                 arc={{
                   subArcs: [
-                    { limit: 500, color: "#EA4228", showTick: true },
-                    { limit: 1000, color: "#EA4228", showTick: true },
+                    { limit: 500, color: "#5BE12C", showTick: true },
+                    { limit: 1000, color: "#F5CD19", showTick: true },
                     { limit: 1500, color: "#F58B19", showTick: true },
-                    { limit: 2000, color: "#F5CD19", showTick: true },
-                    { limit: 2500, color: "#5BE12C", showTick: true },
+                    { limit: 2000, color: "#EA4228", showTick: true },
+                    { limit: 2500, color: "#EA4228", showTick: true },
                   ],
                 }}
                 value={gaugeValue}
@@ -85,7 +85,7 @@ const Engine = () => {
           </div>
 
           {/* Fuel Quantity */}
-          <div className="w-full sm:w-[20rem] md:w-[25rem] lg:w-[25rem] lg:h-[18rem] 2xl:w-[40.5rem] 2xl:h-[27rem] h-auto bg-base-200 text-black flex flex-col items-center font-semibold pt-4 px-4 rounded-lg shadow-md">
+          <div className="w-full sm:w-[20rem] md:w-[25rem] lg:w-[24rem] lg:h-[18rem] 2xl:w-[40.5rem] 2xl:h-[27rem] h-auto bg-base-200 text-black flex flex-col items-center font-semibold pt-4 px-4 rounded-lg shadow-md">
             <h2 className="text-md lg:text-md 2xl:text-xl">FUEL QUANTITY</h2>
             <div className="w-full h-full flex items-center justify-center">
               
@@ -115,7 +115,7 @@ const Engine = () => {
         </div>
 
         <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16.3rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
+          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
             <p className="text-center font-semibold text-md">OIL PRESSURE</p>
             <div
               className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl 2xl:text-9xl my-5"
@@ -126,7 +126,7 @@ const Engine = () => {
             <p className="font-bold text-3xl 2xl:text-5xl">2.06 bar</p>
           </div>
 
-          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16.3rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
+          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
             <p className="text-center font-semibold text-md">
               CHARGE ALT VOLTAGE
             </p>
@@ -139,7 +139,7 @@ const Engine = () => {
             <p className="font-bold xl:text-3xl 2xl:text-5xl">11.2 V</p>
           </div>
 
-          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16.3rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
+          <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
             <p className="text-center font-semibold text-md">BATTERY VOLTAGE</p>
             <div
               className="text-6xl sm:text-7xl md:text-8xl lg:text-8xl 2xl:text-9xl my-5"

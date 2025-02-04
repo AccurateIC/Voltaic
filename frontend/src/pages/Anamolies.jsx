@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import * as XLSX from "xlsx";
+
 import {
   PieChart,
   Pie,
@@ -27,6 +29,12 @@ const lineData = [
   { hour: "8 PM", count: 4 },
   { hour: "10 PM", count: 5 },
   { hour: "12 AM", count: 4 },
+  { hour: "2 AM", count: 5 },
+  { hour: "4 AM", count: 7 },
+  { hour: "6 AM", count: 6 },
+  { hour: "8 AM", count: 4 },
+  { hour: "10 AM", count: 5 },
+  { hour: "12 PM", count: 3 },
 ];
 
 const weekData = [
@@ -35,37 +43,70 @@ const weekData = [
   { type: "C", count: 8 },
   { type: "D", count: 10 },
   { type: "E", count: 6 },
-  { type: "F", count: 6 },
-  { type: "G", count: 6 },
+  { type: "F", count: 9 },
+  { type: "G", count: 2 },
+];
+
+// Sample Anomaly Data for Export
+const anomalyData = [
+  { Timestamp: "03/01/2025 - 05:26:06 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 5" },
+  { Timestamp: "30/01/2025 - 06:00:00 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 3" },
+  { Timestamp: "30/01/2025 - 06:15:09 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 5" },
+  { Timestamp: "30/01/2025 - 06:26:23 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 2" },
+
 ];
 
 const Anomalies = () => {
+  const [showFilter, setShowFilter] = useState(false);
+
+  // Function to Export Data to Excel
+  const exportToExcel = () => {
+    if (anomalyData.length === 0) {
+      alert("No data available to export!");
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(anomalyData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Anomaly Data");
+    XLSX.writeFile(wb, "Anomaly_Data.xlsx");
+  };
+
   return (
     <div className="bg-gray-900 text-white min-h-screen p-4 md:p-6 lg:p-8">
-      {/* Charts Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* Pie Chart */}
-        <div className="bg-gray-800 p-8 rounded-lg shadow-md flex justify-center">
-          <div>
-            <h2 className="text-center mb-2 font-bold">Total Anomalies</h2>
-            <PieChart width={250} height={250}>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Legend />
-            </PieChart>
-          </div>
-        </div>
+<div className="bg-gray-800 p-8 rounded-lg shadow-md flex justify-center">
+  <div>
+    <h2 className="text-center mb-2 font-bold">Total Anomalies</h2>
+    <PieChart width={250} height={250}>
+      <defs>
+        {pieData.map((entry, index) => (
+          <linearGradient id={`gradient-${index}`} key={index} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
+            <stop offset="100%" stopColor={entry.color} stopOpacity={1} />
+          </linearGradient>
+        ))}
+      </defs>
+
+      <Pie
+        data={pieData}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        outerRadius={80}
+        label
+        stroke="#333"
+        strokeWidth={1.5} 
+      >
+        {pieData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} />
+        ))}
+      </Pie>
+      <Legend />
+    </PieChart>
+  </div>
+</div>
 
         {/* Line Chart (24-hour) */}
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg flex justify-center">
@@ -144,20 +185,27 @@ const Anomalies = () => {
 
       {/* Filters & Buttons */}
       <div className="flex flex-col md:flex-row justify-between mt-6 gap-4">
-        <button className="bg-white px-2 py-1 text-sm 2xl:text-xl text-black font-semibold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
-          ADD FILTER ▼
-        </button>
+      <div className="relative w-full md:w-auto">
+          <button onClick={() => setShowFilter(!showFilter)} className="bg-white px-2 py-1 text-sm 2xl:text-xl text-black font-semibold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
+            ADD FILTER ▼
+          </button>
+          {showFilter && (
+            <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
+              <label className="block text-sm font-medium">Date</label>
+              <input type="date" className="w-auto p-1 border rounded" />
+              <label className="block text-sm font-medium">Time</label>
+              <input type="time" className="w-[9rem] p-1 border rounded" />
+            </div>
+          )}
+        </div>
 
         <button className="bg-white px-2 text-sm 2xl:text-xl text-black font-semibold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
           SELECT ANOMALY TYPE ▼
         </button>
 
         <button
+          onClick={exportToExcel}
           className="bg-[#B1D5BD] text-sm 2xl:text-xl text-black font-semibold px-2 rounded-md w-full md:w-auto"
-          style={{
-            boxShadow:
-              "0px 4px 4px 0px #0000007A, 1px 4px 4px 0px #FFFFFFBF inset",
-          }}
         >
           EXPORT TO EXCEL
         </button>
@@ -175,11 +223,20 @@ const Anomalies = () => {
             </tr>
           </thead>
           <tbody>
+            {anomalyData.map((item, index) => (
+              <tr key={index} className="border-b border-gray-600">
+                <td className="p-2">{item.Timestamp}</td>
+                <td className="p-2">{item.Originator}</td>
+                <td className="p-2">{item["Anomaly Type"]}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tbody>
             <tr className="border-b border-gray-600">
               <td className="p-2">
-                <strong>Date:</strong> 03/01/2025
+                <strong>Date:</strong> 31/01/2025
                 <br />
-                <strong>Time:</strong> 05:26:06 PM
+                <strong>Time:</strong> 06:00:06 PM
               </td>
               <td className="p-2">DG-Set</td>
               <td className="p-2">
