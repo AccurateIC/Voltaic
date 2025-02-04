@@ -87,9 +87,6 @@ router
 // and then save them in the database. when the notification is generated and saved into the database,
 // we can then generate a server side event and notify the frontend that notification has been generated
 
-// how do we handle the clearing of notifications?
-//
-
 // notification type apis
 router
   .group(() => {
@@ -102,7 +99,7 @@ router
 // notification apis
 router
   .group(() => {
-    router.get("getAll", "#controllers/notification/get_all_notification_controller.index");
-    router.patch("read", "#controllers/notification/read_notification_controller.index").use([middleware.auth()]);
+    router.get("getAll", "#controllers/notification/get_all_controller.index").use([middleware.auth()]);
+    router.patch("read", "#controllers/notification/read_controller.index").use([middleware.auth()]);
   })
   .prefix("notification");
