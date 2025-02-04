@@ -75,23 +75,48 @@ export const Reports = () => {
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
+  const [showProperties, setShowProperties] = useState(false);
+  const [showTimeFilter, setShowTimeFilter] = useState(false);
 
   return (
     <div>
-      <div className="display: inline-block bg-white" color="white">
-      <select className="bg-#B1D5BD" color="white" >
-        <option value="">Properties</option> {/* Placeholder option */}
-        <option value="option1">Property 1</option>
-        <option value="option2">Property 2</option>
-        <option value="option3">Property 3</option>
-      </select>
-      <select className="bg-#B1D5BD" color="white" >
-        <option value="">Time Filter</option> {/* Placeholder option */}
-        <option value="option1">15 mins</option>
-        <option value="option2">30 mins</option>
-        <option value="option3">1 hrs</option>
-      </select>
+      <div className="flex flex-wrap gap-4">
+      <div className="relative w-full md:w-auto">
+        <button
+          onClick={() => setShowProperties(!showProperties)}
+          className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center"
+        >
+          Properties ▼
+        </button>
+        {showProperties && (
+          <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
+            <ul className="text-white">
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 1</li>
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 2</li>
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 3</li>
+            </ul>
+          </div>
+        )}
       </div>
+
+      <div className="relative w-full md:w-auto">
+        <button
+          onClick={() => setShowTimeFilter(!showTimeFilter)}
+          className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center"
+        >
+          Time Filter ▼
+        </button>
+        {showTimeFilter && (
+          <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
+            <ul className="text-white">
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">15 mins</li>
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">30 mins</li>
+              <li className="p-2 hover:bg-gray-700 cursor-pointer">1 hour</li>
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
      
         <div className="min-h-[400px] bg-base-200">

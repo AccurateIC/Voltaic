@@ -47,7 +47,6 @@ const weekData = [
   { type: "G", count: 2 },
 ];
 
-// Sample Anomaly Data for Export
 const anomalyData = [
   { Timestamp: "03/01/2025 - 05:26:06 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 5" },
   { Timestamp: "30/01/2025 - 06:00:00 PM", Originator: "DG-Set", "Anomaly Type": "Fuel Level - Below 3" },
@@ -58,8 +57,8 @@ const anomalyData = [
 
 const Anomalies = () => {
   const [showFilter, setShowFilter] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // Function to Export Data to Excel
   const exportToExcel = () => {
     if (anomalyData.length === 0) {
       alert("No data available to export!");
@@ -107,8 +106,6 @@ const Anomalies = () => {
     </PieChart>
   </div>
 </div>
-
-        {/* Line Chart (24-hour) */}
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg flex justify-center">
           <div>
             <h2 className="text-center mb-2 font-bold">
@@ -145,7 +142,6 @@ const Anomalies = () => {
           </div>
         </div>
 
-        {/* Line Chart (Past Week) */}
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg flex justify-center">
           <div>
             <h2 className="text-center mb-2 font-bold">
@@ -183,10 +179,9 @@ const Anomalies = () => {
         </div>
       </div>
 
-      {/* Filters & Buttons */}
       <div className="flex flex-col md:flex-row justify-between mt-6 gap-4">
       <div className="relative w-full md:w-auto">
-          <button onClick={() => setShowFilter(!showFilter)} className="bg-white px-2 py-1 text-sm 2xl:text-xl text-black font-semibold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
+          <button onClick={() => setShowFilter(!showFilter)} className="bg-white px-6 py-2 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
             ADD FILTER ▼
           </button>
           {showFilter && (
@@ -199,19 +194,39 @@ const Anomalies = () => {
           )}
         </div>
 
-        <button className="bg-white px-2 text-sm 2xl:text-xl text-black font-semibold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
+        <div>
+        <button onClick={() => setShowDropdown(!showDropdown)} 
+        className="bg-white px-4 py-2 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]">
           SELECT ANOMALY TYPE ▼
         </button>
 
+      {showDropdown && (
+        <div className="absolute mt-1 bg-gray-700 p-2 shadow-md rounded-md w-48 z-10">
+          <ul className="text-white">
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">batteryVolts</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">chargeAltVolts</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">engineSpeed</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">engineFuelLevel</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l1Voltage</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l2Voltage</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l3Voltage</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l1Current</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l2Current</li>
+            <li className="p-2 hover:bg-gray-700 cursor-pointer">l3Current</li>
+
+          </ul>
+        </div>
+      )}
+      </div>
+          
         <button
           onClick={exportToExcel}
-          className="bg-[#B1D5BD] text-sm 2xl:text-xl text-black font-semibold px-2 rounded-md w-full md:w-auto"
+          className="bg-[#B1D5BD] text-sm 2xl:text-xl text-black font-bold px-4 py-2 rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040]"
         >
           EXPORT TO EXCEL
         </button>
       </div>
 
-      {/* Table Section */}
       <div className="bg-gray-800 p-6 mt-6 rounded-lg overflow-x-auto">
         <h3 className="text-lg font-bold">Anomaly Data</h3>
         <table className="w-full mt-4 border-collapse border border-gray-600 text-sm md:text-base">
