@@ -30,9 +30,9 @@ createRoot(document.getElementById("root")).render(
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="alarms" element={<Alarms />} />
             <Route path="anamolies" element={<Anamolies />} />
-            {/* <Route path="maintenance" element={<Maintenance />} /> */}
+            <Route path="alarms" element={<Alarms />} />
+            <Route path="maintenance" element={<Maintenance />} />
           </Route>
           <Route path="/login" element={<Login />} />
         </Routes>
