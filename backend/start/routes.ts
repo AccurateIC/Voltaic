@@ -16,7 +16,7 @@ transmit.registerRoutes();
 
 router.get("/sse", async () => {
   transmit.broadcast("global", { message: "hello" });
-  return { hello: "swarnim" };
+  return { hello: "Ankita" };
 });
 
 // auth
