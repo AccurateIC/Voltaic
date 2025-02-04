@@ -20,7 +20,9 @@ const Profile = () => {
                     </a>
                 </li>
                 <li><a>Settings</a></li>
-                <li><a>Logout</a></li>
+                <li>
+                    <a onClick={() => navigate("/login")} className="cursor-pointer">Logout</a>
+                </li>
             </ul>
         </div>
     );

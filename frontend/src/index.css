@@ -3,3 +3,7 @@
 @plugin "daisyui" {
     themes: all;
 }
+* {
+    font-family: 'Sofia Sans Semi Condensed', 'Segoe UI', sans-serif;
+  }
+  
