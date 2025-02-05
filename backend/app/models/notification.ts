@@ -24,10 +24,16 @@ export default class Notification extends BaseModel {
   declare shouldBeDisplayed: boolean;
 
   @column()
-  declare notificationTypeId: number;
+  declare notificationTypeId: number; // references notification_type.id
 
   @belongsTo(() => NotificationType)
   declare notificationType: BelongsTo<typeof NotificationType>;
+
+  @column()
+  declare startedAt: DateTime;
+
+  @column()
+  declare finishedAt: DateTime;
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;
