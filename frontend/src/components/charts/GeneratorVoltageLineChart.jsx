@@ -1,13 +1,8 @@
-
-
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addNotification,
-  removeNotification,
-} from "../../redux/notificationSlice";
-import { addVoltageData } from "../../Redux/graphSlice";
-import { selectVoltageData } from "../../Redux/graphSlice";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
+import { addVoltageData } from "../../Redux/graphSlice.js";
+import { selectVoltageData } from "../../Redux/graphSlice.js";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -21,14 +16,13 @@ export const GeneratorVoltageLineChart = ({
   l3IsAnomaly,
 }) => {
   const dispatch = useDispatch();
-  const graphData = useSelector(selectVoltageData); 
+  const graphData = useSelector(selectVoltageData);
 
-  const l1NotificationRef = useRef(false); 
+  const l1NotificationRef = useRef(false);
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-  
     if (l1Voltage !== 0 || l2Voltage !== 0 || l3Voltage !== 0) {
       dispatch(
         addVoltageData({
@@ -43,7 +37,6 @@ export const GeneratorVoltageLineChart = ({
       );
     }
 
- 
     if (l1IsAnomaly && !l1NotificationRef.current) {
       dispatch(
         addNotification({
@@ -52,13 +45,12 @@ export const GeneratorVoltageLineChart = ({
           type: "voltage",
         })
       );
-      l1NotificationRef.current = true; 
+      l1NotificationRef.current = true;
     } else if (!l1IsAnomaly && l1NotificationRef.current) {
       dispatch(removeNotification({ id: "L1", type: "voltage" }));
-      l1NotificationRef.current = false; 
+      l1NotificationRef.current = false;
     }
 
-   
     if (l2IsAnomaly && !l2NotificationRef.current) {
       dispatch(
         addNotification({
@@ -67,10 +59,10 @@ export const GeneratorVoltageLineChart = ({
           type: "voltage",
         })
       );
-      l2NotificationRef.current = true; 
+      l2NotificationRef.current = true;
     } else if (!l2IsAnomaly && l2NotificationRef.current) {
       dispatch(removeNotification({ id: "L2", type: "voltage" }));
-      l2NotificationRef.current = false; 
+      l2NotificationRef.current = false;
     }
 
     if (l3IsAnomaly && !l3NotificationRef.current) {
@@ -86,39 +78,23 @@ export const GeneratorVoltageLineChart = ({
       dispatch(removeNotification({ id: "L3", type: "voltage" }));
       l3NotificationRef.current = false; // Reset when anomaly is resolved
     }
-  }, [
-    timeStamp,
-    l1Voltage,
-    l2Voltage,
-    l3Voltage,
-    l1IsAnomaly,
-    l2IsAnomaly,
-    l3IsAnomaly,
-    dispatch,
-  ]);
+  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={graphData}
-            margin={{ top: 1, right: 30, bottom: 30, left: 20 }}
-          >
+          <LineChart data={graphData} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="1 1" />
-            <XAxis
-              dataKey="time"
-              label={{ value: "Time", position: "bottom", offset: 0 }}
-            />
+            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Voltage (V)",
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={[0,300]}
-              
+              domain={[0, 300]}
             />
             <Tooltip />
             <Legend
@@ -159,5 +135,5 @@ export const GeneratorVoltageLineChart = ({
         </ResponsiveContainer>
       </div>
     </div>
-);
+  );
 };
