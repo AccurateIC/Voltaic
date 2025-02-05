@@ -1,21 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addBatteryData } from "../../redux/graphSlice";
-import { selectBatteryData } from "../../redux/graphSlice";
-import {
-  addNotification,
-  removeNotification,
-} from "../../redux/notificationSlice";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { addBatteryData } from "../../Redux/graphSlice.js";
+import { selectBatteryData } from "../../Redux/graphSlice.js";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
 export const BatteryChargeLineChart = ({
@@ -67,31 +55,18 @@ export const BatteryChargeLineChart = ({
         })
       );
       chargeAltVoltsNotificationRef.current = true;
-    } else if (
-      !chargeAltVoltsIsAnomaly &&
-      chargeAltVoltsNotificationRef.current
-    ) {
+    } else if (!chargeAltVoltsIsAnomaly && chargeAltVoltsNotificationRef.current) {
       dispatch(removeNotification({ id: "chargeAltVolts", type: "chargeAlt" }));
       chargeAltVoltsNotificationRef.current = false;
     }
-  }, [
-    timeStamp,
-    batteryVolts,
-    chargeAltVolts,
-    batteryVoltsIsAnomaly,
-    chargeAltVoltsIsAnomaly,
-    dispatch,
-  ]);
+  }, [timeStamp, batteryVolts, chargeAltVolts, batteryVoltsIsAnomaly, chargeAltVoltsIsAnomaly, dispatch]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={batteryData}
-            margin={{ top: 10, right: 30, bottom: 30, left: 20 }}
-          >
+          <LineChart data={batteryData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -118,9 +93,7 @@ export const BatteryChargeLineChart = ({
               stroke="#5278d1"
               name="Battery Voltage"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.batteryVoltsIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.batteryVoltsIsAnomaly)}
             />
 
             <Line
@@ -130,9 +103,7 @@ export const BatteryChargeLineChart = ({
               stroke="#5dd12c"
               name="Charge Alternator Voltage"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.chargeAltVoltsIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.chargeAltVoltsIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

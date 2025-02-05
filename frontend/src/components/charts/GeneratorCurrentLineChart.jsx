@@ -1,22 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addNotification,
-  removeNotification,
-} from "../../redux/notificationSlice";
-import { addCurrentData } from "../../Redux/graphSlice";
-import { selectCurrentData } from "../../Redux/graphSlice";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
+import { addCurrentData } from "../../Redux/graphSlice.js";
+import { selectCurrentData } from "../../Redux/graphSlice.js";
 import renderCustomDot from "./renderCustomDot";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export const GeneratorCurrentLineChart = ({
   timeStamp,
@@ -91,16 +79,7 @@ export const GeneratorCurrentLineChart = ({
       dispatch(removeNotification({ id: "L3", type: "current" }));
       l3NotificationRef.current = false;
     }
-  }, [
-    timeStamp,
-    l1Current,
-    l2Current,
-    l3Current,
-    l1CIsAnomaly,
-    l2CIsAnomaly,
-    l3CIsAnomaly,
-    dispatch,
-  ]);
+  }, [timeStamp, l1Current, l2Current, l3Current, l1CIsAnomaly, l2CIsAnomaly, l3CIsAnomaly, dispatch]);
 
   // console.log("Current",l1l2l3Current);
 
@@ -111,19 +90,18 @@ export const GeneratorCurrentLineChart = ({
       <div className="absolute top-1 right-4 text-xl font-semibold p-4 ">
         <span>Total Current: </span>
         <span
-         className="font-bold text-lg text-red-600"
-         style={{
-           padding: "5px",
-           borderRadius: "5px",
-         }}>{l1l2l3Current} Amp</span>
+          className="font-bold text-lg text-red-600"
+          style={{
+            padding: "5px",
+            borderRadius: "5px",
+          }}>
+          {l1l2l3Current} Amp
+        </span>
       </div>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={currentData}
-            margin={{ top: 10, right: 30, bottom: 30, left: 20 }}
-          >
+          <LineChart data={currentData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -132,7 +110,7 @@ export const GeneratorCurrentLineChart = ({
                 angle: -90,
                 position: "insideLeft",
               }}
-               domain={[0,30]}
+              domain={[0, 30]}
             />
             <Tooltip />
             <Legend
@@ -149,9 +127,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.l1CIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.l1CIsAnomaly)}
             />
             <Line
               type="line"
@@ -160,9 +136,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#ede907"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.l2CIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
             />
             <Line
               type="line"
@@ -171,9 +145,7 @@ export const GeneratorCurrentLineChart = ({
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.l3CIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.l3CIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

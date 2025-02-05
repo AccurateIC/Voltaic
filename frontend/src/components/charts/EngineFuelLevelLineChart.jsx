@@ -1,30 +1,14 @@
-
-
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addFuelLevelData } from "../../Redux/graphSlice";
 import { selectFuelLevelData } from "../../Redux/graphSlice";
-import { addNotification, removeNotification } from "../../redux/notificationSlice";  // Import your notification actions
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js"; // Import your notification actions
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const EngineFuelLevelLineChart = ({
-  timeStamp,
-  fuelLevel,
-  fuelLevelISAnomaly,
-}) => {
+export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnomaly }) => {
   const dispatch = useDispatch();
   const fuelLevelData = useSelector(selectFuelLevelData);
-
 
   const fuelLevelNotificationRef = useRef(false);
 
@@ -39,12 +23,11 @@ export const EngineFuelLevelLineChart = ({
       );
     }
 
-   
     if (fuelLevelISAnomaly && !fuelLevelNotificationRef.current) {
       dispatch(
-        addNotification({ 
+        addNotification({
           message: "Fuel level anomaly detected!",
-          type: "fuel",  
+          type: "fuel",
         })
       );
       fuelLevelNotificationRef.current = true;
@@ -59,15 +42,9 @@ export const EngineFuelLevelLineChart = ({
       <h2 className="text-lg font-semibold p-4">Engine Fuel Level Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={fuelLevelData}
-            margin={{ top: 15, right: 30, bottom: 30, left: 20 }}
-          >
+          <LineChart data={fuelLevelData} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="time"
-              label={{ value: "Time", position: "bottom", offset: 0 }}
-            />
+            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Fuel Level (%)",
@@ -91,9 +68,7 @@ export const EngineFuelLevelLineChart = ({
               stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.fuelLevelISAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>
