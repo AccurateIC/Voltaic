@@ -16,7 +16,15 @@ export default class extends BaseSchema {
       table.string("password").notNullable();
 
       // relationships
-      table.integer("role_id").unsigned().notNullable().references("id").inTable("roles").onDelete("RESTRICT");
+      table
+        .integer("role_id") //
+        .unsigned()
+        .notNullable()
+        .references("id")
+        .inTable("roles")
+        .onDelete("RESTRICT");
+
+      table.boolean("is_active").notNullable(); // for soft deletion
 
       table.timestamp("created_at").notNullable();
       table.timestamp("updated_at").notNullable();

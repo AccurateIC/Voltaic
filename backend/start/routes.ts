@@ -22,18 +22,25 @@ router.get("/sse", async () => {
 // auth
 router
   .group(() => {
-    router.post("/register", "#controllers/auth/register_controller.store");
-    router.post("/login", "#controllers/auth/login_controller.store");
-    router.post("/logout", "#controllers/auth/logout_controller.store").use([middleware.auth()]);
+    router.get("getAll", "#controllers/auth/get_all_controller.getAll");
+    router.get("getAllActiveAndInactive", "#controllers/auth/get_all_controller.getAllActiveAndInactive");
+    router.post("register", "#controllers/auth/register_controller.store");
+    router.post("login", "#controllers/auth/login_controller.store");
+    router.post("logout", "#controllers/auth/logout_controller.store").use([middleware.auth()]);
+
+    router.patch("deactivate/:id", "#controllers/auth/delete_user_controller.delete"); // soft delete
+    router.patch("activate/:id", "#controllers/auth/activate_user_controller.update");
+
+    router.delete("hardDelete/:id", "#controllers/auth/delete_user_controller.destroy"); // really really delete xD
   })
   .prefix("auth");
 
 // role
 router
   .group(() => {
-    router.get("/getAll", "#controllers/role/get_all_controller.index");
-    router.post("/create", "#controllers/role/create_controller.create");
-    router.delete("/delete/:id", "#controllers/role/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/role/get_all_controller.index");
+    router.post("create", "#controllers/role/create_controller.create");
+    router.delete("delete/:id", "#controllers/role/delete_controller.destroy").use([middleware.auth()]);
   })
   .prefix("role");
 
@@ -68,8 +75,8 @@ router
     router.post("/create", "#controllers/archive/create_controller.create"); // processed data from ML models ought to be posted here
 
     // probably not having an option to delete the telemetry data might be a good idea instead
-
     router.delete("/delete/:id", "#controllers/archive/delete_controller.index").use([middleware.auth()]);
+
     // endpoint to get data between two timestamps
     // TODO: in future, add aggregation options: mean, median, max, min, etc.
     router.get("/getDataBetween", "#controllers/archive/get_data_between_controller.index").use([middleware.auth()]);

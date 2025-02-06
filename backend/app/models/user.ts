@@ -33,6 +33,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @belongsTo(() => Role)
   declare role: BelongsTo<typeof Role>;
 
+  @column()
+  declare isActive: boolean; // for soft deletion
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;
 
