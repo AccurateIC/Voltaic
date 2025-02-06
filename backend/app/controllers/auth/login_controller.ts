@@ -8,7 +8,13 @@ export default class LoginController {
    */
   async store({ request, response, auth }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator);
-    const user = await User.verifyCredentials(email, password);
-    await auth.use("web").login(user);
+    const user = await User.findByOrFail("email", email).where("is_active", true);
+    console.log(user.isActive);
+    if (user.isActive === 1) {
+      await User.verifyCredentials(email, password);
+      await auth.use("web").login(user);
+    } else {
+      throw new Error("test exception");
+    }
   }
 }

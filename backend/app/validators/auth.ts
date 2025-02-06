@@ -10,6 +10,7 @@ export const createUserValidator = vine.compile(
     firstName: vine.string().minLength(2),
     lastName: vine.string().optional(),
     roleId: vine.number(),
+    isActive: vine.boolean(),
   })
 );
 
