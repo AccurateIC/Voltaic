@@ -18,9 +18,9 @@ export const Reports = () => {
     l1Voltage: 1,
     l2Voltage: 2,
     l3Voltage: 3,
-    l1Current: 0,
-    l2Current: 0,
-    l3Current: 0,
+    l1Current: 2,
+    l2Current: 6,
+    l3Current: 9,
     l1l2l3Current: 0,
     oilPress: 4,
     fuelLevelISAnomaly: false,
@@ -42,10 +42,10 @@ export const Reports = () => {
       batteryVolts: Math.round(message?.engBatteryVolts?.value),
       chargeAltVolts: Math.round(message?.engChargeAltVolts?.value),
       engineSpeed: Math.round(message?.engSpeedDisplay?.value),
-      l1Voltage: Math.round(message?.genL1Volts?.value),
+      l1Voltage: 5,
       l2Voltage: Math.round(message?.genL2Volts?.value),
-      l3Voltage: Math.round(message?.genL3Volts?.value),
-      l1Current: Math.round(message?.genL1Current?.value),
+      l3Voltage:Math.round(message?.genL3Volts?.value),
+      l1Current:8 ,
       l2Current: Math.round(message?.genL2Current?.value),
       l3Current: Math.round(message?.genL3Current?.value),
       l1l2l3Current: Math.round(message?.genL1L2L3Current?.value),
@@ -134,7 +134,7 @@ export const Reports = () => {
         />
       </div>
     
-      <div className="min-h-[400px] bg-base-200">
+      {/* <div className="min-h-[400px] bg-base-200">
         <GeneratorCurrentLineChart
           timeStamp={stats.timeStamp}
           l1Current={stats.l1Current}
@@ -145,7 +145,7 @@ export const Reports = () => {
           l2CIsAnomaly={stats.l2CIsAnomaly}
           l3CIsAnomaly={stats.l3CIsAnomaly}
         />
-      </div>
+      </div> */}
       <div className="min-h-[400px] bg-base-200">
         <GeneratorVoltageLineChart
           timeStamp={stats.timeStamp}

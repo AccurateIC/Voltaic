@@ -111,12 +111,12 @@ const VoltageStatCard = ({ value, name, status, kind, color }) => {
 
 export const Generator = () => {
   const [stats, setStats] = useState({
-    l1Voltage: 0,
-    l2Voltage: 0,
-    l3Voltage: 0,
-    l1Current: 0,
-    l2Current: 0,
-    l3Current: 0,
+    l1Voltage: 150,
+    l2Voltage: 201,
+    l3Voltage: 200,
+    l1Current: 15,
+    l2Current: 16,
+    l3Current: 18,
   });
 
   const handleWsMessage = useCallback((message) => {
@@ -129,6 +129,7 @@ export const Generator = () => {
       l2Current: Math.round(message?.genL2Current.value || 0),
       l3Current: Math.round(message?.genL3Current.value || 0),
     });
+    console.log(message.l1Current);
   }, []);
 
   const { send, isConnected } = useWebSocket(handleWsMessage);
