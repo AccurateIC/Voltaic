@@ -22,16 +22,14 @@ router.get("/sse", async () => {
 // auth
 router
   .group(() => {
-    router.get("getAll", "#controllers/auth/get_all_controller.getAll");
-    router.get("getAllActiveAndInactive", "#controllers/auth/get_all_controller.getAllActiveAndInactive");
-    router.post("register", "#controllers/auth/register_controller.store");
-    router.post("login", "#controllers/auth/login_controller.store");
-    router.post("logout", "#controllers/auth/logout_controller.store").use([middleware.auth()]);
-
-    router.patch("deactivate/:id", "#controllers/auth/delete_user_controller.delete"); // soft delete
-    router.patch("activate/:id", "#controllers/auth/activate_user_controller.update");
-
-    router.delete("hardDelete/:id", "#controllers/auth/delete_user_controller.destroy"); // really really delete xD
+    router.get("getActive", "#controllers/auth_controller.getActive");
+    router.get("getAll", "#controllers/auth_controller.getAll");
+    router.post("register", "#controllers/auth_controller.register");
+    router.post("login", "#controllers/auth_controller.login");
+    router.post("logout", "#controllers/auth_controller.logout").use([middleware.auth()]);
+    router.patch("activate/:id", "#controllers/auth_controller.activate");
+    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); // soft delete
+    router.delete("hardDelete/:id", "#controllers/auth_controller.destroy"); // really really delete xD
   })
   .prefix("auth");
 
@@ -108,5 +106,8 @@ router
   .group(() => {
     router.get("getAll", "#controllers/notification/get_all_controller.index").use([middleware.auth()]);
     router.patch("read", "#controllers/notification/read_controller.index").use([middleware.auth()]);
+
+    router.get("create", "#controllers/notification/create_controller.create").use([middleware.auth()]);
+    router.patch("update", "#controllers/notification/update_controller.update").use([middleware.auth()]);
   })
   .prefix("notification");
