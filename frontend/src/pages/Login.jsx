@@ -7,11 +7,13 @@ import { useNavigate } from "react-router";
 import BackImage from "../assets/back.svg";
 
 // Reusable Input Field Component
-const InputField = ({ label, type, placeholder }) => (
+const InputField = ({ label, type, placeholder,value, onChange }) => (
   <label className="floating-label w-full">
     <span>{label}</span>
     <input
       type={type}
+      value={value}  // Bind the value to the state
+      onChange={onChange}
       placeholder={placeholder}
       required
       className="input input-md w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B1D5BD]"
@@ -23,17 +25,20 @@ const Login = () => {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
 
+  const [email, setEmail]=useState("");
+  const [password, setPassword]=useState("");
+  const [firstName, setFirstName]=useState("");
+  const [lastName, setLastName]=useState("");
+  const [roleId, setroleId]=useState(1);
+
   const handleSignIn =async (e) => {
     e.preventDefault();
-    const email= "am11@gmail.com";
-    const password ="1234569";
-    const firstName ="AM";
-    const roleId = 2;
   
     const roleData ={
       email: email,
       password:password,
       firstName: firstName,
+      lastName: lastName,
       roleId:roleId,
     };
 
@@ -43,7 +48,7 @@ const Login = () => {
         headers :{
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(response),
+        body: JSON.stringify(roleData),
       });
     
     if (!response.ok) {
@@ -54,7 +59,6 @@ const Login = () => {
     console.log("Role created:", responseData);
     toast.success("Role created successfully!");
     
-    // Navigate to another page or show a success message
     navigate("/engine");
   } catch (error) {
     console.error("Error creating role:", error);
@@ -98,15 +102,16 @@ const Login = () => {
             {/* Conditional Fields for Signup or Login */}
             {isSignUp && (
               <>
-                <InputField label="Full Name" type="text" placeholder="Full Name" />
-                <InputField label="Email" type="email" placeholder="Email" />
-                <InputField label="Password" type="password" placeholder="Password" />
+                <InputField label="First Name" type="text" placeholder="First Name" value={firstName} onChange={(e)=>setFirstName(e.target.value)}/>
+                <InputField label="Last Name" type="text" placeholder="Last Name" value={lastName} onChange={(e)=>setLastName(e.target.value)}/>
+                <InputField label="Email" type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
+                <InputField label="Password" type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)}/>
               </>
             )}
             {!isSignUp && (
               <>
-                <InputField label="Email" type="email" placeholder="Email" />
-                <InputField label="Password" type="password" placeholder="Password" />
+                <InputField label="Email" type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
+                <InputField label="Password" type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)}/>
               </>
             )}
 

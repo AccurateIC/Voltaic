@@ -22,7 +22,7 @@ router.get("/sse", async () => {
 // auth
 router
   .group(() => {
-    router.post("/register", "#controllers/auth/register_controller.store");
+    router.post("/register", "#controllers/auth/register_controller.store").use([middleware.auth()]);
     router.post("/login", "#controllers/auth/login_controller.store");
     router.post("/logout", "#controllers/auth/logout_controller.store").use([middleware.auth()]);
   })
