@@ -36,18 +36,19 @@ router
 // role
 router
   .group(() => {
-    router.get("getAll", "#controllers/role/get_all_controller.index");
-    router.post("create", "#controllers/role/create_controller.create");
-    router.delete("delete/:id", "#controllers/role/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/role_controller.getAll");
+    router.post("create", "#controllers/role_controller.create");
+    router.post("update", "#controllers/role_controller.update");
+    router.delete("delete/:id", "#controllers/role_controller.delete").use([middleware.auth()]);
   })
   .prefix("role");
 
 // physical quantities
 router
   .group(() => {
-    router.get("/getAll", "#controllers/physical_quantiies/get_all_controller.index");
-    router.post("/create", "#controllers/physical_quantiies/create_controller.create");
-    router.delete("/delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/physical_quantiies/get_all_controller.index");
+    router.post("create", "#controllers/physical_quantiies/create_controller.create");
+    router.delete("delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
   })
   .prefix("physicalQuantity");
 
@@ -70,7 +71,7 @@ router
 
     // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
     //       if not added, this api endpoint can be overwhelmed by bad actors and crash the application (potentially)
-    router.post("/create", "#controllers/archive/create_controller.create"); // processed data from ML models ought to be posted here
+    router.post("/create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
 
     // probably not having an option to delete the telemetry data might be a good idea instead
     router.delete("/delete/:id", "#controllers/archive/delete_controller.index").use([middleware.auth()]);
@@ -95,9 +96,10 @@ router
 // notification type apis
 router
   .group(() => {
-    router.get("getAll", "#controllers/notification_type/get_all_controller.index");
-    router.post("create", "#controllers/notification_type/create_controller.store");
-    router.patch("update/:id", "#controllers/notification_type/update_controller.update");
+    router.get("getAll", "#controllers/notification_type_controller.getAll");
+    router.post("create", "#controllers/notification_type_controller.create");
+    router.patch("update/:id", "#controllers/notification_type_controller.update");
+    router.delete("delete/:id", "#controllers/notification_type_controller.delete");
   })
   .prefix("notificationType");
 
