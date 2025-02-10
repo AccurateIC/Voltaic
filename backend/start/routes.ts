@@ -48,6 +48,7 @@ router
   .group(() => {
     router.get("getAll", "#controllers/physical_quantiies/get_all_controller.index");
     router.post("create", "#controllers/physical_quantiies/create_controller.create");
+    router.post("update/:id", "#controllers/physical_quantiies/create_controller.update");
     router.delete("delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
   })
   .prefix("physicalQuantity");
