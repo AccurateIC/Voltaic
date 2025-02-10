@@ -5,10 +5,10 @@ import vine from "@vinejs/vine";
  */
 export const createUserValidator = vine.compile(
   vine.object({
-    email: vine.string().email(),
-    password: vine.string().minLength(5),
     firstName: vine.string().minLength(2),
     lastName: vine.string().optional(),
+    email: vine.string().email(),
+    password: vine.string().minLength(5),
     roleId: vine.number(),
   })
 );
