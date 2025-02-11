@@ -58,9 +58,10 @@ router
 // for instance: engineSpeed, engineOilPressure, etc
 router
   .group(() => {
-    router.get("/getAll", "#controllers/property/get_all_controller.index");
-    router.post("/create", "#controllers/property/create_controller.create");
-    router.delete("/delete/:id", "#controllers/property/delete_controller.index").use([middleware.auth()]);
+    router.get("/getAll", "#controllers/genset_property_controller.getAll");
+    router.post("/create", "#controllers/genset_property_controller.create");
+    router.patch("/update/:id", "#controllers/genset_property_controller.update");
+    router.delete("/delete/:id", "#controllers/genset_property_controller.delete").use([middleware.auth()]);
   })
   .prefix("property");
 
@@ -68,18 +69,18 @@ router
 // this is the table where timestamped telemetry data from the genset will be stored
 router
   .group(() => {
-    router.get("/getAll", "#controllers/archive/get_all_controller.index").use(middleware.auth());
+    router.get("getAll", "#controllers/archive_controller.getAll").use(middleware.auth());
 
     // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
     //       if not added, this api endpoint can be overwhelmed by bad actors and crash the application (potentially)
-    router.post("/create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
+    router.post("create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
 
     // probably not having an option to delete the telemetry data might be a good idea instead
-    router.delete("/delete/:id", "#controllers/archive/delete_controller.index").use([middleware.auth()]);
+    router.delete("delete/:id", "#controllers/archive_controller.delete").use([middleware.auth()]);
 
     // endpoint to get data between two timestamps
     // TODO: in future, add aggregation options: mean, median, max, min, etc.
-    router.get("/getDataBetween", "#controllers/archive/get_data_between_controller.index").use([middleware.auth()]);
+    router.get("getDataBetween", "#controllers/archive_controller.getDataBetween").use([middleware.auth()]);
 
     // TODO: maybe we need an api endpoint which returns paginated data
   })

@@ -1,42 +1,48 @@
+import vine from "@vinejs/vine";
+import Archive from "#models/archive";
+import GensetProperty from "#models/genset_property";
 import type { HttpContext } from "@adonisjs/core/http";
 
-export default class ArchiveController {
-  /**
-   * Display a list of resource
-   */
-  async index({}: HttpContext) {}
+const archiveRowSchema = vine.object({
+  property: vine.string().exists({ table: "genset_properties", column: "property_name" }),
+  value: vine.number(),
+  is_anomaly: vine.boolean(),
+});
 
-  /**
-   * Display form to create a new record
-   */
-  async create({ request, response }: HttpContext) {
-    const data = request.body();
-    console.log(data);
-    return data;
+const archiveSchema = vine.object({
+  timestamp: vine.date({ formats: ["iso8601"] }),
+  data: vine.array(archiveRowSchema).minLength(1),
+});
+
+const archiveValidator = vine.compile(archiveSchema);
+
+export default class ArchiveController {
+  async getAll({}: HttpContext) {
+    const archiveData = await Archive.all();
+    return archiveData;
   }
 
-  /**
-   * Handle form submission for the create action
-   */
-  async store({ request }: HttpContext) {}
+  async create({ request, response }: HttpContext) {
+    const payload = await request.validateUsing(archiveValidator);
+    const timestamp = payload.timestamp;
+    const data = payload.data;
+    console.log(`Time: ${timestamp}`);
+    const archiveData = [];
+    for (let i = 0; i < data.length; ++i) {
+      console.log(`    Property: ${data[i].property}`);
+      const gensetProperty = await GensetProperty.findByOrFail("propertyName", `${data[i].property}`);
+      console.log(`    Property ID: ${gensetProperty.id}`);
+      console.log(`    Value: ${data[i].value}`);
+      console.log(`    IsAnomaly: ${data[i].is_anomaly}\n`);
+      archiveData.push({
+        timestamp: timestamp,
+        propertyId: gensetProperty.id,
+        propertyValue: data[i].value,
+        isAnomaly: data[i].is_anomaly,
+      });
+    }
 
-  /**
-   * Show individual record
-   */
-  async show({ params }: HttpContext) {}
-
-  /**
-   * Edit individual record
-   */
-  async edit({ params }: HttpContext) {}
-
-  /**
-   * Handle form submission for the edit action
-   */
-  async update({ params, request }: HttpContext) {}
-
-  /**
-   * Delete record
-   */
-  async destroy({ params }: HttpContext) {}
+    await Archive.createMany(archiveData);
+    return data;
+  }
 }
