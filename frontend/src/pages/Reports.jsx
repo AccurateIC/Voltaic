@@ -134,7 +134,7 @@ export const Reports = () => {
         />
       </div>
     
-      {/* <div className="min-h-[400px] bg-base-200">
+      <div className="min-h-[400px] bg-base-200">
         <GeneratorCurrentLineChart
           timeStamp={stats.timeStamp}
           l1Current={stats.l1Current}
@@ -145,7 +145,7 @@ export const Reports = () => {
           l2CIsAnomaly={stats.l2CIsAnomaly}
           l3CIsAnomaly={stats.l3CIsAnomaly}
         />
-      </div> */}
+      </div>
       <div className="min-h-[400px] bg-base-200">
         <GeneratorVoltageLineChart
           timeStamp={stats.timeStamp}
