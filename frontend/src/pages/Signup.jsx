@@ -207,23 +207,22 @@ const Login = () => {
 
     try {
       const url = isSignUp ? "http://localhost:3333/auth/register" : "http://localhost:3333/auth/login";
-      const method = isSignUp ? "POST" : "POST"; // Both can use POST, but you can change the method depending on your backend.
+      // const method = isSignUp ? "POST" : "POST"; // Both can use POST, but you can change the method depending on your backend.
 
       const response = await fetch(url, {
-        method: method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-         credentials: "include",
+       credentials: "include",
         body: JSON.stringify(userData),
       });
-
+      // console.log(credentials)
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      
-      console.log(response)
+     
       console.log(isSignUp ? "User registered:" : "User logged in:", response);
       
       // Show success toast
@@ -231,8 +230,11 @@ const Login = () => {
 
       
       // Redirect on successful login/signup
-      if (!isSignUp) {
+      if (isSignUp) {
         // Redirect to dashboard or engine page after successful login
+        navigate("/engine");
+      }
+      else{
         navigate("/engine");
       }
     } catch (error) {
