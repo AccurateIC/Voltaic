@@ -3,6 +3,11 @@ import User from "#models/user";
 import { createUserValidator, loginValidator } from "#validators/auth";
 
 export default class AuthController {
+  async isAuthenticated({ auth }: HttpContext) {
+    const user = await auth.authenticate();
+    return user;
+  }
+
   async getActive({}: HttpContext) {
     const users = await User.query().where("is_active", true);
     return users;
