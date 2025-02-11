@@ -1,28 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addOilPressureData } from "../../redux/graphSlice";
-import { selectOilPressureData } from "../../redux/graphSlice";
-import {
-  addNotification,
-  removeNotification,
-} from "../../redux/notificationSlice";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { addOilPressureData } from "../../Redux/graphSlice.js";
+import { selectOilPressureData } from "../../Redux/graphSlice.js";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const OilPressureLineChart = ({
-  timeStamp,
-  oilPressure,
-  oilPressureIsAnomaly,
-}) => {
+export const OilPressureLineChart = ({ timeStamp, oilPressure, oilPressureIsAnomaly }) => {
   const dispatch = useDispatch();
   const oilPressureData = useSelector(selectOilPressureData);
 
@@ -59,10 +43,7 @@ export const OilPressureLineChart = ({
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={oilPressureData}
-            margin={{ top: 10, right: 30, bottom: 30, left: 20 }}
-          >
+          <LineChart data={oilPressureData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis
@@ -87,9 +68,7 @@ export const OilPressureLineChart = ({
               dataKey="oilPressure"
               stroke="#5278d1"
               strokeWidth={2}
-              dot={(props) =>
-                renderCustomDot(props, props.payload.oilPressureIsAnomaly)
-              }
+              dot={(props) => renderCustomDot(props, props.payload.oilPressureIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

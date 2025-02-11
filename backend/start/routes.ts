@@ -16,15 +16,20 @@ transmit.registerRoutes();
 
 router.get("/sse", async () => {
   transmit.broadcast("global", { message: "hello" });
-  return { hello: "Ankita" };
+  return { hello: "world" };
 });
 
 // auth
 router
   .group(() => {
-    router.post("/register", "#controllers/auth/register_controller.store");
-    router.post("/login", "#controllers/auth/login_controller.store");
-    router.post("/logout", "#controllers/auth/logout_controller.store").use([middleware.auth()]);
+    router.get("getActive", "#controllers/auth_controller.getActive");
+    router.get("getAll", "#controllers/auth_controller.getAll");
+    router.post("register", "#controllers/auth_controller.register");
+    router.post("login", "#controllers/auth_controller.login");
+    router.post("logout", "#controllers/auth_controller.logout").use([middleware.auth()]);
+    router.patch("activate/:id", "#controllers/auth_controller.activate");
+    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); // soft delete
+    router.delete("hardDelete/:id", "#controllers/auth_controller.destroy"); // really really delete xD
   })
   .prefix("auth");
 
@@ -33,18 +38,20 @@ router
 // role
 router
   .group(() => {
-    router.get("/getAll", "#controllers/role/get_all_controller.index");
-    router.post("/create", "#controllers/role/create_controller.create");
-    router.delete("/delete/:id", "#controllers/role/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/role_controller.getAll");
+    router.post("create", "#controllers/role_controller.create");
+    router.post("update", "#controllers/role_controller.update");
+    router.delete("delete/:id", "#controllers/role_controller.delete").use([middleware.auth()]);
   })
   .prefix("role");
 
 // physical quantities
 router
   .group(() => {
-    router.get("/getAll", "#controllers/physical_quantiies/get_all_controller.index");
-    router.post("/create", "#controllers/physical_quantiies/create_controller.create");
-    router.delete("/delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/physical_quantiies/get_all_controller.index");
+    router.post("create", "#controllers/physical_quantiies/create_controller.create");
+    router.post("update/:id", "#controllers/physical_quantiies/create_controller.update");
+    router.delete("delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
   })
   .prefix("physicalQuantity");
 
@@ -67,11 +74,11 @@ router
 
     // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
     //       if not added, this api endpoint can be overwhelmed by bad actors and crash the application (potentially)
-    router.post("/create", "#controllers/archive/create_controller.create"); // processed data from ML models ought to be posted here
+    router.post("/create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
 
     // probably not having an option to delete the telemetry data might be a good idea instead
-
     router.delete("/delete/:id", "#controllers/archive/delete_controller.index").use([middleware.auth()]);
+
     // endpoint to get data between two timestamps
     // TODO: in future, add aggregation options: mean, median, max, min, etc.
     router.get("/getDataBetween", "#controllers/archive/get_data_between_controller.index").use([middleware.auth()]);
@@ -92,9 +99,10 @@ router
 // notification type apis
 router
   .group(() => {
-    router.get("getAll", "#controllers/notification_type/get_all_controller.index");
-    router.post("create", "#controllers/notification_type/create_controller.store");
-    router.patch("update/:id", "#controllers/notification_type/update_controller.update");
+    router.get("getAll", "#controllers/notification_type_controller.getAll");
+    router.post("create", "#controllers/notification_type_controller.create");
+    router.patch("update/:id", "#controllers/notification_type_controller.update");
+    router.delete("delete/:id", "#controllers/notification_type_controller.delete");
   })
   .prefix("notificationType");
 
@@ -103,5 +111,8 @@ router
   .group(() => {
     router.get("getAll", "#controllers/notification/get_all_controller.index").use([middleware.auth()]);
     router.patch("read", "#controllers/notification/read_controller.index").use([middleware.auth()]);
+
+    router.get("create", "#controllers/notification/create_controller.create").use([middleware.auth()]);
+    router.patch("update", "#controllers/notification/update_controller.update").use([middleware.auth()]);
   })
   .prefix("notification");

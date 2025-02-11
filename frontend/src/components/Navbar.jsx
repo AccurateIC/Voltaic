@@ -38,48 +38,37 @@
 
 // export default Navbar;
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
 import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
 import { useDispatch, useSelector } from "react-redux";
- import Logo from "../assets/accurate.svg";
-import {
-  addNotification,
-  removeNotification,
-} from "../redux/notificationSlice"; // Import actions
+import Logo from "../assets/accurate.svg";
+import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
 
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   const dispatch = useDispatch();
 
   // Get notifications from Redux
-  const notifications = useSelector(
-    (state) => state.notifications.notifications
-  );
+  const notifications = useSelector((state) => state.notifications.notifications);
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     // Check for anomalies and add notifications if necessary
     if (l1IsAnomaly) {
-      dispatch(
-        addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" })
-      );
+      dispatch(addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" }));
     } else {
       dispatch(removeNotification("L1"));
     }
 
     if (l2IsAnomaly) {
-      dispatch(
-        addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" })
-      );
+      dispatch(addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" }));
     } else {
       dispatch(removeNotification("L2"));
     }
 
     if (l3IsAnomaly) {
-      dispatch(
-        addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" })
-      );
+      dispatch(addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" }));
     } else {
       dispatch(removeNotification("L3"));
     }
@@ -88,7 +77,6 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
-
 
   return (
     <>
@@ -100,8 +88,7 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0 16px",
-        }}
-      >
+        }}>
         <div className="flex-1">
           <a className="btn btn-ghost">
             <img
@@ -110,9 +97,9 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
               style={{
                 width: "150px",
                 height: "auto",
-                backgroundColor: "white", 
-                padding: "5px", 
-                borderRadius: "4px", 
+                backgroundColor: "white",
+                padding: "5px",
+                borderRadius: "4px",
               }}
             />
           </a>
@@ -136,16 +123,12 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
         </div> */}
 
         <div className="flex items-center space-x-3">
-          <div
-            className="relative cursor-pointer"
-            onClick={toggleNotifications}
-          >
+          <div className="relative cursor-pointer" onClick={toggleNotifications}>
             <CiBellOn size={38} color="black" />
             {notifications.length > 0 && (
               <div
                 className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex justify-center items-center text-xs"
-                style={{ fontSize: "12px" }}
-              >
+                style={{ fontSize: "12px" }}>
                 {notifications.length}
               </div>
             )}
@@ -159,8 +142,7 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
       {showNotifications && notifications.length > 0 && (
         <div
           className="absolute top-12 right-0 bg-white border border-gray-300 shadow-md w-60 max-h-60 overflow-y-auto"
-          style={{ zIndex: 10 }}
-        >
+          style={{ zIndex: 10 }}>
           <ul className="p-2">
             {notifications.map((notification) => (
               <li key={notification.id} className="p-2 border-b text-sm">

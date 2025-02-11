@@ -116,18 +116,17 @@
 // //         addEngineSpeedData({
 // //           time: new Date(timeStamp).toLocaleTimeString(),
 // //           engineSpeed: value,
-// //           engSpeedIsAnomaly, 
+// //           engSpeedIsAnomaly,
 // //         })
 // //       );
 // //     }
 
-    
 // //     if (engSpeedIsAnomaly && !engineSpeedNotificationRef.current) {
 // //       dispatch(
 // //         addNotification({
-// //           id: "engineSpeedAnomaly",  
-// //           message: "Engine speed anomaly detected!",  
-// //           type: "engineSpeed", 
+// //           id: "engineSpeedAnomaly",
+// //           message: "Engine speed anomaly detected!",
+// //           type: "engineSpeed",
 // //         })
 // //       );
 // //       engineSpeedNotificationRef.current = true;
@@ -180,7 +179,6 @@
 // //     </div>
 // //   );
 // // };
-
 
 // import React, { useEffect, useRef } from "react";
 // import { useDispatch, useSelector } from "react-redux";
@@ -285,11 +283,11 @@
 // };
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addEngineSpeedData } from "../../Redux/graphSlice";
-import { selectEngineSpeedData } from "../../Redux/graphSlice";
-import { addNotification, removeNotification } from "../../redux/notificationSlice";  
+import { addEngineSpeedData } from "../../Redux/graphSlice.js";
+import { selectEngineSpeedData } from "../../Redux/graphSlice.js";
+import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
-import renderCustomDot from "./renderCustomDot"; 
+import renderCustomDot from "./renderCustomDot";
 
 export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedIsAnomaly }) => {
   const dispatch = useDispatch();
@@ -313,8 +311,8 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedIsAnomaly }) =>
       console.log("Anomaly detected, dispatching notification");
       dispatch(
         addNotification({
-          id: "engineSpeedAnomaly",  
-          message: "Engine speed anomaly detected!",  
+          id: "engineSpeedAnomaly",
+          message: "Engine speed anomaly detected!",
           type: "engineSpeed",
         })
       );
@@ -336,7 +334,13 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedIsAnomaly }) =>
             <XAxis dataKey="time" />
             <YAxis label={{ value: "Engine Speed (RPM)", angle: -90, position: "insideLeft", dy: 60 }} domain={[0, 2000]} />
             <Tooltip />
-            <Legend layout="horizontal" verticalAlign="top" align="center" iconType="engine" wrapperStyle={{ paddingBottom: 15 }} />
+            <Legend
+              layout="horizontal"
+              verticalAlign="top"
+              align="center"
+              iconType="engine"
+              wrapperStyle={{ paddingBottom: 15 }}
+            />
             <Line
               type="line"
               isAnimationActive={false}

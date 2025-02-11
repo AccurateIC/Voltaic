@@ -10,7 +10,13 @@ export default class extends BaseSchema {
       table.string("summary").notNullable();
       table.string("message").nullable();
 
-      table.integer("archive_id").unsigned().notNullable().references("id").inTable("archives").onDelete("RESTRICT");
+      table
+        .integer("archive_id") //
+        .unsigned()
+        .notNullable()
+        .references("id")
+        .inTable("archives")
+        .onDelete("RESTRICT");
 
       table.boolean("should_be_displayed").notNullable();
 
@@ -21,6 +27,9 @@ export default class extends BaseSchema {
         .references("id")
         .inTable("notification_types")
         .onDelete("RESTRICT");
+
+      table.timestamp("started_at").notNullable();
+      table.timestamp("finished_at"); // should this be nullable?
 
       table.timestamp("created_at").notNullable();
       table.timestamp("updated_at").notNullable();
