@@ -34,7 +34,7 @@ export default class extends BaseSeeder {
         email: "inactive_admin@accurateic.in",
         password: "12345",
         roleId: 2,
-        isActive: true,
+        isActive: false,
       },
     ]);
   }
