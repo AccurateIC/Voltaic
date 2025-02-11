@@ -10,7 +10,7 @@ export default class extends BaseSchema {
       table.timestamp("timestamp").notNullable();
 
       table
-        .integer("property_id")
+        .integer("genset_property_id")
         .unsigned()
         .notNullable()
         .references("id")

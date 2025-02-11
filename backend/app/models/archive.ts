@@ -11,7 +11,7 @@ export default class Archive extends BaseModel {
   declare timestamp: DateTime; // unix epoch?
 
   @column()
-  declare propertyId: number; //
+  declare gensetPropertyId: number; //
 
   @belongsTo(() => GensetProperty)
   declare gensetProperty: BelongsTo<typeof GensetProperty>;

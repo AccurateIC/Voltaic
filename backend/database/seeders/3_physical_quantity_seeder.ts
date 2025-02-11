@@ -9,7 +9,8 @@ export default class extends BaseSeeder {
       { quantityName: "rotational-speed", unitName: "rpm", unitSymbol: "rpm" }, // 3
       { quantityName: "pressure", unitName: "bar", unitSymbol: "bar" }, // 4
       { quantityName: "temperature", unitName: "celsius", unitSymbol: "°C" }, // 5
-      { quantityName: "volume", unitName: "litres", unitSymbol: "L" }, // 6
+      { quantityName: "volume", unitName: "litre", unitSymbol: "L" }, // 6
+      { quantityName: "power", unitName: "watt", unitSymbol: "W" }, // 7
     ]);
   }
 }

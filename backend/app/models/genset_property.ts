@@ -13,10 +13,10 @@ export default class GensetProperty extends BaseModel {
   declare propertyName: string;
 
   @column()
-  declare quantityId: number;
+  declare physicalQuantityId: number;
 
   @belongsTo(() => PhysicalQuantity)
-  declare role: BelongsTo<typeof PhysicalQuantity>;
+  declare physicalQuantity: BelongsTo<typeof PhysicalQuantity>;
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;

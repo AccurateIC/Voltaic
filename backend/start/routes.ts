@@ -19,9 +19,15 @@ router.get("/sse", async () => {
   return { hello: "world" };
 });
 
+// index route
+router.get("/", async () => {
+  return { message: "voltaic server is live!" };
+});
+
 // auth
 router
   .group(() => {
+    router.get("isAuthenticated", "#controllers/auth_controller.isAuthenticated");
     router.get("getActive", "#controllers/auth_controller.getActive");
     router.get("getAll", "#controllers/auth_controller.getAll");
     router.post("register", "#controllers/auth_controller.register");
@@ -46,10 +52,10 @@ router
 // physical quantities
 router
   .group(() => {
-    router.get("getAll", "#controllers/physical_quantiies/get_all_controller.index");
-    router.post("create", "#controllers/physical_quantiies/create_controller.create");
-    router.post("update/:id", "#controllers/physical_quantiies/create_controller.update");
-    router.delete("delete/:id", "#controllers/physical_quantiies/delete_controller.destroy").use([middleware.auth()]);
+    router.get("getAll", "#controllers/physical_quantity_controller.getAll");
+    router.post("create", "#controllers/physical_quantity_controller.create");
+    router.patch("update/:id", "#controllers/physical_quantity_controller.update");
+    router.delete("delete/:id", "#controllers/physical_quantity_controller.delete").use([middleware.auth()]);
   })
   .prefix("physicalQuantity");
 
