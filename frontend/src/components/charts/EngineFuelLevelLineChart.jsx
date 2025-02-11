@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addFuelLevelData } from "../../Redux/graphSlice";
-import { selectFuelLevelData } from "../../Redux/graphSlice";
+import { addFuelLevelData } from "../../Redux/graphSlice.js";
+import { selectFuelLevelData } from "../../Redux/graphSlice.js";
 import { addNotification, removeNotification } from "../../Redux/notificationSlice.js"; // Import your notification actions
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
