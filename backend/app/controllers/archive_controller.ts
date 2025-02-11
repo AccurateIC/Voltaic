@@ -5,7 +5,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 
 export default class ArchiveController {
   async getAll({}: HttpContext) {
-    const archiveData = await Archive.query().preload("gensetProperty");
+    const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
     return archiveData;
   }
 

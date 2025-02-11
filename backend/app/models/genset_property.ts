@@ -18,9 +18,9 @@ export default class GensetProperty extends BaseModel {
   @belongsTo(() => PhysicalQuantity)
   declare physicalQuantity: BelongsTo<typeof PhysicalQuantity>;
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   declare createdAt: DateTime;
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
 }
