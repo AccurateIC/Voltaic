@@ -39,9 +39,6 @@ router
   })
   .prefix("auth");
 
-// router.post("/add", "#controllers/additions_controller.add");
-
-// role
 router
   .group(() => {
     router.get("getAll", "#controllers/role_controller.getAll");

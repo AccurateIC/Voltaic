@@ -28,7 +28,6 @@ export default class AuthController {
 
   async login({ request, auth }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator);
-    console.log(email, password);
     const user = await User.query().where("email", email).where("is_active", true).firstOrFail();
     await User.verifyCredentials(email, password);
     await auth.use("web").login(user);

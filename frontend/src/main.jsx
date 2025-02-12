@@ -16,7 +16,7 @@ import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
 import Alarms from "./pages/Alarms"; 
 import Anamolies from "./pages/Anamolies.jsx";
-// import SignIn from "./pages/SignIn.jsx";
+
 
 
 createRoot(document.getElementById("root")).render(
@@ -25,10 +25,9 @@ createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <Routes>
         <Route index element={<Login />} />
-        {/* <Route path="/hello" element={<SignIn />}/> */}
+       
           <Route path="/" element={<Layout />}>
-            
-            {/* <Route path="testchart" element={<TestChart />} /> */}
+          
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />
             <Route path="reports" element={<Reports />} />
