@@ -85,8 +85,7 @@ router
     router.delete("delete/:id", "#controllers/archive_controller.delete").use([middleware.auth()]);
 
     // endpoint to get data between two timestamps
-    // TODO: in future, add aggregation options: mean, median, max, min, etc.
-    router.get("getDataBetween", "#controllers/archive_controller.getDataBetween").use([middleware.auth()]);
+    router.get("getBetween", "#controllers/archive_controller.getBetween").use([middleware.auth()]);
 
     // TODO: maybe we need an api endpoint which returns paginated data
   })
