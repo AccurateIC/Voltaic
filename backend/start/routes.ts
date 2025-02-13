@@ -113,10 +113,10 @@ router
 // notification apis
 router
   .group(() => {
-    router.get("getAll", "#controllers/notification/get_all_controller.index").use([middleware.auth()]);
-    router.patch("read", "#controllers/notification/read_controller.index").use([middleware.auth()]);
+    router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
+    router.patch("read", "#controllers/notification_controller.read").use([middleware.auth()]);
 
-    router.get("create", "#controllers/notification/create_controller.create").use([middleware.auth()]);
-    router.patch("update", "#controllers/notification/update_controller.update").use([middleware.auth()]);
+    router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
+    router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
   })
   .prefix("notification");
