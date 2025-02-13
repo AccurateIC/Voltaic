@@ -72,6 +72,8 @@ const Login = () => {
     };
 
     try {
+
+     
       const url = isSignUp
         ? `${import.meta.env.VITE_ADONIS_BACKEND}/auth/register`
         : `${import.meta.env.VITE_ADONIS_BACKEND}/auth/login`;

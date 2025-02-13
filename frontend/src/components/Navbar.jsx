@@ -1,54 +1,18 @@
-// // /src/components/Navbar.jsx
-// import Profile from "./Profile";
-// import ThemeSwitcher from "./ThemeSwitcher";
-// import { CiBellOn } from "react-icons/ci"; // Bell icon from react-icons
-
-// const Navbar = () => {
-//   return (
-//     <>
-//       <div className="navbar bg-base-200">
-//         <div className="flex-1">
-//           <a className="btn btn-ghost text-2xl">AccurateIC</a>
-//         </div>
-//         <div className="space-x-3">
-//           <div>
-//             <div
-//               className="relative cursor-pointer"
-//               onClick={""}
-//               style={{ position: "absolute", right: "100px", marginTop:"2px", marginRight:"10px" }}
-//             >
-//               <CiBellOn size={38} color="black" />
-//               {10 > 0 && (
-//                 <div
-//                   className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex justify-center items-center text-xs"
-//                   style={{ fontSize: "12px" }}
-//                 >
-//                   {10}
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-//           <ThemeSwitcher size={32} />
-//           <Profile />
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// export default Navbar;
 
 import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
 import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
-import { useDispatch, useSelector } from "react-redux";
+// import { useDispatch, useSelector } from "react-redux";
 import Logo from "../assets/accurate.svg";
-import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
+// import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
 import { Transmit } from "@adonisjs/transmit-client";
 
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
-  const dispatch = useDispatch();
+  const [notifications, setNotifications]=useState([]);
+  const [showNotifications, setShowNotifications]= useState(false);
+
+  // const dispatch = useDispatch();
   useEffect(() => {
     const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
 
@@ -68,29 +32,25 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   }, []);
 
   // Get notifications from Redux
-  const notifications = useSelector((state) => state.notifications.notifications);
-  const [showNotifications, setShowNotifications] = useState(false);
+  // const notifications = useSelector((state) => state.notifications.notifications);
+  // const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     // Check for anomalies and add notifications if necessary
+    let notification =[];
     if (l1IsAnomaly) {
-      dispatch(addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" }));
-    } else {
-      dispatch(removeNotification("L1"));
-    }
-
+      notification.push({ id: "L1", message: "Anomaly detected in L1 phase!" });
+    } 
     if (l2IsAnomaly) {
-      dispatch(addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" }));
-    } else {
-      dispatch(removeNotification("L2"));
-    }
+      notification.push({ id: "L2", message: "Anomaly detected in L2 phase!" });
+    } 
 
     if (l3IsAnomaly) {
-      dispatch(addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" }));
-    } else {
-      dispatch(removeNotification("L3"));
-    }
-  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]); // Re-run when anomalies change
+      notification.push({ id: "L3", message: "Anomaly detected in L3 phase!" });
+    } 
+   setNotifications(notification);
+    
+  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]); // Re-run when anomalies change
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
