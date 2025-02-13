@@ -45,9 +45,27 @@ import Profile from "./Profile";
 import { useDispatch, useSelector } from "react-redux";
 import Logo from "../assets/accurate.svg";
 import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
+import { Transmit } from "@adonisjs/transmit-client";
 
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   const dispatch = useDispatch();
+  useEffect(() => {
+    const transmit = new Transmit({ baseUrl: "http://localhost:3333" });
+
+    const subscription = transmit.subscription("archive");
+    (async () => {
+      await subscription.create();
+      console.log("subscribed to archive channel");
+    })();
+    const unsubscribe = subscription.onMessage((message) => {
+      console.log("sse message: ", message);
+    });
+
+    return () => {
+      unsubscribe();
+      console.log("unsubscribed from archive channel");
+    };
+  }, []);
 
   // Get notifications from Redux
   const notifications = useSelector((state) => state.notifications.notifications);
