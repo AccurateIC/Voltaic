@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes: all;
+  themes: all;
 }
+
 * {
-    font-family: 'Sofia Sans Semi Condensed', 'Segoe UI', sans-serif;
-  }
-  
+  font-family: "Sofia Sans Semi Condensed", "Segoe UI", sans-serif;
+}

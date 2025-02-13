@@ -13,8 +13,7 @@ const SideBar = () => {
               isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
             }`
           }
-          end
-        >
+          end>
           <FaHome className="text-xl" />
           <span className="hidden md:inline ml-3">Engine</span>
         </NavLink>
@@ -28,8 +27,7 @@ const SideBar = () => {
               isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
             }`
           }
-          end
-        >
+          end>
           <FaPlug className="text-xl" />
           <span className="hidden md:inline ml-3">Generator</span>
         </NavLink>
@@ -43,8 +41,7 @@ const SideBar = () => {
               isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
             }`
           }
-          end
-        >
+          end>
           <FaFileAlt className="text-xl" />
           <span className="hidden md:inline ml-3">Reports</span>
         </NavLink>
@@ -52,16 +49,15 @@ const SideBar = () => {
       <ul className="ml-3">
         <li>
           <NavLink
-            to="/anamolies"
+            to="/anomalies"
             className={({ isActive }) =>
               `flex items-center justify-center md:justify-start py-3 ${
                 isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
               }`
             }
-            end
-          >
+            end>
             <AiOutlineWarning className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">Anamolies</span>
+            <span className="hidden md:inline ml-2 font-semibold">Anomalies</span>
           </NavLink>
         </li>
 
@@ -73,8 +69,7 @@ const SideBar = () => {
                 isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
               }`
             }
-            end
-          >
+            end>
             <FaRegBell className="text-xl" />
             <span className="hidden md:inline ml-2 font-semibold">Alarms</span>
           </NavLink>
@@ -88,8 +83,7 @@ const SideBar = () => {
                 isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
               }`
             }
-            end
-          >
+            end>
             <FaTools className="text-xl" />
             <span className="hidden md:inline ml-2 font-semibold">Predictive Maintenance</span>
           </NavLink>
