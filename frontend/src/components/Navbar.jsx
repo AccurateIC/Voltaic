@@ -1,18 +1,15 @@
-
 import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
 import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
-// import { useDispatch, useSelector } from "react-redux";
+
 import Logo from "../assets/accurate.svg";
-// import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
+
 import { Transmit } from "@adonisjs/transmit-client";
 
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
-  const [notifications, setNotifications]=useState([]);
-  const [showNotifications, setShowNotifications]= useState(false);
-
-  // const dispatch = useDispatch();
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   useEffect(() => {
     const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
 
@@ -31,26 +28,20 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
     };
   }, []);
 
-  // Get notifications from Redux
-  // const notifications = useSelector((state) => state.notifications.notifications);
-  // const [showNotifications, setShowNotifications] = useState(false);
-
   useEffect(() => {
-    // Check for anomalies and add notifications if necessary
-    let notification =[];
+    let notification = [];
     if (l1IsAnomaly) {
       notification.push({ id: "L1", message: "Anomaly detected in L1 phase!" });
-    } 
+    }
     if (l2IsAnomaly) {
       notification.push({ id: "L2", message: "Anomaly detected in L2 phase!" });
-    } 
+    }
 
     if (l3IsAnomaly) {
       notification.push({ id: "L3", message: "Anomaly detected in L3 phase!" });
-    } 
-   setNotifications(notification);
-    
-  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]); // Re-run when anomalies change
+    }
+    setNotifications(notification);
+  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
@@ -82,23 +73,6 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
             />
           </a>
         </div>
-
-        {/* <div className="flex gap-3 mr-[38rem] mt-6">
-          <button
-            className="btn btn-outline"
-            style={{
-              backgroundColor: "rgba(48, 48, 48, 1)",
-              color: "white",
-              fontWeight: "bold",
-              border: "0px solid black",
-              padding: "8px 16px",
-            }}
-            onClick={() => handlePageChange("Reports")}
-            
-          >
-            <MdNotificationsActive className="mr-2 size-5 " /> FUEL LEVEL ALARM
-          </button>
-        </div> */}
 
         <div className="flex items-center space-x-3">
           <div className="relative cursor-pointer" onClick={toggleNotifications}>
