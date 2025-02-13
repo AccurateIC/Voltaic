@@ -9,23 +9,23 @@ import TestChart from "./components/charts/TestChart.jsx";
 import Engine from "./pages/Engine.jsx";
 import { Generator } from "./pages/Generator.jsx";
 import { Reports } from "./pages/Reports.jsx";
-import { Maintenance } from "./pages/Maintenance.jsx"; 
+import { Maintenance } from "./pages/Maintenance.jsx";
 import { Provider } from "react-redux";
 import store from "./Redux/store.js";
 import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
-import Alarms from "./pages/Alarms"; 
+import Alarms from "./pages/Alarms";
 import Anamolies from "./pages/Anamolies.jsx";
-
+import { Toaster } from "sonner";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
+        <Toaster richColors={true} />
         <Routes>
-        <Route index element={<Login />} />
+          <Route index element={<Login />} />
           <Route path="/" element={<Layout />}>
-            
             {/* <Route path="testchart" element={<TestChart />} /> */}
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />

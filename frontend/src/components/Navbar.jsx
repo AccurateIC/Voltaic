@@ -50,7 +50,7 @@ import { Transmit } from "@adonisjs/transmit-client";
 const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
   const dispatch = useDispatch();
   useEffect(() => {
-    const transmit = new Transmit({ baseUrl: "http://localhost:3333" });
+    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
 
     const subscription = transmit.subscription("archive");
     (async () => {

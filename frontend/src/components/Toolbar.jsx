@@ -3,7 +3,7 @@
 import { ChartArea, Pencil, Radar, Sailboat } from "lucide-react";
 import { useMessageBus } from "../lib/MessageBus";
 import { useEffect, useState } from "react";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 
 export function Toolbar() {
   const [editable, setEditable] = useState(false);
@@ -20,16 +20,12 @@ export function Toolbar() {
 
   return (
     <>
-      <Toaster richColors={true} />
       <ul className={`menu menu-horizontal rounded-box bg-base-300`}>
         <li key="edit-layout">
           <a
-            className={`tooltip tooltip-bottom ${
-              editable ? "menu-active" : ""
-            }`}
+            className={`tooltip tooltip-bottom ${editable ? "menu-active" : ""}`}
             data-tip="Edit layout"
-            onClick={onEditClick}
-          >
+            onClick={onEditClick}>
             <Pencil />
           </a>
         </li>
