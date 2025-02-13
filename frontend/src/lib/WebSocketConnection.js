@@ -66,7 +66,7 @@ const connect = () => {
   };
 
   socket.onerror = (ev) => {
-    console.error(ev)
+    console.error(ev);
     isConnecting = false;
 
     emitEvent(EVENTS.ERROR);
@@ -77,7 +77,7 @@ const connect = () => {
       const data = JSON.parse(ev.data);
       emitEvent(EVENTS.MESSAGE, data);
     } catch (err) {
-      console.error(EVENTS.ERROR, err)
+      console.error(EVENTS.ERROR, err);
       // emitEvent(EVENTS.MESSAGE, ev.data); // send string if json parsing failed?
     }
   };
@@ -105,8 +105,7 @@ const disconnect = () => {
 };
 
 const sendMessage = (message) => {
-  const stringifiedMessage =
-    typeof message === "string" ? message : JSON.stringify(message);
+  const stringifiedMessage = typeof message === "string" ? message : JSON.stringify(message);
 
   if (socket?.readyState === WebSocket.OPEN) {
     socket.send(stringifiedMessage);
@@ -118,9 +117,7 @@ const sendMessage = (message) => {
 
 // React Hook
 export const useWebSocket = (onMessage) => {
-  const [isConnected, setIsConnected] = useState(
-    socket?.readyState === WebSocket.OPEN,
-  );
+  const [isConnected, setIsConnected] = useState(socket?.readyState === WebSocket.OPEN);
 
   useEffect(() => {
     const handleConnect = () => setIsConnected(true);
