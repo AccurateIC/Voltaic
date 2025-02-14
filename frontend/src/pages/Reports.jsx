@@ -30,9 +30,9 @@ export const Reports = () => {
     l1CIsAnomaly: true,
     l2CIsAnomaly: true,
     l3CIsAnomaly: true,
-    oilPressIsAnomaly: false,
-    batteryVoltsIsAnomaly: false,
-    chargeAltVoltsIsAnomaly: false,
+    oilPressIsAnomaly: true,
+    batteryVoltsIsAnomaly: true,
+    chargeAltVoltsIsAnomaly: true,
   });
 
   const handleWsMessage = useCallback((message) => {

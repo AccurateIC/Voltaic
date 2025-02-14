@@ -4,23 +4,55 @@ import GaugeComponent from "react-gauge-component";
 import { Gauge, gaugeClasses } from "@mui/x-charts";
 
 const Engine = () => {
-  const [gaugeValue, setGaugeValue] = useState(1500);
+  const [gaugeValue, setGaugeValue] = useState();
 
   useEffect(() => {
-    const values = [1500];
+
+    const getData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        const data = await response.json();
+        console.log("Response1", data);
+
+        if (response.ok && data) {
+          
+          const result = data.filter(item => item.gensetPropertyId === 7);
+          console.log("result",result);
+          const id = result[0].propertyValue;
+          console.log(id);
+          if (id !== null) {
+            setGaugeValue(id); // Set the fetched value to gaugeValue
+          }
+        } else {
+          console.log("error", response.status);
+        }
+      } catch (error) {
+        console.error("Fetcherror", error);
+      }
+    };
+    getData();
+
+    const values = [];
     let index = 0;
 
-    const updateGaugeValue = () => {
-      setGaugeValue(values[index]);
-      index = (index + 1) % values.length;
-      setTimeout(updateGaugeValue, 1000);
-    };
+    // const updateGaugeValue = () => {
+    //   setGaugeValue(values[index]);
+    //   index = (index + 1) % values.length;
+    //   setTimeout(updateGaugeValue, 1000);
+    // };
 
-    updateGaugeValue();
+    // updateGaugeValue();
 
-    return () => {
-      clearTimeout(updateGaugeValue);
-    };
+    // return () => {
+    //   clearTimeout(updateGaugeValue);
+    // };
   }, []);
 
   const [gaugeSize, setGaugeSize] = useState({

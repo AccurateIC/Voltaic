@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
@@ -10,7 +8,30 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
   const fuelLevelNotificationRef = useRef(false);
 
   useEffect(() => {
-    // Ensure fuelLevel is not -1 before updating the data
+    const getData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Response", data);
+        } else {
+          console.log("error", response.status);
+        }
+      } catch (error) {
+        console.error("Fetcherroe", error);
+      }
+    };
+    getData();
+  }, []);
+
+  useEffect(() => {
     if (fuelLevel !== -1) {
       setFuelLevelData((prevData) => [
         ...prevData,
