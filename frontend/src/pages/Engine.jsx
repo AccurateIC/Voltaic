@@ -5,9 +5,12 @@ import { Gauge, gaugeClasses } from "@mui/x-charts";
 
 const Engine = () => {
   const [gaugeValue, setGaugeValue] = useState();
+  const [oilValue, setoilValue] = useState();
+  const [chargealtValue, setchargealtValue] = useState();
+  const [batteryVoltValue, setbatteryVoltValue] = useState();
+  const [fuelLevelValue, setfuelLevelValue] = useState();
 
   useEffect(() => {
-
     const getData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
@@ -19,16 +22,40 @@ const Engine = () => {
         });
 
         const data = await response.json();
-        console.log("Response1", data);
+        console.log("Response data in json format", data);
 
         if (response.ok && data) {
-          
-          const result = data.filter(item => item.gensetPropertyId === 7);
-          console.log("result",result);
+          const result = data.filter((item) => item.gensetPropertyId === 7);
+          console.log("result for genset id 7", result);
           const id = result[0].propertyValue;
-          console.log(id);
+          console.log("gensetis 7 value", id);
+
+          const result1 = data.filter((item) => item.gensetPropertyId === 3);
+          console.log("result for genset id 3", result1);
+          const oilValue1 = result1[0].propertyValue;
+          console.log("gensetis 3 value",oilValue1); //chargealtValue
+
+          const result2 = data.filter((item) => item.gensetPropertyId === 5);
+          console.log("result for genset id 5", result2);
+          const chargeAltVlt = result2[0].propertyValue;
+          console.log("gensetis 5 value",chargeAltVlt);
+          
+          const result3 = data.filter((item) => item.gensetPropertyId === 6);
+          console.log("result for genset id 6", result3);
+          const batteryVolt = result3[0].propertyValue;
+          console.log("gensetis 6 value",batteryVolt);//fuelLevelValue
+
+          const result4 = data.filter((item) => item.gensetPropertyId === 4);
+          console.log("result for genset id 4", result4);
+          const fuelLevel= result4[0].propertyValue;
+          console.log("gensetis 4 value",fuelLevel);
+
           if (id !== null) {
-            setGaugeValue(id); // Set the fetched value to gaugeValue
+            setGaugeValue(id);
+            setoilValue(oilValue1);
+            setchargealtValue(chargeAltVlt);
+            setbatteryVoltValue(batteryVolt);
+            setfuelLevelValue(fuelLevel);
           }
         } else {
           console.log("error", response.status);
@@ -153,7 +180,7 @@ const Engine = () => {
               style={{ color: "rgba(177, 213, 189, 1)" }}>
               <FaOilCan />
             </div>
-            <p className="font-bold text-3xl 2xl:text-5xl">2.06 bar</p>
+            <p className="font-bold text-3xl 2xl:text-5xl">{oilValue}</p>
           </div>
 
           <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
@@ -163,7 +190,7 @@ const Engine = () => {
               style={{ color: "rgba(177, 213, 189, 1)" }}>
               <FaBolt />
             </div>
-            <p className="font-bold xl:text-3xl 2xl:text-5xl">11.2 V</p>
+            <p className="font-bold xl:text-3xl 2xl:text-5xl">{chargealtValue}</p>
           </div>
 
           <div className="w-full sm:w-[12rem] md:w-[15rem] lg:w-[16rem] h-[15rem] 2xl:w-[26.5rem] 2xl:h-[23rem] font-semibold bg-base-200 text-black flex flex-col items-center pt-4 px-4 rounded-lg shadow-md">
@@ -173,7 +200,7 @@ const Engine = () => {
               style={{ color: "rgba(177, 213, 189, 1)" }}>
               <FaBatteryFull />
             </div>
-            <p className="font-bold xl:text-3xl 2xl:text-5xl">12.7 V</p>
+            <p className="font-bold xl:text-3xl 2xl:text-5xl">{batteryVoltValue}</p>
           </div>
         </div>
       </div>
@@ -193,7 +220,7 @@ const Engine = () => {
                 position: "absolute",
                 bottom: "0",
                 width: "100%",
-                height: `${(30 / 50) * 100}%`,
+                height: `${(40 / 50) * 100}%`,
                 backgroundColor: "#B1D5BD",
                 boxShadow: "4px 0px 8px 0px rgba(14, 1, 1, 0.49) inset",
                 borderTopLeftRadius: "9999px",
@@ -204,7 +231,7 @@ const Engine = () => {
           <div className="text-sm font-medium">0L</div>
         </div>
 
-        <div className="text-lg font-medium mt-2">42L</div>
+        <div className="text-lg font-medium mt-2">{fuelLevelValue}</div>
       </div>
     </div>
   );
