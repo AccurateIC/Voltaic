@@ -36,7 +36,7 @@ const Navbar = () => {
   const toggleNotifications = () => {
     if (notifications.length === 0) {
       toast.info("No new notifications");
-      setShowNotifications(false); // Ensure dropdown stays closed
+      setShowNotifications(false);
     } else {
       setShowNotifications(!showNotifications);
     }
@@ -70,7 +70,6 @@ const Navbar = () => {
 
     return () => {
       notificationUnsubscribe();
-      notificationSubscription.close();
       console.log("Unsubscribed from notification channel");
     };
   }, []);
