@@ -42,59 +42,81 @@ import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
 import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
-import { useDispatch, useSelector } from "react-redux";
 import Logo from "../assets/accurate.svg";
-import { addNotification, removeNotification } from "../Redux/notificationSlice.js"; // Import actions
 import { Transmit } from "@adonisjs/transmit-client";
+import { TransmitChannels } from "../lib/TransmitChannels.js";
+import { toast } from "sonner";
 
-const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
-  const dispatch = useDispatch();
-  useEffect(() => {
-    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
-
-    const subscription = transmit.subscription("archive");
-    (async () => {
-      await subscription.create();
-      console.log("subscribed to archive channel");
-    })();
-    const unsubscribe = subscription.onMessage((message) => {
-      console.log("sse message: ", message);
-    });
-
-    return () => {
-      unsubscribe();
-      console.log("unsubscribed from archive channel");
-    };
-  }, []);
-
-  // Get notifications from Redux
-  const notifications = useSelector((state) => state.notifications.notifications);
+const Navbar = () => {
+  // get notifications
+  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // initial fetch notifications
   useEffect(() => {
-    // Check for anomalies and add notifications if necessary
-    if (l1IsAnomaly) {
-      dispatch(addNotification({ id: "L1", message: "Anomaly detected in L1 phase!" }));
-    } else {
-      dispatch(removeNotification("L1"));
-    }
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
+        setNotifications(unreadNotifications); // Store filtered data
+      } catch (error) {
+        toast.error("Error fetching notifications");
+      }
+    };
 
-    if (l2IsAnomaly) {
-      dispatch(addNotification({ id: "L2", message: "Anomaly detected in L2 phase!" }));
-    } else {
-      dispatch(removeNotification("L2"));
-    }
+    fetchNotifications();
+  }, []);
 
-    if (l3IsAnomaly) {
-      dispatch(addNotification({ id: "L3", message: "Anomaly detected in L3 phase!" }));
-    } else {
-      dispatch(removeNotification("L3"));
-    }
-  }, [l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]); // Re-run when anomalies change
-
+  // show - hide notification pop out
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
+
+  useEffect(() => {
+    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
+
+    const notificationSubscription = transmit.subscription(TransmitChannels.NOTIFICATION);
+    (async () => {
+      await notificationSubscription.create();
+      console.log("subscribed to notification channel");
+    })();
+
+    // on message on the notification channel, use this callback
+    const notificationUnsubscribe = notificationSubscription.onMessage(async (message) => {
+      // fetch all notifications
+      // TODO: fetch a sub-set of notifications instead of fetching all notifications
+      //       maybe we could just fetch unread notifications? that should be good enough
+      console.log(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) toast.error(`Error fetching notifications`);
+      const data = await response.json();
+
+      // TODO: when we start receiving just the unread notifications from the backend,
+      // we can skip the filtering inside javascript
+      const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
+      for (const notif of unreadNotifications) {
+        console.log(notif.shouldBeDisplayed === 1);
+        console.log(notif);
+      }
+      console.log("notification message: ", message);
+      setNotifications(data);
+    });
+
+    return () => {
+      notificationUnsubscribe();
+      console.log("unsubscribed from notification channel");
+    };
+  }, []);
 
   return (
     <>
@@ -158,13 +180,11 @@ const Navbar = ({ l1IsAnomaly, l2IsAnomaly, l3IsAnomaly }) => {
       </div>
 
       {showNotifications && notifications.length > 0 && (
-        <div
-          className="absolute top-12 right-0 bg-white border border-gray-300 shadow-md w-60 max-h-60 overflow-y-auto"
-          style={{ zIndex: 10 }}>
+        <div className="absolute top-12 right-0 bg-base-100 border border-gray-300 shadow-md w-60 max-h-60 overflow-y-auto z-10">
           <ul className="p-2">
             {notifications.map((notification) => (
-              <li key={notification.id} className="p-2 border-b text-sm">
-                {notification.message}
+              <li key={notification.id} className="p-2 border-b text-sm text-base-content">
+                {notification.summary}
               </li>
             ))}
           </ul>

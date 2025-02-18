@@ -15,15 +15,23 @@ import "/node_modules/react-resizable/css/styles.css";
 import Alarms from "./pages/Alarms";
 import Anomalies from "./pages/Anomalies.jsx";
 import { Toaster } from "sonner";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
         <Toaster richColors={true} />
+
         <Routes>
           <Route index element={<Login />} />
-          <Route path="/" element={<Layout />}>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
             {/* <Route path="testchart" element={<TestChart />} /> */}
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />

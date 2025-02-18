@@ -202,10 +202,18 @@ export default class ArchiveController {
         // bulk create new notifications and update existing ones
         if (newNotifications.length > 0) {
           await Notification.createMany(newNotifications, { client: trx });
+          transmit.broadcast("notification", {
+            message: "notification table updated",
+          });
         }
 
         for (const update of notificationUpdates) {
-          await Notification.query({ client: trx }).where("id", update.id).update({ finishedAt: update.finishedAt });
+          await Notification.query({ client: trx })
+            .where("id", update.id)
+            .update({ finishedAt: update.finishedAt, shouldBeDisplayed: false });
+          transmit.broadcast("notification", {
+            message: "notification table updated",
+          });
         }
 
         return insertedArchives;
