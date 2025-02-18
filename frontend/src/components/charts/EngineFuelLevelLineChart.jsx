@@ -1,41 +1,61 @@
-import React, { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addFuelLevelData } from "../../Redux/graphSlice";
-import { selectFuelLevelData } from "../../Redux/graphSlice";
-import { addNotification, removeNotification } from "../../Redux/notificationSlice.js"; // Import your notification actions
+import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
 export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnomaly }) => {
-  const dispatch = useDispatch();
-  const fuelLevelData = useSelector(selectFuelLevelData);
-
+  const [fuelLevelData, setFuelLevelData] = useState([]); // Add this line to define the state for fuelLevelData
+  const [notifications, setNotifications] = useState([]);
   const fuelLevelNotificationRef = useRef(false);
 
   useEffect(() => {
+    const getData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Response", data);
+        } else {
+          console.log("error", response.status);
+        }
+      } catch (error) {
+        console.error("Fetcherroe", error);
+      }
+    };
+    getData();
+  }, []);
+
+  useEffect(() => {
     if (fuelLevel !== -1) {
-      dispatch(
-        addFuelLevelData({
+      setFuelLevelData((prevData) => [
+        ...prevData,
+        {
           time: new Date(timeStamp).toLocaleTimeString(),
           fuelLevel,
-          fuelLevelISAnomaly,
-        })
-      );
+          fuelLevelIsAnomaly: fuelLevelISAnomaly, // Corrected variable name here
+        },
+      ]);
     }
 
     if (fuelLevelISAnomaly && !fuelLevelNotificationRef.current) {
-      dispatch(
-        addNotification({
-          message: "Fuel level anomaly detected!",
-          type: "fuel",
-        })
-      );
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "fuelLevelAnomaly", message: "Fuel level anomaly detected!", type: "fuel" },
+      ]);
       fuelLevelNotificationRef.current = true;
     } else if (!fuelLevelISAnomaly && fuelLevelNotificationRef.current) {
-      dispatch(removeNotification({ id: "fuelLevelAnomaly", type: "fuel" }));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "fuelLevelAnomaly")
+      );
       fuelLevelNotificationRef.current = false;
     }
-  }, [fuelLevel, timeStamp, fuelLevelISAnomaly, dispatch]);
+  }, [fuelLevel, timeStamp, fuelLevelISAnomaly]);
 
   return (
     <div className="h-[400px] w-full">
@@ -68,7 +88,7 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
               stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.fuelLevelIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>

@@ -1,46 +1,59 @@
-import React, { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addOilPressureData } from "../../Redux/graphSlice.js";
-import { selectOilPressureData } from "../../Redux/graphSlice.js";
-import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import React, { useState, useEffect, useRef } from "react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
 export const OilPressureLineChart = ({ timeStamp, oilPressure, oilPressureIsAnomaly }) => {
-  const dispatch = useDispatch();
-  const oilPressureData = useSelector(selectOilPressureData);
+  // Local state to store graph data and notifications
+  const [oilPressureData, setOilPressureData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const oilPressureNotificationRef = useRef(false);
 
   useEffect(() => {
+    // Add new oil pressure data to the graph
     if (oilPressure !== 0) {
-      dispatch(
-        addOilPressureData({
+      setOilPressureData((prevData) => [
+        ...prevData,
+        {
           time: new Date(timeStamp).toLocaleTimeString(),
           oilPressure,
           oilPressureIsAnomaly,
-        })
-      );
+        },
+      ]);
     }
 
+    // Handle oil pressure anomaly notification
     if (oilPressureIsAnomaly && !oilPressureNotificationRef.current) {
-      dispatch(
-        addNotification({
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        {
           id: "oilPressure",
           message: "Oil pressure anomaly detected!",
           type: "oilPressure",
-        })
-      );
+        },
+      ]);
       oilPressureNotificationRef.current = true;
     } else if (!oilPressureIsAnomaly && oilPressureNotificationRef.current) {
-      dispatch(removeNotification({ id: "oilPressure", type: "oilPressure" }));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "oilPressure")
+      );
       oilPressureNotificationRef.current = false;
     }
-  }, [timeStamp, oilPressure, oilPressureIsAnomaly, dispatch]);
+  }, [timeStamp, oilPressure, oilPressureIsAnomaly]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>
+
+      {/* Notifications display
+      <div className="absolute top-1 right-4 text-xl font-semibold p-4">
+        {notifications.map((notification) => (
+          <div key={notification.id} className="text-red-600">
+            {notification.message}
+          </div>
+        ))}
+      </div> */}
+
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={oilPressureData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
