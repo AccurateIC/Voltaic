@@ -75,7 +75,13 @@ const Navbar = () => {
 
   // show - hide notification pop out
   const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
+    if (notifications.length === 0) {
+      toast.info("No new notifications");
+      return;
+    } else {
+      setShowNotifications(!showNotifications);
+      return;
+    }
   };
 
   useEffect(() => {
@@ -109,7 +115,7 @@ const Navbar = () => {
         console.log(notif);
       }
       console.log("notification message: ", message);
-      setNotifications(data);
+      setNotifications(unreadNotifications);
     });
 
     return () => {
