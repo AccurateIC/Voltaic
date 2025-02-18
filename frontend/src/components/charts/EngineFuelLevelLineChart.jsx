@@ -8,30 +8,6 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
   const fuelLevelNotificationRef = useRef(false);
 
   useEffect(() => {
-    const getData = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Response", data);
-        } else {
-          console.log("error", response.status);
-        }
-      } catch (error) {
-        console.error("Fetcherroe", error);
-      }
-    };
-    getData();
-  }, []);
-
-  useEffect(() => {
     if (fuelLevel !== -1) {
       setFuelLevelData((prevData) => [
         ...prevData,

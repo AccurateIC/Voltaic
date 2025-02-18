@@ -35,7 +35,6 @@
 //     </>
 //   );
 // };
-
 // export default Navbar;
 
 import { useEffect, useState } from "react";
