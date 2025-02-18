@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
@@ -65,21 +63,6 @@ export const BatteryChargeLineChart = ({
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
-
-      {/* Display notifications */}
-      {/* <div className="absolute top-0 right-0 p-4">
-        {notifications.length > 0 && (
-          <div className="bg-white border border-gray-300 shadow-md p-2">
-            <ul>
-              {notifications.map((notification) => (
-                <li key={notification.id} className="p-2 border-b text-sm">
-                  {notification.message}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div> */}
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
