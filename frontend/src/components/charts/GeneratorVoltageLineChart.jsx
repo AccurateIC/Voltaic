@@ -1,8 +1,4 @@
-import React, { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addNotification, removeNotification } from "../../Redux/notificationSlice.js";
-import { addVoltageData } from "../../Redux/graphSlice.js";
-import { selectVoltageData } from "../../Redux/graphSlice.js";
+import React, { useState, useEffect, useRef } from "react";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -15,17 +11,19 @@ export const GeneratorVoltageLineChart = ({
   l2IsAnomaly,
   l3IsAnomaly,
 }) => {
-  const dispatch = useDispatch();
-  const graphData = useSelector(selectVoltageData);
+  const [graphData, setGraphData] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const l1NotificationRef = useRef(false);
   const l2NotificationRef = useRef(false);
   const l3NotificationRef = useRef(false);
 
   useEffect(() => {
+    // Add new data to the graph when voltage is updated
     if (l1Voltage !== 0 || l2Voltage !== 0 || l3Voltage !== 0) {
-      dispatch(
-        addVoltageData({
+      setGraphData((prevData) => [
+        ...prevData,
+        {
           time: new Date(timeStamp).toLocaleTimeString(),
           L1: l1Voltage,
           L2: l2Voltage,
@@ -33,52 +31,52 @@ export const GeneratorVoltageLineChart = ({
           l1IsAnomaly,
           l2IsAnomaly,
           l3IsAnomaly,
-        })
-      );
+        },
+      ]);
     }
 
+    // Handle L1 anomaly notifications
     if (l1IsAnomaly && !l1NotificationRef.current) {
-      dispatch(
-        addNotification({
-          id: "L1",
-          message: "Voltage anomaly detected in L1 phase!",
-          type: "voltage",
-        })
-      );
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L1", message: "Voltage anomaly detected in L1 phase!", type: "voltage" },
+      ]);
       l1NotificationRef.current = true;
     } else if (!l1IsAnomaly && l1NotificationRef.current) {
-      dispatch(removeNotification({ id: "L1", type: "voltage" }));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L1")
+      );
       l1NotificationRef.current = false;
     }
 
+    // Handle L2 anomaly notifications
     if (l2IsAnomaly && !l2NotificationRef.current) {
-      dispatch(
-        addNotification({
-          id: "L2",
-          message: "Voltage anomaly detected in L2 phase!",
-          type: "voltage",
-        })
-      );
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L2", message: "Voltage anomaly detected in L2 phase!", type: "voltage" },
+      ]);
       l2NotificationRef.current = true;
     } else if (!l2IsAnomaly && l2NotificationRef.current) {
-      dispatch(removeNotification({ id: "L2", type: "voltage" }));
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L2")
+      );
       l2NotificationRef.current = false;
     }
 
+    // Handle L3 anomaly notifications
     if (l3IsAnomaly && !l3NotificationRef.current) {
-      dispatch(
-        addNotification({
-          id: "L3",
-          message: "Voltage anomaly detected in L3 phase!",
-          type: "voltage",
-        })
-      );
-      l3NotificationRef.current = true; // Set to true to prevent duplicate notifications
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        { id: "L3", message: "Voltage anomaly detected in L3 phase!", type: "voltage" },
+      ]);
+      l3NotificationRef.current = true;
     } else if (!l3IsAnomaly && l3NotificationRef.current) {
-      dispatch(removeNotification({ id: "L3", type: "voltage" }));
-      l3NotificationRef.current = false; // Reset when anomaly is resolved
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification.id !== "L3")
+      );
+      l3NotificationRef.current = false;
     }
-  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly, dispatch]);
+  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
 
   return (
     <div className="h-[400px] w-full relative">
