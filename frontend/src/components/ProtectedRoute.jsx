@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import Keyframes from "./Loader";
+import { toast } from "sonner";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -39,6 +40,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    toast.error("You're not authenticated. Please login first.");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
