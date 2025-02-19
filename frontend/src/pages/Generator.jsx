@@ -111,6 +111,7 @@ export const Generator = () => {
 
   const handleWsMessage = useCallback((message) => {
     console.log("Ws Message: ", message);
+    console.log("message1");
     setStats({
       l1Voltage: Math.round(message?.genL1Volts.value || 0),
       l2Voltage: Math.round(message?.genL2Volts.value || 0),
