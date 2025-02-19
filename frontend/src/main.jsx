@@ -4,7 +4,6 @@ import "./index.css";
 import Login from "./pages/Login.jsx";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Layout from "./components/Layout.jsx";
-import Engine from "./pages/Engine.jsx";
 import { Generator } from "./pages/Generator.jsx";
 import { Reports } from "./pages/Reports.jsx";
 import { Maintenance } from "./pages/Maintenance.jsx";
@@ -14,6 +13,7 @@ import Alarms from "./pages/Alarms";
 import Anomalies from "./pages/Anomalies.jsx";
 import { Toaster } from "sonner";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Engine from "./pages/Engine.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

@@ -4,7 +4,7 @@ import { AiOutlineWarning } from "react-icons/ai";
 
 const SideBar = () => {
   return (
-    <ul className="bg-[rgba(177,213,189,1)] w-20 md:w-60 lg:h-[57rem]  h-screen px-2 py-4">
+    <ul className="bg-[rgba(177,213,189,1)] w-20 md:w-60 min-h-0 overflow-y-auto px-2 py-4">
       <li>
         <NavLink
           to="/engine"
