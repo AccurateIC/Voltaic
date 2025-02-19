@@ -75,34 +75,15 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div
-      className="navbar"
-      style={{
-        backgroundColor: "rgba(177, 213, 189, 1)",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 16px",
-      }}>
+    <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
       <div className="flex-1">
         <a className="btn btn-ghost">
-          <img
-            src={Logo}
-            alt="AccurateIC Logo"
-            style={{
-              width: "150px",
-              height: "auto",
-              backgroundColor: "white",
-              padding: "5px",
-              borderRadius: "4px",
-            }}
-          />
+          <img src={Logo} alt="AccurateIC Logo" className="w-[150px] h-auto bg-white p-[5px] rounded" />
         </a>
       </div>
 
       <div className="flex items-center space-x-3">
-        {/* Notifications Dropdown */}
-        <div className={`dropdown dropdown-end ${showNotifications ? "dropdown-open" : ""}`}>
+        <div className="relative">
           <button onClick={toggleNotifications} className="btn btn-ghost rounded-field relative">
             <CiBellOn size={38} color="black" />
             {notifications.length > 0 && (
@@ -110,25 +91,24 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Dropdown Content */}
           {showNotifications && notifications.length > 0 && (
-            <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-50 mt-4 w-64 p-2 shadow-lg">
-              {notifications.map((notification) => (
-                <li
-                  key={notification.id}
-                  className={`bg-error/20 hover:bg-error/40 p-2 text-base-content rounded duration-200 transition-all`}>
-                  <div className="text-xl font-bold">{notification.summary}</div>
-                  <div className="text-sm">{notification.message}</div>
-                </li>
-              ))}
-            </ul>
+            <div className="absolute right-0 mt-4 w-96 max-h-[32vh] overflow-y-auto rounded-lg shadow-lg bg-base-200 z-50">
+              <div className="p-2 space-y-2 text-base-content">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className="bg-error/20 hover:bg-error/40 p-4 rounded transition-all">
+                    <h3 className="text-lg font-semibold break-words">{notification.summary}</h3>
+                    <p className="text-sm mt-1 break-words">{notification.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
         <ThemeSwitcher size={32} />
         <Profile />
       </div>
-    </div>
+    </nav>
   );
 };
 

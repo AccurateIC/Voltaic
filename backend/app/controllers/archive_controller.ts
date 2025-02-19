@@ -25,6 +25,16 @@ export default class ArchiveController {
     return archiveData;
   }
 
+  async getLatest({}: HttpContext) {
+    const latestArchiveEntry = await Archive.query().orderBy("timestamp", "desc").limit(1);
+    const latestTimestamp = latestArchiveEntry[0].timestamp;
+    const latestArchiveData = await Archive.query()
+      .where("timestamp", latestTimestamp)
+      .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+
+    return latestArchiveData;
+  }
+
   // async create({ request }: HttpContext) {
   //   const payload = await request.validateUsing(createArchiveValidator);
   //   // const timestamp = DateTime.fromISO(payload.timestamp.toISOString()).toUTC().set({ millisecond: 0 });

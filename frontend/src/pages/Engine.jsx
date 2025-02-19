@@ -7,6 +7,10 @@ import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { toast } from "sonner";
 
+// TODO: when no data is present for any of the components, either show a loading state
+//       or show an empty or N/A value in the component.
+//       currently the component will not even be rendered if no value present
+
 const DummyCard = () => {
   return (
     <div className="card bg-base-300 h-full w-full">
@@ -20,7 +24,11 @@ const DummyCard = () => {
   );
 };
 
-const EngineRPM = () => {
+const EngineRPM = ({ engineRpmDetails }) => {
+  let engineRpm;
+  if (!engineRpmDetails[0]) engineRpm = 0;
+  else engineRpm = engineRpmDetails[0].propertyValue;
+
   return (
     <div className="card bg-base-200 h-full w-full flex flex-col">
       <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col">
@@ -42,7 +50,7 @@ const EngineRPM = () => {
               valueLabel: { style: { color: "#000" } }, // For the central value
               tickLabels: { defaultTickValueConfig: { style: { fill: "#6a7282" } } }, // For the tick labels (500, 1000, etc)
             }}
-            value={2000}
+            value={engineRpm}
             style={{
               width: "100%",
               maxWidth: "85%",
@@ -56,7 +64,11 @@ const EngineRPM = () => {
   );
 };
 
-const OilPressureCard = ({ oilPressure }) => {
+const OilPressureCard = ({ oilPressureDetails }) => {
+  let oilPressure;
+  if (!oilPressureDetails[0]) oilPressure = 0;
+  else oilPressure = oilPressureDetails[0].propertyValue;
+
   return (
     <div className="card bg-base-200 h-full w-full">
       <div className="card-body min-h-0 min-w-0 overflow-auto">
@@ -72,7 +84,11 @@ const OilPressureCard = ({ oilPressure }) => {
   );
 };
 
-const ChargeAltVoltageCard = ({ altVoltage }) => {
+const ChargeAltVoltageCard = ({ altVoltageDetails }) => {
+  let altVoltage;
+  if (!altVoltageDetails[0]) altVoltage = 0;
+  else altVoltage = altVoltageDetails[0].propertyValue;
+
   return (
     <div className="card bg-base-200 h-full w-full">
       <div className="card-body min-h-0 min-w-0 overflow-auto">
@@ -88,11 +104,14 @@ const ChargeAltVoltageCard = ({ altVoltage }) => {
   );
 };
 
-const BatteryVoltageCard = ({ batteryVoltage }) => {
+const BatteryVoltageCard = ({ batteryVoltageDetails }) => {
+  let batteryVoltage;
+  if (!batteryVoltageDetails[0]) batteryVoltage = 0;
+  else batteryVoltage = batteryVoltageDetails[0].propertyValue;
   return (
     <div className="card bg-base-200 h-full w-full">
       <div className="card-body min-h-0 min-w-0 overflow-auto">
-        <h2 className="card-title text-base-content">Charge Alt Voltage</h2>
+        <h2 className="card-title text-base-content">Battery Voltage</h2>
         <div className="flex flex-col items-center justify-center h-full ">
           <div className="text-success/20 h-42 mb-10">
             <FaBatteryThreeQuarters className="w-full h-full" />
@@ -104,14 +123,19 @@ const BatteryVoltageCard = ({ batteryVoltage }) => {
   );
 };
 
-const VerticalFuelLevelIndicator = () => {
-  const [fuelLevel, setFuelLevel] = useState(75);
+const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
+  let fuelLevel;
+  if (!fuelDetails[0]) fuelLevel = 0;
+  else fuelLevel = fuelDetails[0].propertyValue;
+
+  const maxFuelLevel = 50;
+  const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
 
   // Get fuel status color
   const getFuelStatusColor = () => {
-    if (fuelLevel >= 75) return "bg-success/30";
-    if (fuelLevel >= 40) return "bg-warning/30";
-    if (fuelLevel >= 20) return "bg-orange-500/30";
+    if (fuelLevelPercentage >= 75) return "bg-success/30";
+    if (fuelLevelPercentage >= 40) return "bg-warning/30";
+    if (fuelLevelPercentage >= 20) return "bg-orange-500/30";
     return "bg-error/30";
   };
 
@@ -125,40 +149,51 @@ const VerticalFuelLevelIndicator = () => {
           {/* Fuel level indicator */}
           <div
             className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
-            style={{ height: `${fuelLevel}%` }}>
+            style={{ height: `${fuelLevelPercentage}%` }}>
             {/* */}
           </div>
 
           {/* Fuel percentage text */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-base-content font-bold text-lg">{fuelLevel}%</span>
+            <span className="text-base-content font-bold text-lg">{fuelLevel} L</span>
           </div>
         </div>
 
         {/* Fuel status text */}
         <p className="mt-4 text-base-content font-semibold">
-          {fuelLevel >= 75 ? "Full" : fuelLevel >= 40 ? "Medium" : fuelLevel >= 20 ? "Low" : "Critical"}
+          {fuelLevelPercentage >= 75
+            ? "Full"
+            : fuelLevelPercentage >= 40
+              ? "Medium"
+              : fuelLevelPercentage >= 20
+                ? "Low"
+                : "Critical"}
         </p>
       </div>
     </div>
   );
 };
 
-const RadialFuelLevelIndicator = () => {
-  const [fuelLevel, setFuelLevel] = useState(75);
+const RadialFuelLevelIndicator = ({ fuelDetails }) => {
+  let fuelLevel;
+  if (!fuelDetails[0]) fuelLevel = 0;
+  else fuelLevel = fuelDetails[0].propertyValue;
+
+  const maxFuelLevel = 50;
+  const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
 
   // Calculate the circle's properties
   const size = 200; // Size of the circle in pixels
   const strokeWidth = 23; // Width of the progress bar
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (fuelLevel / 100) * circumference;
+  const strokeDashoffset = circumference - (fuelLevelPercentage / 100) * circumference;
 
   // Get fuel status color
   const getFuelStatusColor = () => {
-    if (fuelLevel >= 75) return "stroke-success/30";
-    if (fuelLevel >= 40) return "stroke-warning/30";
-    if (fuelLevel >= 20) return "stroke-orange-500/30";
+    if (fuelLevelPercentage >= 75) return "stroke-success/30";
+    if (fuelLevelPercentage >= 40) return "stroke-warning/30";
+    if (fuelLevelPercentage >= 20) return "stroke-orange-500/30";
     return "stroke-error/30";
   };
 
@@ -199,9 +234,15 @@ const RadialFuelLevelIndicator = () => {
 
           {/* Center content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-base-content">{fuelLevel}%</span>
+            <span className="text-4xl font-bold text-base-content">{fuelLevelPercentage}%</span>
             <span className="text-base-content font-semibold mt-2">
-              {fuelLevel >= 75 ? "Full" : fuelLevel >= 40 ? "Medium" : fuelLevel >= 20 ? "Low" : "Critical"}
+              {fuelLevelPercentage >= 75
+                ? "Full"
+                : fuelLevelPercentage >= 40
+                  ? "Medium"
+                  : fuelLevelPercentage >= 20
+                    ? "Low"
+                    : "Critical"}
             </span>
           </div>
         </div>
@@ -217,7 +258,7 @@ const Engine = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -226,6 +267,7 @@ const Engine = () => {
         const data = await response.json();
         console.log(data);
         // set data here
+        setArchiveData(data);
       } catch (error) {
         toast.error("Error fetching notifications");
       }
@@ -246,7 +288,7 @@ const Engine = () => {
 
     const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -255,6 +297,7 @@ const Engine = () => {
         const data = await response.json();
         console.log(data);
         // set data here
+        setArchiveData(data);
       } catch (error) {
         toast.error("Error updating notifications");
       }
@@ -277,11 +320,15 @@ const Engine = () => {
             <Panel defaultSize={50}>
               <PanelGroup direction="horizontal" className="gap-1">
                 <Panel defaultSize={50}>
-                  <EngineRPM />
+                  <EngineRPM
+                    engineRpmDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engSpeedDisplay")}
+                  />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
-                  <RadialFuelLevelIndicator />
+                  <RadialFuelLevelIndicator
+                    fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
+                  />
                 </Panel>
               </PanelGroup>
             </Panel>
@@ -291,15 +338,25 @@ const Engine = () => {
             <Panel>
               <PanelGroup direction="horizontal" className="gap-1">
                 <Panel>
-                  <OilPressureCard oilPressure={2.06} />
+                  <OilPressureCard
+                    oilPressureDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")}
+                  />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel>
-                  <ChargeAltVoltageCard altVoltage={11.2} />
+                  <ChargeAltVoltageCard
+                    altVoltageDetails={archiveData.filter(
+                      (entry) => entry.gensetProperty.propertyName === "engChargeAltVolts"
+                    )}
+                  />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel>
-                  <BatteryVoltageCard batteryVoltage={12.7} />
+                  <BatteryVoltageCard
+                    batteryVoltageDetails={archiveData.filter(
+                      (entry) => entry.gensetProperty.propertyName === "engBatteryVolts"
+                    )}
+                  />
                 </Panel>
               </PanelGroup>
             </Panel>
@@ -312,7 +369,9 @@ const Engine = () => {
         {/* */}
 
         <Panel>
-          <VerticalFuelLevelIndicator />
+          <VerticalFuelLevelIndicator
+            fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
+          />
         </Panel>
         {/* */}
       </PanelGroup>

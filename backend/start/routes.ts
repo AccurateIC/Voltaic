@@ -87,6 +87,9 @@ router
     // endpoint to get data between two timestamps
     router.get("getBetween", "#controllers/archive_controller.getBetween").use([middleware.auth()]);
 
+    // get data coresponding to the latest timestamp entry
+    router.get("getLatest", "#controllers/archive_controller.getLatest").use([middleware.auth()]);
+
     // TODO: maybe we need an api endpoint which returns paginated data
   })
   .prefix("archive");
