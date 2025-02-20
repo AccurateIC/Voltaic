@@ -7,7 +7,6 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const increment = (endValue - startValue) / steps;
 
   let currentStep = 0;
-
   const updateValue = () => {
     currentStep++;
     const newValue = startValue + increment * currentStep;
@@ -43,7 +42,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
         strokeWidth="10"
         strokeDasharray={`${arcLength} ${circumference - arcLength}`}
         strokeDashoffset="0"
-        transform="rotate(-90,50,50)"
+        transform="rotate(-90,50)"
       />
     </svg>
   );
@@ -68,7 +67,7 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
       units = "V";
       break;
     case "current":
-      maxValue = 20;
+      maxValue = 125;
       units = "Amp";
       break;
     case "lineVoltage":
@@ -76,7 +75,7 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
       units = "V";
       break;
     default:
-      maxValue = 100;
+      maxValue = 300;
       units = "Units";
   }
 

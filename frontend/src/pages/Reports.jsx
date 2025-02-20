@@ -1,11 +1,12 @@
-import { useCallback, useState } from "react";
+import {  useEffect, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
 import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
-import { useWebSocket } from "../lib/WebSocketConnection";
+import { useMessageBus } from "../lib/MessageBus";
+// import { useWebSocket } from "../lib/WebSocketConnection";
 
 export const Reports = () => {
   const [stats, setStats] = useState({
@@ -35,48 +36,53 @@ export const Reports = () => {
     chargeAltVoltsIsAnomaly: true,
   });
 
-  const handleWsMessage = useCallback((message) => {
-    console.log(message);
-    setStats({
-      timeStamp: message?.timestamp,
-      batteryVolts: Math.round(message?.engBatteryVolts?.value),
-      chargeAltVolts: Math.round(message?.engChargeAltVolts?.value),
-      engineSpeed: Math.round(message?.engSpeedDisplay?.value),
-      l1Voltage: Math.round(message?.genL1Volts?.value),
-      l2Voltage: 45,
-      l3Voltage: Math.round(message?.genL3Volts?.value),
-      l1Current: Math.round(message?.genL1Current?.value),
-      l2Current: 76,
-      l3Current: Math.round(message?.genL3Current?.value),
-      l1l2l3Current: Math.round(message?.genL1L2L3Current?.value),
-      engineFuelLevel: Math.round(message?.engineFuelLevelUnits?.value),
-      fuelLevelISAnomaly: message?.engineFuelLevelUnits?.is_anomaly, 
-      l1IsAnomaly: message?.genL1Volts?.is_anomaly,
-      l2IsAnomaly: message?.genL2Volts?.is_anomaly,
-      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
-      l3IsAnomaly: message?.genL3Volts?.is_anomaly,
-      l1CIsAnomaly: message?.genL1Current?.is_anomaly,
-      l2CIsAnomaly: message?.genL2Current?.is_anomaly,
-      l3CIsAnomaly: message?.genL3Current?.is_anomaly,
-      oilPress: message?.engOilPress?.value,
-      oilPressIsAnomaly:message?.engOilPress?.is_anomaly,
-      // engSpeedDisplayIsAnomaly: true,
-       engSpeedDisplayIsAnomaly: message?.engSpeedDisplay?.is_anomaly,
-      batteryVoltsIsAnomaly: message?.engBatteryVolts?.is_anomaly,
-      chargeAltVoltsIsAnomaly: message?.engChargeAltVolts?.is_anomaly,
-    });
-    console.log("SPeed");
-    console.log(message?.engSpeedDisplay?.is_anomaly);
-    // console.log(message?.genL2Current?.value);
-    // console.log(message?.genL3Current?.value);
-    // console.log(message?.genL1Current?.is_anomaly);
-    // console.log(message?.genL2Current?.is_anomaly);
-    // console.log(typeof(message?.genL1Volts?.value))
-  }, []);
-
-  const { send, isConnected } = useWebSocket(handleWsMessage);
+ 
   const [showProperties, setShowProperties] = useState(false);
   const [showTimeFilter, setShowTimeFilter] = useState(false);
+
+useMessageBus("archive", (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    (async () => {
+      await getReportData();
+    })();
+  });
+
+const getReportData = async()=>{
+  try {
+    const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const data = await response.json();
+  console.log("reportData ",data);
+    if (response.ok) {
+      console.log("sds",data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0);
+      const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
+      const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
+      const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
+      const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
+      const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
+      const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
+      const engineFuelLevel = data.filter((item) => item.gensetPropertyId === 4)[0]?.propertyValue || 0;
+      const engineSpeed = data.filter((item) => item.gensetPropertyId === 7)[0]?.propertyValue || 0;
+      const oilPress = data.filter((item) => item.gensetPropertyId === 3)[0]?.propertyValue || 0;
+      const chargeAltVolts= data.filter((item) => item.gensetPropertyId === 5)[0]?.propertyValue || 0;
+
+      setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current, engineFuelLevel, engineSpeed, oilPress, chargeAltVolts  });
+    }
+  } catch (error) {
+    console.log("Error fetching notifications", error);
+  }
+};
+
+
+useEffect(() => {
+  console.log("Engine page mount effect running");
+  (async () => {
+    await getReportData();
+  })();
+}, []);
 
   return (
     <div>
