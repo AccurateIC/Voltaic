@@ -1,15 +1,10 @@
-import { Transmit } from "@adonisjs/transmit-client";
 import { useEffect, useState } from "react";
 import GaugeComponent from "react-gauge-component";
 import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
-import { TransmitChannels } from "../lib/TransmitChannels";
 import { toast } from "sonner";
-
-// TODO: when no data is present for any of the components, either show a loading state
-//       or show an empty or N/A value in the component.
-//       currently the component will not even be rendered if no value present
+import { useMessageBus } from "../lib/MessageBus";
 
 const DummyCard = () => {
   return (
@@ -164,10 +159,10 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
           {fuelLevelPercentage >= 75
             ? "Full"
             : fuelLevelPercentage >= 40
-              ? "Medium"
-              : fuelLevelPercentage >= 20
-                ? "Low"
-                : "Critical"}
+            ? "Medium"
+            : fuelLevelPercentage >= 20
+            ? "Low"
+            : "Critical"}
         </p>
       </div>
     </div>
@@ -239,10 +234,10 @@ const RadialFuelLevelIndicator = ({ fuelDetails }) => {
               {fuelLevelPercentage >= 75
                 ? "Full"
                 : fuelLevelPercentage >= 40
-                  ? "Medium"
-                  : fuelLevelPercentage >= 20
-                    ? "Low"
-                    : "Critical"}
+                ? "Medium"
+                : fuelLevelPercentage >= 20
+                ? "Low"
+                : "Critical"}
             </span>
           </div>
         </div>
@@ -253,60 +248,40 @@ const RadialFuelLevelIndicator = ({ fuelDetails }) => {
 
 const Engine = () => {
   const [archiveData, setArchiveData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // fetch initial archive data
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json();
-        console.log(data);
-        // set data here
-        setArchiveData(data);
-      } catch (error) {
-        toast.error("Error fetching notifications");
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  // Subscribe to real-time notifications for archive (telemetry) data
-  useEffect(() => {
-    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
-    const notificationSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
-
+  useMessageBus("archive", (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
-      await notificationSubscription.create();
-      console.log("Subscribed to notification channel");
+      await fetchLatestArchiveData();
     })();
+  });
 
-    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("Fetch failed");
-        const data = await response.json();
-        console.log(data);
-        // set data here
-        setArchiveData(data);
-      } catch (error) {
-        toast.error("Error updating notifications");
-      }
-    });
+  const fetchLatestArchiveData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      console.log("Fetched data:", data);
+      setArchiveData(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return () => {
-      notificationUnsubscribe();
-      console.log("Unsubscribed from notification channel");
-    };
+  useEffect(() => {
+    console.log("Engine page mount effect running");
+    (async () => {
+      await fetchLatestArchiveData();
+    })();
   }, []);
 
   return (
