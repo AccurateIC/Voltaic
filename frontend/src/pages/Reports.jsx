@@ -15,13 +15,13 @@ export const Reports = () => {
     chargeAltVolts: 0,
     engineSpeed: 1480,
     engSpeedDisplayIsAnomaly: true,
-    engineFuelLevel: 2, //less than 5= low,
+    engineFuelLevel: 2,
     l1Voltage: 1,
     l2Voltage: 2,
     l3Voltage: 3,
-    l1Current: 0,
-    l2Current: 0,
-    l3Current: 0,
+    l1Current: 2,
+    l2Current: 4,
+    l3Current: 5,
     l1l2l3Current: 0,
     oilPress: 4,
     fuelLevelISAnomaly: false,
@@ -87,100 +87,97 @@ useEffect(() => {
   return (
     <div>
       <div className="flex flex-wrap gap-4">
-      <div className="relative w-full md:w-auto">
-        <button
-          onClick={() => setShowProperties(!showProperties)}
-          className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center"
-        >
-          Properties ▼
-        </button>
-        {showProperties && (
-          <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
-            <ul className="text-white">
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 1</li>
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 2</li>
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 3</li>
-            </ul>
-          </div>
-        )}
-      </div>
+        <div className="relative w-full md:w-auto">
+          <button
+            onClick={() => setShowProperties(!showProperties)}
+            className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
+            Properties ▼
+          </button>
+          {showProperties && (
+            <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
+              <ul className="text-white">
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 1</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 2</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 3</li>
+              </ul>
+            </div>
+          )}
+        </div>
 
-      <div className="relative w-full md:w-auto">
-        <button
-          onClick={() => setShowTimeFilter(!showTimeFilter)}
-          className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center"
-        >
-          Time Filter ▼
-        </button>
-        {showTimeFilter && (
-          <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
-            <ul className="text-white">
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">15 mins</li>
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">30 mins</li>
-              <li className="p-2 hover:bg-gray-700 cursor-pointer">1 hour</li>
-            </ul>
-          </div>
-        )}
+        <div className="relative w-full md:w-auto">
+          <button
+            onClick={() => setShowTimeFilter(!showTimeFilter)}
+            className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
+            Time Filter ▼
+          </button>
+          {showTimeFilter && (
+            <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
+              <ul className="text-white">
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">15 mins</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">30 mins</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer">1 hour</li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
-     
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
         <div className="min-h-[400px] bg-base-200">
-        <EngineFuelLevelLineChart
-          timeStamp={stats.timeStamp}
-          fuelLevel={stats.engineFuelLevel}
-          fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
-        />
-      </div>
-      <div className="min-h-[400px] bg-base-200">
-        <EngineSpeedLineChart
-          timeStamp={stats.timeStamp}
-          value={stats.engineSpeed}
-          engSpeedDisplayIsAnomaly={stats.engSpeedDisplayIsAnomaly}
-        />
-      </div>
-    
-      <div className="min-h-[400px] bg-base-200">
-        <GeneratorCurrentLineChart
-          timeStamp={stats.timeStamp}
-          l1Current={stats.l1Current}
-          l2Current={stats.l2Current}
-          l3Current={stats.l3Current}
-          l1l2l3Current={stats.l1l2l3Current}
-          l1CIsAnomaly={stats.l1CIsAnomaly}
-          l2CIsAnomaly={stats.l2CIsAnomaly}
-          l3CIsAnomaly={stats.l3CIsAnomaly}
-        />
-      </div>
-      <div className="min-h-[400px] bg-base-200">
-        <GeneratorVoltageLineChart
-          timeStamp={stats.timeStamp}
-          l1Voltage={stats.l1Voltage}
-          l2Voltage={stats.l2Voltage}
-          l3Voltage={stats.l3Voltage}
-          l1IsAnomaly={stats.l1IsAnomaly}
-          l2IsAnomaly={stats.l2IsAnomaly}
-          l3IsAnomaly={stats.l3IsAnomaly}
-        />
-      </div>
+          <EngineFuelLevelLineChart
+            timeStamp={stats.timeStamp}
+            fuelLevel={stats.engineFuelLevel}
+            fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
+          />
+        </div>
+        <div className="min-h-[400px] bg-base-200">
+          <EngineSpeedLineChart
+            timeStamp={stats.timeStamp}
+            value={stats.engineSpeed}
+            engSpeedDisplayIsAnomaly={stats.engSpeedDisplayIsAnomaly}
+          />
+        </div>
 
-      <div className="min-h-[400px] bg-base-200">
-        <OilPressureLineChart
-          timeStamp={stats.timeStamp}
-          oilPressure={stats.oilPress}
-          oilPressureIsAnomaly={stats.oilPressIsAnomaly}
-        />
+        <div className="min-h-[400px] bg-base-200">
+          <GeneratorCurrentLineChart
+            timeStamp={stats.timeStamp}
+            l1Current={stats.l1Current}
+            l2Current={stats.l2Current}
+            l3Current={stats.l3Current}
+            l1l2l3Current={stats.l1l2l3Current}
+            l1CIsAnomaly={stats.l1CIsAnomaly}
+            l2CIsAnomaly={stats.l2CIsAnomaly}
+            l3CIsAnomaly={stats.l3CIsAnomaly}
+          />
+        </div>
+        <div className="min-h-[400px] bg-base-200">
+          <GeneratorVoltageLineChart
+            timeStamp={stats.timeStamp}
+            l1Voltage={stats.l1Voltage}
+            l2Voltage={stats.l2Voltage}
+            l3Voltage={stats.l3Voltage}
+            l1IsAnomaly={stats.l1IsAnomaly}
+            l2IsAnomaly={stats.l2IsAnomaly}
+            l3IsAnomaly={stats.l3IsAnomaly}
+          />
+        </div>
+
+        <div className="min-h-[400px] bg-base-200">
+          <OilPressureLineChart
+            timeStamp={stats.timeStamp}
+            oilPressure={stats.oilPress}
+            oilPressureIsAnomaly={stats.oilPressIsAnomaly}
+          />
+        </div>
+        <div className="min-h-[400px] bg-base-200">
+          <BatteryChargeLineChart
+            timeStamp={stats.timeStamp}
+            batteryVolts={stats.batteryVolts}
+            chargeAltVolts={stats.chargeAltVolts}
+            batteryVoltsIsAnomaly={stats.batteryVoltsIsAnomaly}
+            chargeAltVoltsIsAnomaly={stats.chargeAltVoltsIsAnomaly}
+          />
+        </div>
       </div>
-      <div className="min-h-[400px] bg-base-200">
-        <BatteryChargeLineChart
-          timeStamp={stats.timeStamp}
-          batteryVolts={stats.batteryVolts}
-          chargeAltVolts={stats.chargeAltVolts}
-          batteryVoltsIsAnomaly={stats.batteryVoltsIsAnomaly}
-          chargeAltVoltsIsAnomaly={stats.chargeAltVoltsIsAnomaly}
-        />
-      </div>
-    </div>
     </div>
   );
 };
