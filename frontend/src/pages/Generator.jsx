@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Transmit } from "@adonisjs/transmit-client";
-import { TransmitChannels } from "../lib/TransmitChannels";
+import { useMessageBus } from "../lib/MessageBus";
 
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const steps = 100;
@@ -92,6 +91,7 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
   );
 };
 
+
 export const Generator = () => {
   const [stats, setStats] = useState({
     l1Voltage: 0,
@@ -102,7 +102,13 @@ export const Generator = () => {
     l3Current: 0,
   });
 
-  useEffect(() => {
+  useMessageBus("archive", (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    (async () => {
+      await getData();
+    })();
+  });
+
     const getData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
@@ -110,8 +116,8 @@ export const Generator = () => {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
-
         const data = await response.json();
+      
         if (response.ok) {
           const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
           const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
@@ -127,49 +133,13 @@ export const Generator = () => {
       }
     };
 
-    getData();
-  }, []);
-
+    useEffect(() => {
+      console.log("Engine page mount effect running");
+      (async () => {
+        await getData();
+      })();
+    }, []);
   
-  useEffect(() => {
-    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });   // Real-time subscription to updates
-    const notificationSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
-
-    (async () => {
-      await notificationSubscription.create();
-      console.log("Subscribed to notification channel");
-    })();
-
-    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
-          const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
-          const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
-          const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
-          const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
-          const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
-
-          setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
-        }
-      } catch (error) {
-        console.log("Error updating notifications", error);
-      }
-    });
-
-    return () => {
-      notificationUnsubscribe();
-      console.log("Unsubscribed from notification channel");
-    };
-  }, []);
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
       <VoltageStatCard kind="voltage" name={"L1 Voltage"} value={stats.l1Voltage} color="#B1D5BD" />
