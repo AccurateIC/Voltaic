@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { FaPlug, FaFileAlt, FaHome, FaRegBell, FaTools } from "react-icons/fa";
-import { AiOutlineWarning } from "react-icons/ai";
+import { FaPlug, FaFileAlt, FaHome, FaBell, FaTools } from "react-icons/fa";
+import { RiAlertFill } from "react-icons/ri";
+import { GiAutoRepair, GiLifeBar, GiVibratingBall } from "react-icons/gi";
 
 const SideBar = () => {
   return (
@@ -55,7 +56,7 @@ const SideBar = () => {
             }`
           }
           end>
-          <AiOutlineWarning className="text-xl" />
+          <RiAlertFill className="text-xl" />
           <span className="hidden md:inline ml-2 font-semibold">Anomalies</span>
         </NavLink>
       </li>
@@ -69,7 +70,7 @@ const SideBar = () => {
             }`
           }
           end>
-          <FaRegBell className="text-xl" />
+          <FaBell className="text-xl" />
           <span className="hidden md:inline ml-2 font-semibold">Alarms</span>
         </NavLink>
       </li>
@@ -83,7 +84,7 @@ const SideBar = () => {
             }`
           }
           end>
-          <FaTools className="text-xl" />
+          <GiAutoRepair className="text-xl" />
           <span className="hidden md:inline ml-2 font-semibold">Predictive Maintenance</span>
         </NavLink>
       </li>
@@ -96,7 +97,7 @@ const SideBar = () => {
             }`
           }
           end>
-          <FaTools className="text-xl" />
+          <GiLifeBar className="text-xl" />
           <span className="hidden md:inline ml-2 font-semibold">RUL</span>
         </NavLink>
       </li>
@@ -109,7 +110,7 @@ const SideBar = () => {
             }`
           }
           end>
-          <FaTools className="text-xl" />
+          <GiVibratingBall className="text-xl" />
           <span className="hidden md:inline ml-2 font-semibold">Vibration</span>
         </NavLink>
       </li>
