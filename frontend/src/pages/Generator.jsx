@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Transmit } from "@adonisjs/transmit-client";
 import { TransmitChannels } from "../lib/TransmitChannels";
 
-// Smooth transition logic for value updates
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const steps = 100;
   const stepTime = duration / steps;
@@ -24,7 +23,6 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   updateValue();
 };
 
-// Half-circle speedometer component
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
   const degree = (percentage * 180) / 100;
@@ -52,7 +50,6 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   );
 };
 
-// Voltage stat card component
 const VoltageStatCard = ({ value, name, kind, color }) => {
   const [displayValue, setDisplayValue] = useState(value);
 
@@ -105,7 +102,6 @@ export const Generator = () => {
     l3Current: 0,
   });
 
-  // Fetch initial data on component mount
   useEffect(() => {
     const getData = async () => {
       try {
@@ -134,9 +130,9 @@ export const Generator = () => {
     getData();
   }, []);
 
-  // Real-time subscription to updates
+  
   useEffect(() => {
-    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
+    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });   // Real-time subscription to updates
     const notificationSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
 
     (async () => {
