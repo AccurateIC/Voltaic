@@ -1,6 +1,4 @@
-import { PlugZap, Zap } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useWebSocket } from "../lib/WebSocketConnection";
+import { useEffect, useState } from "react";
 
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const steps = 100;
@@ -12,7 +10,6 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const updateValue = () => {
     currentStep++;
     const newValue = startValue + increment * currentStep;
-
     setValue(newValue);
 
     if (currentStep < steps) {
@@ -21,7 +18,6 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
       setValue(endValue);
     }
   };
-
   updateValue();
 };
 
@@ -52,7 +48,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   );
 };
 
-const VoltageStatCard = ({ value, name, status, kind, color }) => {
+const VoltageStatCard = ({ value, name, kind, color }) => {
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
@@ -65,23 +61,18 @@ const VoltageStatCard = ({ value, name, status, kind, color }) => {
 
   let maxValue;
   let units;
-  let icon;
-
   switch (kind) {
     case "voltage":
       maxValue = 250;
       units = "V";
-      icon = <PlugZap size={64} />;
       break;
     case "current":
       maxValue = 20;
       units = "Amp";
-      icon = <Zap size={64} />;
       break;
     case "lineVoltage":
       maxValue = 440;
       units = "V";
-      icon = <PlugZap size={64} />;
       break;
     default:
       maxValue = 100;
@@ -109,24 +100,70 @@ export const Generator = () => {
     l3Current: 0,
   });
 
-  const handleWsMessage = useCallback((message) => {
-    console.log("Ws Message: ", message);
-    console.log("message1");
-    setStats({
-      l1Voltage: Math.round(message?.genL1Volts.value || 0),
-      l2Voltage: Math.round(message?.genL2Volts.value || 0),
-      l3Voltage: Math.round(message?.genL3Volts.value || 0),
-      l1Current: Math.round(message?.genL1Current.value || 0),
-      l2Current: Math.round(message?.genL2Current.value || 0),
-      l3Current: Math.round(message?.genL3Current.value || 0),
-    });
-  }, []);
-
-  const { send, isConnected } = useWebSocket(handleWsMessage);
-
   useEffect(() => {
-    console.log("WebSocket connected:", isConnected);
-  }, [isConnected]);
+    const getData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        const data = await response.json();
+        console.log("Response data", data);
+
+        if (response.ok) {
+          const volt1Array = data.filter((item) => item.gensetPropertyId === 13);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt1Array);
+          const l1Voltage = volt1Array[0].propertyValue;
+          console.log("value of genset id 13 engineSpeed", l1Voltage);
+
+          const volt2Array = data.filter((item) => item.gensetPropertyId === 14);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt2Array);
+          const l2Voltage = volt2Array[0].propertyValue;
+          console.log("value of genset id 14 engineSpeed", l2Voltage);
+
+          const volt3Array = data.filter((item) => item.gensetPropertyId === 15);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt3Array);
+          console.log(volt3Array[0].propertyValue);
+          const l3Voltage = volt3Array[0].propertyValue;
+          console.log("value of genset id 14 engineSpeed", l3Voltage);
+
+          const genL1Current = data.filter((item) => item.gensetPropertyId === 10);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL1Current);
+          console.log(genL1Current[0].propertyValue);
+          const l1Current = genL1Current[0].propertyValue;
+          console.log("value of genset id 14 engineSpeed", l1Current);
+
+          const genL2Current = data.filter((item) => item.gensetPropertyId === 11);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL2Current);
+          console.log(genL2Current[0].propertyValue);
+          const l2Current = genL2Current[0].propertyValue;
+          console.log("value of genset id 14 engineSpeed", l2Current);
+
+          const genL3Current = data.filter((item) => item.gensetPropertyId === 12);
+          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL3Current);
+          console.log(genL2Current[0].propertyValue);
+          const l3Current = genL3Current[0].propertyValue;
+          console.log("value of genset id 14 engineSpeed", l3Current);
+
+          setStats((prevStats) => ({
+            ...prevStats,
+            l1Voltage,
+            l2Voltage,
+            l3Voltage,
+            l1Current,
+            l2Current,
+            l3Current,
+          }));
+        }
+      } catch (error) {
+        console.log("Error fetching notifications");
+      }
+    };
+
+    getData();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
@@ -139,33 +176,3 @@ export const Generator = () => {
     </div>
   );
 };
-
-{
-  /* <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={12.7}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={12.7}
-          // status={"Discharging"}
-        />{" "}
-      </div>
-      <div className="min-h-[400px] bg-base-200 flex items-center justify-center">
-        {" "}
-        <VoltageStatCard
-          kind="voltage"
-          name={"L1 Voltage"}
-          value={12.7}
-          // status={"Discharging"}
-        />{" "}
-      </div> */
-}
