@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Transmit } from "@adonisjs/transmit-client";
-import { TransmitChannels } from "../lib/TransmitChannels"; 
+import { TransmitChannels } from "../lib/TransmitChannels";
 
 // Smooth transition logic for value updates
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
