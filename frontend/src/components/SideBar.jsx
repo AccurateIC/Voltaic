@@ -46,75 +46,73 @@ const SideBar = () => {
           <span className="hidden md:inline ml-3">Reports</span>
         </NavLink>
       </li>
-      <ul className="ml-3">
-        <li>
-          <NavLink
-            to="/anomalies"
-            className={({ isActive }) =>
-              `flex items-center justify-center md:justify-start py-3 ${
-                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
-              }`
-            }
-            end>
-            <AiOutlineWarning className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">Anomalies</span>
-          </NavLink>
-        </li>
+      <li>
+        <NavLink
+          to="/anomalies"
+          className={({ isActive }) =>
+            `flex items-center justify-center md:justify-start py-3 ${
+              isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+            }`
+          }
+          end>
+          <AiOutlineWarning className="text-xl" />
+          <span className="hidden md:inline ml-2 font-semibold">Anomalies</span>
+        </NavLink>
+      </li>
 
-        <li>
-          <NavLink
-            to="/alarms"
-            className={({ isActive }) =>
-              `flex items-center justify-center md:justify-start py-3 ${
-                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
-              }`
-            }
-            end>
-            <FaRegBell className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">Alarms</span>
-          </NavLink>
-        </li>
+      <li>
+        <NavLink
+          to="/alarms"
+          className={({ isActive }) =>
+            `flex items-center justify-center md:justify-start py-3 ${
+              isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+            }`
+          }
+          end>
+          <FaRegBell className="text-xl" />
+          <span className="hidden md:inline ml-2 font-semibold">Alarms</span>
+        </NavLink>
+      </li>
 
-        <li>
-          <NavLink
-            to="/predictive-maintenance"
-            className={({ isActive }) =>
-              `flex items-center justify-center md:justify-start py-3 ${
-                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
-              }`
-            }
-            end>
-            <FaTools className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">Predictive Maintenance</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/rul"
-            className={({ isActive }) =>
-              `flex items-center justify-center md:justify-start py-3 ${
-                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
-              }`
-            }
-            end>
-            <FaTools className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">RUL</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/vibration"
-            className={({ isActive }) =>
-              `flex items-center justify-center md:justify-start py-3 ${
-                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
-              }`
-            }
-            end>
-            <FaTools className="text-xl" />
-            <span className="hidden md:inline ml-2 font-semibold">Vibration</span>
-          </NavLink>
-        </li>
-      </ul>
+      <li>
+        <NavLink
+          to="/predictive-maintenance"
+          className={({ isActive }) =>
+            `flex items-center justify-center md:justify-start py-3 ${
+              isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+            }`
+          }
+          end>
+          <FaTools className="text-xl" />
+          <span className="hidden md:inline ml-2 font-semibold">Predictive Maintenance</span>
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/rul"
+          className={({ isActive }) =>
+            `flex items-center justify-center md:justify-start py-3 ${
+              isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+            }`
+          }
+          end>
+          <FaTools className="text-xl" />
+          <span className="hidden md:inline ml-2 font-semibold">RUL</span>
+        </NavLink>
+      </li>
+      <li>
+        <NavLink
+          to="/vibration"
+          className={({ isActive }) =>
+            `flex items-center justify-center md:justify-start py-3 ${
+              isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+            }`
+          }
+          end>
+          <FaTools className="text-xl" />
+          <span className="hidden md:inline ml-2 font-semibold">Vibration</span>
+        </NavLink>
+      </li>
     </ul>
   );
 };
