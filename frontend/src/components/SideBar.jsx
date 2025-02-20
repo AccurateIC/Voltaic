@@ -88,6 +88,32 @@ const SideBar = () => {
             <span className="hidden md:inline ml-2 font-semibold">Predictive Maintenance</span>
           </NavLink>
         </li>
+        <li>
+          <NavLink
+            to="/rul"
+            className={({ isActive }) =>
+              `flex items-center justify-center md:justify-start py-3 ${
+                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+              }`
+            }
+            end>
+            <FaTools className="text-xl" />
+            <span className="hidden md:inline ml-2 font-semibold">RUL</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/vibration"
+            className={({ isActive }) =>
+              `flex items-center justify-center md:justify-start py-3 ${
+                isActive ? "bg-base-content text-white rounded-md" : "text-gray-700"
+              }`
+            }
+            end>
+            <FaTools className="text-xl" />
+            <span className="hidden md:inline ml-2 font-semibold">Vibration</span>
+          </NavLink>
+        </li>
       </ul>
     </ul>
   );
