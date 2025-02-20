@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { Transmit } from "@adonisjs/transmit-client";
+import { TransmitChannels } from "../lib/TransmitChannels"; 
 
+// Smooth transition logic for value updates
 const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   const steps = 100;
   const stepTime = duration / steps;
@@ -21,6 +24,7 @@ const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
   updateValue();
 };
 
+// Half-circle speedometer component
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
   const degree = (percentage * 180) / 100;
@@ -48,6 +52,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   );
 };
 
+// Voltage stat card component
 const VoltageStatCard = ({ value, name, kind, color }) => {
   const [displayValue, setDisplayValue] = useState(value);
 
@@ -100,6 +105,7 @@ export const Generator = () => {
     l3Current: 0,
   });
 
+  // Fetch initial data on component mount
   useEffect(() => {
     const getData = async () => {
       try {
@@ -110,59 +116,62 @@ export const Generator = () => {
         });
 
         const data = await response.json();
-        console.log("Response data", data);
-
         if (response.ok) {
-          const volt1Array = data.filter((item) => item.gensetPropertyId === 13);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt1Array);
-          const l1Voltage = volt1Array[0].propertyValue;
-          console.log("value of genset id 13 engineSpeed", l1Voltage);
+          const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
+          const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
+          const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
+          const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
+          const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
+          const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
 
-          const volt2Array = data.filter((item) => item.gensetPropertyId === 14);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt2Array);
-          const l2Voltage = volt2Array[0].propertyValue;
-          console.log("value of genset id 14 engineSpeed", l2Voltage);
-
-          const volt3Array = data.filter((item) => item.gensetPropertyId === 15);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", volt3Array);
-          console.log(volt3Array[0].propertyValue);
-          const l3Voltage = volt3Array[0].propertyValue;
-          console.log("value of genset id 14 engineSpeed", l3Voltage);
-
-          const genL1Current = data.filter((item) => item.gensetPropertyId === 10);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL1Current);
-          console.log(genL1Current[0].propertyValue);
-          const l1Current = genL1Current[0].propertyValue;
-          console.log("value of genset id 14 engineSpeed", l1Current);
-
-          const genL2Current = data.filter((item) => item.gensetPropertyId === 11);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL2Current);
-          console.log(genL2Current[0].propertyValue);
-          const l2Current = genL2Current[0].propertyValue;
-          console.log("value of genset id 14 engineSpeed", l2Current);
-
-          const genL3Current = data.filter((item) => item.gensetPropertyId === 12);
-          console.log("Id:13 Property_Value:Voltage1 TotalEntries", genL3Current);
-          console.log(genL2Current[0].propertyValue);
-          const l3Current = genL3Current[0].propertyValue;
-          console.log("value of genset id 14 engineSpeed", l3Current);
-
-          setStats((prevStats) => ({
-            ...prevStats,
-            l1Voltage,
-            l2Voltage,
-            l3Voltage,
-            l1Current,
-            l2Current,
-            l3Current,
-          }));
+          setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
         }
       } catch (error) {
-        console.log("Error fetching notifications");
+        console.log("Error fetching notifications", error);
       }
     };
 
     getData();
+  }, []);
+
+  // Real-time subscription to updates
+  useEffect(() => {
+    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
+    const notificationSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
+
+    (async () => {
+      await notificationSubscription.create();
+      console.log("Subscribed to notification channel");
+    })();
+
+    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
+          const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
+          const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
+          const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
+          const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
+          const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
+
+          setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
+        }
+      } catch (error) {
+        console.log("Error updating notifications", error);
+      }
+    });
+
+    return () => {
+      notificationUnsubscribe();
+      console.log("Unsubscribed from notification channel");
+    };
   }, []);
 
   return (
