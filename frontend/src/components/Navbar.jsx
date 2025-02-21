@@ -95,10 +95,8 @@ const Navbar = () => {
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
-      <div className="flex-1">
-        <a className="btn btn-ghost">
-          <img src={Logo} alt="AccurateIC Logo" className="w-[150px] h-auto bg-white p-[5px] rounded" />
-        </a>
+      <div className="">
+        <img src={Logo} alt="AccurateIC Logo" className="w-40" />
       </div>
 
       <div className="flex items-center space-x-3">
@@ -124,7 +122,9 @@ const Navbar = () => {
           )}
         </div>
 
+        {/*
         <ThemeSwitcher size={32} />
+      */}
         <Profile />
       </div>
     </nav>

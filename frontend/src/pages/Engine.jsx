@@ -159,10 +159,10 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
           {fuelLevelPercentage >= 75
             ? "Full"
             : fuelLevelPercentage >= 40
-            ? "Medium"
-            : fuelLevelPercentage >= 20
-            ? "Low"
-            : "Critical"}
+              ? "Medium"
+              : fuelLevelPercentage >= 20
+                ? "Low"
+                : "Critical"}
         </p>
       </div>
     </div>
@@ -234,10 +234,10 @@ const RadialFuelLevelIndicator = ({ fuelDetails }) => {
               {fuelLevelPercentage >= 75
                 ? "Full"
                 : fuelLevelPercentage >= 40
-                ? "Medium"
-                : fuelLevelPercentage >= 20
-                ? "Low"
-                : "Critical"}
+                  ? "Medium"
+                  : fuelLevelPercentage >= 20
+                    ? "Low"
+                    : "Critical"}
             </span>
           </div>
         </div>
