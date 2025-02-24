@@ -7,6 +7,7 @@ import { Reports } from "./pages/Reports.jsx";
 import Vibration from "./pages/Vibration.jsx";
 import Maintenance from "./pages/Maintenance.jsx";
 import { Generator } from "./pages/Generator.jsx";
+import { Mains } from "./pages/Mains.jsx";
 import AlarmsBackup from "./pages/AlarmsBackup.jsx";
 import Alarms from "./pages/Alarms.jsx";
 
@@ -36,6 +37,7 @@ createRoot(document.getElementById("root")).render(
           {/* <Route path="testchart" element={<TestChart />} /> */}
           <Route path="engine" element={<Engine />} />
           <Route path="generator" element={<Generator />} />
+          <Route path="mains" element={<Mains />} />
           <Route path="reports" element={<Reports />} />
           <Route path="anomalies" element={<Anomalies />} />
           <Route path="alarms-backup" element={<AlarmsBackup />} />

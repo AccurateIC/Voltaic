@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
   if (isLoading) {
     // replace this with a loading spinner component
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-base-300">
+      <div className="h-screen w-full flex items-center justify-center bg-base-content">
         <Keyframes />
       </div>
     );
