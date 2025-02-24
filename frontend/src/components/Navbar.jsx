@@ -12,6 +12,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const archiveMessageBus = useMessageBus("archive");
+  const notificationMessageBus = useMessageBus("notification");
 
   // Fetch initial notifications
   useEffect(() => {
@@ -69,6 +70,7 @@ const Navbar = () => {
         const data = await response.json();
         const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
         setNotifications(unreadNotifications);
+        notificationMessageBus({ time: Date.now(), message: "data inserted in notification table" });
       } catch (error) {
         console.error(error);
         toast.error("Error updating notifications");
