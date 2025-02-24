@@ -26,6 +26,7 @@ const SideBar = () => {
     <ul className="bg-[rgba(177,213,189,1)] px-1 py-2">
       <SideBarLink to="/engine" name="Engine" Icon={FaHome} />
       <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
+      <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
       <SideBarLink to="/reports" name="Reports" Icon={FaFileAlt} />
       <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />

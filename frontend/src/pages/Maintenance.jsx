@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const Card = ({ children }) => {
-  return <div className="bg-white shadow-lg rounded-2xl p-4 mb-4">{children}</div>;
+  return <div className="bg-base-200 shadow-lg rounded-2xl p-4 mb-4">{children}</div>;
 };
 
 const CardContent = ({ children }) => {
@@ -47,14 +47,14 @@ const Maintenance = () => {
 
   const renderStatus = (type) => {
     if (status[type] === "loading") return <Loader2 className="animate-spin" />;
-    if (status[type] === "ok") return <CheckCircle className="text-green-500" />;
-    if (status[type] === "problem") return <XCircle className="text-red-500" />;
+    if (status[type] === "ok") return <CheckCircle className="text-success" />;
+    if (status[type] === "problem") return <XCircle className="text-error" />;
   };
 
   const renderProblemDetails = (type) => {
     if (status[type] === "problem") {
       return (
-        <div className="text-red-600 mt-2">
+        <div className="text-error mt-2">
           <p>Problem detected in {type}.</p>
           <p>Check components related to {type} management.</p>
         </div>
@@ -64,22 +64,26 @@ const Maintenance = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4 text-white">Predictive Maintenance</h2>
+      <h2 className="text-2xl font-bold mb-4 text-base-200">Predictive Maintenance</h2>
       <Card className="mb-4">
         <CardContent>
-          <label className="flex items-center gap-4 font-bold">Checking Frequency {renderStatus("frequency")}</label>
+          <label className="flex items-center gap-4 font-bold text-base-content">
+            Checking Frequency {renderStatus("frequency")}
+          </label>
           {renderProblemDetails("frequency")}
         </CardContent>
       </Card>
       <Card className="mb-4">
         <CardContent>
-          <label className="flex items-center gap-4 font-bold">Checking Temperature {renderStatus("temperature")}</label>
+          <label className="flex items-center gap-4 font-bold text-base-content">
+            Checking Temperature {renderStatus("temperature")}
+          </label>
           {renderProblemDetails("temperature")}
         </CardContent>
       </Card>
       <Card className="mb-4">
         <CardContent>
-          <label className="flex items-center gap-4 font-bold">
+          <label className="flex items-center gap-4 font-bold text-base-content">
             Checking Hydrocarbon Emission {renderStatus("hydrocarbon")}
           </label>
           {renderProblemDetails("hydrocarbon")}
@@ -87,7 +91,7 @@ const Maintenance = () => {
       </Card>
       {showGraph && (
         <div className="mt-6">
-          <h3 className="text-xl font-semibold text-white">Abnormality Detected - Analysis Graph</h3>
+          <h3 className="text-xl font-semibold text-base-content">Abnormality Detected - Analysis Graph</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={graphData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
@@ -100,7 +104,7 @@ const Maintenance = () => {
         </div>
       )}
       {!showGraph && (
-        <div className="text-[#B1D5BD] font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
+        <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
       )}
     </div>
   );
