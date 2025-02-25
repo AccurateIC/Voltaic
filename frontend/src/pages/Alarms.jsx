@@ -135,33 +135,36 @@ const Alarms = () => {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="flex flex-row justify-between bg-base-200 text-base-content items-center rounded-box p-4 mb-2">
+      <div className="flex flex-row justify-between bg-primary text-base-200 font-semibold items-center rounded-box p-4 mb-2">
         {/* Filters */}
         <div className="flex gap-3 items-center">
           <div>Filters: </div>
           <div className="flex items-center">
-            From:
+            <div className="m-1">From:</div>
             <input
               aria-label="Date"
               type="date"
-              className="input"
+              className="input text-base-content"
               value={filters.fromDate}
               onChange={handleFromDateFilterChange}
             />
           </div>
           <div className="flex items-center">
-            To:
+            <div className="m-1">To:</div>
             <input
               aria-label="Date"
               type="date"
-              className="input"
+              className="input text-base-content"
               value={filters.toDate}
               onChange={handleToDateFilterChange}
             />
           </div>
 
           {/* Genset Property */}
-          <select className="select select-neutral" value={filters.property} onChange={handleGensetPropertyFilterChange}>
+          <select
+            className="select select-neutral text-base-content"
+            value={filters.property}
+            onChange={handleGensetPropertyFilterChange}>
             <option value="Property">Property</option>
             {gensetProperties.map((property, index) => (
               <option key={index} value={property.propertyName}>
@@ -171,23 +174,26 @@ const Alarms = () => {
           </select>
 
           {/* Anomaly Status */}
-          <select className="select select-neutral" value={filters.anomalyStatus} onChange={handleAnomalyFilterChange}>
+          <select
+            className="select select-neutral text-base-content"
+            value={filters.anomalyStatus}
+            onChange={handleAnomalyFilterChange}>
             <option value="">Anomaly Status</option>
             <option value="Resolved">Resolved</option>
             <option value="Unresolved">Unresolved</option>
           </select>
         </div>
 
-        <button className="btn btn-primary btn-outline" onClick={handleResetFilters}>
+        <button className="btn btn-primary btn-outline text-base-200 font-semibold" onClick={handleResetFilters}>
           Reset
         </button>
       </div>
 
       {/* Notification Table */}
-      <div className="overflow-y-scroll rounded-box border border-base-content/5 bg-base-100">
+      <div className="overflow-y-scroll rounded-box shadow-lg bg-base-content text-base-200">
         <table className="table table-pin-rows">
-          <thead className="bg-base-content">
-            <tr className="bg-base-content rounded-box text-base-300">
+          <thead className="">
+            <tr className="bg-sky-950 text-base-200">
               <th></th>
               <th>Started At</th>
               <th>Summary</th>
@@ -196,7 +202,7 @@ const Alarms = () => {
               <th>Finished At</th>
             </tr>
           </thead>
-          <tbody className="text-base-content">
+          <tbody className="bg-sky-950/50">
             {filteredNotifications.map((entry, index) => (
               <tr key={index}>
                 <th>{index + 1}</th>
