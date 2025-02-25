@@ -2,33 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-export const GeneratorVoltageLineChart = ({
-  voltageData
-}) => {
-  const [voltageDetails, setVoltageDetails] = useState([]);
-  // const [notifications, setNotifications] = useState([]);
-  useEffect(() => {
-  if (Array.isArray(voltageData) && voltageData.length > 0) {
-    
-    const newData = voltageData.map((item) => ({
-      time:item.time, 
-      L1: item.L1,
-      L2: item.L2,
-      L3: item.L3,
-      l1IsAnomaly: item.l1IsAnomaly,
-      l2IsAnomaly: item.l2IsAnomaly, 
-      l3IsAnomaly: item.l3IsAnomaly, 
-    }));
-    setVoltageDetails(newData);
-  }
-}, [voltageData]);
-
+export const GeneratorVoltageLineChart = ({ voltageData }) => {
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={voltageDetails} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={voltageData} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="1 1" />
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis

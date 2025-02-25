@@ -1,34 +1,16 @@
-/* eslint-disable react/prop-types */
+
 import React, { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
 export const BatteryChargeLineChart = ({ value }) => {
-  const [batteryData, setBatteryData] = useState([]);
-  useEffect(() => {
-    if (Array.isArray(value) && value.length > 0) {
-      const newData = value.map((item) => ({
-        time: item.time, 
-        batteryVolts: item.batteryVolts,
-        chargeAltVolts: item.chargeAltVolts,
-        chargeAltVoltsIsAnomaly: item.chargeAltVoltsIsAnomaly, 
-        batteryVoltsIsAnomaly: item.batteryVoltsIsAnomaly, 
-      }));
-      setBatteryData(newData);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    console.log("batteryData mapped in report page", batteryData);
-  }, [batteryData]);
-
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={batteryData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis

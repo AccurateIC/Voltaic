@@ -4,7 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, Responsi
 import renderCustomDot from "./renderCustomDot";
 
 export const EngineFuelLevelLineChart = ({ value }) => {
-  const [fuelLevelData, setFuelLevelData] = useState([]); // Add this line to define the state for fuelLevelData
+  const [fuelLevelData, setFuelLevelData] = useState([]); 
   //  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {

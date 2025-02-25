@@ -47,7 +47,7 @@ export const Reports = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_ADONIS_BACKEND
-        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-21T11:41:59.481Z`,
+        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-21T11:56:59.481Z`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
