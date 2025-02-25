@@ -1,37 +1,22 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnomaly }) => {
+export const EngineFuelLevelLineChart = ({ value }) => {
   const [fuelLevelData, setFuelLevelData] = useState([]); // Add this line to define the state for fuelLevelData
-  const [notifications, setNotifications] = useState([]);
-  const fuelLevelNotificationRef = useRef(false);
+  //  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    if (fuelLevel !== -1) {
-      setFuelLevelData((prevData) => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          fuelLevel,
-          fuelLevelIsAnomaly: fuelLevelISAnomaly, // Corrected variable name here
-        },
-      ]);
+    if (Array.isArray(value) && value.length > 0) {
+      const newData = value.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        fuelLevel: item.propertyValue,
+        fuelLevelIsAnomaly: item.isAnomaly,
+      }));
+      setFuelLevelData(newData);
     }
-
-    if (fuelLevelISAnomaly && !fuelLevelNotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "fuelLevelAnomaly", message: "Fuel level anomaly detected!", type: "fuel" },
-      ]);
-      fuelLevelNotificationRef.current = true;
-    } else if (!fuelLevelISAnomaly && fuelLevelNotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "fuelLevelAnomaly")
-      );
-      fuelLevelNotificationRef.current = false;
-    }
-  }, [fuelLevel, timeStamp, fuelLevelISAnomaly]);
+  }, [value]);
 
   return (
     <div className="h-[400px] w-full">

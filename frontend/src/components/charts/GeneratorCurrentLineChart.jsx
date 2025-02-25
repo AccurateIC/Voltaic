@@ -1,99 +1,47 @@
-import React, { useState, useEffect, useRef } from "react";
+/* eslint-disable react/prop-types */
+import React, { useState, useEffect } from "react";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-export const GeneratorCurrentLineChart = ({
-  timeStamp,
-  l1Current,
-  l2Current,
-  l3Current,
-  l1l2l3Current,
-  l1CIsAnomaly,
-  l2CIsAnomaly,
-  l3CIsAnomaly,
-}) => {
+export const GeneratorCurrentLineChart = ({ l1Current, l2Current, l3Current }) => {
   const [currentData, setCurrentData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-
-  const l1NotificationRef = useRef(false);
-  const l2NotificationRef = useRef(false);
-  const l3NotificationRef = useRef(false);
 
   useEffect(() => {
-    if (l1Current !== 0 || l2Current !== 0 || l3Current !== 0) {
-      setCurrentData((prevData) => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          L1: l1Current,
-          L2: l2Current,
-          L3: l3Current,
-          l1CIsAnomaly,
-          l2CIsAnomaly,
-          l3CIsAnomaly,
-        },
-      ]);
-    }
+    if (
+      Array.isArray(l1Current) &&
+      l1Current.length > 0 &&
+      Array.isArray(l2Current) &&
+      l2Current.length > 0 &&
+      Array.isArray(l3Current) &&
+      l3Current.length > 0
+    ) {
+      const newData = l1Current.map((l1Item) => {
+        const l2Item = l2Current.find((item) => item.timestamp === l1Item.timestamp);
+        const l3Item = l3Current.find((item) => item.timestamp === l1Item.timestamp);
+        const time = new Date(l1Item.timestamp);
 
-    // Handle notifications for L1
-    if (l1CIsAnomaly && !l1NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L1", message: "Current anomaly detected in L1 phase!", type: "current" },
-      ]);
-      l1NotificationRef.current = true;
-    } else if (!l1CIsAnomaly && l1NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L1")
-      );
-      l1NotificationRef.current = false;
-    }
+        return {
+          time: time.toLocaleTimeString(),
+          L1: l1Item.propertyValue,
+          L2: l2Item ? l2Item.propertyValue : null,
+          L3: l3Item ? l3Item.propertyValue : null,
+          l1CIsAnomaly: l1Item.isAnomaly,
+          l2CIsAnomaly: l2Item ? l2Item.isAnomaly : null,
+          l3CIsAnomaly: l3Item ? l3Item.isAnomaly : null,
+        };
+      });
 
-    // Handle notifications for L2
-    if (l2CIsAnomaly && !l2NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L2", message: "Current anomaly detected in L2 phase!", type: "current" },
-      ]);
-      l2NotificationRef.current = true;
-    } else if (!l2CIsAnomaly && l2NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L2")
-      );
-      l2NotificationRef.current = false;
+      setCurrentData(newData);
     }
+  }, [l1Current, l2Current, l3Current]);
 
-    // Handle notifications for L3
-    if (l3CIsAnomaly && !l3NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L3", message: "Current anomaly detected in L3 phase!", type: "current" },
-      ]);
-      l3NotificationRef.current = true;
-    } else if (!l3CIsAnomaly && l3NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L3")
-      );
-      l3NotificationRef.current = false;
-    }
-  }, [timeStamp, l1Current, l2Current, l3Current, l1CIsAnomaly, l2CIsAnomaly, l3CIsAnomaly]);
+  useEffect(() => {
+    console.log("currentData", currentData);
+  }, [currentData]);
 
   return (
     <div className="h-[400px] w-full relative pb-6">
       <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
-
-      <div className="absolute top-1 right-4 text-xl font-semibold p-4">
-        <span>Total Current: </span>
-        <span
-          className="font-bold text-lg text-red-600"
-          style={{
-            padding: "5px",
-            borderRadius: "5px",
-          }}
-        >
-          {l1l2l3Current} Amp
-        </span>
-      </div>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">

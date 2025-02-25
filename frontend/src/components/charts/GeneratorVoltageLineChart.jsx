@@ -3,81 +3,50 @@ import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export const GeneratorVoltageLineChart = ({
-  timeStamp,
+ 
   l1Voltage,
   l2Voltage,
   l3Voltage,
-  l1IsAnomaly,
-  l2IsAnomaly,
-  l3IsAnomaly,
+  
 }) => {
   const [graphData, setGraphData] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-  const l1NotificationRef = useRef(false);
-  const l2NotificationRef = useRef(false);
-  const l3NotificationRef = useRef(false);
 
-  useEffect(() => {
-    // Add new data to the graph when voltage is updated
-    if (l1Voltage !== 0 || l2Voltage !== 0 || l3Voltage !== 0) {
-      setGraphData((prevData) => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          L1: l1Voltage,
-          L2: l2Voltage,
-          L3: l3Voltage,
-          l1IsAnomaly,
-          l2IsAnomaly,
-          l3IsAnomaly,
-        },
-      ]);
-    }
-
-    // Handle L1 anomaly notifications
-    if (l1IsAnomaly && !l1NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L1", message: "Voltage anomaly detected in L1 phase!", type: "voltage" },
-      ]);
-      l1NotificationRef.current = true;
-    } else if (!l1IsAnomaly && l1NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L1")
-      );
-      l1NotificationRef.current = false;
-    }
-
-    // Handle L2 anomaly notifications
-    if (l2IsAnomaly && !l2NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L2", message: "Voltage anomaly detected in L2 phase!", type: "voltage" },
-      ]);
-      l2NotificationRef.current = true;
-    } else if (!l2IsAnomaly && l2NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L2")
-      );
-      l2NotificationRef.current = false;
-    }
-
-    // Handle L3 anomaly notifications
-    if (l3IsAnomaly && !l3NotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "L3", message: "Voltage anomaly detected in L3 phase!", type: "voltage" },
-      ]);
-      l3NotificationRef.current = true;
-    } else if (!l3IsAnomaly && l3NotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "L3")
-      );
-      l3NotificationRef.current = false;
-    }
-  }, [timeStamp, l1Voltage, l2Voltage, l3Voltage, l1IsAnomaly, l2IsAnomaly, l3IsAnomaly]);
-
+   useEffect(() => {
+    
+      if (
+        Array.isArray(l1Voltage) &&
+        l1Voltage.length > 0 &&
+        Array.isArray(l2Voltage) &&
+        l2Voltage.length > 0 &&
+        Array.isArray(l3Voltage) &&
+        l3Voltage.length > 0
+      ) {
+  
+        const newData = l1Voltage.map((l1Item) => {
+          // Find the corresponding items in l2Current and l3Current based on the timestamp
+          const l2Item = l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
+          const l3Item = l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
+  
+          // Format the time from timestamp (using `new Date()` for converting timestamp to Date)
+          const time = new Date(l1Item.timestamp);
+  
+          return {
+            time: time.toLocaleTimeString(), // Use the formatted time
+            L1: l1Item.propertyValue,
+            L2: l2Item ? l2Item.propertyValue : null, // If no match, set to null
+            L3: l3Item ? l3Item.propertyValue : null, // If no match, set to null
+            l1IsAnomaly: l1Item.isAnomaly,
+            l2IsAnomaly: l2Item ? l2Item.isAnomaly : null, // If no match, set to null
+            l3IsAnomaly: l3Item ? l3Item.isAnomaly : null, // If no match, set to null
+          };
+        });
+  
+        setGraphData(newData); // Set the merged data to the state
+      }
+    }, [l1Voltage, l2Voltage, l3Voltage]);
+   
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>

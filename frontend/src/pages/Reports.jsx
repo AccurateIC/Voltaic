@@ -1,29 +1,25 @@
-import {  useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
-import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
+import EngineSpeedLineChart from "../components/charts/EngineSpeedLineChart";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
 import { useMessageBus } from "../lib/MessageBus";
-// import { useWebSocket } from "../lib/WebSocketConnection";
 
 export const Reports = () => {
   const [stats, setStats] = useState({
-    timeStamp: new Date(),
-    batteryVolts: 0,
-    chargeAltVolts: 0,
-    engineSpeed: 1480,
-    engSpeedDisplayIsAnomaly: true,
-    engineFuelLevel: 2,
-    l1Voltage: 1,
-    l2Voltage: 2,
-    l3Voltage: 3,
-    l1Current: 2,
-    l2Current: 4,
-    l3Current: 5,
-    l1l2l3Current: 0,
-    oilPress: 4,
+    l1Voltage: [],
+    l2Voltage: [],
+    l3Voltage: [],
+    l1Current: [],
+    l2Current: [],
+    l3Current: [],
+    engineFuelLevel: [],
+    engineSpeed: [],
+    oilPress: [],
+    chargeAltVolts: [],
+    batteryVolts: [],
     fuelLevelISAnomaly: false,
     l1IsAnomaly: false,
     l2IsAnomaly: false,
@@ -36,53 +32,154 @@ export const Reports = () => {
     chargeAltVoltsIsAnomaly: true,
   });
 
- 
   const [showProperties, setShowProperties] = useState(false);
   const [showTimeFilter, setShowTimeFilter] = useState(false);
 
-useMessageBus("archive", (msg) => {
+  useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
       await getReportData();
     })();
   });
 
-const getReportData = async()=>{
-  try {
-    const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    const data = await response.json();
-  console.log("reportData ",data);
-    if (response.ok) {
-      console.log("sds",data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0);
-      const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
-      const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
-      const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
-      const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
-      const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
-      const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
-      const engineFuelLevel = data.filter((item) => item.gensetPropertyId === 4)[0]?.propertyValue || 0;
-      const engineSpeed = data.filter((item) => item.gensetPropertyId === 7)[0]?.propertyValue || 0;
-      const oilPress = data.filter((item) => item.gensetPropertyId === 3)[0]?.propertyValue || 0;
-      const chargeAltVolts= data.filter((item) => item.gensetPropertyId === 5)[0]?.propertyValue || 0;
+  const getReportData = async () => {
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_ADONIS_BACKEND
+        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-21T11:41:59.481Z`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
 
-      setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current, engineFuelLevel, engineSpeed, oilPress, chargeAltVolts  });
+      if (response.ok) {
+        const l1Voltage =
+          data
+            .filter((item) => item.gensetPropertyId === 13)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const l2Voltage =
+          data
+            .filter((item) => item.gensetPropertyId === 14)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const l3Voltage =
+          data
+            .filter((item) => item.gensetPropertyId === 15)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const l1Current =
+          data
+            .filter((item) => item.gensetPropertyId === 10)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const l2Current =
+          data
+            .filter((item) => item.gensetPropertyId === 11)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const l3Current =
+          data
+            .filter((item) => item.gensetPropertyId === 12)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const engineFuelLevel =
+          data
+            .filter((item) => item.gensetPropertyId === 4)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const engineSpeed =
+          data
+            .filter((item) => item.gensetPropertyId === 7)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const oilPress =
+          data
+            .filter((item) => item.gensetPropertyId === 3)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const batteryVolts =
+          data
+            .filter((item) => item.gensetPropertyId === 6)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+
+        const chargeAltVolts =
+          data
+            .filter((item) => item.gensetPropertyId === 5)
+            .map((item) => ({
+              propertyValue: item.propertyValue,
+              timestamp: item.timestamp,
+              isAnomaly: item.isAnomaly,
+            })) || [];
+        setStats({
+          l1Voltage,
+          l2Voltage,
+          l3Voltage,
+          l1Current,
+          l2Current,
+          l3Current,
+          engineFuelLevel,
+          engineSpeed,
+          oilPress,
+          batteryVolts,
+          chargeAltVolts,
+        });
+      }
+    } catch (error) {
+      console.log("Error fetching data", error);
     }
-  } catch (error) {
-    console.log("Error fetching notifications", error);
-  }
-};
+  };
 
-
-useEffect(() => {
-  console.log("Engine page mount effect running");
-  (async () => {
-    await getReportData();
-  })();
-}, []);
+  useEffect(() => {
+    console.log("Engine page mount effect running");
+    (async () => {
+      await getReportData();
+    })();
+  }, []);
 
   return (
     <div>
@@ -121,56 +218,30 @@ useEffect(() => {
           )}
         </div>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
         <div className="min-h-[400px] bg-base-200">
-          <EngineFuelLevelLineChart
-            timeStamp={stats.timeStamp}
-            fuelLevel={stats.engineFuelLevel}
-            fuelLevelISAnomaly={stats.fuelLevelISAnomaly}
-          />
-        </div>
-        <div className="min-h-[400px] bg-base-200">
-          <EngineSpeedLineChart
-            timeStamp={stats.timeStamp}
-            value={stats.engineSpeed}
-            engSpeedDisplayIsAnomaly={stats.engSpeedDisplayIsAnomaly}
-          />
+          <EngineFuelLevelLineChart value={stats.engineFuelLevel} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <GeneratorCurrentLineChart
-            timeStamp={stats.timeStamp}
-            l1Current={stats.l1Current}
-            l2Current={stats.l2Current}
-            l3Current={stats.l3Current}
-            l1l2l3Current={stats.l1l2l3Current}
-            l1CIsAnomaly={stats.l1CIsAnomaly}
-            l2CIsAnomaly={stats.l2CIsAnomaly}
-            l3CIsAnomaly={stats.l3CIsAnomaly}
-          />
-        </div>
-        <div className="min-h-[400px] bg-base-200">
-          <GeneratorVoltageLineChart
-            timeStamp={stats.timeStamp}
-            l1Voltage={stats.l1Voltage}
-            l2Voltage={stats.l2Voltage}
-            l3Voltage={stats.l3Voltage}
-            l1IsAnomaly={stats.l1IsAnomaly}
-            l2IsAnomaly={stats.l2IsAnomaly}
-            l3IsAnomaly={stats.l3IsAnomaly}
-          />
+          <EngineSpeedLineChart value={stats.engineSpeed} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <OilPressureLineChart
-            timeStamp={stats.timeStamp}
-            oilPressure={stats.oilPress}
-            oilPressureIsAnomaly={stats.oilPressIsAnomaly}
-          />
+          <GeneratorCurrentLineChart l1Current={stats.l1Current} l2Current={stats.l2Current} l3Current={stats.l3Current} />
         </div>
+
+        <div className="min-h-[400px] bg-base-200">
+          <GeneratorVoltageLineChart l1Voltage={stats.l1Voltage} l2Voltage={stats.l2Voltage} l3Voltage={stats.l3Voltage} />
+        </div>
+
+        <div className="min-h-[400px] bg-base-200">
+          <OilPressureLineChart value={stats.oilPress} />
+        </div>
+
         <div className="min-h-[400px] bg-base-200">
           <BatteryChargeLineChart
-            timeStamp={stats.timeStamp}
             batteryVolts={stats.batteryVolts}
             chargeAltVolts={stats.chargeAltVolts}
             batteryVoltsIsAnomaly={stats.batteryVoltsIsAnomaly}

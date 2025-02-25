@@ -1,59 +1,39 @@
+
+
 import React, { useEffect, useRef, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedDisplayIsAnomaly }) => {
-  // Local state for storing engine speed data and notifications
+export const EngineSpeedLineChart = ({ value }) => {
+  
   const [engineSpeedData, setEngineSpeedData] = useState([]);
   const [notifications, setNotifications] = useState([]);
+ 
 
-  // Ref to track if the anomaly notification has been shown
   const engineSpeedNotificationRef = useRef(false);
 
   useEffect(() => {
-    // console.log("useEffect triggered", { value, timeStamp, engSpeedDisplayIsAnomaly });
-
-    if (value !== undefined) {
-      setEngineSpeedData(prevData => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          engineSpeed: value,
-          engSpeedDisplayIsAnomaly: engSpeedDisplayIsAnomaly,
-        },
-      ]);
+    if (Array.isArray(value) && value.length > 0) {
+      // Map the value array into the format expected by the chart
+      const newData = value.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(), 
+        engineSpeed: item.propertyValue, 
+        engSpeedDisplayIsAnomaly: item.isAnomaly, 
+      }));
+      setEngineSpeedData(newData);
+    
     }
-
-    if (engSpeedDisplayIsAnomaly && !engineSpeedNotificationRef.current) {
-      // console.log("Anomaly detected, setting notification");
-      setNotifications(prevNotifications => [
-        ...prevNotifications,
-        {
-          id: "engineSpeedAnomaly",
-          message: "Engine speed anomaly detected!",
-          type: "engineSpeed",
-        },
-      ]);
-      engineSpeedNotificationRef.current = true;
-    } else if (!engSpeedDisplayIsAnomaly && engineSpeedNotificationRef.current) {
-      console.log("Anomaly cleared, removing notification");
-      setNotifications(prevNotifications =>
-        prevNotifications.filter(notification => notification.id !== "engineSpeedAnomaly")
-      );
-      engineSpeedNotificationRef.current = false;
-    }
-  }, [value, timeStamp, engSpeedDisplayIsAnomaly]);
-
+  }, [value]); 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Engine Speed Monitor</h2>
 
       {/* Display notifications */}
-      <div className="absolute top-0 right-0 p-4">
+      {/* <div className="absolute top-0 right-0 p-4">
         {notifications.length > 0 && (
           <div className="bg-white border border-gray-300 shadow-md p-2">
             <ul>
-              {notifications.map(notification => (
+              {notifications.map((notification) => (
                 <li key={notification.id} className="p-2 border-b text-sm">
                   {notification.message}
                 </li>
@@ -61,7 +41,7 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedDisplayIsAnomal
             </ul>
           </div>
         )}
-      </div>
+      </div> */}
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
@@ -84,10 +64,7 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedDisplayIsAnomal
               stroke="#5278d1"
               name="Engine Speed"
               strokeWidth={2}
-              dot={props => {
-                // console.log("Rendering dot", props);
-                return renderCustomDot(props, props.payload.engSpeedDisplayIsAnomaly);
-              }}
+              dot={(props) => renderCustomDot(props, props.payload.engSpeedDisplayIsAnomaly)}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -95,3 +72,5 @@ export const EngineSpeedLineChart = ({ timeStamp, value, engSpeedDisplayIsAnomal
     </div>
   );
 };
+
+export default EngineSpeedLineChart;

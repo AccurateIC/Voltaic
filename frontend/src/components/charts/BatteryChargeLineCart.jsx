@@ -1,68 +1,53 @@
-import React, { useEffect, useRef, useState } from "react";
+/* eslint-disable react/prop-types */
+import React, { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const BatteryChargeLineChart = ({
-  timeStamp,
-  batteryVolts,
-  chargeAltVolts,
-  batteryVoltsIsAnomaly,
-  chargeAltVoltsIsAnomaly,
-}) => {
-  // Local state for storing battery data and notifications
+export const BatteryChargeLineChart = ({ batteryVolts, chargeAltVolts }) => {
+  // Local state for storing battery data
   const [batteryData, setBatteryData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-
-  // Refs for tracking if the anomaly notification has been displayed
-  const batteryVoltsNotificationRef = useRef(false);
-  const chargeAltVoltsNotificationRef = useRef(false);
 
   useEffect(() => {
-    if (batteryVolts !== undefined || chargeAltVolts !== undefined) {
-      setBatteryData((prevData) => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          batteryVolts,
-          chargeAltVolts,
-          batteryVoltsIsAnomaly,
-          chargeAltVoltsIsAnomaly,
-        },
-      ]);
-    }
+    // Check if both arrays are not empty
+    if (
+      Array.isArray(batteryVolts) &&
+      batteryVolts.length > 0 &&
+      Array.isArray(chargeAltVolts) &&
+      chargeAltVolts.length > 0
+    ) {
+      const newData = batteryVolts.map((batteryItem) => {
+        const chargeAltItem = chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
+        const time = new Date(batteryItem.timestamp);
+        return {
+          time: time.toLocaleTimeString(),
+          batteryVolts: batteryItem.propertyValue,
+          chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
+          batteryVoltsIsAnomaly: batteryItem.isAnomaly,
+          chargeAltVoltsIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : null,
+        };
+      });
 
-    // Handle battery voltage anomaly notifications
-    if (batteryVoltsIsAnomaly && !batteryVoltsNotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "batteryVolts", message: "Battery voltage anomaly detected!", type: "battery" },
-      ]);
-      batteryVoltsNotificationRef.current = true;
-    } else if (!batteryVoltsIsAnomaly && batteryVoltsNotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "batteryVolts")
-      );
-      batteryVoltsNotificationRef.current = false;
+      setBatteryData(newData);
     }
-
-    // Handle charge alternator voltage anomaly notifications
-    if (chargeAltVoltsIsAnomaly && !chargeAltVoltsNotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "chargeAltVolts", message: "Charge alternator voltage anomaly detected!", type: "chargeAlt" },
-      ]);
-      chargeAltVoltsNotificationRef.current = true;
-    } else if (!chargeAltVoltsIsAnomaly && chargeAltVoltsNotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "chargeAltVolts")
-      );
-      chargeAltVoltsNotificationRef.current = false;
-    }
-  }, [timeStamp, batteryVolts, chargeAltVolts, batteryVoltsIsAnomaly, chargeAltVoltsIsAnomaly]);
+  }, [batteryVolts, chargeAltVolts]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
+
+      {/* 
+      <div className="absolute top-1 right-4 text-xl font-semibold p-4">
+         <span>Total Current: </span>
+         <span
+           className="font-bold text-lg text-red-600"
+           style={{
+             padding: "5px",
+             borderRadius: "5px",
+           }}
+         >
+           {l1l2l3Current} Amp
+         </span>
+       </div> */}
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
@@ -110,4 +95,3 @@ export const BatteryChargeLineChart = ({
     </div>
   );
 };
-
