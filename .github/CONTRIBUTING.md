@@ -102,6 +102,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0
 
 - `feat`: New feature (e.g., `feat: add user login endpoint`)
 - `fix`: Bug fix (e.g., `fix: resolve null pointer exception`)
+- `chore`: Routine tasks (e.g., `chore: update nodejs dependencies`)
 - `docs`: Documentation changes (e.g., `docs: update API usage guide`)
 - `style`: Code style/formatting (e.g., `style: format CSS files`)
 - `refactor`: Code restructuring without new features/fixes (e.g., `refactor: simplify auth middleware`)
