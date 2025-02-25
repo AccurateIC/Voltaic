@@ -88,6 +88,8 @@ const Alarms = () => {
   }, []);
 
   // fetch genset properties
+  // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
+  //       in the future, pagination should be implemented to reduce database querying times
   useEffect(() => {
     const fetchProperties = async () => {
       try {
