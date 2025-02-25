@@ -1,26 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 
-const smoothTransition = (startValue, endValue, setValue, duration = 1500) => {
-  const steps = 100;
-  const stepTime = duration / steps;
-  const increment = (endValue - startValue) / steps;
-
-  let currentStep = 0;
-  const updateValue = () => {
-    currentStep++;
-    const newValue = startValue + increment * currentStep;
-    setValue(newValue);
-
-    if (currentStep < steps) {
-      setTimeout(updateValue, stepTime);
-    } else {
-      setValue(endValue);
-    }
-  };
-  updateValue();
-};
-
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
   const degree = (percentage * 180) / 100;
@@ -36,6 +16,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
       <path d="M5,50 A45,45 0 0,1 95,50" fill="none" stroke="#e0e0e0" strokeWidth="10" />
       {/* Foreground Arc */}
       <path
+        className={`transition-all duration-300 ease-in-out`}
         d="M5,50 A45,45 0 0,1 95,50"
         fill="none"
         stroke={color}
@@ -49,15 +30,15 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
 };
 
 const VoltageStatCard = ({ value, name, kind, color }) => {
-  const [displayValue, setDisplayValue] = useState(value);
+  // const [displayValue, setDisplayValue] = useState(value);
 
-  useEffect(() => {
-    if (Math.abs(displayValue - value) > 1) {
-      smoothTransition(displayValue, value, setDisplayValue, 1500);
-    } else {
-      setDisplayValue(value);
-    }
-  }, [value]);
+  // useEffect(() => {
+  //   if (Math.abs(displayValue - value) > 1) {
+  //     smoothTransition(displayValue, value, setDisplayValue, 1500);
+  //   } else {
+  //     setDisplayValue(value);
+  //   }
+  // }, [value]);
 
   let maxValue;
   let units;
@@ -82,14 +63,13 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
   return (
     <div className="flex flex-col justify-center items-center gap-4 bg-base-200 p-4 rounded-lg shadow">
       <div className="text-xl font-semibold text-gray-700">{name}</div>
-      <HalfCircleSpeedometer value={Math.round(displayValue)} maxValue={maxValue} color={color || "#86c232"} />
+      <HalfCircleSpeedometer value={Math.round(value)} maxValue={maxValue} color={color || "#86c232"} />
       <div className="text-3xl font-bold text-gray-800">
-        {Math.round(displayValue)} {units}
+        {Math.round(value)} {units}
       </div>
     </div>
   );
 };
-
 
 export const Generator = () => {
   const [stats, setStats] = useState({
@@ -108,37 +88,37 @@ export const Generator = () => {
     })();
   });
 
-    const getData = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        const data = await response.json();
-      
-        if (response.ok) {
-          const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
-          const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
-          const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
-          const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
-          const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
-          const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
+  const getData = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
 
-          setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
-        }
-      } catch (error) {
-        console.log("Error fetching notifications", error);
+      if (response.ok) {
+        const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
+        const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
+        const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
+        const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
+        const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
+        const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
+
+        setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
       }
-    };
+    } catch (error) {
+      console.log("Error fetching notifications", error);
+    }
+  };
 
-    useEffect(() => {
-      console.log("Engine page mount effect running");
-      (async () => {
-        await getData();
-      })();
-    }, []);
-  
+  useEffect(() => {
+    console.log("Engine page mount effect running");
+    (async () => {
+      await getData();
+    })();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
       <VoltageStatCard kind="voltage" name={"L1 Voltage"} value={stats.l1Voltage} color="#B1D5BD" />
