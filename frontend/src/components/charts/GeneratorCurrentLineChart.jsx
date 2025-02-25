@@ -4,6 +4,10 @@ import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export const GeneratorCurrentLineChart = ({value }) => {
+
+  useEffect(() => {
+      console.log("valuecurrent", value); // Debugging log to check if the value is passed correctly
+    }, [value]);
   return (
     <div className="h-[400px] w-full relative pb-6">
       <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>

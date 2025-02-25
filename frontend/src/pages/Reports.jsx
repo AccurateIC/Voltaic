@@ -115,8 +115,8 @@ export const Reports = () => {
           data
             .filter((item) => item.gensetPropertyId === 4)
             .map((item) => ({
-              propertyValue: item.propertyValue,
               timestamp: item.timestamp,
+              propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })) || [];
 
@@ -124,8 +124,8 @@ export const Reports = () => {
           data
             .filter((item) => item.gensetPropertyId === 7)
             .map((item) => ({
-              propertyValue: item.propertyValue,
               timestamp: item.timestamp,
+              propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })) || [];
 
@@ -133,8 +133,8 @@ export const Reports = () => {
           data
             .filter((item) => item.gensetPropertyId === 3)
             .map((item) => ({
-              propertyValue: item.propertyValue,
               timestamp: item.timestamp,
+              propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })) || [];
 
@@ -184,9 +184,11 @@ export const Reports = () => {
   const [batteryData, setBatteryData] = useState([]);
   const [currentData, setCurrentData] = useState([]);
   const [voltageData, setVoltageData] = useState([]);
+  const [fuelLevelData, setFuelLevelData] = useState([]);
+    const [engineSpeedData, setEngineSpeedData] = useState([]);
+    const [oilPressureData, setOilPressureData] = useState([]);
 
   useEffect(() => {
-  
     if (
       Array.isArray(stats.batteryVolts) &&
       stats.batteryVolts.length > 0 &&
@@ -246,18 +248,50 @@ export const Reports = () => {
         const time = new Date(l1Item.timestamp);
 
         return {
-          time: time.toLocaleTimeString(), 
+          time: time.toLocaleTimeString(),
           L1: l1Item.propertyValue,
-          L2: l2Item ? l2Item.propertyValue : null, 
-          L3: l3Item ? l3Item.propertyValue : null, 
+          L2: l2Item ? l2Item.propertyValue : null,
+          L3: l3Item ? l3Item.propertyValue : null,
           l1IsAnomaly: l1Item.isAnomaly,
-          l2IsAnomaly: l2Item.isAnomaly, 
-          l3IsAnomaly: l3Item.isAnomaly, 
+          l2IsAnomaly: l2Item.isAnomaly,
+          l3IsAnomaly: l3Item.isAnomaly,
         };
       });
 
-      setVoltageData(newDataVoltage); 
+      setVoltageData(newDataVoltage);
     }
+    if (Array.isArray(stats.engineFuelLevel) && stats.engineFuelLevel.length > 0) {
+      const newData3 = stats.engineFuelLevel.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        engineFuelLevel: item.propertyValue,
+        fuelLevelISAnomaly: item.isAnomaly,
+      }));
+      setFuelLevelData(newData3);
+    }
+
+    if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
+      // Map the value array into the format expected by the chart
+      const newData4 = stats.engineSpeed.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(), 
+        engineSpeed: item.propertyValue, 
+        engSpeedDisplayIsAnomaly: item.isAnomaly, 
+      }));
+      setEngineSpeedData(newData4);
+    
+    }
+
+    if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
+      // Map the value array into the format expected by the chart
+      const newData = stats.oilPress.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(), // Format timestamp to string
+        oilPressure: item.propertyValue, // Get the engine speed value
+        oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
+      }));
+      setOilPressureData(newData);
+      
+    }
+
+
   }, [
     stats.batteryVolts,
     stats.chargeAltVolts,
@@ -267,11 +301,14 @@ export const Reports = () => {
     stats.l1Voltage,
     stats.l2Voltage,
     stats.l3Voltage,
+    stats.engineFuelLevel,
+    stats.engineSpeed,
+    stats.oilPress,
   ]);
 
   useEffect(() => {
-    console.log("currentData mapped in report page", currentData);
-  }, [currentData]);
+    console.log("fuelLevelData mapped12 in report page", fuelLevelData);
+  }, [fuelLevelData]);
 
   return (
     <div>
@@ -313,11 +350,11 @@ export const Reports = () => {
 
       <div className=" grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
         <div className="min-h-[400px] bg-base-200">
-          <EngineFuelLevelLineChart value={stats.engineFuelLevel} />
+          <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <EngineSpeedLineChart value={stats.engineSpeed} />
+          <EngineSpeedLineChart value={engineSpeedData} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
@@ -329,7 +366,7 @@ export const Reports = () => {
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <OilPressureLineChart value={stats.oilPress} />
+          <OilPressureLineChart value={oilPressureData} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">

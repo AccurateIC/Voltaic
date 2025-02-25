@@ -4,26 +4,26 @@ import renderCustomDot from "./renderCustomDot";
 
 export const OilPressureLineChart = ({ value }) => {
   // Local state to store graph data and notifications
-  const [oilPressureData, setOilPressureData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+  // const [oilPressureData, setOilPressureData] = useState([]);
+  // const [notifications, setNotifications] = useState([]);
 
-  const oilPressureNotificationRef = useRef(false);
+  // const oilPressureNotificationRef = useRef(false);
 
-  useEffect(() => {
-    // Add new oil pressure data to the graph
+  // useEffect(() => {
+  //   // Add new oil pressure data to the graph
    
-    if (Array.isArray(value) && value.length > 0) {
-      // Map the value array into the format expected by the chart
-      const newData = value.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(), // Format timestamp to string
-        oilPressure: item.propertyValue, // Get the engine speed value
-        oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
-      }));
-      setOilPressureData(newData);
+  //   if (Array.isArray(value) && value.length > 0) {
+  //     // Map the value array into the format expected by the chart
+  //     const newData = value.map((item) => ({
+  //       time: new Date(item.timestamp).toLocaleTimeString(), // Format timestamp to string
+  //       oilPressure: item.propertyValue, // Get the engine speed value
+  //       oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
+  //     }));
+  //     setOilPressureData(newData);
       
-    }
+  //   }
 
-  }, [value]);
+  // }, [value]);
 
 
   
@@ -33,7 +33,7 @@ export const OilPressureLineChart = ({ value }) => {
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={oilPressureData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis

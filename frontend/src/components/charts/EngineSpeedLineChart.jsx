@@ -1,29 +1,34 @@
 
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
 export const EngineSpeedLineChart = ({ value }) => {
   
-  const [engineSpeedData, setEngineSpeedData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+
+  useEffect(()=>
+  {
+    console.log("vale", value);
+  },[value]);
+  // const [engineSpeedData, setEngineSpeedData] = useState([]);
+  // const [notifications, setNotifications] = useState([]);
  
 
-  const engineSpeedNotificationRef = useRef(false);
+  // const engineSpeedNotificationRef = useRef(false);
 
-  useEffect(() => {
-    if (Array.isArray(value) && value.length > 0) {
-      // Map the value array into the format expected by the chart
-      const newData = value.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(), 
-        engineSpeed: item.propertyValue, 
-        engSpeedDisplayIsAnomaly: item.isAnomaly, 
-      }));
-      setEngineSpeedData(newData);
+  // useEffect(() => {
+  //   if (Array.isArray(value) && value.length > 0) {
+  //     // Map the value array into the format expected by the chart
+  //     const newData = value.map((item) => ({
+  //       time: new Date(item.timestamp).toLocaleTimeString(), 
+  //       engineSpeed: item.propertyValue, 
+  //       engSpeedDisplayIsAnomaly: item.isAnomaly, 
+  //     }));
+  //     setEngineSpeedData(newData);
     
-    }
-  }, [value]); 
+  //   }
+  // }, [value]); 
 
   return (
     <div className="h-[400px] w-full relative">
@@ -46,7 +51,7 @@ export const EngineSpeedLineChart = ({ value }) => {
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={engineSpeedData} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
             <YAxis label={{ value: "Engine Speed (RPM)", angle: -90, position: "insideLeft", dy: 60 }} domain={[0, 2000]} />

@@ -48,7 +48,7 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
       units = "V";
       break;
     case "current":
-      maxValue = 125;
+      maxValue = 20;
       units = "Amp";
       break;
     case "lineVoltage":
