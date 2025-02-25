@@ -4,7 +4,10 @@ import type { HttpContext } from "@adonisjs/core/http";
 
 export default class NotificationController {
   async getAll({}: HttpContext) {
-    return await Notification.query().preload("notificationType");
+    return await Notification.query()
+      .preload("notificationType")
+      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+    // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
 
   // mark a notification as `read`

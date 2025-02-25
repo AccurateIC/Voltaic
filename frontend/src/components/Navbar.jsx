@@ -12,6 +12,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const archiveMessageBus = useMessageBus("archive");
+  const notificationMessageBus = useMessageBus("notification");
 
   // Fetch initial notifications
   useEffect(() => {
@@ -69,6 +70,7 @@ const Navbar = () => {
         const data = await response.json();
         const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
         setNotifications(unreadNotifications);
+        notificationMessageBus({ time: Date.now(), message: "data inserted in notification table" });
       } catch (error) {
         console.error(error);
         toast.error("Error updating notifications");
@@ -95,10 +97,8 @@ const Navbar = () => {
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
-      <div className="flex-1">
-        <a className="btn btn-ghost">
-          <img src={Logo} alt="AccurateIC Logo" className="w-[150px] h-auto bg-white p-[5px] rounded" />
-        </a>
+      <div className="">
+        <img src={Logo} alt="AccurateIC Logo" className="w-40" />
       </div>
 
       <div className="flex items-center space-x-3">
@@ -124,7 +124,9 @@ const Navbar = () => {
           )}
         </div>
 
+        {/*
         <ThemeSwitcher size={32} />
+      */}
         <Profile />
       </div>
     </nav>

@@ -1,184 +1,210 @@
-import React, { useState } from "react";
-import { FiSearch, FiRefreshCcw, FiFilter } from "react-icons/fi";
-
-const initialAlarmsData = [
-  {
-    createdTime: "2024-11-06 17.57.01",
-    originator: "DG-SET",
-    type: "FUEL LEVEL ALARM",
-    number: 1,
-    severity: "WARNING",
-    status: "ACTIVE UNACKNOWLEDGED",
-  },
-  {
-    createdTime: "2024-11-06 13.42.03",
-    originator: "DG-SET",
-    type: "FUEL LEVEL ALARM",
-    number: 2,
-    severity: "WARNING",
-    status: "ACTIVE UNACKNOWLEDGED",
-  },
-  {
-    createdTime: "2024-11-06 13.42.03",
-    originator: "DG-SET",
-    type: "FUEL LEVEL ALARM",
-    number: 3,
-    severity: "WARNING",
-    status: "ACTIVE UNACKNOWLEDGED",
-  },
-  {
-    createdTime: "2024-11-06 13.42.03",
-    originator: "DG-SET",
-    type: "FUEL LEVEL ALARM",
-    number: 4,
-    severity: "WARNING",
-    status: "ACTIVE UNACKNOWLEDGED",
-  },
-];
+import { useEffect, useState } from "react";
+import { useMessageBus } from "../lib/MessageBus";
+import { toast } from "sonner";
+import { DateTime } from "luxon";
+import { IoCalendarSharp } from "react-icons/io5";
 
 const Alarms = () => {
-  const [alarmsData, setAlarmsData] = useState(initialAlarmsData);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showOthersOptions, setShowOthersOptions] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [notifications, setNotifications] = useState([]); // original notifications
+  const [filteredNotifications, setFilteredNotifications] = useState([]); // filtered notifications
+  const [isLoading, setIsLoading] = useState(true);
+  const [gensetProperties, setGensetProperties] = useState([]);
 
-  const handleRowClick = (index) => {
-    setSelectedRow(index === selectedRow ? null : index);
+  const [filters, setFilters] = useState({
+    fromDate: "",
+    toDate: new Date().toISOString().split("T")[0],
+    property: "Property",
+    anomalyStatus: "",
+  });
+
+  // apply filters whenever filters or notifications change
+  useEffect(() => {
+    let filtered = [...notifications];
+
+    // Filter by date range
+    if (filters.fromDate) {
+      filtered = filtered.filter(
+        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
+      );
+    }
+    if (filters.toDate) {
+      filtered = filtered.filter(
+        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
+      );
+    }
+
+    // Filter by property
+    if (filters.property && filters.property !== "Property") {
+      filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
+    }
+
+    // Filter by anomaly status
+    if (filters.anomalyStatus) {
+      filtered = filtered.filter(
+        (notif) =>
+          (filters.anomalyStatus === "Resolved" && !notif.shouldBeDisplayed) ||
+          (filters.anomalyStatus === "Unresolved" && notif.shouldBeDisplayed)
+      );
+    }
+
+    setFilteredNotifications(filtered);
+  }, [filters, notifications]);
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return;
+    const dt = DateTime.fromMillis(parseInt(timestamp));
+    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  const handleSelectChange = (event) => {
-    const selectedValue = event.target.value;
-    setShowOthersOptions(selectedValue === "Others");
+  useMessageBus("notifications", (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    fetchNotifications();
+  });
+
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      console.log("Fetched data:", data);
+      setNotifications(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching data");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (index) => {
-    const updatedAlarms = alarmsData.filter((_, i) => i !== index);
-    setAlarmsData(updatedAlarms);
+  // initial fetch of notifications
+  useEffect(() => {
+    console.log("Alarms page mount effect running");
+    fetchNotifications();
+  }, []);
+
+  // fetch genset properties
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        console.log("Fetched data (genset properties):", data);
+        setGensetProperties(data);
+      } catch (error) {
+        console.error("Fetch error:", error);
+        toast.error("Error fetching data");
+      }
+    };
+    fetchProperties();
+  }, []);
+
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
   };
 
-  const handleResolve = (index) => {
-    const updatedAlarms = alarmsData.map((alarm, i) => (i === index ? { ...alarm, status: "RESOLVED" } : alarm));
-    setAlarmsData(updatedAlarms);
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
   };
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  const handleResetFilters = () => {
+    setFilters({
+      fromDate: "",
+      toDate: new Date().toISOString().split("T")[0],
+      property: "Property",
+      anomalyStatus: "",
+    });
   };
 
-  const handleRefresh = () => {
-    setSearchTerm("");
-    setAlarmsData(initialAlarmsData);
+  const handleAnomalyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
   };
 
-  const filteredAlarms = alarmsData.filter((alarm) =>
-    Object.values(alarm).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleGensetPropertyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
+  };
 
   return (
-    <div className="p-1 md:p-2 min-h-screen bg-[#1E1E1E] text-white">
-      <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-center">ALARM</h2>
-
-      <div className="bg-gray-800 text-white p-2 flex flex-col md:flex-row justify-between rounded-t-md">
-        <button
-          className="bg-gray-700 px-3 py-2 rounded text-sm flex items-center mb-2 md:mb-0"
-          onClick={() => setShowFilters(!showFilters)}>
-          <FiFilter className="mr-2" />
-          Filters
-        </button>
-        <div className="flex items-center space-x-3">
-          <button className="bg-gray-700 p-3 rounded-md text-md" onClick={handleRefresh}>
-            <FiRefreshCcw />
-          </button>
-          <div className="flex items-center bg-gray-700 p-2 rounded-md">
+    <div className="h-full w-full flex flex-col">
+      <div className="flex flex-row justify-between bg-base-200 text-base-content items-center rounded-box p-4 mb-2">
+        {/* Filters */}
+        <div className="flex gap-3 items-center">
+          <div>Filters: </div>
+          <div className="flex items-center">
+            From:
             <input
-              type="text"
-              placeholder="Search"
-              value={searchTerm}
-              onChange={handleSearch}
-              className="bg-transparent text-white text-sm focus:outline-none pl-2"
+              aria-label="Date"
+              type="date"
+              className="input"
+              value={filters.fromDate}
+              onChange={handleFromDateFilterChange}
             />
-            <FiSearch />
           </div>
+          <div className="flex items-center">
+            To:
+            <input
+              aria-label="Date"
+              type="date"
+              className="input"
+              value={filters.toDate}
+              onChange={handleToDateFilterChange}
+            />
+          </div>
+
+          {/* Genset Property */}
+          <select className="select select-neutral" value={filters.property} onChange={handleGensetPropertyFilterChange}>
+            <option value="Property">Property</option>
+            {gensetProperties.map((property, index) => (
+              <option key={index} value={property.propertyName}>
+                {property.propertyName}
+              </option>
+            ))}
+          </select>
+
+          {/* Anomaly Status */}
+          <select className="select select-neutral" value={filters.anomalyStatus} onChange={handleAnomalyFilterChange}>
+            <option value="">Anomaly Status</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Unresolved">Unresolved</option>
+          </select>
         </div>
+
+        <button className="btn btn-primary btn-outline" onClick={handleResetFilters}>
+          Reset
+        </button>
       </div>
 
-      {showFilters && (
-        <div className="bg-gray-800 p-3 rounded-md mt-2 flex flex-wrap gap-4 text-white">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium">Date</label>
-            <input type="date" className="p-2 border rounded bg-black text-white" />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium">Time</label>
-            <input type="time" className="p-2 border rounded bg-black text-white" />
-          </div>
-
-          <div className="flex flex-col">
-            <label className="text-sm font-medium">Alarm Type</label>
-            <select className="w-[10rem] p-1 border rounded bg-black text-white" onChange={handleSelectChange}>
-              <option>Anamoly type</option>
-              <option>PDM</option>
-              <option>Others</option>
-            </select>
-          </div>
-
-          {showOthersOptions && (
-            <div className="flex flex-col">
-              <label className="text-sm font-medium">Other Options:</label>
-              <select className="w-[10rem] p-1 border rounded bg-black text-white">
-                <option>Option 1</option>
-                <option>Option 2</option>
-                <option>Option 3</option>
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="overflow-x-auto border border-gray-300 rounded-b-md mt-2">
-        <table className="min-w-full bg-white text-black text-sm md:text-base">
-          <thead>
-            <tr className="bg-gray-200 text-left font-bold">
-              <th className="p-3">CREATED TIME</th>
-              <th className="p-3">ORIGINATOR</th>
-              <th className="p-3">ALARM TYPE</th>
-              <th className="p-3">No.</th>
-              <th className="p-3">SEVERITY</th>
-              <th className="p-3">STATUS</th>
-              <th className="p-3">ACTIONS</th>
+      {/* Notification Table */}
+      <div className="overflow-y-scroll rounded-box border border-base-content/5 bg-base-100">
+        <table className="table table-pin-rows">
+          <thead className="bg-base-content">
+            <tr className="bg-base-content rounded-box text-base-300">
+              <th></th>
+              <th>Started At</th>
+              <th>Summary</th>
+              <th>Message</th>
+              <th>Anomaly Status</th>
+              <th>Finished At</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredAlarms.map((alarm, index) => (
-              <tr
-                key={index}
-                onClick={() => handleRowClick(index)}
-                className={`border-t cursor-pointer hover:bg-[#F0F4F8] ${selectedRow === index ? "bg-[#B1D5BD]" : ""}`}>
-                <td className="p-2">{alarm.createdTime}</td>
-                <td className="p-2">{alarm.originator}</td>
-                <td className="p-2">{alarm.type}</td>
-                <td className="p-2">{alarm.number}</td>
-                <td className="p-2 text-red-500 font-bold">{alarm.severity}</td>
-                <td className="p-2">{alarm.status}</td>
-                <td className="p-2 space-x-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleResolve(index);
-                    }}
-                    className="bg-green-500 text-white px-2 py-1 rounded text-xs">
-                    Resolve
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(index);
-                    }}
-                    className="bg-red-500 text-white px-2 py-1 rounded text-xs">
-                    Delete
-                  </button>
-                </td>
+          <tbody className="text-base-content">
+            {filteredNotifications.map((entry, index) => (
+              <tr key={index}>
+                <th>{index + 1}</th>
+                <td>{formatTimestamp(entry.startedAt)}</td>
+                <td>{entry.summary}</td>
+                <td>{entry.message}</td>
+                <td>{entry.shouldBeDisplayed ? "Unresolved" : "Resolved"}</td>
+                <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
               </tr>
             ))}
           </tbody>
