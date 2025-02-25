@@ -114,11 +114,11 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0
 
 ## Submitting Pull Requests
 
-1. Fork the repository and create your branch from `dev`.
-2. Ensure your code follows the coding standards and passes all tests.
+1. Create a new branch from `dev`.
+2. Name the branch after the feature you are developing or an issue you are solving.
 3. Commit your changes with a descriptive message following the commit message guidelines.
-4. Push your changes to your forked repository.
-5. Open a pull request on the dev repository.
+4. Push your changes to your separate branch.
+5. Open a pull request on the dev branch.
 
 ## License
 
