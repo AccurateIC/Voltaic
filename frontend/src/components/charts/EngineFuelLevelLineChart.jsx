@@ -1,37 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnomaly }) => {
-  const [fuelLevelData, setFuelLevelData] = useState([]); // Add this line to define the state for fuelLevelData
-  const [notifications, setNotifications] = useState([]);
-  const fuelLevelNotificationRef = useRef(false);
-
+export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
   useEffect(() => {
-    if (fuelLevel !== -1) {
-      setFuelLevelData((prevData) => [
-        ...prevData,
-        {
-          time: new Date(timeStamp).toLocaleTimeString(),
-          fuelLevel,
-          fuelLevelIsAnomaly: fuelLevelISAnomaly, // Corrected variable name here
-        },
-      ]);
-    }
-
-    if (fuelLevelISAnomaly && !fuelLevelNotificationRef.current) {
-      setNotifications((prevNotifications) => [
-        ...prevNotifications,
-        { id: "fuelLevelAnomaly", message: "Fuel level anomaly detected!", type: "fuel" },
-      ]);
-      fuelLevelNotificationRef.current = true;
-    } else if (!fuelLevelISAnomaly && fuelLevelNotificationRef.current) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification.id !== "fuelLevelAnomaly")
-      );
-      fuelLevelNotificationRef.current = false;
-    }
-  }, [fuelLevel, timeStamp, fuelLevelISAnomaly]);
+    console.log("fuelLevelData", fuelLevelData);
+  }, [fuelLevelData]);
 
   return (
     <div className="h-[400px] w-full">
@@ -47,9 +22,30 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
                 angle: -90,
                 position: "insideLeft",
               }}
-              domain={[0, 60]}
+              domain={[0, 100]}  // Adjust based on the fuel level range
             />
-            <Tooltip />
+            <Tooltip
+              content={({ active, label }) => {
+                if (!active) {
+                  return null; // Don't show tooltip when not hovering
+                }
+
+                // Find the data for the current hovered time (label)
+                const data = fuelLevelData.find((item) => item.time === label);
+
+                if (!data) {
+                  return null;  // Return null if data is not found
+                }
+
+                return (
+                  <div style={{ backgroundColor: "white", padding: "10px", borderRadius: "5px" }}>
+                    <p><strong>Time:</strong> {data.time}</p>
+                    <p><strong>Fuel Level:</strong> {data.engineFuelLevel}%</p>
+                    <p><strong>Anomaly:</strong> {data.fuelLevelISAnomaly === 1 ? "Yes" : "No"}</p>
+                  </div>
+                );
+              }}
+            />
             <Legend
               layout="horizontal"
               verticalAlign="top"
@@ -60,11 +56,11 @@ export const EngineFuelLevelLineChart = ({ timeStamp, fuelLevel, fuelLevelISAnom
             <Line
               type="line"
               isAnimationActive={false}
-              dataKey="fuelLevel"
+              dataKey="engineFuelLevel"  // Use the correct key for fuel level
               stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.fuelLevelIsAnomaly)}
+              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}  // Pass the anomaly flag to custom dot
             />
           </LineChart>
         </ResponsiveContainer>
