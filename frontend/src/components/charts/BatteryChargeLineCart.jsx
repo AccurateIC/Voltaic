@@ -3,51 +3,28 @@ import React, { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
-export const BatteryChargeLineChart = ({ batteryVolts, chargeAltVolts }) => {
-  // Local state for storing battery data
+export const BatteryChargeLineChart = ({ value }) => {
   const [batteryData, setBatteryData] = useState([]);
-
   useEffect(() => {
-    // Check if both arrays are not empty
-    if (
-      Array.isArray(batteryVolts) &&
-      batteryVolts.length > 0 &&
-      Array.isArray(chargeAltVolts) &&
-      chargeAltVolts.length > 0
-    ) {
-      const newData = batteryVolts.map((batteryItem) => {
-        const chargeAltItem = chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
-        const time = new Date(batteryItem.timestamp);
-        return {
-          time: time.toLocaleTimeString(),
-          batteryVolts: batteryItem.propertyValue,
-          chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
-          batteryVoltsIsAnomaly: batteryItem.isAnomaly,
-          chargeAltVoltsIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : null,
-        };
-      });
-
+    if (Array.isArray(value) && value.length > 0) {
+      const newData = value.map((item) => ({
+        time: item.time, 
+        batteryVolts: item.batteryVolts,
+        chargeAltVolts: item.chargeAltVolts,
+        chargeAltVoltsIsAnomaly: item.chargeAltVoltsIsAnomaly, 
+        batteryVoltsIsAnomaly: item.batteryVoltsIsAnomaly, 
+      }));
       setBatteryData(newData);
     }
-  }, [batteryVolts, chargeAltVolts]);
+  }, [value]);
+
+  useEffect(() => {
+    console.log("batteryData mapped in report page", batteryData);
+  }, [batteryData]);
 
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
-
-      {/* 
-      <div className="absolute top-1 right-4 text-xl font-semibold p-4">
-         <span>Total Current: </span>
-         <span
-           className="font-bold text-lg text-red-600"
-           style={{
-             padding: "5px",
-             borderRadius: "5px",
-           }}
-         >
-           {l1l2l3Current} Amp
-         </span>
-       </div> */}
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">

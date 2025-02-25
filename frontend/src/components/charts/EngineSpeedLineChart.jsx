@@ -24,6 +24,7 @@ export const EngineSpeedLineChart = ({ value }) => {
     
     }
   }, [value]); 
+
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Engine Speed Monitor</h2>

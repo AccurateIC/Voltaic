@@ -181,6 +181,98 @@ export const Reports = () => {
     })();
   }, []);
 
+  const [batteryData, setBatteryData] = useState([]);
+  const [currentData, setCurrentData] = useState([]);
+  const [voltageData, setVoltageData] = useState([]);
+
+  useEffect(() => {
+  
+    if (
+      Array.isArray(stats.batteryVolts) &&
+      stats.batteryVolts.length > 0 &&
+      Array.isArray(stats.chargeAltVolts) &&
+      stats.chargeAltVolts.length > 0
+    ) {
+      const newData = stats.batteryVolts.map((batteryItem) => {
+        const chargeAltItem = stats.chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
+        const time = new Date(batteryItem.timestamp);
+        return {
+          time: time.toLocaleTimeString(),
+          batteryVolts: batteryItem.propertyValue,
+          chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
+          batteryVoltsIsAnomaly: batteryItem.isAnomaly,
+          chargeAltVoltsIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : null,
+        };
+      });
+
+      setBatteryData(newData);
+    }
+    if (
+      Array.isArray(stats.l1Current) &&
+      stats.l1Current.length > 0 &&
+      Array.isArray(stats.l2Current) &&
+      stats.l2Current.length > 0 &&
+      Array.isArray(stats.l3Current) &&
+      stats.l3Current.length > 0
+    ) {
+      const newDataCurrent = stats.l1Current.map((l1Item) => {
+        const l2Item = stats.l2Current.find((item) => item.timestamp === l1Item.timestamp);
+        const l3Item = stats.l3Current.find((item) => item.timestamp === l1Item.timestamp);
+        const time = new Date(l1Item.timestamp);
+        return {
+          time: time.toLocaleTimeString(),
+          L1: l1Item.propertyValue,
+          L2: l2Item ? l2Item.propertyValue : null,
+          L3: l3Item ? l3Item.propertyValue : null,
+          l1CIsAnomaly: l1Item.isAnomaly,
+          l2CIsAnomaly: l2Item ? l2Item.isAnomaly : null,
+          l3CIsAnomaly: l3Item ? l3Item.isAnomaly : null,
+        };
+      });
+      setCurrentData(newDataCurrent);
+    }
+
+    if (
+      Array.isArray(stats.l1Voltage) &&
+      stats.l1Voltage.length > 0 &&
+      Array.isArray(stats.l2Voltage) &&
+      stats.l2Voltage.length > 0 &&
+      Array.isArray(stats.l3Voltage) &&
+      stats.l3Voltage.length > 0
+    ) {
+      const newDataVoltage = stats.l1Voltage.map((l1Item) => {
+        const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
+        const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
+        const time = new Date(l1Item.timestamp);
+
+        return {
+          time: time.toLocaleTimeString(), 
+          L1: l1Item.propertyValue,
+          L2: l2Item ? l2Item.propertyValue : null, 
+          L3: l3Item ? l3Item.propertyValue : null, 
+          l1IsAnomaly: l1Item.isAnomaly,
+          l2IsAnomaly: l2Item.isAnomaly, 
+          l3IsAnomaly: l3Item.isAnomaly, 
+        };
+      });
+
+      setVoltageData(newDataVoltage); 
+    }
+  }, [
+    stats.batteryVolts,
+    stats.chargeAltVolts,
+    stats.l1Current,
+    stats.l2Current,
+    stats.l3Current,
+    stats.l1Voltage,
+    stats.l2Voltage,
+    stats.l3Voltage,
+  ]);
+
+  useEffect(() => {
+    console.log("currentData mapped in report page", currentData);
+  }, [currentData]);
+
   return (
     <div>
       <div className="flex flex-wrap gap-4">
@@ -219,7 +311,7 @@ export const Reports = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
+      <div className=" grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
         <div className="min-h-[400px] bg-base-200">
           <EngineFuelLevelLineChart value={stats.engineFuelLevel} />
         </div>
@@ -229,11 +321,11 @@ export const Reports = () => {
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <GeneratorCurrentLineChart l1Current={stats.l1Current} l2Current={stats.l2Current} l3Current={stats.l3Current} />
+          <GeneratorCurrentLineChart value={currentData} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <GeneratorVoltageLineChart l1Voltage={stats.l1Voltage} l2Voltage={stats.l2Voltage} l3Voltage={stats.l3Voltage} />
+          <GeneratorVoltageLineChart voltageData={voltageData} />
         </div>
 
         <div className="min-h-[400px] bg-base-200">
@@ -241,12 +333,7 @@ export const Reports = () => {
         </div>
 
         <div className="min-h-[400px] bg-base-200">
-          <BatteryChargeLineChart
-            batteryVolts={stats.batteryVolts}
-            chargeAltVolts={stats.chargeAltVolts}
-            batteryVoltsIsAnomaly={stats.batteryVoltsIsAnomaly}
-            chargeAltVoltsIsAnomaly={stats.chargeAltVoltsIsAnomaly}
-          />
+          <BatteryChargeLineChart value={batteryData} />
         </div>
       </div>
     </div>

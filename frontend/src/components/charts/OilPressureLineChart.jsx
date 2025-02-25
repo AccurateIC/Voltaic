@@ -23,25 +23,10 @@ export const OilPressureLineChart = ({ value }) => {
       
     }
 
-    // Handle oil pressure anomaly notification
-    // if (oilPressureIsAnomaly && !oilPressureNotificationRef.current) {
-    //   setNotifications((prevNotifications) => [
-    //     ...prevNotifications,
-    //     {
-    //       id: "oilPressure",
-    //       message: "Oil pressure anomaly detected!",
-    //       type: "oilPressure",
-    //     },
-    //   ]);
-    //   oilPressureNotificationRef.current = true;
-    // } else if (!oilPressureIsAnomaly && oilPressureNotificationRef.current) {
-    //   setNotifications((prevNotifications) =>
-    //     prevNotifications.filter((notification) => notification.id !== "oilPressure")
-    //   );
-    //   oilPressureNotificationRef.current = false;
-    // }
   }, [value]);
 
+
+  
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>

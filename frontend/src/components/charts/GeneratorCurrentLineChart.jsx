@@ -3,41 +3,30 @@ import React, { useState, useEffect } from "react";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-export const GeneratorCurrentLineChart = ({ l1Current, l2Current, l3Current }) => {
+export const GeneratorCurrentLineChart = ({value }) => {
   const [currentData, setCurrentData] = useState([]);
+useEffect(() => {
 
-  useEffect(() => {
-    if (
-      Array.isArray(l1Current) &&
-      l1Current.length > 0 &&
-      Array.isArray(l2Current) &&
-      l2Current.length > 0 &&
-      Array.isArray(l3Current) &&
-      l3Current.length > 0
-    ) {
-      const newData = l1Current.map((l1Item) => {
-        const l2Item = l2Current.find((item) => item.timestamp === l1Item.timestamp);
-        const l3Item = l3Current.find((item) => item.timestamp === l1Item.timestamp);
-        const time = new Date(l1Item.timestamp);
-
-        return {
-          time: time.toLocaleTimeString(),
-          L1: l1Item.propertyValue,
-          L2: l2Item ? l2Item.propertyValue : null,
-          L3: l3Item ? l3Item.propertyValue : null,
-          l1CIsAnomaly: l1Item.isAnomaly,
-          l2CIsAnomaly: l2Item ? l2Item.isAnomaly : null,
-          l3CIsAnomaly: l3Item ? l3Item.isAnomaly : null,
-        };
-      });
-
+    if (Array.isArray(value) && value.length > 0) {
+    
+      const newData = value.map((item) => ({
+        time:item.time, 
+        L1: item.L1,
+        L2: item.L2,
+        L3: item.L3,
+        l1CIsAnomaly: item.l1CIsAnomaly,
+        l2CIsAnomaly: item.l2CIsAnomaly, 
+        l3CIsAnomaly: item.l3CIsAnomaly, 
+      }));
       setCurrentData(newData);
     }
-  }, [l1Current, l2Current, l3Current]);
 
-  useEffect(() => {
-    console.log("currentData", currentData);
-  }, [currentData]);
+  }, [value]);
+
+  
+  useEffect(()=>{
+    console.log("currentData mapped in report page",currentData );
+  },[currentData]);
 
   return (
     <div className="h-[400px] w-full relative pb-6">
