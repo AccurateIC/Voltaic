@@ -32,7 +32,7 @@ const SideBar = () => {
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
       <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
       <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
-      <SideBarLink to="/vibration" name="Vibration" Icon={GiVibratingBall} />
+      {/* <SideBarLink to="/vibration" name="Vibration" Icon={GiVibratingBall} /> */}
     </ul>
   );
 };

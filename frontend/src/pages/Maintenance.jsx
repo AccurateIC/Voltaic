@@ -1,112 +1,133 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { toast } from "sonner";
+import { DateTime } from "luxon";
 
-const Card = ({ children }) => {
-  return <div className="bg-base-200 shadow-lg rounded-2xl p-4 mb-4">{children}</div>;
-};
-
-const CardContent = ({ children }) => {
-  return <div className="p-4">{children}</div>;
+const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
+  return (
+    <div className="bg-base-200 w-full h-18 shadow-sm flex flex-row text-base-content rounded items-center p-4">
+      <div className="font-bold flex flex-row space-x-2">
+        {isLoading ? (
+          <>
+            <div>{`Checking ${title}`}</div>
+            <span className="loading loading-infinity loading-md"></span>
+          </>
+        ) : (
+          <div>{title}</div>
+        )}
+        {!isLoading && isError ? (
+          <div className="tooltip tooltip-error" data-tip={errorMessage}>
+            <XCircle className="text-error" />
+          </div>
+        ) : !isLoading && !isError ? (
+          <div>
+            <CheckCircle className="text-success" />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 };
 
 const Maintenance = () => {
-  const [status, setStatus] = useState({
-    frequency: "loading",
-    temperature: "loading",
-    hydrocarbon: "loading",
-  });
-  const [showGraph, setShowGraph] = useState(false);
-  const [graphData, setGraphData] = useState([]);
+  const [pdmData, setPdmData] = useState([]);
+  const [isPdmLoading, setIsPdmLoading] = useState(true);
+  const [isPdmError, setIsPdmError] = useState(false);
+  const [pdmErrorMessage, setPdmErrorMessage] = useState("");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const newStatus = {
-        frequency: Math.random() > 0.2 ? "ok" : "problem",
-        temperature: Math.random() > 0.2 ? "ok" : "problem",
-        hydrocarbon: Math.random() > 0.2 ? "ok" : "problem",
-      };
-      setStatus(newStatus);
+  // fetch pdm data from server
+  const fetchPdm = async () => {
+    try {
+      setIsPdmLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_PDM_BACKEND}/getPdmForecast`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      console.log("PDM data:", data);
 
-      if (Object.values(newStatus).includes("problem")) {
-        setShowGraph(true);
-        setGraphData(generateDummyData());
-      } else {
-        setShowGraph(false);
+      const timestamps = Object.keys(data.last_values);
+      const lastValues = Object.values(data.last_values);
+      const forecastedValues = data.forecasted_values;
+      const pdmData = [];
+      for (let i = 0; i < timestamps.length; ++i) {
+        const ts = DateTime.fromSeconds(Math.round(timestamps[i]));
+        const tss = ts.toISO();
+        pdmData.push({
+          timestamp: tss,
+          actualValue: lastValues[i],
+          forecastedValue: forecastedValues[i],
+        });
       }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const generateDummyData = () => {
-    return Array.from({ length: 20 }, (_, i) => ({
-      time: i + 1,
-      value: Math.floor(Math.random() * 100) + 20,
-    }));
-  };
-
-  const renderStatus = (type) => {
-    if (status[type] === "loading") return <Loader2 className="animate-spin" />;
-    if (status[type] === "ok") return <CheckCircle className="text-success" />;
-    if (status[type] === "problem") return <XCircle className="text-error" />;
-  };
-
-  const renderProblemDetails = (type) => {
-    if (status[type] === "problem") {
-      return (
-        <div className="text-error mt-2">
-          <p>Problem detected in {type}.</p>
-          <p>Check components related to {type} management.</p>
-        </div>
-      );
+      setPdmData({ pdmData, error: data.PDM });
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching data");
+    } finally {
+      setIsPdmLoading(false);
     }
   };
 
+  // initial fetch of PDM
+  useEffect(() => {
+    fetchPdm();
+  }, []);
+
+  //
+  useEffect(() => {
+    console.log("::::::::::::::::", pdmData);
+    if (pdmData.error === true) {
+      setIsPdmError(true);
+      setPdmErrorMessage("Problem detected in Vibration Frequency");
+    } else {
+      setIsPdmError(false);
+    }
+  }, [pdmData]);
+
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4 text-base-200">Predictive Maintenance</h2>
-      <Card className="mb-4">
-        <CardContent>
-          <label className="flex items-center gap-4 font-bold text-base-content">
-            Checking Frequency {renderStatus("frequency")}
-          </label>
-          {renderProblemDetails("frequency")}
-        </CardContent>
-      </Card>
-      <Card className="mb-4">
-        <CardContent>
-          <label className="flex items-center gap-4 font-bold text-base-content">
-            Checking Temperature {renderStatus("temperature")}
-          </label>
-          {renderProblemDetails("temperature")}
-        </CardContent>
-      </Card>
-      <Card className="mb-4">
-        <CardContent>
-          <label className="flex items-center gap-4 font-bold text-base-content">
-            Checking Hydrocarbon Emission {renderStatus("hydrocarbon")}
-          </label>
-          {renderProblemDetails("hydrocarbon")}
-        </CardContent>
-      </Card>
-      {showGraph && (
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-base-content">Abnormality Detected - Analysis Graph</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={graphData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-              <XAxis dataKey="time" stroke="#fff" />
-              <YAxis stroke="#fff" />
-              <Tooltip contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }} />
-              <Line type="monotone" dataKey="value" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
+    <>
+      <div className="p-4 flex flex-col gap-4">
+        <h2 className="text-2xl font-bold mb-4 text-base-200">Predictive Maintenance</h2>
+        {/* Predictive Maintenance */}
+        <div className="flex flex-row gap-4">
+          <StatusCard
+            isLoading={isPdmLoading}
+            title={`Vibration Frequency`}
+            isError={isPdmError}
+            errorMessage={pdmErrorMessage}
+          />
+          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} />
+          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} />
         </div>
-      )}
-      {!showGraph && (
-        <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
-      )}
-    </div>
+      </div>
+      <div>
+        {isPdmError && (
+          <div className="mt-6 w-full h-128">
+            <h3 className="text-xl font-semibold text-base-content">Analysis Graph</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={pdmData.pdmData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke="#fff"
+                  angle={0}
+                  tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+                />
+                <YAxis stroke="#fff" />
+                <Tooltip contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }} />
+                <Line type="monotone" dataKey="actualValue" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="forecastedValue" stroke="#8884d8" strokeWidth={2} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+        {!isPdmError && !isPdmLoading && (
+          <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
+        )}
+      </div>
+    </>
   );
 };
 

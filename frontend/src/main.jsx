@@ -44,7 +44,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="alarms" element={<Alarms />} />
           <Route path="predictive-maintenance" element={<Maintenance />} />
           <Route path="rul" element={<RUL />} />
-          <Route path="vibration" element={<Vibration />} />
+          {/* <Route path="vibration" element={<Vibration />} /> */}
         </Route>
         <Route path="/login" element={<Login />} />
       </Routes>
