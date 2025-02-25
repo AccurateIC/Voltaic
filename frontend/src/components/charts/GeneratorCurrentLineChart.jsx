@@ -23,11 +23,6 @@ useEffect(() => {
 
   }, [value]);
 
-  
-  useEffect(()=>{
-    console.log("currentData mapped in report page",currentData );
-  },[currentData]);
-
   return (
     <div className="h-[400px] w-full relative pb-6">
       <h2 className="text-lg font-semibold p-4">Generator Current Monitor</h2>
