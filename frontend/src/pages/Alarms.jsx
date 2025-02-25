@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { IoCalendarSharp } from "react-icons/io5";
+import { FaFilter } from "react-icons/fa6";
 
 const Alarms = () => {
   const [notifications, setNotifications] = useState([]); // original notifications
@@ -138,7 +138,7 @@ const Alarms = () => {
       <div className="flex flex-row justify-between bg-primary text-base-200 font-semibold items-center rounded-box p-4 mb-2">
         {/* Filters */}
         <div className="flex gap-3 items-center">
-          <div>Filters: </div>
+          <FaFilter size={48} />
           <div className="flex items-center">
             <div className="m-1">From:</div>
             <input
