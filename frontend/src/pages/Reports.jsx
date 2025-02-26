@@ -47,7 +47,7 @@ export const Reports = () => {
       const response = await fetch(
         `${
           import.meta.env.VITE_ADONIS_BACKEND
-        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-21T11:56:59.481Z`,
+        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-26T05:51:36.592Z`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -56,10 +56,12 @@ export const Reports = () => {
       );
       const data = await response.json();
 
+      console.log("data responde", data);
+
       if (response.ok) {
         const l1Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 13)
+            .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -68,7 +70,7 @@ export const Reports = () => {
 
         const l2Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 14)
+            .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -77,7 +79,7 @@ export const Reports = () => {
 
         const l3Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 15)
+            .filter((item) => item.gensetProperty.propertyName=== "genL3Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -86,7 +88,7 @@ export const Reports = () => {
 
         const l1Current =
           data
-            .filter((item) => item.gensetPropertyId === 10)
+            .filter((item) => item.gensetProperty.propertyName === "genL1Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -95,7 +97,7 @@ export const Reports = () => {
 
         const l2Current =
           data
-            .filter((item) => item.gensetPropertyId === 11)
+            .filter((item) => item.gensetProperty.propertyName === "genL2Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -104,7 +106,7 @@ export const Reports = () => {
 
         const l3Current =
           data
-            .filter((item) => item.gensetPropertyId === 12)
+            .filter((item) => item.gensetProperty.propertyName === "genL3Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -113,7 +115,7 @@ export const Reports = () => {
 
         const engineFuelLevel =
           data
-            .filter((item) => item.gensetPropertyId === 4)
+            .filter((item) => item.gensetProperty.propertyName === "engFuelLevel")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -122,7 +124,7 @@ export const Reports = () => {
 
         const engineSpeed =
           data
-            .filter((item) => item.gensetPropertyId === 7)
+            .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -131,7 +133,7 @@ export const Reports = () => {
 
         const oilPress =
           data
-            .filter((item) => item.gensetPropertyId === 3)
+            .filter((item) => item.gensetProperty.propertyName === "engOilPress")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -140,7 +142,7 @@ export const Reports = () => {
 
         const batteryVolts =
           data
-            .filter((item) => item.gensetPropertyId === 6)
+            .filter((item) => item.gensetProperty.propertyName === "engBatteryVolts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -149,7 +151,7 @@ export const Reports = () => {
 
         const chargeAltVolts =
           data
-            .filter((item) => item.gensetPropertyId === 5)
+            .filter((item) => item.gensetProperty.propertyName === "engChargeAltVolts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
