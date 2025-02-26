@@ -34,6 +34,7 @@ export const Reports = () => {
 
   const [showProperties, setShowProperties] = useState(false);
   const [showTimeFilter, setShowTimeFilter] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -42,18 +43,44 @@ export const Reports = () => {
     })();
   });
 
+  const calculateTimeRange = (timeRange) => {
+    const now = new Date();
+    console.log("currentDate", now);
+    let fromDate;
+
+    switch (timeRange) {
+      case "15 Minutes":
+        fromDate = new Date(now - 15 * 60 * 1000);
+        break;
+      case "30 Minutes":
+        fromDate = new Date(now - 30 * 60 * 1000);
+        break;
+      case "01 Hour":
+        fromDate = new Date(now - 60 * 60 * 1000);
+        break;
+      case "01 Day":
+        fromDate = new Date(now - 3600 * 24 * 1000);
+        break;
+      default:
+        fromDate = new Date(now - 15 * 60 * 1000);
+        break;
+    }
+
+    const toDate = new Date(now);
+    return {
+      from: fromDate.toISOString(),
+      to: toDate.toISOString(),
+    };
+  };
+
   const getReportData = async () => {
+    const { from, to } = calculateTimeRange(selectedTimeRange);
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_ADONIS_BACKEND
-        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-26T05:51:36.592Z`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
       const data = await response.json();
 
       console.log("data responde", data);
@@ -174,6 +201,9 @@ export const Reports = () => {
     } catch (error) {
       console.log("Error fetching data", error);
     }
+
+    console.log("from", from);
+    console.log("to", to);
   };
 
   useEffect(() => {
@@ -187,8 +217,8 @@ export const Reports = () => {
   const [currentData, setCurrentData] = useState([]);
   const [voltageData, setVoltageData] = useState([]);
   const [fuelLevelData, setFuelLevelData] = useState([]);
-    const [engineSpeedData, setEngineSpeedData] = useState([]);
-    const [oilPressureData, setOilPressureData] = useState([]);
+  const [engineSpeedData, setEngineSpeedData] = useState([]);
+  const [oilPressureData, setOilPressureData] = useState([]);
 
   useEffect(() => {
     if (
@@ -274,12 +304,11 @@ export const Reports = () => {
     if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
       // Map the value array into the format expected by the chart
       const newData4 = stats.engineSpeed.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(), 
-        engineSpeed: item.propertyValue, 
-        engSpeedDisplayIsAnomaly: item.isAnomaly, 
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        engineSpeed: item.propertyValue,
+        engSpeedDisplayIsAnomaly: item.isAnomaly,
       }));
       setEngineSpeedData(newData4);
-    
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
@@ -290,10 +319,7 @@ export const Reports = () => {
         oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
       }));
       setOilPressureData(newData);
-      
     }
-
-
   }, [
     stats.batteryVolts,
     stats.chargeAltVolts,
@@ -308,16 +334,18 @@ export const Reports = () => {
     stats.oilPress,
   ]);
 
-  useEffect(() => {
-    console.log("fuelLevelData mapped12 in report page", fuelLevelData);
-  }, [fuelLevelData]);
+  const handleTimefilter = (timeRange) => {
+    setSelectedTimeRange(timeRange);
+    getReportData();
+    console.log("timerange", timeRange);
+  };
 
   return (
     <div>
       <div className="flex flex-wrap gap-4">
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowProperties(!showProperties)}
+            onClick={() => setShowProperties((!showProperties))}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Properties ▼
           </button>
@@ -334,16 +362,25 @@ export const Reports = () => {
 
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowTimeFilter(!showTimeFilter)}
+            onClick={() => setShowTimeFilter((prev) => !prev)}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Time Filter ▼
           </button>
           {showTimeFilter && (
             <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
               <ul className="text-white">
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">15 mins</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">30 mins</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">1 hour</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("15 Minutes")}>
+                  15 Minutes
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("30 Minutes")}>
+                  30 Minutes
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Hour")}>
+                  01 Hour
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Day")}>
+                  01 Day
+                </li>
               </ul>
             </div>
           )}
