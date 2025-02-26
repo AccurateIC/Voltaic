@@ -34,6 +34,7 @@ export const Reports = () => {
 
   const [showProperties, setShowProperties] = useState(false);
   const [showTimeFilter, setShowTimeFilter] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -42,24 +43,52 @@ export const Reports = () => {
     })();
   });
 
+  const calculateTimeRange = (timeRange) => {
+    const now = new Date();
+    console.log("currentDate", now);
+    let fromDate;
+
+    switch (timeRange) {
+      case "15 Minutes":
+        fromDate = new Date(now - 15 * 60 * 1000);
+        break;
+      case "30 Minutes":
+        fromDate = new Date(now - 30 * 60 * 1000);
+        break;
+      case "01 Hour":
+        fromDate = new Date(now - 60 * 60 * 1000);
+        break;
+      case "01 Day":
+        fromDate = new Date(now - 3600 * 24 * 1000);
+        break;
+      default:
+        fromDate = new Date(now - 15 * 60 * 1000);
+        break;
+    }
+
+    const toDate = new Date(now);
+    return {
+      from: fromDate.toISOString(),
+      to: toDate.toISOString(),
+    };
+  };
+
   const getReportData = async () => {
+    const { from, to } = calculateTimeRange(selectedTimeRange);
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_ADONIS_BACKEND
-        }/archive/getBetween?from=2025-02-21T05:46:43.377Z&to=2025-02-21T11:56:59.481Z`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
       const data = await response.json();
+
+      console.log("data responde", data);
 
       if (response.ok) {
         const l1Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 13)
+            .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -68,7 +97,7 @@ export const Reports = () => {
 
         const l2Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 14)
+            .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -77,7 +106,7 @@ export const Reports = () => {
 
         const l3Voltage =
           data
-            .filter((item) => item.gensetPropertyId === 15)
+            .filter((item) => item.gensetProperty.propertyName=== "genL3Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -86,7 +115,7 @@ export const Reports = () => {
 
         const l1Current =
           data
-            .filter((item) => item.gensetPropertyId === 10)
+            .filter((item) => item.gensetProperty.propertyName === "genL1Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -95,7 +124,7 @@ export const Reports = () => {
 
         const l2Current =
           data
-            .filter((item) => item.gensetPropertyId === 11)
+            .filter((item) => item.gensetProperty.propertyName === "genL2Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -104,7 +133,7 @@ export const Reports = () => {
 
         const l3Current =
           data
-            .filter((item) => item.gensetPropertyId === 12)
+            .filter((item) => item.gensetProperty.propertyName === "genL3Current")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -113,7 +142,7 @@ export const Reports = () => {
 
         const engineFuelLevel =
           data
-            .filter((item) => item.gensetPropertyId === 4)
+            .filter((item) => item.gensetProperty.propertyName === "engFuelLevel")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -122,7 +151,7 @@ export const Reports = () => {
 
         const engineSpeed =
           data
-            .filter((item) => item.gensetPropertyId === 7)
+            .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -131,7 +160,7 @@ export const Reports = () => {
 
         const oilPress =
           data
-            .filter((item) => item.gensetPropertyId === 3)
+            .filter((item) => item.gensetProperty.propertyName === "engOilPress")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -140,7 +169,7 @@ export const Reports = () => {
 
         const batteryVolts =
           data
-            .filter((item) => item.gensetPropertyId === 6)
+            .filter((item) => item.gensetProperty.propertyName === "engBatteryVolts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -149,7 +178,7 @@ export const Reports = () => {
 
         const chargeAltVolts =
           data
-            .filter((item) => item.gensetPropertyId === 5)
+            .filter((item) => item.gensetProperty.propertyName === "engChargeAltVolts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -172,6 +201,9 @@ export const Reports = () => {
     } catch (error) {
       console.log("Error fetching data", error);
     }
+
+    console.log("from", from);
+    console.log("to", to);
   };
 
   useEffect(() => {
@@ -300,16 +332,18 @@ export const Reports = () => {
     stats.oilPress,
   ]);
 
-  useEffect(() => {
-    console.log("fuelLevelData mapped12 in report page", fuelLevelData);
-  }, [fuelLevelData]);
+  const handleTimefilter = (timeRange) => {
+    setSelectedTimeRange(timeRange);
+    getReportData();
+    console.log("timerange", timeRange);
+  };
 
   return (
     <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowProperties(!showProperties)}
+            onClick={() => setShowProperties((!showProperties))}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Properties ▼
           </button>
@@ -326,16 +360,25 @@ export const Reports = () => {
 
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowTimeFilter(!showTimeFilter)}
+            onClick={() => setShowTimeFilter((prev) => !prev)}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Time Filter ▼
           </button>
           {showTimeFilter && (
             <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
               <ul className="text-white">
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">15 mins</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">30 mins</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">1 hour</li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("15 Minutes")}>
+                  15 Minutes
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("30 Minutes")}>
+                  30 Minutes
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Hour")}>
+                  01 Hour
+                </li>
+                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Day")}>
+                  01 Day
+                </li>
               </ul>
             </div>
           )}
