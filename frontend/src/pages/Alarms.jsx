@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
 
+// TODO: add button loading state until the notification is marked as resolved
+
 const Alarms = () => {
   const [notifications, setNotifications] = useState([]); // original notifications
   const [filteredNotifications, setFilteredNotifications] = useState([]); // filtered notifications
@@ -69,13 +71,15 @@ const Alarms = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to fetch");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notification data");
+      }
       const data = await response.json();
-      console.log("Fetched data:", data);
       setNotifications(data);
     } catch (error) {
       console.error("Fetch error:", error);
-      toast.error("Error fetching data");
+      toast.error("Error fetching notification data");
     } finally {
       setIsLoading(false);
     }
@@ -98,13 +102,15 @@ const Alarms = () => {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
-        if (!response.ok) throw new Error("Failed to fetch");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch genset data");
+        }
         const data = await response.json();
-        console.log("Fetched data (genset properties):", data);
         setGensetProperties(data);
       } catch (error) {
         console.error("Fetch error:", error);
-        toast.error("Error fetching data");
+        toast.error("Error fetching genset property data");
       }
     };
     fetchProperties();
@@ -125,6 +131,29 @@ const Alarms = () => {
       property: "Property",
       anomalyStatus: "",
     });
+  };
+
+  const handleEntryResolution = async (notificationId) => {
+    try {
+      // make req to backend to mark notification as read
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || `Failed to resolve notification`);
+        return;
+      }
+
+      // re fetch notifications?
+      await fetchNotifications();
+    } catch (err) {
+      console.error("Error resolving notification:", err);
+      toast.error(`Failed to resolve notification: ${err.message}`);
+    }
   };
 
   const handleAnomalyFilterChange = (event) => {
@@ -202,6 +231,7 @@ const Alarms = () => {
               <th>Message</th>
               <th>Anomaly Status</th>
               <th>Finished At</th>
+              <th>Resolve</th>
             </tr>
           </thead>
           <tbody className="bg-sky-950/50">
@@ -213,6 +243,13 @@ const Alarms = () => {
                 <td>{entry.message}</td>
                 <td>{entry.shouldBeDisplayed ? "Unresolved" : "Resolved"}</td>
                 <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
+                <td>
+                  <button
+                    onClick={() => handleEntryResolution(entry.id)}
+                    className={`btn btn-outline btn-info ${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"}`}>
+                    {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
