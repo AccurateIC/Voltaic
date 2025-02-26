@@ -117,7 +117,7 @@ router
 router
   .group(() => {
     router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
-    router.patch("read", "#controllers/notification_controller.read").use([middleware.auth()]);
+    router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
 
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
