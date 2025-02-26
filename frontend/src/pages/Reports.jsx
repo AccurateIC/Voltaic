@@ -185,8 +185,8 @@ export const Reports = () => {
   const [currentData, setCurrentData] = useState([]);
   const [voltageData, setVoltageData] = useState([]);
   const [fuelLevelData, setFuelLevelData] = useState([]);
-    const [engineSpeedData, setEngineSpeedData] = useState([]);
-    const [oilPressureData, setOilPressureData] = useState([]);
+  const [engineSpeedData, setEngineSpeedData] = useState([]);
+  const [oilPressureData, setOilPressureData] = useState([]);
 
   useEffect(() => {
     if (
@@ -270,28 +270,22 @@ export const Reports = () => {
     }
 
     if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
-      // Map the value array into the format expected by the chart
       const newData4 = stats.engineSpeed.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(), 
-        engineSpeed: item.propertyValue, 
-        engSpeedDisplayIsAnomaly: item.isAnomaly, 
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        engineSpeed: item.propertyValue,
+        engSpeedDisplayIsAnomaly: item.isAnomaly,
       }));
       setEngineSpeedData(newData4);
-    
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
-      // Map the value array into the format expected by the chart
       const newData = stats.oilPress.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(), // Format timestamp to string
-        oilPressure: item.propertyValue, // Get the engine speed value
-        oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        oilPressure: item.propertyValue, 
+        oilPressureIsAnomaly: item.isAnomaly, 
       }));
       setOilPressureData(newData);
-      
     }
-
-
   }, [
     stats.batteryVolts,
     stats.chargeAltVolts,
@@ -311,7 +305,7 @@ export const Reports = () => {
   }, [fuelLevelData]);
 
   return (
-    <div>
+    <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
         <div className="relative w-full md:w-auto">
           <button
@@ -348,29 +342,31 @@ export const Reports = () => {
         </div>
       </div>
 
-      <div className=" grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
-        <div className="min-h-[400px] bg-base-200">
-          <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
-        </div>
+      <div className="py-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)] ">
+          <div className="min-h-[400px] bg-base-200 ">
+            <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <EngineSpeedLineChart value={engineSpeedData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <EngineSpeedLineChart value={engineSpeedData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <GeneratorCurrentLineChart value={currentData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <GeneratorCurrentLineChart value={currentData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <GeneratorVoltageLineChart voltageData={voltageData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <GeneratorVoltageLineChart voltageData={voltageData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <OilPressureLineChart value={oilPressureData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <OilPressureLineChart value={oilPressureData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <BatteryChargeLineChart value={batteryData} />
+          <div className="min-h-[400px] bg-base-200">
+            <BatteryChargeLineChart value={batteryData} />
+          </div>
         </div>
       </div>
     </div>
