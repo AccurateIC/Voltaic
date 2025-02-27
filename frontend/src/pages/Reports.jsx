@@ -34,6 +34,7 @@ export const Reports = () => {
 
   const [showProperties, setShowProperties] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
+  // const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -74,7 +75,7 @@ export const Reports = () => {
 
   const getReportData = async () => {
     const { from, to } = calculateTimeRange(selectedTimeRange);
-    console.log("to and from", to, from);
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
         method: "GET",
@@ -83,6 +84,8 @@ export const Reports = () => {
       });
       const data = await response.json();
       console.log(data.length);
+      console.log("data responde", data);
+
       if (response.ok) {
         const l1Voltage =
           data
@@ -200,6 +203,9 @@ export const Reports = () => {
     } catch (error) {
       console.log("Error fetching data", error);
     }
+
+    console.log("from", from);
+    console.log("to", to);
   };
 
   useEffect(() => {
@@ -298,8 +304,10 @@ export const Reports = () => {
     }
 
     if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
-      // Map the value array into the format expected by the chart
       const newData4 = stats.engineSpeed.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        engineSpeed: item.propertyValue,
+        engSpeedDisplayIsAnomaly: item.isAnomaly,
         time: new Date(item.timestamp).toLocaleTimeString(),
         engineSpeed: item.propertyValue,
         engSpeedDisplayIsAnomaly: item.isAnomaly,
@@ -312,6 +320,9 @@ export const Reports = () => {
         time: new Date(item.timestamp).toLocaleTimeString(),
         oilPressure: item.propertyValue,
         oilPressureIsAnomaly: item.isAnomaly,
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        oilPressure: item.propertyValue, 
+        oilPressureIsAnomaly: item.isAnomaly, 
       }));
       setOilPressureData(newData);
     }
@@ -340,11 +351,11 @@ export const Reports = () => {
   };
 
   return (
-    <div>
+    <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowProperties(!showProperties)}
+            onClick={() => setShowProperties((!showProperties))}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Properties ▼
           </button>
@@ -367,29 +378,31 @@ export const Reports = () => {
         </select>
       </div>
 
-      <div className=" grid grid-cols-1 lg:grid-cols-2 gap-2 h-full py-5">
-        <div className="min-h-[400px] bg-base-200">
-          <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
-        </div>
+      <div className="py-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)] ">
+          <div className="min-h-[400px] bg-base-200 ">
+            <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <EngineSpeedLineChart value={engineSpeedData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <EngineSpeedLineChart value={engineSpeedData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <GeneratorCurrentLineChart value={currentData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <GeneratorCurrentLineChart value={currentData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <GeneratorVoltageLineChart voltageData={voltageData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <GeneratorVoltageLineChart voltageData={voltageData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <OilPressureLineChart value={oilPressureData} />
-        </div>
+          <div className="min-h-[400px] bg-base-200">
+            <OilPressureLineChart value={oilPressureData} />
+          </div>
 
-        <div className="min-h-[400px] bg-base-200">
-          <BatteryChargeLineChart value={batteryData} />
+          <div className="min-h-[400px] bg-base-200">
+            <BatteryChargeLineChart value={batteryData} />
+          </div>
         </div>
       </div>
     </div>
