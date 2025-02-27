@@ -33,8 +33,8 @@ export const Reports = () => {
   });
 
   const [showProperties, setShowProperties] = useState(false);
-  const [showTimeFilter, setShowTimeFilter] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
+  // const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -44,10 +44,10 @@ export const Reports = () => {
   });
 
   const calculateTimeRange = (timeRange) => {
+    console.log("time range set here in calculateTimeRang", timeRange);
     const now = new Date();
-    console.log("currentDate", now);
     let fromDate;
-
+    console.log("now", now.toISOString());
     switch (timeRange) {
       case "15 Minutes":
         fromDate = new Date(now - 15 * 60 * 1000);
@@ -75,6 +75,7 @@ export const Reports = () => {
 
   const getReportData = async () => {
     const { from, to } = calculateTimeRange(selectedTimeRange);
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
         method: "GET",
@@ -82,7 +83,7 @@ export const Reports = () => {
         credentials: "include",
       });
       const data = await response.json();
-
+      console.log(data.length);
       console.log("data responde", data);
 
       if (response.ok) {
@@ -184,6 +185,7 @@ export const Reports = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })) || [];
+
         setStats({
           l1Voltage,
           l2Voltage,
@@ -306,12 +308,18 @@ export const Reports = () => {
         time: new Date(item.timestamp).toLocaleTimeString(),
         engineSpeed: item.propertyValue,
         engSpeedDisplayIsAnomaly: item.isAnomaly,
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        engineSpeed: item.propertyValue,
+        engSpeedDisplayIsAnomaly: item.isAnomaly,
       }));
       setEngineSpeedData(newData4);
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
       const newData = stats.oilPress.map((item) => ({
+        time: new Date(item.timestamp).toLocaleTimeString(),
+        oilPressure: item.propertyValue,
+        oilPressureIsAnomaly: item.isAnomaly,
         time: new Date(item.timestamp).toLocaleTimeString(),
         oilPressure: item.propertyValue, 
         oilPressureIsAnomaly: item.isAnomaly, 
@@ -332,10 +340,14 @@ export const Reports = () => {
     stats.oilPress,
   ]);
 
-  const handleTimefilter = (timeRange) => {
-    setSelectedTimeRange(timeRange);
+  useEffect(() => {
+    console.log("Engine page mount effect running");
     getReportData();
-    console.log("timerange", timeRange);
+  }, [selectedTimeRange]);
+
+  const handleTimefilter = (e) => {
+    console.log("time from onClick", e.target.value);
+    setSelectedTimeRange(e.target.value);
   };
 
   return (
@@ -358,31 +370,12 @@ export const Reports = () => {
           )}
         </div>
 
-        <div className="relative w-full md:w-auto">
-          <button
-            onClick={() => setShowTimeFilter((prev) => !prev)}
-            className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
-            Time Filter ▼
-          </button>
-          {showTimeFilter && (
-            <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
-              <ul className="text-white">
-                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("15 Minutes")}>
-                  15 Minutes
-                </li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("30 Minutes")}>
-                  30 Minutes
-                </li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Hour")}>
-                  01 Hour
-                </li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleTimefilter("01 Day")}>
-                  01 Day
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
+        <select className="select select-neutral text-base-content" value={selectedTimeRange} onChange={handleTimefilter}>
+          <option value="15 Minutes">15 Minutes</option>
+          <option value="30 Minutes">30 Minutes</option>
+          <option value="01 Hour">01 Hour</option>
+          <option value="01 Day">01 Day</option>
+        </select>
       </div>
 
       <div className="py-5">
