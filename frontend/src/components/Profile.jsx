@@ -2,6 +2,8 @@
 
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -21,6 +23,11 @@ const Profile = () => {
       console.error(`Failed to logout: ${err}`);
     }
   };
+
+  const profile = async ()=>{
+    navigate("/profile");
+  }
+
   return (
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
@@ -37,7 +44,10 @@ const Profile = () => {
         <li>
           <a className="justify-between">
             Profile
+            <a onClick={profile} className="cursor-pointer">
             <span className="badge">New</span>
+            </a>
+            
           </a>
         </li>
         <li>

@@ -10,6 +10,7 @@ import { Generator } from "./pages/Generator.jsx";
 import { Mains } from "./pages/Mains.jsx";
 import AlarmsBackup from "./pages/AlarmsBackup.jsx";
 import Alarms from "./pages/Alarms.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 import "./index.css";
 import { Toaster } from "sonner";
@@ -44,6 +45,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="alarms" element={<Alarms />} />
           <Route path="predictive-maintenance" element={<Maintenance />} />
           <Route path="rul" element={<RUL />} />
+          <Route path="profile" element={<ProfilePage />} />
           {/* <Route path="vibration" element={<Vibration />} /> */}
         </Route>
         <Route path="/login" element={<Login />} />
