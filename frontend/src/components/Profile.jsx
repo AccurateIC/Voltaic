@@ -1,9 +1,7 @@
-// /src/components/Profile.jsx
+// src/components/Profile.jsx
 
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -24,9 +22,9 @@ const Profile = () => {
     }
   };
 
-  const profile = async ()=>{
+  const profile = async () => {
     navigate("/profile");
-  }
+  };
 
   return (
     <div className="dropdown dropdown-end">
@@ -42,13 +40,7 @@ const Profile = () => {
         tabIndex={0}
         className="menu menu-sm dropdown-content bg-base-100 text-base-content rounded-box z-[1] mt-3 w-52 p-2 shadow">
         <li>
-          <a className="justify-between">
-            Profile
-            <a onClick={profile} className="cursor-pointer">
-            <span className="badge">New</span>
-            </a>
-            
-          </a>
+          <a onClick={profile}>Profile</a>
         </li>
         <li>
           <a>Settings</a>

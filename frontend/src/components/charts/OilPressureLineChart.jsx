@@ -3,30 +3,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import renderCustomDot from "./renderCustomDot";
 
 export const OilPressureLineChart = ({ value }) => {
-  // Local state to store graph data and notifications
-  // const [oilPressureData, setOilPressureData] = useState([]);
-  // const [notifications, setNotifications] = useState([]);
-
-  // const oilPressureNotificationRef = useRef(false);
-
-  // useEffect(() => {
-  //   // Add new oil pressure data to the graph
-   
-  //   if (Array.isArray(value) && value.length > 0) {
-  //     // Map the value array into the format expected by the chart
-  //     const newData = value.map((item) => ({
-  //       time: new Date(item.timestamp).toLocaleTimeString(), // Format timestamp to string
-  //       oilPressure: item.propertyValue, // Get the engine speed value
-  //       oilPressureIsAnomaly: item.isAnomaly, // Include anomaly flag
-  //     }));
-  //     setOilPressureData(newData);
-      
-  //   }
-
-  // }, [value]);
-
-
-  
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4">Oil Pressure Monitor</h2>

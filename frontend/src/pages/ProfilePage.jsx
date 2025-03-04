@@ -1,243 +1,293 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
+
+const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  return (
+    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+      <div>
+        <label htmlFor="firstName" className="fieldset-label text-base-200 block mb-2">
+          First Name
+        </label>
+        <input
+          id="firstName"
+          name="firstName"
+          value={userDetails.firstName}
+          onChange={handleChange}
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="John"
+        />
+      </div>
+      <div>
+        <label htmlFor="lastName" className="fieldset-label text-base-200 block mb-2">
+          Last Name
+        </label>
+        <input
+          id="lastName"
+          name="lastName"
+          value={userDetails.lastName}
+          onChange={handleChange}
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="Doe"
+        />
+      </div>
+      <div>
+        <label htmlFor="email" className="fieldset-label text-base-200 block mb-2">
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          value={userDetails.email}
+          onChange={handleChange}
+          type="email"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="john.doe@example.com"
+        />
+      </div>
+      <div>
+        <label htmlFor="role" className="fieldset-label text-base-200 block mb-2">
+          Role
+        </label>
+        <input
+          id="role"
+          name="role"
+          value={userDetails.role}
+          disabled
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 opacity-70 cursor-not-allowed"
+          placeholder="USER"
+        />
+        <p className="text-xs text-accent/70 mt-1">Role cannot be changed from profile settings</p>
+      </div>
+      <div className="mt-4">
+        <button onClick={onSave} disabled={isLoading} className="btn btn-soft btn-primary w-full sm:w-auto">
+          {isLoading ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+    </fieldset>
+  );
+};
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const [roleName, setRoleName] = useState(" ");
-  const [userProfile, setUserProfile] = useState({
-    username: " ",
-    email: " ",
-    firstName: " ",
-    lastName: " ",
-    role_id: " ",
-    profilePicture: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp", 
+  const [activeTab, setActiveTab] = useState("basic");
+  const [isLoading, setIsLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "",
+    profilePicture: "",
   });
-  const [isEditing, setIsEditing] = useState(false); 
-  const [emailError, setEmailError] = useState(""); 
+  const [originalDetails, setOriginalDetails] = useState({});
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Check if user made changes
+  useEffect(() => {
+    if (Object.keys(originalDetails).length) {
+      const changed = Object.keys(userDetails).some((key) => userDetails[key] !== originalDetails[key]);
+      setHasChanges(changed);
+    }
+  }, [userDetails, originalDetails]);
 
   // Fetch user and role data
-  const getData = async () => {
+  const getUserDetails = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      const userData = await response.json();
 
       if (!response.ok) {
         throw new Error("User authentication failed");
       }
+
+      const userData = await response.json();
 
       const roleResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/role/getAll`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
+
       const roles = await roleResponse.json();
 
       const userRole = roles.find((role) => role.id === userData.roleId);
-      if (userRole) {
-        setRoleName(userRole.roleName);
-      }
+      const updatedDetails = {
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        email: userData.email || "",
+        role: userRole?.roleName || "",
+        profilePicture: userData.profilePicture || "",
+      };
 
-      setUserProfile({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-      });
+      setUserDetails(updatedDetails);
+      setOriginalDetails(updatedDetails);
     } catch (error) {
       console.error("Error fetching user data:", error);
       toast.error("Failed to fetch user data");
-    }
-  };
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserProfile((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-
-    if (name === "email") {
-      setEmailError(""); 
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Validate email function
-  const validateEmail = (email) => {
-    const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
-    if (!emailRegex.test(email)) {
-      setEmailError("Please enter a valid email address");
-      return false;
-    }
-    setEmailError(""); 
-    return true;
-  };
-
+  // Update profile (save changes)
   const saveProfileChanges = async () => {
-   
-    if (!validateEmail(userProfile.email)) {
-      return; 
-    }
+    if (!hasChanges) return;
 
+    setIsLoading(true);
     try {
-     
-      const updatedData = {
-        firstName: userProfile.firstName,
-        lastName: userProfile.lastName,
-        email: userProfile.email,
-      };
+      // Extract only the fields that can be updated
+      const { firstName, lastName, email } = userDetails;
+      const updatedData = { firstName, lastName, email };
 
-     
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/update`, {
-        method: "PATCH",
+      // Send updated data to backend
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/user/update`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
         credentials: "include",
       });
 
-      if (!response.ok) throw new Error("Failed to save changes");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save changes");
+      }
 
+      const result = await response.json();
       toast.success("Profile updated successfully!");
-      setIsEditing(false); 
+      // Update original details to match current details
+      setOriginalDetails({ ...userDetails });
+      setHasChanges(false);
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast.error("Failed to save profile changes.");
+      toast.error(error.message || "Failed to save profile changes.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Password change component (placeholder for now)
+  const ChangePassword = () => (
+    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+      <div>
+        <label htmlFor="currentPassword" className="fieldset-label text-base-200 block mb-2">
+          Current Password
+        </label>
+        <input
+          id="currentPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div>
+        <label htmlFor="newPassword" className="fieldset-label text-base-200 block mb-2">
+          New Password
+        </label>
+        <input
+          id="newPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div>
+        <label htmlFor="confirmPassword" className="fieldset-label text-base-200 block mb-2">
+          Confirm New Password
+        </label>
+        <input
+          id="confirmPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div className="mt-4">
+        <button className="btn btn-soft btn-primary w-full sm:w-auto">Update Password</button>
+      </div>
+    </fieldset>
+  );
 
   useEffect(() => {
-    getData();
-  }, []); 
-
-  
-  const handleLogout = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error(`Logout failed with status: ${response.status}`);
-      toast.success("Logged out successfully!");
-      navigate("/");
-    } catch (err) {
-      toast.error("Failed to logout");
-      console.error("Logout error:", err);
-    }
-  };
+    getUserDetails();
+  }, []); // Fetch user data on mount
 
   return (
-    <div className="min-h-screen flex pb-20 items-center justify-center bg-gray-100">
-      <div className="w-full max-w-4xl bg-white shadow-black p-8 rounded-lg shadow-lg ">
-        <h1 className="text-3xl font-semibold text-center text-gray-800 mb-8">My Profile</h1>
+    <div className="flex h-full flex-col">
+      {/* HEADER */}
+      <div className="text-3xl p-2 mt-2 font-semibold text-base-200">Profile Settings</div>
+      {/* DIVIDER */}
+      <div className="divider m-2 w-3/4 before:bg-base-200/50 after:bg-base-200/50"></div>
 
-        <div className="flex items-center gap-10 justify-center space-x-6 mb-8">
-          <div className="pl-9 relative w-95 h-65">
-            <img
-              alt="Profile"
-              src= "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-              className="w-full h-full rounded-full object-cover border-4 border-gray-300"
-            />
-          </div>
-
-          <div className="w-full">
-            <div className="mb-4">
-              {isEditing ? (
-                <>
-                  <p className="text-lg font-medium text-gray-600">First Name</p>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={userProfile.firstName}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                </>
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  First Name : <span className="text-xl text-gray-800">{userProfile.firstName}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              {isEditing ? (
-                <>
-                  <p className="text-lg font-medium text-gray-600">Last Name</p>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={userProfile.lastName}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                </>
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  Last Name : <span className="text-xl text-gray-800"> {userProfile.lastName}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              {isEditing ? (
-                <>
-                  <p className="text-lg font-medium text-gray-600">Email :</p>
-                  <input
-                    type="email"
-                    name="email"
-                    value={userProfile.email}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                  {emailError && <p className="text-red-500 text-sm">{emailError}</p>} {/* Show error message */}
-                </>
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  Email : <span className="text-xl text-gray-800"> {userProfile.email}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <p className="text-lg font-medium text-gray-600">
-                Role :<span className="text-xl text-gray-800"> {roleName}</span>{" "}
-              </p>
-            </div>
-          </div>
+      {/* Bottom section will have a sidebar and a space to display  */}
+      <div className="flex flex-col md:flex-row h-full">
+        {/* SIDEBAR */}
+        <div className="md:h-full mb-4 md:mb-0">
+          <ul className="menu bg-base-content w-full md:w-56 rounded-lg md:rounded-box h-full gap-2">
+            <li>
+              <a className={activeTab === "basic" ? "menu-active" : ""} onClick={() => setActiveTab("basic")}>
+                Basic Details
+              </a>
+            </li>
+            <li className="w-full">
+              <a className={activeTab === "password" ? "menu-active" : ""} onClick={() => setActiveTab("password")}>
+                Change Password
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <div className="text-center mt-6">
-          {isEditing ? (
-            <>
-              <button
-                className="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-700"
-                onClick={saveProfileChanges}>
-                Save Changes
-              </button>
-              <button
-                className="ml-4 bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-700"
-                onClick={() => setIsEditing(false)}>
-                Cancel
-              </button>
-            </>
+        {/* Content Space */}
+        <div className="h-full w-full md:pl-4">
+          {activeTab === "basic" ? (
+            <BasicDetails
+              userDetails={userDetails}
+              setUserDetails={setUserDetails}
+              onSave={saveProfileChanges}
+              isLoading={isLoading}
+            />
           ) : (
-            <button
-              className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-              onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </button>
+            <ChangePassword />
           )}
         </div>
-
-        <div className="text-center mt-8">
-          <button className="bg-red-500 text-white py-2 px-6 rounded-md hover:bg-red-700" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
       </div>
+
+      {/* Unsaved changes warning */}
+      {hasChanges && (
+        <div className="fixed bottom-4 right-4 bg-warning text-warning-content p-4 rounded-box shadow-lg">
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>You have unsaved changes</span>
+            {/*
+            <button onClick={saveProfileChanges} disabled={isLoading} className="btn btn-sm btn-warning ml-2">
+              Save Now
+              </button>
+              */}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
