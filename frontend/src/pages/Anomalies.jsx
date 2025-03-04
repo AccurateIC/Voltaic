@@ -105,10 +105,16 @@ const Anomalies = () => {
     setShowGraph(true);
   };
 
+  const handleShowGraph = () => {
+    setShowGraph(!showGraph);
+  };
+
   return (
-    <div className="h-full p-2">
+    <div className="h-full w-full flex flex-col p-2 overflow-x-scroll">
       <div className="bg-gray-900 text-white p-6">
+        {/*
         <h2 className="text-2xl font-bold mb-6">Anomalies Overview</h2>
+          */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div
@@ -164,14 +170,14 @@ const Anomalies = () => {
         </div>
 
         <div className="mt-6 bg-gray-800 p-4 rounded-lg shadow-lg overflow-x-auto">
-          <button
+          {/* <button
             className="mb-4 p-1 ml-[45rem] bg-[#B1D5BD] rounded text-black font-semibold inline-flex items-center justify-center shadow-inner"
             style={{
               boxShadow: "inset 2px 2px 5px rgba(0, 0, 0, 0.1), 0px 4px 4px 0px #0000007A, inset 1px 4px 4px 0px #FFFFFFBF",
             }}
             onClick={exportToExcel}>
             Export to Excel
-          </button>
+          </button> */}
 
           <table className="w-full text-left border-collapse">
             <thead>
@@ -189,7 +195,7 @@ const Anomalies = () => {
                   <td className="p-2">{item.Originator}</td>
                   <td className="p-2">{item.Type}</td>
                   <td className="p-2">
-                    <button className="bg-blue-500 px-3 py-1 rounded-md" onClick={() => getGraphData(item)}>
+                    <button className="bg-blue-500 px-3 py-1 rounded-md" onClick={handleShowGraph}>
                       View
                     </button>
                   </td>
@@ -202,21 +208,25 @@ const Anomalies = () => {
         {showGraph && (
           <div className="mt-6 bg-gray-800 p-4 rounded-lg shadow-lg">
             <h3 className="text-lg font-bold">Anomaly Line Graph</h3>
-            <LineChart width={600} height={300} data={graphData}>
-              <CartesianGrid stroke="#ccc" />
-              <XAxis dataKey="hour">
-                <Label value="Time" position="insideBottom" offset={-5} />
-              </XAxis>
-              <YAxis dataKey="count">
-                <Label value="Count" angle={-90} position="insideLeft" />
-              </YAxis>
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="count" stroke="#42A5F5" />
-            </LineChart>
-            <button className="mt-4 bg-red-500 px-4 py-2 rounded-md" onClick={() => setShowGraph(false)}>
-              Close Graph
-            </button>
+            <div className="flex flex-row">
+              <LineChart width={600} height={300} data={graphData}>
+                <CartesianGrid stroke="#ccc" />
+                <XAxis dataKey="hour">
+                  <Label value="Time" position="insideBottom" offset={-5} />
+                </XAxis>
+                <YAxis dataKey="count">
+                  <Label value="Count" angle={-90} position="insideLeft" />
+                </YAxis>
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="count" stroke="#42A5F5" />
+              </LineChart>
+              <div className="flex items-start">
+                <button className="btn btn-error" onClick={() => setShowGraph(false)}>
+                  X
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

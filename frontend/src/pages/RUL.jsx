@@ -17,7 +17,7 @@ const RUL = () => {
       <h2 className="text-2xl md:text-3xl lg:text-xl font-bold text-center mb-4">Remaining Useful Life (RUL)</h2>
 
       <div className="flex flex-col md:flex-row justify-center gap-4 mb-4 items-center">
-        <label className="font-semibold">Set X-Axis Range:</label>
+        <label className="font-semibold text-base-content">Set X-Axis Range:</label>
         <input
           type="number"
           min="0"

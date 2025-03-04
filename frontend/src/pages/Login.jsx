@@ -15,7 +15,7 @@ const InputField = ({ label, type, placeholder, value, onChange }) => (
       onChange={onChange}
       placeholder={placeholder}
       required
-      className="input input-md w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B1D5BD]"
+      className="input input-md w-full p-3 rounded-md border border-gray-300 text-base-content focus:outline-none focus:ring-2 focus:ring-[#B1D5BD]"
     />
   </label>
 );
