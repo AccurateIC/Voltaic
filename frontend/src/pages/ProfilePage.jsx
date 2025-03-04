@@ -1,340 +1,158 @@
-// import React, { useState, useEffect } from "react";
-// import { toast } from "sonner";
-// import { useNavigate } from "react-router";
-
-// const Profile = () => {
-//   const navigate = useNavigate();
-//   const [roleName, setRoleName] = useState(" ");
-//   const [userProfile, setUserProfile] = useState({
-//     username: " ",
-//     email: " ",
-//     firstName: " ",
-//     lastName: " ",
-//     role_id: " ",
-//     profilePicture: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp", // Default profile picture
-//   });
-//   const [isEditing, setIsEditing] = useState(false); // Toggle editing mode
-//   const [newProfilePic, setNewProfilePic] = useState(null);
-
-//   // Fetch user and role data
-//   const getData = async () => {
-//     try {
-//       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
-//         method: "GET",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//       });
-//       const userData = await response.json();
-
-//       if (!response.ok) {
-//         throw new Error("User authentication failed");
-//       }
-
-//       const roleResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/role/getAll`, {
-//         method: "GET",
-//         headers: { "Content-Type": "application/json" },
-//         credentials: "include",
-//       });
-//       const roles = await roleResponse.json();
-
-//       const userRole = roles.find((role) => role.id === userData.roleId);
-//       if (userRole) {
-//         setRoleName(userRole.roleName);
-//       }
-
-//       setUserProfile({
-//         firstName: userData.firstName,
-//         lastName: userData.lastName,
-//         email: userData.email,
-//         role_id: userData.roleId,
-//         profilePicture: userData.profilePicture || userProfile.profilePicture, // If profile picture exists in user data, set it
-//       });
-//     } catch (error) {
-//       console.error("Error fetching user data:", error);
-//       toast.error("Failed to fetch user data");
-//     }
-//   };
-
-//   // Handle file change for profile picture
-//   const handleFileChange = (e) => {
-//     const file = e.target.files[0];
-//     if (file) {
-//       const reader = new FileReader();
-//       reader.onloadend = () => {
-//         setNewProfilePic(reader.result); // Update the profile picture preview
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   };
-
-//   // Handle input changes for editable fields
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     setUserProfile((prevState) => ({
-//       ...prevState,
-//       [name]: value,
-//     }));
-//   };
-
-//   // Update profile (save changes)
-//   const saveProfileChanges = async () => {
-//     try {
-//       const updatedData = { ...userProfile, profilePicture: newProfilePic || userProfile.profilePicture };
-
-//       // Send updated data to backend (use appropriate API endpoint)
-//       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/user/update`, {
-//         method: "PUT",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify(updatedData),
-//         credentials: "include",
-//       });
-
-//       if (!response.ok) throw new Error("Failed to save changes");
-
-//       toast.success("Profile updated successfully!");
-//       setIsEditing(false); // Exit editing mode after saving
-//     } catch (error) {
-//       console.error("Error saving profile:", error);
-//       toast.error("Failed to save profile changes.");
-//     }
-//   };
-
-//   useEffect(() => {
-//     getData();
-//   }, []); // Fetch user data on mount
-
-//   // Logout functionality
-//   const handleLogout = async () => {
-//     try {
-//       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
-//         method: "POST",
-//         credentials: "include",
-//       });
-
-//       if (!response.ok) throw new Error(`Logout failed with status: ${response.status}`);
-//       toast.success("Logged out successfully!");
-//       navigate("/");
-//     } catch (err) {
-//       toast.error("Failed to logout");
-//       console.error("Logout error:", err);
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-[90vh]  p-6 flex-auto">
-//       <div className="min-h-[80vh] max-w-6xl  mx-auto bg-white p-8 rounded-lg shadow-lg">
-//         <h1 className="flex justify-center justify-items-center text-3xl font-semibold text-center text-gray-800">My Profile</h1>
-
-//         <div className="flex justify-evenly   mt-25">
-//           <div className="w-60 h-60 rounded-full flex items-center justify-center overflow-hidden relative">
-//             {/* <img
-//               alt="Profile picture"
-//               src={newProfilePic || userProfile.profilePicture}
-//               className="object-cover w-full h-full"
-//             />
-//             <div
-//               className="absolute top-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer"
-//               onClick={() => setIsEditing(true)}
-//             >
-//               <span className="text-2xl">+</span>
-//             </div> */}
-//              <div className="relative inline-block">
-//           <img
-//             src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-//             alt="Profile"
-//             className="w-60 h-60 rounded-full mx-auto object-cover border-4 border-gray-300"
-//           />
-
-//           <input
-//             type="file"
-//             onChange={handleFileChange}
-//             accept="image/*"
-//             className="absolute bottom-0 right-0 bg-gray-500 text-white p-2 rounded-full cursor-pointer opacity-0 hover:opacity-100"
-//           />
-//         </div>
-
-//           </div>
-
-//           <div className="mt-6">
-//             <div className="mb-4">
-
-//               {isEditing ? (
-//                 <p className="text-lg font-medium text-gray-600">First Name:</p>,
-//                 <input
-//                   type="text"
-//                   name="firstName"
-//                   value={userProfile.firstName}
-//                   onChange={handleInputChange}
-//                   className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md"
-//                 />
-//               ) : (
-//                 <p className="text-lg font-medium text-gray-600">First Name: <span className="text-xl text-gray-800"> {userProfile.firstName}</span></p>
-//               )}
-//             </div>
-
-//             <div className="mb-4">
-
-//               {isEditing ? (
-//                   <p className="text-lg font-medium text-gray-600">Last Name:</p>,
-//                 <input
-//                   type="text"
-//                   name="lastName"
-//                   value={userProfile.lastName}
-//                   onChange={handleInputChange}
-//                   className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md"
-//                 />
-//               ) : (
-//                 <p className="text-lg font-medium text-gray-600">Last Name: <span className="text-xl text-gray-800"> {userProfile.lastName}</span></p>
-//               )}
-//             </div>
-
-//             <div className="mb-4">
-
-//               {isEditing ? (
-//                 <p className="text-lg font-medium text-gray-600">Email:</p>,
-//                 <input
-//                   type="email"
-//                   name="email"
-//                   value={userProfile.email}
-//                   onChange={handleInputChange}
-//                   className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md"
-//                 />
-//               ) : (   <p className="text-lg font-medium text-gray-600">Email : <span className="text-xl text-gray-800"> {userProfile.email}</span></p>
-//               )}
-//             </div>
-
-//             <div className="mb-4">
-//               <p className="text-lg font-medium text-gray-600">Role:<span className="text-xl text-gray-800"> {roleName}</span></p>
-//               <p className="text-xl text-gray-800"></p>
-//             </div>
-
-//             <div className="mt-6 text-center">
-//               {isEditing ? (
-//                 <>
-//                   <button
-//                     className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-700"
-//                     onClick={saveProfileChanges}
-//                   >
-//                     Save Changes
-//                   </button>
-//                   <button
-//                     className="ml-4 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-700"
-//                     onClick={() => setIsEditing(false)}
-//                   >
-//                     Cancel
-//                   </button>
-//                 </>
-//               ) : (
-//                 <button
-//                   className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-//                   onClick={() => setIsEditing(true)}
-//                 >
-//                   Edit Profile
-//                 </button>
-//               )}
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="mt-6 text-center">
-//           <button
-//             className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-//             onClick={handleLogout}
-//           >
-//             Logout
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Profile;
-
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
+
+const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  return (
+    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+      <div>
+        <label htmlFor="firstName" className="fieldset-label text-base-200 block mb-2">
+          First Name
+        </label>
+        <input
+          id="firstName"
+          name="firstName"
+          value={userDetails.firstName}
+          onChange={handleChange}
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="John"
+        />
+      </div>
+      <div>
+        <label htmlFor="lastName" className="fieldset-label text-base-200 block mb-2">
+          Last Name
+        </label>
+        <input
+          id="lastName"
+          name="lastName"
+          value={userDetails.lastName}
+          onChange={handleChange}
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="Doe"
+        />
+      </div>
+      <div>
+        <label htmlFor="email" className="fieldset-label text-base-200 block mb-2">
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          value={userDetails.email}
+          onChange={handleChange}
+          type="email"
+          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          placeholder="john.doe@example.com"
+        />
+      </div>
+      <div>
+        <label htmlFor="role" className="fieldset-label text-base-200 block mb-2">
+          Role
+        </label>
+        <input
+          id="role"
+          name="role"
+          value={userDetails.role}
+          disabled
+          type="text"
+          className="input w-1/2 bg-base-content border border-accent/50 opacity-70 cursor-not-allowed"
+          placeholder="USER"
+        />
+        <p className="text-xs text-accent/70 mt-1">Role cannot be changed from profile settings</p>
+      </div>
+      <div className="mt-4">
+        <button onClick={onSave} disabled={isLoading} className="btn btn-soft btn-primary w-full sm:w-auto">
+          {isLoading ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+    </fieldset>
+  );
+};
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const [roleName, setRoleName] = useState(" ");
-  const [userProfile, setUserProfile] = useState({
-    username: " ",
-    email: " ",
-    firstName: " ",
-    lastName: " ",
-    role_id: " ",
-    profilePicture: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp", // Default profile picture
+  const [activeTab, setActiveTab] = useState("basic");
+  const [isLoading, setIsLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "",
+    profilePicture: "",
   });
-  const [isEditing, setIsEditing] = useState(false); // Toggle editing mode
-  const [newProfilePic, setNewProfilePic] = useState(null);
+  const [originalDetails, setOriginalDetails] = useState({});
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Check if user made changes
+  useEffect(() => {
+    if (Object.keys(originalDetails).length) {
+      const changed = Object.keys(userDetails).some((key) => userDetails[key] !== originalDetails[key]);
+      setHasChanges(changed);
+    }
+  }, [userDetails, originalDetails]);
 
   // Fetch user and role data
-  const getData = async () => {
+  const getUserDetails = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      const userData = await response.json();
 
       if (!response.ok) {
         throw new Error("User authentication failed");
       }
+
+      const userData = await response.json();
 
       const roleResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/role/getAll`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
+
       const roles = await roleResponse.json();
 
       const userRole = roles.find((role) => role.id === userData.roleId);
-      if (userRole) {
-        setRoleName(userRole.roleName);
-      }
+      const updatedDetails = {
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        email: userData.email || "",
+        role: userRole?.roleName || "",
+        profilePicture: userData.profilePicture || "",
+      };
 
-      setUserProfile({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        role_id: userData.roleId,
-        profilePicture: userData.profilePicture || userProfile.profilePicture, // If profile picture exists in user data, set it
-      });
+      setUserDetails(updatedDetails);
+      setOriginalDetails(updatedDetails);
     } catch (error) {
       console.error("Error fetching user data:", error);
       toast.error("Failed to fetch user data");
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  // Handle file change for profile picture
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewProfilePic(reader.result); // Update the profile picture preview
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Handle input changes for editable fields
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserProfile((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
   };
 
   // Update profile (save changes)
   const saveProfileChanges = async () => {
-    try {
-      const updatedData = { ...userProfile, profilePicture: newProfilePic || userProfile.profilePicture };
+    if (!hasChanges) return;
 
-      // Send updated data to backend (use appropriate API endpoint)
+    setIsLoading(true);
+    try {
+      // Extract only the fields that can be updated
+      const { firstName, lastName, email } = userDetails;
+      const updatedData = { firstName, lastName, email };
+
+      // Send updated data to backend
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/user/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -342,158 +160,136 @@ const Profile = () => {
         credentials: "include",
       });
 
-      if (!response.ok) throw new Error("Failed to save changes");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save changes");
+      }
 
+      const result = await response.json();
       toast.success("Profile updated successfully!");
-      setIsEditing(false); // Exit editing mode after saving
+
+      // Update original details to match current details
+      setOriginalDetails({ ...userDetails });
+      setHasChanges(false);
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast.error("Failed to save profile changes.");
+      toast.error(error.message || "Failed to save profile changes.");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Password change component (placeholder for now)
+  const ChangePassword = () => (
+    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+      <div>
+        <label htmlFor="currentPassword" className="fieldset-label text-base-200 block mb-2">
+          Current Password
+        </label>
+        <input
+          id="currentPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div>
+        <label htmlFor="newPassword" className="fieldset-label text-base-200 block mb-2">
+          New Password
+        </label>
+        <input
+          id="newPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div>
+        <label htmlFor="confirmPassword" className="fieldset-label text-base-200 block mb-2">
+          Confirm New Password
+        </label>
+        <input
+          id="confirmPassword"
+          type="password"
+          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+        />
+      </div>
+      <div className="mt-4">
+        <button className="btn btn-soft btn-primary w-full sm:w-auto">Update Password</button>
+      </div>
+    </fieldset>
+  );
 
   useEffect(() => {
-    getData();
+    getUserDetails();
   }, []); // Fetch user data on mount
 
-  // Logout functionality
-  const handleLogout = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error(`Logout failed with status: ${response.status}`);
-      toast.success("Logged out successfully!");
-      navigate("/");
-    } catch (err) {
-      toast.error("Failed to logout");
-      console.error("Logout error:", err);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex pb-20 items-center justify-center bg-gray-100">
-      <div className="w-full max-w-4xl bg-white shadow-black p-8 rounded-lg shadow-lg ">
-        <h1 className="text-3xl font-semibold text-center text-gray-800 mb-8">My Profile</h1>
+    <div className="flex h-full flex-col">
+      {/* HEADER */}
+      <div className="text-3xl p-2 mt-2 font-semibold text-base-200">Profile Settings</div>
 
-        <div className="flex items-center gap-10 justify-center space-x-6 mb-8">
-          <div className="pl-10 relative w-90 h-60">
-            <img
-              alt="Profile"
-              src={newProfilePic || userProfile.profilePicture}
-              className="w-full h-full rounded-full object-cover border-4 border-gray-300"
-            />
-            <label
-              htmlFor="profile-pic"
-              className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer">
-              <span className="text-lg">+</span>
-            </label>
-            <input
-              id="profile-pic"
-              type="file"
-              onChange={handleFileChange}
-              accept="image/*"
-              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-            />
-          </div>
+      {/* DIVIDER */}
+      <div className="divider m-2 w-3/4 before:bg-base-200/50 after:bg-base-200/50"></div>
 
-          <div className="w-full">
-            <div className="mb-4">
-              {isEditing ? (
-                ((<p className="text-lg font-medium text-gray-600">First Name</p>),
-                (
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={userProfile.firstName}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                ))
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  First Name : <span className="text-xl text-gray-800">{userProfile.firstName}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              {isEditing ? (
-                ((<p className="text-lg font-medium text-gray-600">Last Name</p>),
-                (
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={userProfile.lastName}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                ))
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  Last Name : <span className="text-xl text-gray-800"> {userProfile.lastName}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              {isEditing ? (
-                ((<p className="text-lg font-medium text-gray-600">Email :</p>),
-                (
-                  <input
-                    type="email"
-                    name="email"
-                    value={userProfile.email}
-                    onChange={handleInputChange}
-                    className="text-xl text-gray-800 p-2 border border-gray-300 rounded-md w-full"
-                  />
-                ))
-              ) : (
-                <p className="text-lg font-medium text-gray-600">
-                  Email : <span className="text-xl text-gray-800"> {userProfile.email}</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <p className="text-lg font-medium text-gray-600">
-                Role :<span className="text-xl text-gray-800"> {roleName}</span>{" "}
-              </p>
-            </div>
-          </div>
+      {/* Bottom section will have a sidebar and a space to display  */}
+      <div className="flex flex-col md:flex-row h-full">
+        {/* SIDEBAR */}
+        <div className="md:h-full mb-4 md:mb-0">
+          <ul className="menu bg-base-content w-full md:w-56 rounded-lg md:rounded-box h-full gap-2">
+            <li>
+              <a className={activeTab === "basic" ? "menu-active" : ""} onClick={() => setActiveTab("basic")}>
+                Basic Details
+              </a>
+            </li>
+            <li className="w-full">
+              <a className={activeTab === "password" ? "menu-active" : ""} onClick={() => setActiveTab("password")}>
+                Change Password
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <div className="text-center mt-6">
-          {isEditing ? (
-            <>
-              <button
-                className="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-700"
-                onClick={saveProfileChanges}>
-                Save Changes
-              </button>
-              <button
-                className="ml-4 bg-gray-500 text-white py-2 px-6 rounded-md hover:bg-gray-700"
-                onClick={() => setIsEditing(false)}>
-                Cancel
-              </button>
-            </>
+        {/* Content Space */}
+        <div className="h-full w-full md:pl-4">
+          {activeTab === "basic" ? (
+            <BasicDetails
+              userDetails={userDetails}
+              setUserDetails={setUserDetails}
+              onSave={saveProfileChanges}
+              isLoading={isLoading}
+            />
           ) : (
-            <button
-              className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-700"
-              onClick={() => setIsEditing(true)}>
-              Edit Profile
-            </button>
+            <ChangePassword />
           )}
         </div>
-
-        <div className="text-center mt-8">
-          <button className="bg-red-500 text-white py-2 px-6 rounded-md hover:bg-red-700" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
       </div>
+
+      {/* Unsaved changes warning */}
+      {hasChanges && (
+        <div className="fixed bottom-4 right-4 bg-warning text-warning-content p-4 rounded-box shadow-lg">
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>You have unsaved changes</span>
+            {/*
+            <button onClick={saveProfileChanges} disabled={isLoading} className="btn btn-sm btn-warning ml-2">
+              Save Now
+              </button>
+              */}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
