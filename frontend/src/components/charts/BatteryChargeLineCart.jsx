@@ -1,5 +1,3 @@
-
-import React, { useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, XAxis, YAxis } from "recharts";
 import renderCustomDot from "./renderCustomDot";
 
