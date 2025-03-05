@@ -153,8 +153,8 @@ const Profile = () => {
       const updatedData = { firstName, lastName, email };
 
       // Send updated data to backend
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/user/update`, {
-        method: "PUT",
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/update`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
         credentials: "include",

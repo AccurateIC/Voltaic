@@ -1,14 +1,10 @@
-import { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { healthIndexData } from "../components/healthIndexData";
+import { useEffect } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { filteredHealthIndexData } from "../components/filteredHealthIndexData";
 
 const RUL = () => {
   useEffect(() => {
-    console.log("healthIndex", healthIndexData);
-  }, []);
-
-  useEffect(() => {
-    console.log("Transformed Health Index Data: ", healthIndexData);
+    console.log("filteredHealthIndexData data", filteredHealthIndexData);
   }, []);
 
   return (
@@ -18,8 +14,7 @@ const RUL = () => {
         {" "}
         {/* Set height of the graph */}
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={healthIndexData}>
-            {/* <CartesianGrid strokeDasharray="3 3" /> */}
+          <LineChart data={filteredHealthIndexData}>
             <XAxis dataKey="Time_Hours" label={{ value: "Hours", position: "insideBottom", dy: 10 }} />
             <YAxis label={{ value: "Health Index (HI)", angle: -90, position: "insideLeft" }} />
             <Tooltip />
