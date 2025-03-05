@@ -1,59 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
-const initialData = Array.from({ length: 100 }, (_, i) => ({
-  time: i * 100,
-  predicted: Math.max(10000 - i * 80, 0),
-  rul: Math.max(10000 - i * 120, 0),
-}));
+import { healthIndexData } from "../components/healthIndexData";
 
 const RUL = () => {
-  const [xRange, setXRange] = useState([0, 10000]);
+  useEffect(() => {
+    console.log("healthIndex", healthIndexData);
+  }, []);
 
-  const filteredData = initialData.filter((d) => d.time >= xRange[0] && d.time <= xRange[1]);
+  useEffect(() => {
+    console.log("Transformed Health Index Data: ", healthIndexData);
+  }, []);
 
   return (
-    <div className="w-full mx-auto p-4 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl md:text-3xl lg:text-xl font-bold text-center mb-4">Remaining Useful Life (RUL)</h2>
-
-      <div className="flex flex-col md:flex-row justify-center gap-4 mb-4 items-center">
-        <label className="font-semibold text-base-content">Set X-Axis Range:</label>
-        <input
-          type="number"
-          min="0"
-          max="10000"
-          value={xRange[0]}
-          onChange={(e) => setXRange([Number(e.target.value), xRange[1]])}
-          className="border p-1 w-20 text-center"
-        />
-        <span>-</span>
-        <input
-          type="number"
-          min="0"
-          max="10000"
-          value={xRange[1]}
-          onChange={(e) => setXRange([xRange[0], Number(e.target.value)])}
-          className="border p-1 w-20 text-center"
-        />
-      </div>
-
-      <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[370px] 2xl:h-[800px]">
+    <div className="flex flex-col items-center justify-start p-5 space-y-6 h-[calc(100vh-100px)]">
+      {/* Graph container with large height */}
+      <div className="w-full lg:w-[160vh] h-[65vh]">
+        {" "}
+        {/* Set height of the graph */}
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={filteredData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" label={{ value: "Hours", position: "insideBottom", dy: 10 }} />
-            <YAxis
-              label={{
-                value: "Remaining Life (hrs)",
-                angle: -90,
-                position: "insideLeft",
-              }}
-            />
+          <LineChart data={healthIndexData}>
+            {/* <CartesianGrid strokeDasharray="3 3" /> */}
+            <XAxis dataKey="Time_Hours" label={{ value: "Hours", position: "insideBottom", dy: 10 }} />
+            <YAxis label={{ value: "Health Index (HI)", angle: -90, position: "insideLeft" }} />
             <Tooltip />
-            <Line type="monotone" dataKey="predicted" stroke="#0088FE" strokeWidth={3} dot={false} name="Predicted Graph" />
-            <Line type="monotone" dataKey="rul" stroke="#FF0000" strokeWidth={3} dot={false} name="RUL" />
+            <Line
+              type="monotone"
+              dataKey="Predicted_Health_Index"
+              stroke="#0088FE"
+              strokeWidth={3}
+              dot={false}
+              name="Predicted Graph"
+            />
           </LineChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Cards with flex to consume available space */}
+      <div className="flex flex-row justify-between w-full gap-2 flex-grow">
+        <div className="card card-border bg-blue-100 w-full sm:w-1/2 md:w-1/2 lg:w-1/2 h-full">
+          <div className="card-body flex items-center justify-center ">
+            <h2 className="card-title text-amber-500 text-2xl">
+              Health Index: <span className="loading loading-spinner loading-xs"></span>{" "}
+            </h2>
+          </div>
+        </div>
+
+        <div className="card card-border bg-blue-100 w-full sm:w-1/2 md:w-1/2 lg:w-1/2 h-full">
+          <div className="card-body flex items-center justify-center h-full">
+            <h2 className="card-title text-amber-500 text-2xl">
+              Predictive Maintenance: <span className="loading loading-spinner loading-xs"></span>
+            </h2>
+          </div>
+        </div>
       </div>
     </div>
   );

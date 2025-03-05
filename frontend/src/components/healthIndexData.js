@@ -1,4 +1,4 @@
-healthIndexData = [
+export const healthIndexData = [
   {
     Time_Hours: 0,
     Predicted_Health_Index: 0.936602874,
