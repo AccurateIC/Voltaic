@@ -1,6 +1,7 @@
+/* eslint-disable prettier/prettier */
 import type { HttpContext } from "@adonisjs/core/http";
 import User from "#models/user";
-import { createUserValidator, loginValidator } from "#validators/auth";
+import { createUserValidator, loginValidator, updateUserProfile } from "#validators/auth";
 
 export default class AuthController {
   async isAuthenticated({ auth }: HttpContext) {
@@ -31,6 +32,22 @@ export default class AuthController {
     const user = await User.query().where("email", email).where("is_active", true).firstOrFail();
     await User.verifyCredentials(email, password);
     await auth.use("web").login(user);
+  }
+
+
+    async update({params, request, auth}: HttpContext){
+    const data = await request.validateUsing(updateUserProfile);
+    // console.log("Original User Data:", params);
+    const loggedInUser =await auth.authenticate();
+    // const user = await User.query().where("email", params.email).where("is_active", true).firstOrFail();
+    // const user = await User.findByOrFail(params.id);
+    const user = await User.findOrFail(loggedInUser.id);
+
+    user.email = data.email;
+    user.firstName = data.firstName;
+    user.lastName = data.lastName;
+    await user.save();
+    return user.serialize();
   }
 
   async logout({ auth }: HttpContext) {

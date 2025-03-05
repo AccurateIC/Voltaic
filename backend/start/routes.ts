@@ -32,6 +32,7 @@ router
     router.get("getAll", "#controllers/auth_controller.getAll");
     router.post("register", "#controllers/auth_controller.register");
     router.post("login", "#controllers/auth_controller.login");
+    router.patch("update", "#controllers/auth_controller.update").use([middleware.auth()]);
     router.post("logout", "#controllers/auth_controller.logout").use([middleware.auth()]);
     router.patch("activate/:id", "#controllers/auth_controller.activate");
     router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); // soft delete

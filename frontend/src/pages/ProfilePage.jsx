@@ -167,7 +167,6 @@ const Profile = () => {
 
       const result = await response.json();
       toast.success("Profile updated successfully!");
-
       // Update original details to match current details
       setOriginalDetails({ ...userDetails });
       setHasChanges(false);
@@ -226,7 +225,6 @@ const Profile = () => {
     <div className="flex h-full flex-col">
       {/* HEADER */}
       <div className="text-3xl p-2 mt-2 font-semibold text-base-200">Profile Settings</div>
-
       {/* DIVIDER */}
       <div className="divider m-2 w-3/4 before:bg-base-200/50 after:bg-base-200/50"></div>
 
