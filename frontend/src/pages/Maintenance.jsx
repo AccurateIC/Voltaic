@@ -51,17 +51,37 @@ const Maintenance = () => {
       const timestamps = Object.keys(data.last_values);
       const lastValues = Object.values(data.last_values);
       const forecastedValues = data.forecasted_values;
-      const pdmData = [];
+
+      // Create actual data points
+      const actualData = [];
       for (let i = 0; i < timestamps.length; ++i) {
         const ts = DateTime.fromSeconds(Math.round(timestamps[i]));
         const tss = ts.toISO();
-        pdmData.push({
+        actualData.push({
           timestamp: tss,
           actualValue: lastValues[i],
+        });
+      }
+
+      // Create forecast data points
+      const forecastData = [];
+      for (let i = 0; i < timestamps.length; ++i) {
+        const ts = DateTime.fromSeconds(Math.round(timestamps[i])).plus({
+          seconds: timestamps[timestamps.length - 1] + i,
+        });
+        const tss = ts.toISO();
+        forecastData.push({
+          timestamp: tss,
           forecastedValue: forecastedValues[i],
         });
       }
-      setPdmData({ pdmData, error: data.PDM });
+
+      // Combine all data points
+      const combinedData = [...actualData, ...forecastData].sort((a, b) =>
+        DateTime.fromISO(a.timestamp) < DateTime.fromISO(b.timestamp) ? -1 : 1
+      );
+
+      setPdmData({ pdmData: combinedData, error: data.PDM });
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching data");
@@ -77,7 +97,6 @@ const Maintenance = () => {
 
   //
   useEffect(() => {
-    console.log("::::::::::::::::", pdmData);
     if (pdmData.error === true) {
       setIsPdmError(true);
       setPdmErrorMessage("Problem detected in Vibration Frequency");
@@ -117,8 +136,16 @@ const Maintenance = () => {
                 />
                 <YAxis stroke="#fff" />
                 <Tooltip contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }} />
-                <Line type="monotone" dataKey="actualValue" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="forecastedValue" stroke="#8884d8" strokeWidth={2} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="actualValue" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} name="Actual" />
+                <Line
+                  type="monotone"
+                  dataKey="forecastedValue"
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ r: 4 }}
+                  name="Forecast"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
