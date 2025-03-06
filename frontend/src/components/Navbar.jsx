@@ -13,6 +13,7 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const archiveMessageBus = useMessageBus("archive");
   const notificationMessageBus = useMessageBus("notification");
+  const pdmMessageBus = useMessageBus("pdm");
 
   // Fetch initial notifications
   useEffect(() => {
@@ -51,12 +52,15 @@ const Navbar = () => {
     const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
     const notificationSubscription = transmit.subscription(TransmitChannels.NOTIFICATION);
     const archiveSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
+    const pdmSubscription = transmit.subscription(TransmitChannels.PDM);
 
     (async () => {
       await notificationSubscription.create();
       console.log("Subscribed to notification channel");
       await archiveSubscription.create();
       console.log("Subscribed to archive channel");
+      await pdmSubscription.create();
+      console.log("Subscribed to pdm channel");
     })();
 
     const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
@@ -79,11 +83,21 @@ const Navbar = () => {
 
     const archiveUnsubscribe = archiveSubscription.onMessage(async () => {
       try {
-        console.log(":::::::::::archive data inserted:::::::::");
         archiveMessageBus({ time: Date.now(), message: "data inserted in archive table" });
       } catch (error) {
         console.error(error);
         toast.error("Error updating archive");
+      }
+    });
+
+    const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
+      try {
+        console.log("::::new pdm data:::", message);
+        localStorage.setItem("pdmData", JSON.stringify(message));
+        console.log("pdm data stored to local storage");
+        pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
+      } catch (err) {
+        console.error(err);
       }
     });
 
@@ -92,8 +106,10 @@ const Navbar = () => {
       console.log("Unsubscribed from notification channel");
       archiveUnsubscribe();
       console.log("Unsubscribed from archive channel");
+      pdmUnsubscribe();
+      console.log("Unsubscribed from pdm channel");
     };
-  }, [archiveMessageBus]);
+  }, [archiveMessageBus, notificationMessageBus]);
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
