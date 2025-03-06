@@ -124,3 +124,9 @@ router
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
   })
   .prefix("notification");
+
+router
+  .group(() => {
+    router.post("create", "#controllers/pdm_controller.create");
+  })
+  .prefix("pdm");

@@ -3,6 +3,9 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
+import { Transmit } from "@adonisjs/transmit-client";
+import { TransmitChannels } from "../lib/TransmitChannels.js";
+import { useMessageBus } from "../lib/MessageBus.js";
 
 const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
   return (
@@ -32,77 +35,63 @@ const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
 
 const Maintenance = () => {
   const [pdmData, setPdmData] = useState([]);
+  const [pdmDataForGraph, setPdmDataForGraph] = useState([]);
   const [isPdmLoading, setIsPdmLoading] = useState(true);
   const [isPdmError, setIsPdmError] = useState(false);
   const [pdmErrorMessage, setPdmErrorMessage] = useState("");
 
-  // fetch pdm data from server
-  const fetchPdm = async () => {
-    try {
-      setIsPdmLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_PDM_BACKEND}/getPdmForecast`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      console.log("PDM data:", data);
-
-      const timestamps = Object.keys(data.last_values);
-      const lastValues = Object.values(data.last_values);
-      const forecastedValues = data.forecasted_values;
-
-      // Create actual data points
-      const actualData = [];
-      for (let i = 0; i < timestamps.length; ++i) {
-        const ts = DateTime.fromSeconds(Math.round(timestamps[i]));
-        const tss = ts.toISO();
-        actualData.push({
-          timestamp: tss,
-          actualValue: lastValues[i],
-        });
-      }
-
-      // Create forecast data points
-      const forecastData = [];
-      for (let i = 0; i < timestamps.length; ++i) {
-        const ts = DateTime.fromSeconds(Math.round(timestamps[i])).plus({
-          seconds: timestamps[timestamps.length - 1] + i,
-        });
-        const tss = ts.toISO();
-        forecastData.push({
-          timestamp: tss,
-          forecastedValue: forecastedValues[i],
-        });
-      }
-
-      // Combine all data points
-      const combinedData = [...actualData, ...forecastData].sort((a, b) =>
-        DateTime.fromISO(a.timestamp) < DateTime.fromISO(b.timestamp) ? -1 : 1
-      );
-
-      setPdmData({ pdmData: combinedData, error: data.PDM });
-    } catch (error) {
-      console.error("Fetch error:", error);
-      toast.error("Error fetching data");
-    } finally {
-      setIsPdmLoading(false);
-    }
-  };
-
-  // initial fetch of PDM
+  // fetch pdmData from localstorage
   useEffect(() => {
-    fetchPdm();
+    const pdmDataString = localStorage.getItem("pdmData");
+    setPdmData(JSON.parse(pdmDataString));
   }, []);
 
-  //
+  useMessageBus("pdm", (message) => {
+    console.log("new pdm data received liveeee");
+    setPdmData(JSON.parse(localStorage.getItem("pdmData")));
+  });
+
   useEffect(() => {
-    if (pdmData.error === true) {
+    console.log("pdm data changed", pdmData);
+    if (!pdmData) {
+      toast.error("No Predictive Maintenance Data available.");
+      return;
+    }
+    if (pdmData.maintenance_needed === true) {
       setIsPdmError(true);
       setPdmErrorMessage("Problem detected in Vibration Frequency");
+
+      // transform data for plotting graph
+      const numberOfLastValues = pdmData.last_values.accel_x.length;
+      const baseTimestamp = DateTime.fromISO(pdmData.time);
+
+      // Create formatted data for the graph
+      const formattedData = [];
+
+      // Add last_values data points
+      pdmData.last_values.accel_x.forEach((value, index) => {
+        formattedData.push({
+          timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
+          actual: value,
+          forecast: null,
+        });
+      });
+
+      // Add forecasted_values data points
+      pdmData.forecasted_values.accel_x.forEach((value, index) => {
+        formattedData.push({
+          timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
+          actual: null,
+          forecast: value,
+        });
+      });
+
+      setPdmDataForGraph(formattedData);
     } else {
       setIsPdmError(false);
     }
+
+    setIsPdmLoading(false);
   }, [pdmData]);
 
   return (
@@ -126,7 +115,7 @@ const Maintenance = () => {
           <div className="mt-6 w-full h-128">
             <h3 className="text-xl font-semibold text-base-content">Analysis Graph</h3>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={pdmData.pdmData}>
+              <LineChart data={pdmDataForGraph}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
                 <XAxis
                   dataKey="timestamp"
@@ -135,16 +124,28 @@ const Maintenance = () => {
                   tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
                 />
                 <YAxis stroke="#fff" />
-                <Tooltip contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }} />
-                <Line type="monotone" dataKey="actualValue" stroke="#ff7300" strokeWidth={2} dot={{ r: 4 }} name="Actual" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
+                  labelFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+                />
                 <Line
                   type="monotone"
-                  dataKey="forecastedValue"
+                  dataKey="actual"
+                  stroke="#ff7300"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name="Actual"
+                  connectNulls
+                />
+                <Line
+                  type="monotone"
+                  dataKey="forecast"
                   stroke="#8884d8"
                   strokeWidth={2}
-                  strokeDasharray="5 5"
+                  strokeDasharray="5 5" // This creates the dotted/dashed line
                   dot={{ r: 4 }}
                   name="Forecast"
+                  connectNulls
                 />
               </LineChart>
             </ResponsiveContainer>
