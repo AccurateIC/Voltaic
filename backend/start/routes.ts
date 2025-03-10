@@ -130,3 +130,14 @@ router
     router.post("create", "#controllers/pdm_controller.create");
   })
   .prefix("pdm");
+
+router
+  .group(() => {
+    router.get("test", async () => {
+      const rul = Math.random() * 10000;
+      const predictedHealthIndex = Math.random();
+
+      return { Remaining_Useful_Life: rul, Predicted_Health_Index: predictedHealthIndex };
+    });
+  })
+  .prefix("rul");

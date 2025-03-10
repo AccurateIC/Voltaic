@@ -75,7 +75,7 @@ export const Reports = () => {
 
   const getReportData = async () => {
     const { from, to } = calculateTimeRange(selectedTimeRange);
-    
+
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
         method: "GET",
@@ -107,7 +107,7 @@ export const Reports = () => {
 
         const l3Voltage =
           data
-            .filter((item) => item.gensetProperty.propertyName=== "genL3Volts")
+            .filter((item) => item.gensetProperty.propertyName === "genL3Volts")
             .map((item) => ({
               propertyValue: item.propertyValue,
               timestamp: item.timestamp,
@@ -321,8 +321,8 @@ export const Reports = () => {
         oilPressure: item.propertyValue,
         oilPressureIsAnomaly: item.isAnomaly,
         time: new Date(item.timestamp).toLocaleTimeString(),
-        oilPressure: item.propertyValue, 
-        oilPressureIsAnomaly: item.isAnomaly, 
+        oilPressure: item.propertyValue,
+        oilPressureIsAnomaly: item.isAnomaly,
       }));
       setOilPressureData(newData);
     }
@@ -355,7 +355,7 @@ export const Reports = () => {
       <div className="flex flex-wrap gap-4">
         <div className="relative w-full md:w-auto">
           <button
-            onClick={() => setShowProperties((!showProperties))}
+            onClick={() => setShowProperties(!showProperties)}
             className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
             Properties ▼
           </button>
