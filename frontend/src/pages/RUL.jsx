@@ -1,50 +1,107 @@
-import { useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useEffect, useState } from "react";
+import { Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ScatterChart, Scatter, Cell } from "recharts";
 import { filteredHealthIndexData } from "../components/filteredHealthIndexData";
+import { rulInputData } from "../components/rulData";
 
-const RUL = () => {
-  useEffect(() => {
-    console.log("filteredHealthIndexData data", filteredHealthIndexData);
-  }, []);
+const RulChart = ({ apiPoint }) => {
+  const data = [...filteredHealthIndexData];
+  const singlePointData = apiPoint
+    ? {
+        Time_Hours: apiPoint.Remaining_Useful_Life,
+        Predicted_Health_Index: apiPoint.Predicted_Health_Index,
+        Show_Red: true,
+      }
+    : {};
+
+  data.push(singlePointData);
 
   return (
-    <div className="flex flex-col items-center justify-start p-5 space-y-6 h-[calc(100vh-100px)]">
-      {/* Graph container with large height */}
-      <div className="w-full lg:w-[160vh] h-[65vh]">
-        {" "}
-        {/* Set height of the graph */}
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={filteredHealthIndexData}>
-            <XAxis dataKey="Time_Hours" label={{ value: "Hours", position: "insideBottom", dy: 10 }} />
-            <YAxis label={{ value: "Health Index (HI)", angle: -90, position: "insideLeft" }} />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="Predicted_Health_Index"
-              stroke="#0088FE"
-              strokeWidth={3}
-              dot={false}
-              name="Predicted Graph"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <ResponsiveContainer width="100%" height="100%">
+      <ScatterChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 20,
+          bottom: 20,
+          left: 20,
+        }}>
+        <XAxis
+          type="number"
+          domain={[0, 10000]}
+          dataKey="Time_Hours"
+          label={{ value: "Hours", position: "insideBottom", dy: 10 }}
+        />
+        <YAxis
+          type="number"
+          dataKey="Predicted_Health_Index"
+          domain={[0, 1]}
+          label={{ value: "Health Index (HI)", angle: -90, position: "insideLeft" }}
+        />
+        <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+        <Line type="monotone" dataKey="Predicted_Health_Index" fill="#8884d8" />
+        <Scatter name="">
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.Show_Red ? "#ff0000" : "#8884d8"} />
+          ))}
+        </Scatter>
+      </ScatterChart>
+    </ResponsiveContainer>
+  );
+};
 
-      {/* Cards with flex to consume available space */}
-      <div className="flex flex-row justify-between w-full gap-2 flex-grow">
-        <div className="card card-border bg-blue-100 w-full sm:w-1/2 md:w-1/2 lg:w-1/2 h-full">
-          <div className="card-body flex items-center justify-center ">
-            <h2 className="card-title text-amber-500 text-2xl">
-              Health Index: <span className="loading loading-spinner loading-xs"></span>{" "}
-            </h2>
+const RUL = () => {
+  const [count, setCount] = useState(0);
+  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
+
+  const fetchRulData = async () => {
+    try {
+      const entry = rulInputData[count];
+      const response = await fetch(`http://192.168.1.107:5000/predict`, {
+        method: "POST",
+        body: JSON.stringify(entry),
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      setApiPoint(data);
+      setCount((prevCount) => (prevCount + 1) % rulInputData.length);
+    } catch (error) {
+      console.error("Error fetching RUL data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRulData();
+  }, []);
+
+  useEffect(() => {
+    const entry = rulInputData[count];
+    console.log(entry.Predicted_Health_Index);
+  }, [count]);
+
+  return (
+    <div className="flex flex-col h-full w-full gap-4">
+      <div className="flex justify-between mb-2">
+        <div className="text-base-200 text-3xl">Remaining Useful Life</div>
+        <div className="flex gap-2">
+          <button onClick={fetchRulData} className="btn btn-primary">
+            Calculate RUL
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-col h-4/5">
+        <RulChart apiPoint={apiPoint} />
+      </div>
+      <div className="flex flex-col flex-1/5 sm:flex-row gap-4">
+        <div className="stats shadow flex-1 items-center justify-center bg-base-200">
+          <div className="stat m-2">
+            <div className="stat-title text-4xl sm:text-2xl">Remaining Useful Life</div>
+            <div className="stat-value text-base-content">{Math.round(apiPoint.Remaining_Useful_Life)} hours</div>
           </div>
         </div>
-
-        <div className="card card-border bg-blue-100 w-full sm:w-1/2 md:w-1/2 lg:w-1/2 h-full">
-          <div className="card-body flex items-center justify-center h-full">
-            <h2 className="card-title text-amber-500 text-2xl">
-              Predictive Maintenance: <span className="loading loading-spinner loading-xs"></span>
-            </h2>
+        <div className="stats shadow flex-1 items-center justify-center bg-base-200">
+          <div className="stat m-2">
+            <div className="stat-title text-4xl sm:text-2xl">Predicted Health Index</div>
+            <div className="stat-value text-base-content">{Math.round(apiPoint.Predicted_Health_Index * 100) / 100}</div>
           </div>
         </div>
       </div>
