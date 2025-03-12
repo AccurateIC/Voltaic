@@ -24,3 +24,13 @@ export const getArchiveDataBetweenValidator = vine.compile(
     to: vine.date({ formats: ["iso8601"] }).afterField("from", { compare: "second" }),
   })
 );
+
+export const getPaginatedDataValidator = vine.compile(
+  vine.object({
+    page: vine.number(),
+    from: vine.date({ formats: ["iso8601"] }).optional(),
+    to: vine.date({ formats: ["iso8601"] }).optional(),
+    propertyNames: vine.array(vine.string().exists({ table: "genset_properties", column: "property_name" })).optional(),
+    isAnomaly: vine.boolean().optional(),
+  })
+);

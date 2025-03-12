@@ -10,6 +10,7 @@ import { Generator } from "./pages/Generator.jsx";
 import { Mains } from "./pages/Mains.jsx";
 import AlarmsBackup from "./pages/AlarmsBackup.jsx";
 import Alarms from "./pages/Alarms.jsx";
+import Archive from "./pages/Archive.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 
 import "./index.css";
@@ -43,6 +44,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="anomalies" element={<Anomalies />} />
           <Route path="alarms-backup" element={<AlarmsBackup />} />
           <Route path="alarms" element={<Alarms />} />
+          <Route path="archive" element={<Archive />} />
           <Route path="predictive-maintenance" element={<Maintenance />} />
           <Route path="rul" element={<RUL />} />
           <Route path="profile" element={<ProfilePage />} />

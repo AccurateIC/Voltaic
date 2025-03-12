@@ -1,4 +1,4 @@
-import { createArchiveValidator, getArchiveDataBetweenValidator } from "#validators/archive";
+import { createArchiveValidator, getArchiveDataBetweenValidator, getPaginatedDataValidator } from "#validators/archive";
 import Archive from "#models/archive";
 import GensetProperty from "#models/genset_property";
 import type { HttpContext } from "@adonisjs/core/http";
@@ -9,6 +9,37 @@ import db from "@adonisjs/lucid/services/db";
 export default class ArchiveController {
   async getAll({}: HttpContext) {
     const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+    return archiveData;
+  }
+
+  async getPaginated({ request }: HttpContext) {
+    const requestData = await request.validateUsing(getPaginatedDataValidator);
+
+    // start building the select query
+    const archiveQuery = Archive.query();
+
+    // FILTERING
+
+    // filter property name
+    if (requestData?.propertyNames && requestData.propertyNames.length > 0) {
+      archiveQuery.whereHas("gensetProperty", (propertyQuery) => {
+        propertyQuery.whereIn("propertyName", requestData.propertyNames);
+      });
+    }
+
+    // filter anomalies
+    if (requestData?.isAnomaly !== undefined) {
+      archiveQuery.where("isAnomaly", requestData.isAnomaly ? 1 : 0);
+    }
+
+    // preload
+    archiveQuery.preload("gensetProperty", (preloadQuery) => {
+      preloadQuery.preload("physicalQuantity");
+    });
+
+    // pagination
+    const archiveData = await archiveQuery.paginate(requestData.page);
+
     return archiveData;
   }
 

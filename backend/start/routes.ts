@@ -92,6 +92,7 @@ router
     router.get("getLatest", "#controllers/archive_controller.getLatest").use([middleware.auth()]);
 
     // TODO: maybe we need an api endpoint which returns paginated data
+    router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);
   })
   .prefix("archive");
 // i dont think it is necessary to provide APIs to edit a property row in telemetry data
