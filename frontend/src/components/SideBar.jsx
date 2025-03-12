@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { FaPlug, FaFileAlt, FaHome, FaBell } from "react-icons/fa";
 import { RiAlertFill } from "react-icons/ri";
 import { GiAutoRepair, GiLifeBar, GiVibratingBall } from "react-icons/gi";
+import { RxArchive } from "react-icons/rx";
 
 const SideBarLink = ({ to, name, Icon }) => {
   return (
@@ -29,6 +30,7 @@ const SideBar = () => {
       <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
       <SideBarLink to="/reports" name="Reports" Icon={FaFileAlt} />
       <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
+      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
       <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
       <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
