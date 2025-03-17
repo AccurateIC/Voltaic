@@ -10,21 +10,20 @@ import router from "@adonisjs/core/services/router";
 import { middleware } from "./kernel.js";
 import transmit from "@adonisjs/transmit/services/main";
 
-// this is for sending server sent events to the frontend without having to use websockets
-// see: https://en.wikipedia.org/wiki/Server-sent_events
+// Register Server-Sent Events (SSE) routes
 transmit.registerRoutes();
 
+// SSE Test Route
 router.get("/sse", async () => {
   transmit.broadcast("global", { message: "hello" });
   return { hello: "world" };
 });
 
-// index route
+// Root index route
 router.get("/", async () => {
   return { message: "voltaic server is live!" };
 });
 
-// auth
 router
   .group(() => {
     router.get("isAuthenticated", "#controllers/auth_controller.isAuthenticated");
@@ -35,12 +34,11 @@ router
     router.patch("update", "#controllers/auth_controller.update").use([middleware.auth()]);
     router.post("logout", "#controllers/auth_controller.logout").use([middleware.auth()]);
     router.patch("activate/:id", "#controllers/auth_controller.activate");
-    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); // soft delete
-    router.delete("hardDelete/:id", "#controllers/auth_controller.destroy"); // really really delete xD
+    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); 
+    router.delete("hardDelete/:id", "#controllers/auth_controller.destroy"); 
   })
   .prefix("auth");
 
-// role
 router
   .group(() => {
     router.get("getAll", "#controllers/role_controller.getAll");
@@ -50,7 +48,6 @@ router
   })
   .prefix("role");
 
-// physical quantities
 router
   .group(() => {
     router.get("getAll", "#controllers/physical_quantity_controller.getAll");
@@ -60,9 +57,6 @@ router
   })
   .prefix("physicalQuantity");
 
-// properties
-// for properties from the genset telemetry data
-// for instance: engineSpeed, engineOilPressure, etc
 router
   .group(() => {
     router.get("/getAll", "#controllers/genset_property_controller.getAll");
@@ -72,41 +66,31 @@ router
   })
   .prefix("property");
 
-// archive
-// this is the table where timestamped telemetry data from the genset will be stored
 router
   .group(() => {
     router.get("getAll", "#controllers/archive_controller.getAll").use(middleware.auth());
 
-    // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
-    //       if not added, this api endpoint can be overwhelmed by bad actors and crash the application (potentially)
-    router.post("create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
+    // Data ingestion route (ML processed data)
+    router.post("create", "#controllers/archive_controller.create");
 
-    // probably not having an option to delete the telemetry data might be a good idea instead
+    // Preventing unauthorized data deletion is a good idea
     router.delete("delete/:id", "#controllers/archive_controller.delete").use([middleware.auth()]);
 
-    // endpoint to get data between two timestamps
+    // Get data between two timestamps
     router.get("getBetween", "#controllers/archive_controller.getBetween").use([middleware.auth()]);
 
-    // get data coresponding to the latest timestamp entry
+    // Get latest telemetry data
     router.get("getLatest", "#controllers/archive_controller.getLatest").use([middleware.auth()]);
 
-    // TODO: maybe we need an api endpoint which returns paginated data
+    // Pagination for large datasets
     router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);
+
+    // Get property data between timestamps
+    router.get("getPropertyDataBetween", "#controllers/archive_controller.getPropertyDataBetween").use([middleware.auth()]);
   })
   .prefix("archive");
-// i dont think it is necessary to provide APIs to edit a property row in telemetry data
 
-// notificatons
-
-// should notifications be generated on the backend?
-// generating it on the frontend and then sending them over to the backend seems like a bad idea.
-// when data is posted to the `create` endpoint under the `archive` group, we can generate notifications
-// and then save them in the database. when the notification is generated and saved into the database,
-// we can then generate a server side event and notify the frontend that notification has been generated
-
-// notification type apis
-router
+  router
   .group(() => {
     router.get("getAll", "#controllers/notification_type_controller.getAll");
     router.post("create", "#controllers/notification_type_controller.create");
@@ -115,12 +99,10 @@ router
   })
   .prefix("notificationType");
 
-// notification apis
-router
+  router
   .group(() => {
     router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
     router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
-
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
   })
@@ -142,3 +124,4 @@ router
     });
   })
   .prefix("rul");
+
