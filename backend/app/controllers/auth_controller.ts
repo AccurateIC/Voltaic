@@ -33,6 +33,43 @@ export default class AuthController {
     await auth.use("web").login(user);
   }
 
+  async googleRedirect({ ally }: HttpContext) {
+    return ally.use("google").redirect();
+  }
+  async googleCallback({ ally, auth, response }: HttpContext) {
+    const goog = ally.use("google");
+
+    if (goog.accessDenied()) return "You have cancelled the login process";
+    if (goog.stateMisMatch()) return "We are unable to verify the request. Please try again";
+    if (goog.hasError()) return goog.getError();
+
+    const googUser = await goog.user();
+    console.log("GOOGLE", googUser);
+
+    // save user data to database and
+    // navigate to login page
+
+    let user;
+
+    // see if user already exists in database
+    const existingUser: User | null = await User.findBy("email", googUser.email);
+
+    if (existingUser !== null) {
+      await auth.use("web").login(existingUser);
+    } else {
+      const userData = await createUserValidator.validate({
+        email: googUser.email,
+        password: "12345",
+        firstName: googUser.name?.split(" ")[0],
+        roleId: 1,
+        isActive: 1,
+      });
+      user = await User.create(userData);
+      await auth.use("web").login(user);
+    }
+    return response.redirect("http://localhost:5173/engine");
+  }
+
   async githubRedirect({ ally }: HttpContext) {
     return ally.use("github").redirect();
   }

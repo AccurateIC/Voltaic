@@ -29,6 +29,8 @@ router
   .group(() => {
     router.get("/github/redirect", "#controllers/auth_controller.githubRedirect");
     router.get("/github/callback", "#controllers/auth_controller.githubCallback");
+    router.get("/google/redirect", "#controllers/auth_controller.googleRedirect");
+    router.get("/google/callback", "#controllers/auth_controller.googleCallback");
 
     router.get("isAuthenticated", "#controllers/auth_controller.isAuthenticated");
     router.get("getActive", "#controllers/auth_controller.getActive");

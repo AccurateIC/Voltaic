@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
-import GoogleIcon from "../assets/google-g-logo.svg";
-import GithubIcon from "../assets/github-mark.svg";
 import Logo from "../assets/accurate.svg";
 import { useNavigate } from "react-router";
 import BackImage from "../assets/back.svg";
-import { FaGithub } from "react-icons/fa6";
+import { FaGithub, FaGoogle } from "react-icons/fa6";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
-  <label className="floating-label w-full">
-    <span>{label}</span>
+  <div className="form-control w-full">
+    <label className="label">
+      <span className="label-text text-base-content">{label}</span>
+    </label>
     <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       required
-      className="input input-md w-full p-3 rounded-md border border-gray-300 text-base-content focus:outline-none focus:ring-2 focus:ring-[#B1D5BD]"
+      className="input input-bordered w-full bg-base-100/50 backdrop-blur-sm text-base-content"
     />
-  </label>
+  </div>
 );
 
 const Login = () => {
@@ -161,90 +161,108 @@ const Login = () => {
     window.location.assign("http://localhost:3333/auth/github/redirect");
   };
 
+  const handleGoogleSignIn = () => {
+    window.location.assign("http://localhost:3333/auth/google/redirect");
+  };
+
   return (
-    <div className="h-screen w-full flex relative">
-      <div className="w-full sm:w-[40%] md:w-[35%] lg:w-[30%] h-full flex flex-col justify-center items-center bg-[#B1D5BD] p-4"></div>
-
-      <div
-        className="hidden sm:block w-[70%] h-full bg-cover bg-center"
-        style={{ backgroundImage: `url(${BackImage})` }}></div>
-
-      <div className="absolute left-1/3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-base-200 p-10 rounded-xl shadow-lg">
-        <div className="flex justify-center mb-6">
-          <img src={Logo} alt="AccurateIC Logo" className="w-[180px] sm:w-[200px] h-auto" />
+    <div className="min-h-screen w-full flex relative bg-base-200">
+      {/* Left Panel */}
+      <div className="hidden md:flex w-full bg-primary/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url(${BackImage})` }} />
+        <div className="relative z-10 w-full flex flex-col justify-center items-center p-8">
+          <div className="max-w-md text-center"></div>
         </div>
+      </div>
 
-        <form onSubmit={handleAuth}>
-          <fieldset className="fieldset gap-5 flex flex-col">
-            {isSignUp && (
-              <>
-                <InputField
-                  label="First Name"
-                  type="text"
-                  placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-                <InputField
-                  label="Last Name"
-                  type="text"
-                  placeholder="Last Name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-              </>
-            )}
-            <InputField
-              label="Email"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <InputField
-              label="Password"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+      {/* Right Panel - Login Form */}
+      <div className="w-full md:w-1/2 bg-success/5 flex items-center justify-center p-4">
+        <div className="card w-full max-w-md bg-base-100 shadow-xl">
+          <div className="card-body">
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <img src={Logo} alt="AccurateIC Logo" className="w-48 h-auto" />
+            </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-center mt-4">
+            {/* Title */}
+            <h2 className="card-title text-2xl text-base-content font-bold text-center mb-6 justify-center">
+              {isSignUp ? "Create Account" : "Welcome Back"}
+            </h2>
+
+            {/* Form */}
+            <form onSubmit={handleAuth} className="space-y-4">
+              {isSignUp && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    label="First Name"
+                    type="text"
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                  <InputField
+                    label="Last Name"
+                    type="text"
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <InputField
+                label="Email"
+                type="email"
+                placeholder="example@mail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <InputField
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="btn rounded-md bg-[#B1D5BD] text-black hover:bg-[#9FC5AA] transition-all w-full py-3 text-lg">
+                className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content">
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
+            </form>
+
+            {/* Switch between SignUp and SignIn */}
+            <div className="divider text-base-content">OR</div>
+
+            {/* Social Login */}
+            <div className="flex flex-col gap-3">
+              {/*
+              <button
+                onClick={handleGithubSignIn}
+                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-300 hover:scale-95">
+                <FaGithub className="h-5 w-5" />
+                Continue with GitHub
+              </button>
+              */}
+
+              <button
+                onClick={handleGoogleSignIn}
+                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-100 hover:scale-99">
+                <FaGoogle className="h-5 w-5" />
+                Login with Google
+              </button>
             </div>
-          </fieldset>
-        </form>
 
-        {/* Switch between SignUp and SignIn */}
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-[#6D9886] hover:text-[#517e68] transition-all font-bold">
-            {isSignUp ? "Already have an account? Sign In" : "New here? Sign Up"}
-          </button>
-        </div>
-
-        {/* Uncomment for Social Media Login Options */}
-        <div className="flex items-center justify-center gap-6 my-4">
-          {/* <button
-            className="btn btn-square flex items-center justify-center w-12 h-12 bg-white border border-gray-300 rounded-full"
-            onClick={handleGoogleSignIn}>
-            <img src={GoogleIcon} alt="Google Logo" className="w-6 h-6" />
-          </button> */}
-          {/* <button
-            className="btn btn-square flex items-center justify-center w-12 h-12 bg-white border border-gray-300 rounded-full"
-            onClick={handleGithubSignIn}>
-            <img src={GithubIcon} alt="GitHub Logo" className="w-6 h-6" />
-          </button> */}
-          <button className="btn btn-soft flex" onClick={handleGithubSignIn}>
-            <FaGithub />
-            Login with GitHub
-          </button>
+            {/* Account Switch Link */}
+            <div className="text-center mt-4">
+              <button onClick={() => setIsSignUp(!isSignUp)} className="link link-primary">
+                {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
