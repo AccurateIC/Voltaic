@@ -1,9 +1,9 @@
 import { createArchiveValidator, getArchiveDataBetweenValidator, getPaginatedDataValidator } from "#validators/archive";
 import Archive from "#models/archive";
+import Notification from "#models/notification";
 import GensetProperty from "#models/genset_property";
 import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
-import Notification from "#models/notification";
 import db from "@adonisjs/lucid/services/db";
 
 export default class ArchiveController {
@@ -268,5 +268,11 @@ export default class ArchiveController {
 
   async delete({ response }: HttpContext) {
     response.status(400).send({ message: "Not Implemented" });
+  }
+
+  async deleteAll({}: HttpContext) {
+    const notifications = await Notification.query().delete();
+    const archive = await Archive.query().delete();
+    return archive;
   }
 }
