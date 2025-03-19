@@ -5,6 +5,7 @@ import GithubIcon from "../assets/github-mark.svg";
 import Logo from "../assets/accurate.svg";
 import { useNavigate } from "react-router";
 import BackImage from "../assets/back.svg";
+import { FaGithub } from "react-icons/fa6";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
   <label className="floating-label w-full">
@@ -91,6 +92,64 @@ const Login = () => {
       console.log(isSignUp ? "User registered:" : "User logged in:", response);
       toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
 
+      // ##################################################################
+
+      // TEMPORARY: delete data from archive and notification table on login
+      const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to reset archive table`);
+      }
+
+      toast.success("Data Reset");
+      console.log(delResponse);
+
+      // TEMPORARY: send request to ML models to notify which user has logged in
+      // fetch logged in user details
+      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const user = await loggedInUser.json();
+      console.log(user);
+      //const sendLoggedInUserDetails = await fetch()
+
+      // send to anomaly detection server
+      const sendUserToAnomalyServerResponse = await fetch(`${import.meta.env.VITS_ANOMALY_BACKEND}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!sendUserToAnomalyServerResponse.ok) {
+        toast.error("Failed to send user details to anomaly server");
+      }
+      // send to pdm server
+      const sendUserToPdmServerResponse = await fetch(`${import.meta.env.VITS_PDM_BACKEND}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!sendUserToPdmServerResponse.ok) {
+        toast.error("Failed to send user details to anomaly server");
+      }
+      // send to rul server
+      const sendUserToRulServerResponse = await fetch(`${import.meta.env.VITS_RUL_BACKEND}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!sendUserToRulServerResponse.ok) {
+        toast.error("Failed to send user details to anomaly server");
+      }
+
+      // ##################################################################
+
       navigate("/engine");
     } catch (error) {
       console.error(isSignUp ? "Error creating account:" : "Error logging in:", error);
@@ -98,14 +157,8 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google sign-in clicked");
-    toast.error("Google sign-in functionality not implemented");
-  };
-
   const handleGithubSignIn = () => {
-    console.log("GitHub sign-in clicked");
-    toast.error("GitHub sign-in functionality not implemented");
+    window.location.assign("http://localhost:3333/auth/github/redirect");
   };
 
   return (
@@ -116,7 +169,7 @@ const Login = () => {
         className="hidden sm:block w-[70%] h-full bg-cover bg-center"
         style={{ backgroundImage: `url(${BackImage})` }}></div>
 
-      <div className="absolute left-1/3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-100 p-6 rounded-xl shadow-lg w-full sm:w-[350px] lg:w-[350px] lg:h-[390px] 2xl:w-[400px] 2xl:h-[450px] shadow-md">
+      <div className="absolute left-1/3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-base-200 p-10 rounded-xl shadow-lg">
         <div className="flex justify-center mb-6">
           <img src={Logo} alt="AccurateIC Logo" className="w-[180px] sm:w-[200px] h-auto" />
         </div>
@@ -177,20 +230,22 @@ const Login = () => {
         </div>
 
         {/* Uncomment for Social Media Login Options */}
-        {/* <div className="flex items-center gap-6 my-4">
-          <button
+        <div className="flex items-center justify-center gap-6 my-4">
+          {/* <button
             className="btn btn-square flex items-center justify-center w-12 h-12 bg-white border border-gray-300 rounded-full"
-            onClick={handleGoogleSignIn}
-          >
+            onClick={handleGoogleSignIn}>
             <img src={GoogleIcon} alt="Google Logo" className="w-6 h-6" />
-          </button>
-          <button
+          </button> */}
+          {/* <button
             className="btn btn-square flex items-center justify-center w-12 h-12 bg-white border border-gray-300 rounded-full"
-            onClick={handleGithubSignIn}
-          >
+            onClick={handleGithubSignIn}>
             <img src={GithubIcon} alt="GitHub Logo" className="w-6 h-6" />
+          </button> */}
+          <button className="btn btn-soft flex" onClick={handleGithubSignIn}>
+            <FaGithub />
+            Login with GitHub
           </button>
-        </div> */}
+        </div>
       </div>
     </div>
   );

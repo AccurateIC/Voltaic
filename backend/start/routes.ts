@@ -27,6 +27,9 @@ router.get("/", async () => {
 // auth
 router
   .group(() => {
+    router.get("/github/redirect", "#controllers/auth_controller.githubRedirect");
+    router.get("/github/callback", "#controllers/auth_controller.githubCallback");
+
     router.get("isAuthenticated", "#controllers/auth_controller.isAuthenticated");
     router.get("getActive", "#controllers/auth_controller.getActive");
     router.get("getAll", "#controllers/auth_controller.getAll");
@@ -93,6 +96,9 @@ router
 
     // TODO: maybe we need an api endpoint which returns paginated data
     router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);
+
+    // delete all entries in the `archive` table
+    router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
   })
   .prefix("archive");
 // i dont think it is necessary to provide APIs to edit a property row in telemetry data
