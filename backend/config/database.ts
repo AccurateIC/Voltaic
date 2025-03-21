@@ -1,25 +1,23 @@
-import app from "@adonisjs/core/services/app";
 import { defineConfig } from "@adonisjs/lucid";
+import env from "#start/env";
 
 const dbConfig = defineConfig({
-  connection: "sqlite",
+  connection: "postgres",
   connections: {
-    sqlite: {
-      client: "better-sqlite3",
+    postgres: {
+      client: "pg",
       connection: {
-        filename: app.tmpPath("db.sqlite3"),
+        host: env.get("DB_HOST"),
+        port: env.get("DB_PORT"),
+        user: env.get("DB_USER"),
+        password: env.get("DB_PASSWORD"),
+        database: env.get("DB_DATABASE"),
       },
-      useNullAsDefault: true,
       migrations: {
         naturalSort: true,
         paths: ["database/migrations"],
       },
-      pool: {
-        afterCreate: (conn, done) => {
-          conn.pragma("journal_mode = WAL");
-          done();
-        },
-      },
+      pool: { min: 0, max: 7 },
     },
   },
 });

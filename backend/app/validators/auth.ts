@@ -29,6 +29,6 @@ export const updateUserProfile = vine.compile(
   vine.object({
     email: vine.string().email(),
     firstName: vine.string().minLength(2),
-    lastName: vine.string().minLength(2),
+    lastName: vine.string().optional(),
   })
 );

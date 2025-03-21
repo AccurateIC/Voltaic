@@ -28,7 +28,7 @@ const Navbar = () => {
         });
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
-        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
+        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
         setNotifications(unreadNotifications);
       } catch (error) {
         console.error(error);
@@ -75,7 +75,7 @@ const Navbar = () => {
         });
         if (!response.ok) throw new Error("Fetch failed");
         const data = await response.json();
-        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === 1);
+        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
         setNotifications(unreadNotifications);
         notificationMessageBus({ time: Date.now(), message: "data inserted in notification table" });
       } catch (error) {
