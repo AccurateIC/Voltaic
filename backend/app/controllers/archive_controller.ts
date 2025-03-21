@@ -167,7 +167,7 @@ export default class ArchiveController {
     const data = payload.data;
 
     // begin sqlite transaction
-    return await db.transaction(async (trx) => {
+    const trxResult = await db.transaction(async (trx) => {
       try {
         // fetch all genset properties
         const propertyNames: string[] = data.map((element) => element.property);
@@ -187,10 +187,6 @@ export default class ArchiveController {
         // bulk insert archives
         const insertedArchives = await Archive.createMany(archiveData, { client: trx });
         // console.log("inserted archives", insertedArchives);
-        // Broadcast event
-        transmit.broadcast("archive", {
-          message: "new entry created",
-        });
 
         const activeNotifications = await Notification.query({ client: trx })
           .whereNull("finishedAt")
@@ -243,27 +239,40 @@ export default class ArchiveController {
         // bulk create new notifications and update existing ones
         if (newNotifications.length > 0) {
           await Notification.createMany(newNotifications, { client: trx });
-          transmit.broadcast("notification", {
-            message: "notification table updated",
-          });
+          // transmit.broadcast("notification", {
+          //   message: "notification table updated",
+          // });
         }
 
         for (const update of notificationUpdates) {
           await Notification.query({ client: trx })
             .where("id", update.id)
             .update({ finishedAt: update.finishedAt, shouldBeDisplayed: false });
-          transmit.broadcast("notification", {
-            message: "notification table updated",
-          });
+          // transmit.broadcast("notification", {
+          //   message: "notification table updated",
+          // });
         }
 
-        return insertedArchives;
+        return { insertedArchives, newNotifications, notificationUpdates };
       } catch (error) {
         // Log the error for debugging
         console.error("Transaction failed:", error);
         throw error; // Re-throw to trigger rollback
       }
     });
+
+    // broadcast after transaction completes
+    // Broadcast event
+    transmit.broadcast("archive", {
+      message: "new entry created",
+    });
+    if (trxResult.newNotifications.length > 0 || trxResult.notificationUpdates.length > 0) {
+      transmit.broadcast("notification", { message: "notification table updated" });
+    }
+
+    console.log(trxResult);
+
+    return trxResult;
   }
 
   async delete({ response }: HttpContext) {

@@ -8,6 +8,35 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       //   throw new Error();
+      // TEMPORARY
+      // ####################################
+      // fetch logged in user details
+      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const user = await loggedInUser.json();
+
+      // send to pdm server
+      try {
+        console.log("sending logout to pdm");
+        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...user, logged_in: false }),
+        });
+        if (!sendUserToPdmServerResponse.ok) {
+          toast.error("Failed to send user details to PDM server");
+        }
+        console.log("sent logout to pdm");
+      } catch (pdmErr) {
+        console.error(pdmErr);
+      }
+      // ####################################
+
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
         method: "POST",
         credentials: "include",

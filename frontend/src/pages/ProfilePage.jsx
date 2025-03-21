@@ -10,6 +10,8 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
     }));
   };
 
+  const handleDeleteAccount = () => {};
+
   return (
     <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
       <div>
@@ -69,10 +71,60 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
         />
         <p className="text-xs text-accent/70 mt-1">Role cannot be changed from profile settings</p>
       </div>
-      <div className="mt-4">
-        <button onClick={onSave} disabled={isLoading} className="btn btn-soft btn-primary w-full sm:w-auto">
+      <div className="mt-4 gap-4">
+        <button onClick={onSave} disabled={isLoading} className="btn btn-soft btn-primary w-full sm:w-auto m-2">
           {isLoading ? "Saving..." : "Save Changes"}
         </button>
+
+        {/* Delete Account */}
+        <button
+          className="btn btn-error btn-soft"
+          onClick={() => document.getElementById("delete_account_modal").showModal()}>
+          Delete Account
+        </button>
+        <dialog id="delete_account_modal" className="modal text-base-content">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Hello!</h3>
+            <p className="py-4">Press ESC key or click the button below to close</p>
+            <div className="modal-action">
+              <form method="dialog" className="flex gap-2">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn">Close</button>
+                <button
+                  onClick={async () => {
+                    console.log(userDetails);
+                    const response = await fetch(
+                      `${import.meta.env.VITE_ADONIS_BACKEND}/auth/hardDelete/${userDetails.id}`,
+                      {
+                        method: "DELETE",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                      }
+                    );
+                    if (!response.ok) {
+                      toast.error("Failed to delete account.");
+                      console.error(response.status, await response.json());
+                      return;
+                    } else {
+                      console.log("success");
+                      toast.success(`Account deleted successfully!`);
+                      localStorage.clear();
+                      sessionStorage.clear();
+                      // add a small delay to ensure the toast message is visible
+                      setTimeout(() => {
+                        window.location.href = "/login";
+                      }, 1500);
+                    }
+                  }}
+                  className="btn btn-error">
+                  Yes, I'm sure
+                </button>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </div>
     </fieldset>
   );
@@ -125,6 +177,7 @@ const Profile = () => {
 
       const userRole = roles.find((role) => role.id === userData.roleId);
       const updatedDetails = {
+        id: userData.id,
         firstName: userData.firstName || "",
         lastName: userData.lastName || "",
         email: userData.email || "",

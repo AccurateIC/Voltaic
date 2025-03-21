@@ -21,7 +21,7 @@ router.get("/sse", async () => {
 
 // index route
 router.get("/", async () => {
-  return { message: "voltaic server is live!" };
+  return { message: "neurogen server is live!" };
 });
 
 // auth
@@ -134,19 +134,9 @@ router
   })
   .prefix("notification");
 
+// PDM
 router
   .group(() => {
     router.post("create", "#controllers/pdm_controller.create");
   })
   .prefix("pdm");
-
-router
-  .group(() => {
-    router.get("test", async () => {
-      const rul = Math.random() * 10000;
-      const predictedHealthIndex = Math.random();
-
-      return { Remaining_Useful_Life: rul, Predicted_Health_Index: predictedHealthIndex };
-    });
-  })
-  .prefix("rul");

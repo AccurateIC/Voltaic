@@ -108,7 +108,6 @@ const Login = () => {
       }
 
       toast.success("Data Reset");
-      console.log(delResponse);
 
       // TEMPORARY: send request to ML models to notify which user has logged in
       // fetch logged in user details
@@ -120,32 +119,52 @@ const Login = () => {
         credentials: "include",
       });
       const user = await loggedInUser.json();
-      console.log(user);
-      //const sendLoggedInUserDetails = await fetch()
 
       // send to anomaly detection server
-      const sendUserToAnomalyServerResponse = await fetch(`${import.meta.env.VITS_ANOMALY_BACKEND}/user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!sendUserToAnomalyServerResponse.ok) {
-        toast.error("Failed to send user details to anomaly server");
+      try {
+        console.log("sending to anomaly server");
+        console.log(import.meta.env.VITE_ANOMALY_BACKEND);
+        const sendUserToAnomalyServerResponse = fetch(`${import.meta.env.VITE_ANOMALY_BACKEND}/user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(user),
+        });
+        console.log(":::");
+        if (!sendUserToAnomalyServerResponse.ok) {
+          toast.error("Failed to send user details to Anomaly server");
+        }
+      } catch (anomalyErr) {
+        console.error(anomalyErr);
       }
+
       // send to pdm server
-      const sendUserToPdmServerResponse = await fetch(`${import.meta.env.VITS_PDM_BACKEND}/user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!sendUserToPdmServerResponse.ok) {
-        toast.error("Failed to send user details to anomaly server");
+      try {
+        console.log("sending to pdm");
+        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...user, logged_in: true }),
+        });
+        if (!sendUserToPdmServerResponse.ok) {
+          toast.error("Failed to send user details to PDM server");
+        }
+        console.log("sent to pdm");
+      } catch (pdmErr) {
+        console.error(pdmErr);
       }
+
       // send to rul server
-      const sendUserToRulServerResponse = await fetch(`${import.meta.env.VITS_RUL_BACKEND}/user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!sendUserToRulServerResponse.ok) {
-        toast.error("Failed to send user details to anomaly server");
+      try {
+        const sendUserToRulServerResponse = fetch(`${import.meta.env.VITS_RUL_BACKEND}/user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(user),
+        });
+        if (!sendUserToRulServerResponse.ok) {
+          toast.error("Failed to send user details to RUL server");
+        }
+      } catch (rulErr) {
+        console.error(rulErr);
       }
 
       // ##################################################################
@@ -242,7 +261,7 @@ const Login = () => {
               {/*
               <button
                 onClick={handleGithubSignIn}
-                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-300 hover:scale-95">
+                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-300">
                 <FaGithub className="h-5 w-5" />
                 Continue with GitHub
               </button>
@@ -250,7 +269,7 @@ const Login = () => {
 
               <button
                 onClick={handleGoogleSignIn}
-                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-100 hover:scale-99">
+                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-100">
                 <FaGoogle className="h-5 w-5" />
                 Login with Google
               </button>

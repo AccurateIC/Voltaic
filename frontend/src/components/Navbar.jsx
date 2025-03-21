@@ -8,6 +8,8 @@ import { TransmitChannels } from "../lib/TransmitChannels.js";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.js";
 
+import transmitConnection from "../lib/TransmitConnection";
+
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -15,7 +17,7 @@ const Navbar = () => {
   const notificationMessageBus = useMessageBus("notification");
   const pdmMessageBus = useMessageBus("pdm");
 
-  // Fetch initial notifications
+  // fetch initial notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -49,7 +51,7 @@ const Navbar = () => {
 
   // Subscribe to real-time notifications
   useEffect(() => {
-    const transmit = new Transmit({ baseUrl: import.meta.env.VITE_ADONIS_BACKEND });
+    const transmit = transmitConnection;
     const notificationSubscription = transmit.subscription(TransmitChannels.NOTIFICATION);
     const archiveSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
     const pdmSubscription = transmit.subscription(TransmitChannels.PDM);
@@ -65,6 +67,7 @@ const Navbar = () => {
 
     const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
       try {
+        console.log("new notificationssss");
         const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -109,7 +112,7 @@ const Navbar = () => {
       pdmUnsubscribe();
       console.log("Unsubscribed from pdm channel");
     };
-  }, [archiveMessageBus, notificationMessageBus]);
+  }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
