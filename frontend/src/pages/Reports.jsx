@@ -388,7 +388,7 @@ export const Reports = () => {
             <EngineSpeedLineChart value={engineSpeedData} />
           </div>
 
-          <div className="min-h-[400px] bg-base-200">
+          <div className="min-h-[400px] bg-base-200">.....................
             <GeneratorCurrentLineChart value={currentData} />
           </div>
 

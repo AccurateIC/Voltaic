@@ -14,7 +14,7 @@ export default class extends BaseSchema {
 
       // auth
       table.string("password").notNullable();
-
+ 
       // relationships
       table
         .integer("role_id") //
