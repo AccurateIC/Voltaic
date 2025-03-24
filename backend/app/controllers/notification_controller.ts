@@ -16,7 +16,7 @@ export default class NotificationController {
     console.log(params.id);
     const notification = await Notification.findOrFail(params.id);
     notification.shouldBeDisplayed = false;
-    notification.finishedAt = DateTime.now().toMillis();
+    notification.finishedAt = DateTime.now();
     await notification.save();
     return notification;
   }
