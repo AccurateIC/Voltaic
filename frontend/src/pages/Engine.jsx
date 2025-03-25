@@ -123,7 +123,7 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
   if (!fuelDetails[0]) fuelLevel = 0;
   else fuelLevel = fuelDetails[0].propertyValue;
 
-  const maxFuelLevel = 50;
+  const maxFuelLevel = 60;
   const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
 
   // Get fuel status color
@@ -139,22 +139,34 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
       <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col items-center">
         <h2 className="card-title text-base-content mb-4">Fuel Level</h2>
 
-        {/* Fuel gauge container */}
-        <div className="relative w-20 h-full bg-base-200 rounded-full border-2 border-base-content">
-          {/* Fuel level indicator */}
-          <div
-            className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
-            style={{ height: `${fuelLevelPercentage}%` }}>
-            {/* */}
+        <div className="flex flex-row items-center gap-4">
+          {/* Range Labels */}
+          <div className="flex flex-col justify-between h-170 text-base-content font-semibold text-sm">
+            <span>60L</span>
+            <span>50L</span>
+            <span>40L</span>
+            <span>30L</span>
+            <span>20L</span>
+            <span>10L</span>
+            <span>0L</span>
           </div>
 
-          {/* Fuel percentage text */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-base-content font-bold text-lg">{fuelLevel} L</span>
+          {/* Fuel Gauge Container */}
+          <div className="relative w-20 h-170 bg-base-200 rounded-full border-2 border-base-content">
+            {/* Fuel Level Indicator */}
+            <div
+              className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
+              style={{ height: `${fuelLevelPercentage}%` }}
+            ></div>
+
+            {/* Fuel Percentage Text */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-base-content font-bold text-lg">{fuelLevel} L</span>
+            </div>
           </div>
         </div>
 
-        {/* Fuel status text */}
+        {/* Fuel Status Text */}
         <p className="mt-4 text-base-content font-semibold">
           {fuelLevelPercentage >= 75
             ? "Full"
@@ -169,82 +181,6 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
   );
 };
 
-const RadialFuelLevelIndicator = ({ fuelDetails }) => {
-  let fuelLevel;
-  if (!fuelDetails[0]) fuelLevel = 0;
-  else fuelLevel = fuelDetails[0].propertyValue;
-
-  const maxFuelLevel = 50;
-  const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
-
-  // Calculate the circle's properties
-  const size = 200; // Size of the circle in pixels
-  const strokeWidth = 23; // Width of the progress bar
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (fuelLevelPercentage / 100) * circumference;
-
-  // Get fuel status color
-  const getFuelStatusColor = () => {
-    if (fuelLevelPercentage >= 75) return "stroke-success/30";
-    if (fuelLevelPercentage >= 40) return "stroke-warning/30";
-    if (fuelLevelPercentage >= 20) return "stroke-orange-500/30";
-    return "stroke-error/30";
-  };
-
-  return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col items-center">
-        <h2 className="card-title text-base-content mb-4">Fuel Level</h2>
-
-        {/* Radial Progress Container */}
-        <div className="relative">
-          {/* SVG for the radial progress */}
-          <svg className={`transform -rotate-90 w-[250px] h-[250px]`} viewBox={`0 0 ${size} ${size}`}>
-            {/* Background circle */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              className="stroke-base-200"
-              strokeWidth={strokeWidth}
-              fill="none"
-            />
-
-            {/* Progress circle */}
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              className={`${getFuelStatusColor()} transition-all duration-300 ease-in-out`}
-              strokeWidth={strokeWidth}
-              fill="none"
-              strokeLinecap="round"
-              style={{
-                strokeDasharray: circumference,
-                strokeDashoffset: strokeDashoffset,
-              }}
-            />
-          </svg>
-
-          {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-base-content">{fuelLevelPercentage}%</span>
-            <span className="text-base-content font-semibold mt-2">
-              {fuelLevelPercentage >= 75
-                ? "Full"
-                : fuelLevelPercentage >= 40
-                ? "Medium"
-                : fuelLevelPercentage >= 20
-                ? "Low"
-                : "Critical"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Engine = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -301,9 +237,9 @@ const Engine = () => {
                 </Panel>
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
-                  <RadialFuelLevelIndicator
+                  {/* <RadialFuelLevelIndicator
                     fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
-                  />
+                  /> */}
                 </Panel>
               </PanelGroup>
             </Panel>

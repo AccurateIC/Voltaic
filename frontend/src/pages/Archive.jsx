@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
+import * as XLSX from "xlsx";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -98,6 +99,11 @@ const Archive = () => {
         <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
           Reset Filters
         </button>
+        <div>
+          <button onClick={() => handleExport("excel")} className="btn btn-sm btn-outline m-2">
+            Export to Excel
+          </button>
+        </div>
       </div>
       {/* Notification Table */}
       <div className="flex-1 rounded-box shadow-lg bg-base-content text-base-200 overflow-hidden">

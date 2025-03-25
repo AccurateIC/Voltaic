@@ -17,6 +17,7 @@
     "@mui/x-charts": "^7.28.0",
     "@tailwindcss/vite": "^4.0.14",
     "date-fns": "^4.1.0",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.482.0",
     "luxon": "^3.5.0",
     "motion": "^12.5.0",

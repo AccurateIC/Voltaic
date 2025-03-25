@@ -88,7 +88,7 @@ const RUL = () => {
           </button>
         </div>
       </div>
-      <div className="flex flex-col h-4/5">
+      <div className="flex flex-col h-5/5">
         <RulChart apiPoint={apiPoint} />
       </div>
       <div className="flex flex-col flex-1/5 sm:flex-row gap-4">
@@ -98,12 +98,12 @@ const RUL = () => {
             <div className="stat-value text-base-content">{Math.round(apiPoint.Remaining_Useful_Life)} hours</div>
           </div>
         </div>
-        <div className="stats shadow flex-1 items-center justify-center bg-base-200">
+        {/* <div className="stats shadow flex-1 items-center justify-center bg-base-200">
           <div className="stat m-2">
             <div className="stat-title text-4xl sm:text-2xl">Predicted Health Index</div>
             <div className="stat-value text-base-content">{Math.round(apiPoint.Predicted_Health_Index * 100) / 100}</div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
