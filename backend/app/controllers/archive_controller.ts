@@ -56,6 +56,20 @@ export default class ArchiveController {
     return archiveData;
   }
 
+  async getPropertyDataBetween({ request }: HttpContext) {
+    const queryParams = request.qs(); 
+    // Validate request parameters using Vine.js
+    // const data = await vine.validateUsing(getArchiveDataBetweenValidator, request.qs());
+    const data = await getArchiveDataBetweenValidator.validate(queryParams);
+
+    // Fetch property data between the specified timestamps
+    const propertyData = await Archive.query()
+      .whereBetween("timestamp", [data.from, data.to])
+      .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+
+    return propertyData;
+  }
+
   async getLatest({}: HttpContext) {
     const latestArchiveEntry = await Archive.query().orderBy("timestamp", "desc").limit(1);
     const latestTimestamp = latestArchiveEntry[0].timestamp;
