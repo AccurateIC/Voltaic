@@ -3,10 +3,24 @@ import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
+import TimePicker from "react-time-picker";
 
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
+  const [fromTime, setFromTime] = useState("10:00"); // Default from time
+  const [toTime, setToTime] = useState("18:00"); // Default to time
+
+  // Handle the change in 'from' time
+  const handleFromChange = (time) => {
+    setFromTime(time);
+  };
+
+  // Handle the change in 'to' time
+  const handleToChange = (time) => {
+    setToTime(time);
+  };
+
   const [notifications, setNotifications] = useState([]); // original notifications
   const [filteredNotifications, setFilteredNotifications] = useState([]); // filtered notifications
   const [isLoading, setIsLoading] = useState(true);
@@ -216,6 +230,18 @@ const Alarms = () => {
           </select>
         </div>
 
+        <div className="flex flex-row time-picker-container gap-2 ">
+          <div className="flex  time-picker">
+            <label>From : </label>
+            <input aria-label="Time" type="time" />
+          </div>
+
+          <div className="flex time-picker  ">
+            <label>To : </label>
+            <input aria-label="Time" type="time" />
+          </div>
+        </div>
+
         <button className="btn btn-primary btn-outline text-base-200 font-semibold" onClick={handleResetFilters}>
           Reset
         </button>
@@ -247,7 +273,9 @@ const Alarms = () => {
                 <td>
                   <button
                     onClick={() => handleEntryResolution(entry.id)}
-                    className={`btn btn-outline btn-info ${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"}`}>
+                    className={`btn btn-outline btn-info ${
+                      entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
+                    }`}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

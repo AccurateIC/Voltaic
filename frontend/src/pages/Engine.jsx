@@ -300,9 +300,14 @@ const Engine = () => {
                   />
                 </Panel>
                 <PanelResizeHandle />
-                <Panel defaultSize={50}>
+                {/* <Panel defaultSize={50}>
                   <RadialFuelLevelIndicator
                     fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
+                  />
+                </Panel> */}
+                 <Panel>
+                  <OilPressureCard
+                    oilPressureDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")}
                   />
                 </Panel>
               </PanelGroup>
@@ -312,11 +317,7 @@ const Engine = () => {
             {/* */}
             <Panel>
               <PanelGroup direction="horizontal" className="gap-1">
-                <Panel>
-                  <OilPressureCard
-                    oilPressureDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")}
-                  />
-                </Panel>
+               
                 <PanelResizeHandle />
                 <Panel>
                   <ChargeAltVoltageCard

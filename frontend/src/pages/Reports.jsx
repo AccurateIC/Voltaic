@@ -5,7 +5,9 @@ import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltage
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
+import { PDMLineChart } from "../components/charts/PDMLineChart";
 import { useMessageBus } from "../lib/MessageBus";
+import { FaFilter } from "react-icons/fa";
 
 export const Reports = () => {
   const [stats, setStats] = useState({
@@ -32,9 +34,16 @@ export const Reports = () => {
     chargeAltVoltsIsAnomaly: true,
   });
 
-  const [showProperties, setShowProperties] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
-  // const [selectedTimeRange, setSelectedTimeRange] = useState("01 Day");
+  const [selectedProperties, setSelectedProperties] = useState([
+    "Engine Fuel Level",
+    "Engine Speed",
+    "Generator Current",
+    "Generator Voltage",
+    "Oil Pressure",
+    "Battery Charge",
+    "PDM",
+  ]); // Now an array to support multi-select
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -84,7 +93,7 @@ export const Reports = () => {
       });
       const data = await response.json();
       console.log(data.length);
-      console.log("data responde", data);
+      console.log("data response", data);
 
       if (response.ok) {
         const l1Voltage =
@@ -308,18 +317,12 @@ export const Reports = () => {
         time: new Date(item.timestamp).toLocaleTimeString(),
         engineSpeed: item.propertyValue,
         engSpeedDisplayIsAnomaly: item.isAnomaly,
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        engineSpeed: item.propertyValue,
-        engSpeedDisplayIsAnomaly: item.isAnomaly,
       }));
       setEngineSpeedData(newData4);
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
       const newData = stats.oilPress.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        oilPressure: item.propertyValue,
-        oilPressureIsAnomaly: item.isAnomaly,
         time: new Date(item.timestamp).toLocaleTimeString(),
         oilPressure: item.propertyValue,
         oilPressureIsAnomaly: item.isAnomaly,
@@ -345,66 +348,116 @@ export const Reports = () => {
     getReportData();
   }, [selectedTimeRange]);
 
-  const handleTimefilter = (e) => {
-    console.log("time from onClick", e.target.value);
-    setSelectedTimeRange(e.target.value);
+  const propertyOptions = [
+    { value: "Engine Fuel Level", label: "Engine Fuel Level" },
+    { value: "Engine Speed", label: "Engine Speed" },
+    { value: "Generator Current", label: "Generator Current" },
+    { value: "Generator Voltage", label: "Generator Voltage" },
+    { value: "Oil Pressure", label: "Oil Pressure" },
+    { value: "Battery Charge", label: "Battery Charge" },
+    { value: "PDM", label: "PDM" },
+  ];
+
+  const handlePropertyChange = (propertyValue) => {
+    setSelectedProperties((prev) => {
+      if (prev.includes(propertyValue)) {
+        return prev.filter((item) => item !== propertyValue);
+      } else {
+        return [...prev, propertyValue];
+      }
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProperties.length === propertyOptions.length) {
+      setSelectedProperties([]);
+    } else {
+      setSelectedProperties(propertyOptions.map((option) => option.value));
+    }
   };
 
   return (
     <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
-        <div className="relative w-full md:w-auto">
-          <button
-            onClick={() => setShowProperties(!showProperties)}
-            className="bg-white px-15 py-1.5 text-sm 2xl:text-xl text-black font-bold rounded-md w-full md:w-auto shadow-[inset_4px_4px_10px_0px_#00000040] flex justify-between items-center">
-            Properties ▼
-          </button>
-          {showProperties && (
-            <div className="absolute mt-1 bg-gray-800 p-4 shadow-md rounded-md w-45 z-10">
-              <ul className="text-white">
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 1</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 2</li>
-                <li className="p-2 hover:bg-gray-700 cursor-pointer">Property 3</li>
-              </ul>
+        <div className="flex items-center">
+          <div className="w-40 font-semibold text-xl">Property Name:</div>
+          <div className="dropdown dropdown-bottom">
+            <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+              <FaFilter className="mr-2" />
+              {selectedProperties.length > 0 ? `${selectedProperties.length} selected` : "Select properties"}
             </div>
-          )}
+            <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+              <div className="form-control">
+                <label className="label cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-primary "
+                    checked={selectedProperties.length === propertyOptions.length}
+                    onChange={toggleSelectAll}
+                  />
+                  <span className="label-text">Select All</span>
+                </label>
+              </div>
+              {propertyOptions.map((option) => (
+                <div key={option.value} className="form-control">
+                  <label className="label cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-primary"
+                      checked={selectedProperties.includes(option.value)}
+                      onChange={() => handlePropertyChange(option.value)}
+                    />
+                    <span className="label-text">{option.label}</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        <select className="select select-neutral text-base-content" value={selectedTimeRange} onChange={handleTimefilter}>
-          <option value="15 Minutes">15 Minutes</option>
-          <option value="30 Minutes">30 Minutes</option>
-          <option value="01 Hour">01 Hour</option>
-          <option value="01 Day">01 Day</option>
-        </select>
       </div>
 
       <div className="py-5">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)] ">
-          <div className="min-h-[400px] bg-base-200 ">
-            <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
+          {selectedProperties.includes("Engine Fuel Level") && (
+            <div className="min-h-[400px] bg-base-200">
+              <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
+            </div>
+          )}
+          {selectedProperties.includes("Engine Speed") && (
+            <div className="min-h-[400px] bg-base-200">
+              <EngineSpeedLineChart value={engineSpeedData} />
+            </div>
+          )}
+          {selectedProperties.includes("Generator Current") && (
+            <div className="min-h-[400px] bg-base-200">
+              <GeneratorCurrentLineChart value={currentData} />
+            </div>
+          )}
+          {selectedProperties.includes("Generator Voltage") && (
+            <div className="min-h-[400px] bg-base-200">
+              <GeneratorVoltageLineChart value={voltageData} />
+            </div>
+          )}
+          {selectedProperties.includes("Oil Pressure") && (
+            <div className="min-h-[400px] bg-base-200">
+              <OilPressureLineChart value={oilPressureData} />
+            </div>
+          )}
+          {selectedProperties.includes("Battery Charge") && (
+            <div className="min-h-[400px] bg-base-200">
+              <BatteryChargeLineChart value={batteryData} />
+            </div>
+          )}
 
-          <div className="min-h-[400px] bg-base-200">
-            <EngineSpeedLineChart value={engineSpeedData} />
-          </div>
-
-          <div className="min-h-[400px] bg-base-200">
-            <GeneratorCurrentLineChart value={currentData} />
-          </div>
-
-          <div className="min-h-[400px] bg-base-200">
-            <GeneratorVoltageLineChart voltageData={voltageData} />
-          </div>
-
-          <div className="min-h-[400px] bg-base-200">
-            <OilPressureLineChart value={oilPressureData} />
-          </div>
-
-          <div className="min-h-[400px] bg-base-200">
-            <BatteryChargeLineChart value={batteryData} />
-          </div>
+          {selectedProperties.includes("PDM") && (
+            <div className="min-h-[400px] bg-base-200">
+              <PDMLineChart />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+export default Reports;

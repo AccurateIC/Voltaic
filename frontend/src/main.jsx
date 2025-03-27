@@ -3,7 +3,7 @@ import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";
 import Layout from "./components/Layout.jsx";
 import Anomalies from "./pages/Anomalies.jsx";
-import { Reports } from "./pages/Reports.jsx";
+import Reports from "./pages/Reports.jsx";
 import Vibration from "./pages/Vibration.jsx";
 import Maintenance from "./pages/Maintenance.jsx";
 import { Generator } from "./pages/Generator.jsx";
