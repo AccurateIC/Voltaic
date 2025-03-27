@@ -9,7 +9,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={fuelLevelData} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
+            <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Fuel Level (%)",
@@ -35,6 +35,11 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
               name="Fuel Level"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
+            />
+              <Line
+              stroke="#ff0000"
+              name="Anomaly"
+              strokeWidth={2}
             />
           </LineChart>
         </ResponsiveContainer>

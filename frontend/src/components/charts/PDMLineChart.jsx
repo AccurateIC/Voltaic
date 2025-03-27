@@ -14,7 +14,7 @@ export const PDMLineChart = () => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+            <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Vibration Acceleration (g) ",

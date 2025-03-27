@@ -4,13 +4,13 @@ import renderCustomDot from "./renderCustomDot";
 export const BatteryChargeLineChart = ({ value }) => {
   return (
     <div className="h-[400px] w-full relative">
-      <h2 className="text-lg font-semibold p-4">Battery Charge Monitor</h2>
+      <h2 className="text-lg font-semibold p-4  text-black">Battery Charge Monitor</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+            <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }}/>
             <YAxis
               label={{
                 value: "Voltage (V)",
@@ -45,6 +45,11 @@ export const BatteryChargeLineChart = ({ value }) => {
               name="Charge Alternator Voltage"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.chargeAltVoltsIsAnomaly)}
+            />
+              <Line
+              stroke="#ff0000"
+              name="Anomaly"
+              strokeWidth={2}
             />
           </LineChart>
         </ResponsiveContainer>
