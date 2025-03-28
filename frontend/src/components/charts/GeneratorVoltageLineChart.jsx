@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 export const GeneratorVoltageLineChart = ({ voltageData }) => {
   return (
     <div className="h-[400px] w-full relative">
-      <h2 className="text-lg font-semibold p-4">Generator Voltage Monitor</h2>
+      <h2 className="text-lg font-semibold p-4 text-base-content">Generator Voltage Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={voltageData} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
