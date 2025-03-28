@@ -12,7 +12,7 @@ export default class extends BaseSeeder {
       { propertyName: "engBatteryVolts", physicalQuantityId: 1 },
       { propertyName: "engSpeedDisplay", physicalQuantityId: 3 },
       { propertyName: "engFuelConsumption", physicalQuantityId: 6 },
-      { propertyName: "engineFuelLevelUnits", physicalQuantityId: 6 },
+      { propertyName: "engFuelLevelUnits", physicalQuantityId: 6 },
 
       { propertyName: "genL1Current", physicalQuantityId: 2 },
       { propertyName: "genL2Current", physicalQuantityId: 2 },
@@ -23,6 +23,7 @@ export default class extends BaseSeeder {
       { propertyName: "genL1L2Volts", physicalQuantityId: 1 },
       { propertyName: "genL2L3Volts", physicalQuantityId: 1 },
       { propertyName: "genL3L1Volts", physicalQuantityId: 1 },
+      { propertyName: "genTotalVA", physicalQuantityId: 1 },
 
       { propertyName: "mainsL1Current", physicalQuantityId: 2 },
       { propertyName: "mainsL2Current", physicalQuantityId: 2 },
