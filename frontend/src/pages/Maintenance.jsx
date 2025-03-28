@@ -3,13 +3,16 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { Transmit } from "@adonisjs/transmit-client";
-import { TransmitChannels } from "../lib/TransmitChannels.js";
 import { useMessageBus } from "../lib/MessageBus.js";
+import { cn } from "../lib/Utils.js";
 
-const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
+const StatusCard = ({ isLoading, title, isError, errorMessage, disabled }) => {
   return (
-    <div className="bg-base-200 w-full h-18 shadow-sm flex flex-row text-base-content rounded items-center p-4">
+
+    <div className={cn(
+      "w-full h-18 shadow-sm flex flex-row rounded items-center p-4",
+      disabled ? "text-gray-600 bg-gray-400" : "text-base-content bg-base-200"
+    )}>
       <div className="font-bold flex flex-row space-x-2">
         {isLoading ? (
           <>
@@ -19,17 +22,17 @@ const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
         ) : (
           <div>{title}</div>
         )}
-        {!isLoading && isError ? (
+        {!isLoading && isError && !disabled ? (
           <div className="tooltip tooltip-error" data-tip={errorMessage}>
             <XCircle className="text-error" />
           </div>
-        ) : !isLoading && !isError ? (
+        ) : !isLoading && !isError && !disabled ? (
           <div>
             <CheckCircle className="text-success" />
           </div>
         ) : null}
       </div>
-    </div>
+    </div >
   );
 };
 
@@ -53,43 +56,43 @@ const Maintenance = () => {
 
   useEffect(() => {
     console.log("pdm data changed", pdmData);
-    if (!pdmData) {
+    if (!pdmData || !pdmData.last_values) {
       toast.error("No Predictive Maintenance Data available.");
       return;
     }
-    if (pdmData.maintenance_needed === true) {
-      setIsPdmError(true);
-      setPdmErrorMessage("Problem detected in Vibration Frequency");
+    //if (pdmData.maintenance_needed === true) {
+    //  setIsPdmError(true);
+    //  setPdmErrorMessage("Problem detected in Vibration Frequency");
+    //} else {
+    //  setIsPdmError(false);
+    //}
 
-      // transform data for plotting graph
-      const numberOfLastValues = pdmData.last_values.accel_x.length;
-      const baseTimestamp = DateTime.fromISO(pdmData.time);
+    // transform data for plotting graph
+    const numberOfLastValues = pdmData.last_values.accel_x.length;
+    const baseTimestamp = DateTime.fromISO(pdmData.time);
 
-      // Create formatted data for the graph
-      const formattedData = [];
+    // Create formatted data for the graph
+    const formattedData = [];
 
-      // Add last_values data points
-      pdmData.last_values.accel_x.forEach((value, index) => {
-        formattedData.push({
-          timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
-          actual: value,
-          forecast: null,
-        });
+    // Add last_values data points
+    pdmData.last_values.accel_x.forEach((value, index) => {
+      formattedData.push({
+        timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
+        actual: value,
+        forecast: null,
       });
+    });
 
-      // Add forecasted_values data points
-      pdmData.forecasted_values.accel_x.forEach((value, index) => {
-        formattedData.push({
-          timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
-          actual: null,
-          forecast: value,
-        });
+    // Add forecasted_values data points
+    pdmData.forecasted_values.accel_x.forEach((value, index) => {
+      formattedData.push({
+        timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
+        actual: null,
+        forecast: value,
       });
+    });
 
-      setPdmDataForGraph(formattedData);
-    } else {
-      setIsPdmError(false);
-    }
+    setPdmDataForGraph(formattedData);
 
     setIsPdmLoading(false);
   }, [pdmData]);
@@ -105,13 +108,14 @@ const Maintenance = () => {
             title={`Vibration Frequency`}
             isError={isPdmError}
             errorMessage={pdmErrorMessage}
+            disabled={false}
           />
-          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} />
-          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} />
+          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} disabled={true} />
+          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} disabled={true} />
         </div>
       </div>
       <div>
-        {isPdmError && (
+        {pdmData && (
           <div className="mt-6 w-full h-128">
             <h3 className="text-xl font-semibold text-base-content">Analysis Graph</h3>
             <ResponsiveContainer width="100%" height="100%">
@@ -150,9 +154,6 @@ const Maintenance = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        )}
-        {!isPdmError && !isPdmLoading && (
-          <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
         )}
       </div>
     </>
