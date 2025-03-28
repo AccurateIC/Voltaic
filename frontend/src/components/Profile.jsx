@@ -35,6 +35,22 @@ const Profile = () => {
       } catch (pdmErr) {
         console.error(pdmErr);
       }
+
+      // send to rul server
+      try {
+        console.log("sending logout to rul");
+        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_RUL_BACKEND}/user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...user, logged_in: false }),
+        });
+        if (!sendUserToPdmServerResponse.ok) {
+          toast.error("Failed to send user details to PDM server");
+        }
+        console.log("sent logout to rul");
+      } catch (pdmErr) {
+        console.error(pdmErr);
+      }
       // ####################################
 
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
