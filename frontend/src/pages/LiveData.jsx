@@ -7,7 +7,7 @@ import { OilPressureLineChart } from "../components/charts/OilPressureLineChart"
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
 import { useMessageBus } from "../lib/MessageBus";
 
-export const Reports = () => {
+export const LiveData = () => {
   const [stats, setStats] = useState({
     l1Voltage: [],
     l2Voltage: [],
@@ -378,31 +378,29 @@ export const Reports = () => {
         </select>
       </div>
 
-      <div className="py-5">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)] ">
-          <div className="min-h-[400px] bg-base-200 ">
-            <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
-          </div>
+      <div className="py-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="bg-base-200 aspect-video">
+          <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
+        </div>
 
-          <div className="min-h-[400px] bg-base-200">
-            <EngineSpeedLineChart value={engineSpeedData} />
-          </div>
+        <div className="bg-base-200 aspect-video">
+          <EngineSpeedLineChart value={engineSpeedData} />
+        </div>
 
-          <div className="min-h-[400px] bg-base-200">
-            <GeneratorCurrentLineChart value={currentData} />
-          </div>
+        <div className="bg-base-200 aspect-video">
+          <GeneratorCurrentLineChart value={currentData} />
+        </div>
 
-          <div className="min-h-[400px] bg-base-200">
-            <GeneratorVoltageLineChart voltageData={voltageData} />
-          </div>
+        <div className="bg-base-200 aspect-video">
+          <GeneratorVoltageLineChart voltageData={voltageData} />
+        </div>
 
-          <div className="min-h-[400px] bg-base-200">
-            <OilPressureLineChart value={oilPressureData} />
-          </div>
+        <div className="bg-base-200 aspect-video">
+          <OilPressureLineChart value={oilPressureData} />
+        </div>
 
-          <div className="min-h-[400px] bg-base-200">
-            <BatteryChargeLineChart value={batteryData} />
-          </div>
+        <div className="bg-base-200 aspect-video">
+          <BatteryChargeLineChart value={batteryData} />
         </div>
       </div>
     </div>
