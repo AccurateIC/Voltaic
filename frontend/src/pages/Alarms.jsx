@@ -242,17 +242,7 @@ const Alarms = () => {
           </div>
         </div>
 
-        <div className="flex flex-row time-picker-container gap-2 ">
-          <div className="flex  time-picker">
-            <label>From : </label>
-            <input aria-label="Time" type="time" />
-          </div>
-
-          <div className="flex time-picker  ">
-            <label>To : </label>
-            <input aria-label="Time" type="time" />
-          </div>
-        </div>
+       
 
         <button className="btn btn-neutral text-base-200 font-semibold" onClick={handleResetFilters}>
           Reset
@@ -287,10 +277,10 @@ const Alarms = () => {
                     className={`btn btn-outline btn-info ${
                       entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
                     }`}>
-                    className={cn(
+                    className={(
                       "btn btn-outline btn-info",
                       `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
-                      }`)}>
+                      }`)}
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

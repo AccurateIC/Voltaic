@@ -546,4 +546,4 @@ export const LiveData = () => {
   );
 };
 
-export default Reports;
+export default LiveData;
