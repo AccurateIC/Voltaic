@@ -12,7 +12,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
             <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Fuel Level (%)",
+                value: "Fuel Level (Liter)",
                 angle: -90,
                 position: "insideLeft",
               }}

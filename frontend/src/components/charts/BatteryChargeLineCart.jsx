@@ -13,7 +13,7 @@ export const BatteryChargeLineChart = ({ value }) => {
             <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }}/>
             <YAxis
               label={{
-                value: "Voltage (V)",
+                value: "Voltage (Volts)",
                 angle: -90,
                 position: "insideLeft",
                 dy: 60,

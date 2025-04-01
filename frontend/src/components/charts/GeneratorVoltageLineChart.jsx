@@ -2,18 +2,18 @@ import React from "react";
 import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-export const GeneratorVoltageLineChart = ({ voltageData }) => {
+export const GeneratorVoltageLineChart = ({ value }) => {
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4  text-black">Generator Voltage</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={voltageData} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="1 1" />
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Voltage (V)",
+                value: "Voltage (Volts)",
                 angle: -90,
                 position: "insideLeft",
               }}

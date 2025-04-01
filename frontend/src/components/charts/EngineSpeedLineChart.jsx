@@ -4,7 +4,7 @@ import renderCustomDot from "./renderCustomDot";
 export const EngineSpeedLineChart = ({ value }) => {
   return (
     <div className="h-[400px] w-full relative">
-      <h2 className="text-lg font-semibold p-4  text-black">Engine Speed </h2>
+      <h2 className="text-lg font-semibold p-4">Engine Speed Monitor</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">

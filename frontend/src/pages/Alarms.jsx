@@ -90,7 +90,7 @@ const Alarms = () => {
         throw new Error(errorData.message || "Failed to fetch notification data");
       }
       const data = await response.json();
-      console.log("alarms", data);
+      // console.log("alarms", data);
       setNotifications(data);
     } catch (error) {
       console.error("Fetch error:", error);
