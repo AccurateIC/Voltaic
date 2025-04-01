@@ -12,9 +12,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
       viewBox="0 0 100 50"
       className="w-full h-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
       xmlns="http://www.w3.org/2000/svg">
-      {/* Background Arc */}
       <path d="M5,50 A45,45 0 0,1 95,50" fill="none" stroke="#e0e0e0" strokeWidth="10" />
-      {/* Foreground Arc */}
       <path
         className={`transition-all duration-300 ease-in-out`}
         d="M5,50 A45,45 0 0,1 95,50"
@@ -50,9 +48,9 @@ export const Mains = () => {
     mainsl2Current: 0,
     mainsl3Current: 0,
   });
+  const [phase, setPhase] = useState("3-phase");
 
   useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
       await getData();
     })();
@@ -83,56 +81,86 @@ export const Mains = () => {
   };
 
   useEffect(() => {
-    console.log("Engine page mount effect running");
     (async () => {
       await getData();
     })();
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L1 Voltage"}
-        value={stats.mainsl1Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L2 Voltage"}
-        value={stats.mainsl2Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L3 Voltage"}
-        value={stats.mainsl3Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L1 Current"}
-        value={stats.mainsl1Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L2 Current"}
-        value={stats.mainsl2Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L3 Current"}
-        value={stats.mainsl3Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
+    <div className="flex flex-col">
+      <div className="flex justify-center mb-4">
+        <button
+          onClick={() => setPhase("1-phase")}
+          className={`px-4 py-2 m-2 ${phase === "1-phase" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>1 Phase</button>
+        <button
+          onClick={() => setPhase("3-phase")}
+          className={`px-4 py-2 m-2 ${phase === "3-phase" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>3 Phase</button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-3 h-full">
+        {phase === "1-phase" ? (
+          <>
+            <SemiCircularStatCard
+              units="V"
+              title={"Mains L1 Voltage"}
+              value={stats.mainsl1Voltage}
+              maxValue={250}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="A"
+              title={"Mains L1 Current"}
+              value={stats.mainsl1Current}
+              maxValue={40}
+              color="#B1D5BD"
+            />
+          </>
+        ) : (
+          <>
+            <SemiCircularStatCard
+              units="V"
+              title={"Mains L1 Voltage"}
+              value={stats.mainsl1Voltage}
+              maxValue={250}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="V"
+              title={"Mains L2 Voltage"}
+              value={stats.mainsl2Voltage}
+              maxValue={250}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="V"
+              title={"Mains L3 Voltage"}
+              value={stats.mainsl3Voltage}
+              maxValue={250}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="A"
+              title={"Mains L1 Current"}
+              value={stats.mainsl1Current}
+              maxValue={40}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="A"
+              title={"Mains L2 Current"}
+              value={stats.mainsl2Current}
+              maxValue={40}
+              color="#B1D5BD"
+            />
+            <SemiCircularStatCard
+              units="A"
+              title={"Mains L3 Current"}
+              value={stats.mainsl3Current}
+              maxValue={40}
+              color="#B1D5BD"
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 };

@@ -30,10 +30,10 @@ const SideBar = () => {
       <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
       <SideBarLink to="/reports" name="Reports" Icon={FaFileAlt} />
       <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
-      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
       <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
       <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
+      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       {/* <SideBarLink to="/vibration" name="Vibration" Icon={GiVibratingBall} /> */}
     </ul>
   );

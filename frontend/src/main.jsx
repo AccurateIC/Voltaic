@@ -44,9 +44,9 @@ createRoot(document.getElementById("root")).render(
           <Route path="anomalies" element={<Anomalies />} />
           <Route path="alarms-backup" element={<AlarmsBackup />} />
           <Route path="alarms" element={<Alarms />} />
-          <Route path="archive" element={<Archive />} />
           <Route path="predictive-maintenance" element={<Maintenance />} />
           <Route path="rul" element={<RUL />} />
+          <Route path="archive" element={<Archive />} />
           <Route path="profile" element={<ProfilePage />} />
           {/* <Route path="vibration" element={<Vibration />} /> */}
         </Route>

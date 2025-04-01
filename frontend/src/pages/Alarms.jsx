@@ -204,19 +204,11 @@ const Alarms = () => {
               </option>
             ))}
           </select>
-
-          {/* Anomaly Status */}
-          <select
-            className="select select-neutral text-base-content"
-            value={filters.anomalyStatus}
-            onChange={handleAnomalyFilterChange}>
-            <option value="">Anomaly Status</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Unresolved">Unresolved</option>
-          </select>
         </div>
 
-        <button className="btn btn-primary btn-outline text-base-200 font-semibold" onClick={handleResetFilters}>
+        <button
+          className="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          onClick={handleResetFilters}>
           Reset
         </button>
       </div>
@@ -247,7 +239,9 @@ const Alarms = () => {
                 <td>
                   <button
                     onClick={() => handleEntryResolution(entry.id)}
-                    className={`btn btn-outline btn-info ${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"}`}>
+                    className={`btn btn-outline btn-info ${
+                      entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
+                    }`}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

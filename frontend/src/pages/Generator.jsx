@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
@@ -12,9 +12,7 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
       viewBox="0 0 100 50"
       className="w-full h-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
       xmlns="http://www.w3.org/2000/svg">
-      {/* Background Arc */}
       <path d="M5,50 A45,45 0 0,1 95,50" fill="none" stroke="#e0e0e0" strokeWidth="10" />
-      {/* Foreground Arc */}
       <path
         className={`transition-all duration-300 ease-in-out`}
         d="M5,50 A45,45 0 0,1 95,50"
@@ -30,16 +28,6 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
 };
 
 const VoltageStatCard = ({ value, name, kind, color }) => {
-  // const [displayValue, setDisplayValue] = useState(value);
-
-  // useEffect(() => {
-  //   if (Math.abs(displayValue - value) > 1) {
-  //     smoothTransition(displayValue, value, setDisplayValue, 1500);
-  //   } else {
-  //     setDisplayValue(value);
-  //   }
-  // }, [value]);
-
   let maxValue;
   let units;
   switch (kind) {
@@ -71,7 +59,27 @@ const VoltageStatCard = ({ value, name, kind, color }) => {
   );
 };
 
+const PhaseTabs = ({ selectedPhase, setSelectedPhase }) => {
+  return (
+    <div className="flex space-x-4 mb-4 justify-center">
+      <button
+        className={`px-4 py-2 rounded-md ${selectedPhase === "1 Phase" ? "bg-green-500 text-white" : "bg-gray-300"}`}
+        onClick={() => setSelectedPhase("1 Phase")}
+      >
+        1 Phase
+      </button>
+      <button
+        className={`px-4 py-2 rounded-md ${selectedPhase === "3 Phase" ? "bg-green-500 text-white" : "bg-gray-300"}`}
+        onClick={() => setSelectedPhase("3 Phase")}
+      >
+        3 Phase
+      </button>
+    </div>
+  );
+};
+
 export const Generator = () => {
+  const [selectedPhase, setSelectedPhase] = useState("3 Phase");
   const [stats, setStats] = useState({
     l1Voltage: 0,
     l2Voltage: 0,
@@ -81,11 +89,8 @@ export const Generator = () => {
     l3Current: 0,
   });
 
-  useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
-    (async () => {
-      await getData();
-    })();
+  useMessageBus("archive", async () => {
+    await getData();
   });
 
   const getData = async () => {
@@ -98,35 +103,45 @@ export const Generator = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const l1Voltage = data.filter((item) => item.gensetPropertyId === 13)[0]?.propertyValue || 0;
-        const l2Voltage = data.filter((item) => item.gensetPropertyId === 14)[0]?.propertyValue || 0;
-        const l3Voltage = data.filter((item) => item.gensetPropertyId === 15)[0]?.propertyValue || 0;
-        const l1Current = data.filter((item) => item.gensetPropertyId === 10)[0]?.propertyValue || 0;
-        const l2Current = data.filter((item) => item.gensetPropertyId === 11)[0]?.propertyValue || 0;
-        const l3Current = data.filter((item) => item.gensetPropertyId === 12)[0]?.propertyValue || 0;
-
-        setStats({ l1Voltage, l2Voltage, l3Voltage, l1Current, l2Current, l3Current });
+        setStats({
+          l1Voltage: data.find((item) => item.gensetPropertyId === 13)?.propertyValue || 0,
+          l2Voltage: data.find((item) => item.gensetPropertyId === 14)?.propertyValue || 0,
+          l3Voltage: data.find((item) => item.gensetPropertyId === 15)?.propertyValue || 0,
+          l1Current: data.find((item) => item.gensetPropertyId === 10)?.propertyValue || 0,
+          l2Current: data.find((item) => item.gensetPropertyId === 11)?.propertyValue || 0,
+          l3Current: data.find((item) => item.gensetPropertyId === 12)?.propertyValue || 0,
+        });
       }
     } catch (error) {
-      console.log("Error fetching notifications", error);
+      console.error("Error fetching data", error);
     }
   };
 
   useEffect(() => {
-    console.log("Engine page mount effect running");
-    (async () => {
-      await getData();
-    })();
+    getData();
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
-      <VoltageStatCard kind="voltage" name={"L1 Voltage"} value={stats.l1Voltage} color="#B1D5BD" />
-      <VoltageStatCard kind="voltage" name={"L2 Voltage"} value={stats.l2Voltage} color="#B1D5BD" />
-      <VoltageStatCard kind="voltage" name={"L3 Voltage"} value={stats.l3Voltage} color="#B1D5BD" />
-      <VoltageStatCard kind="current" name={"L1 Current"} value={stats.l1Current} color="#B1D5BD" />
-      <VoltageStatCard kind="current" name={"L2 Current"} value={stats.l2Current} color="#B1D5BD" />
-      <VoltageStatCard kind="current" name={"L3 Current"} value={stats.l3Current} color="#B1D5BD" />
+    <div className="">
+      <PhaseTabs selectedPhase={selectedPhase} setSelectedPhase={setSelectedPhase} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-3">
+        {selectedPhase === "3 Phase" ? (
+          <>
+            <VoltageStatCard kind="voltage" name="L1 Voltage" value={stats.l1Voltage} color="#B1D5BD" />
+            <VoltageStatCard kind="voltage" name="L2 Voltage" value={stats.l2Voltage} color="#B1D5BD" />
+            <VoltageStatCard kind="voltage" name="L3 Voltage" value={stats.l3Voltage} color="#B1D5BD" />
+            <VoltageStatCard kind="current" name="L1 Current" value={stats.l1Current} color="#B1D5BD" />
+            <VoltageStatCard kind="current" name="L2 Current" value={stats.l2Current} color="#B1D5BD" />
+            <VoltageStatCard kind="current" name="L3 Current" value={stats.l3Current} color="#B1D5BD" />
+          </>
+        ) : (
+          <>
+            <VoltageStatCard kind="voltage" name="L1 Voltage" value={stats.l1Voltage} color="#B1D5BD" />
+            <VoltageStatCard kind="current" name="L1 Current" value={stats.l1Current} color="#B1D5BD" />
+          </>
+        )}
+      </div>
     </div>
   );
 };

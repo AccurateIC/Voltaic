@@ -63,13 +63,13 @@ const Maintenance = () => {
 
       // transform data for plotting graph
       const numberOfLastValues = pdmData.last_values.accel_x.length;
-      const baseTimestamp = DateTime.fromISO(pdmData.time);
+      const baseTimestamp = DateTime.fromISO(pdmData?.time);
 
       // Create formatted data for the graph
       const formattedData = [];
 
       // Add last_values data points
-      pdmData.last_values.accel_x.forEach((value, index) => {
+      pdmData?.last_values.accel_x.forEach((value, index) => {
         formattedData.push({
           timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
           actual: value,
@@ -78,7 +78,7 @@ const Maintenance = () => {
       });
 
       // Add forecasted_values data points
-      pdmData.forecasted_values.accel_x.forEach((value, index) => {
+      pdmData?.forecasted_values.accel_x.forEach((value, index) => {
         formattedData.push({
           timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
           actual: null,
@@ -106,51 +106,79 @@ const Maintenance = () => {
             isError={isPdmError}
             errorMessage={pdmErrorMessage}
           />
-          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} />
-          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} />
+          {/* <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} />
+          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} /> */}
         </div>
       </div>
-      <div>
-        {isPdmError && (
-          <div className="mt-6 w-full h-128">
-            <h3 className="text-xl font-semibold text-base-content">Analysis Graph</h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={pdmDataForGraph}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-                <XAxis
-                  dataKey="timestamp"
-                  stroke="#fff"
-                  angle={0}
-                  tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
-                />
-                <YAxis stroke="#fff" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
-                  labelFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="actual"
-                  stroke="#ff7300"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  name="Actual"
-                  connectNulls
-                />
-                <Line
-                  type="monotone"
-                  dataKey="forecast"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  strokeDasharray="5 5" // This creates the dotted/dashed line
-                  dot={{ r: 4 }}
-                  name="Forecast"
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+      <div className="mt-6 w-full h-128">
+        <h3 className="text-xl font-semibold text-white">Analysis Graph</h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={pdmDataForGraph}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+            <XAxis
+              dataKey="timestamp"
+              stroke="#fff"
+              angle={-30}
+              tick={{
+                fontSize: 15,
+                dy: 10, 
+                dx: 0, // Shifts left for better alignment
+                textAnchor: "middle", 
+                fill: "#fff",
+              }}
+              tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+              label={{
+                value: "Time (HH:mm:ss)",
+                position: "insideBottom",
+                offset: -15,
+                fill: "#fff",
+                fontSize: 20,
+                fontWeight: "bold",
+              }}
+            />
+
+            <YAxis
+              stroke="#fff"
+              tick={{ fontSize: 14, fill: "#fff" }}
+              label={{
+                value: "Vibration Acceleration (G Units)",
+                angle: -90,
+                position: "insideLeft",
+                offset: -80,
+                fill: "#fff",
+                fontSize: 18,
+                fontWeight: "bold",
+                textAnchor: "middle",
+              }}
+            />
+
+            <Tooltip
+              contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
+              labelFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="actual"
+              stroke="#ff7300"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              name="Actual"
+              connectNulls
+            />
+            <Line
+              type="monotone"
+              dataKey="forecast"
+              stroke="#8884d8"
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={{ r: 4 }}
+              name="Forecast"
+              connectNulls
+            />
+          </LineChart>
+        </ResponsiveContainer>
+
         {!isPdmError && !isPdmLoading && (
           <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
         )}
