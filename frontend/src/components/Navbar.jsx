@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
-import ThemeSwitcher from "./ThemeSwitcher";
 import Profile from "./Profile";
 import Logo from "../assets/accurate.svg";
-import { Transmit } from "@adonisjs/transmit-client";
 import { TransmitChannels } from "../lib/TransmitChannels.js";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.js";
-
 import transmitConnection from "../lib/TransmitConnection";
 
 const Navbar = () => {
