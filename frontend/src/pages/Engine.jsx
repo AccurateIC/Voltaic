@@ -6,6 +6,7 @@ import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
 import { FaTemperatureEmpty } from "react-icons/fa6";
+import { MdEnergySavingsLeaf } from "react-icons/md";
 
 const EngineRPM = ({ engineRpmDetails }) => {
   let engineRpm;
@@ -88,10 +89,10 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
           {fuelLevelPercentage >= 75
             ? "Full"
             : fuelLevelPercentage >= 40
-            ? "Medium"
-            : fuelLevelPercentage >= 20
-            ? "Low"
-            : "Critical"}
+              ? "Medium"
+              : fuelLevelPercentage >= 20
+                ? "Low"
+                : "Critical"}
         </p>
       </div>
     </div>
@@ -174,13 +175,13 @@ const Engine = () => {
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
                   <PropertyCard
-                    propertyName={"Engine Temperature"}
+                    propertyName={"Total Power Output"}
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.propertyValue
                     }
-                    PropertyIcon={FaTemperatureEmpty}
+                    PropertyIcon={MdEnergySavingsLeaf}
                     propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.gensetProperty
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.gensetProperty
                         .physicalQuantity.unitSymbol
                     }
                   />
