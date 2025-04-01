@@ -10,8 +10,7 @@ const SideBarLink = ({ to, name, Icon }) => {
       <NavLink
         to={to}
         className={({ isActive }) =>
-          `flex items-center duration-200 transition-all hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg ${
-            isActive ? "bg-base-content text-base-100 rounded-md" : "text-gray-700"
+          `flex items-center duration-200 transition-all hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg ${isActive ? "bg-base-content text-base-100 rounded-md" : "text-gray-700"
           }`
         }
         end>
@@ -28,12 +27,12 @@ const SideBar = () => {
       <SideBarLink to="/engine" name="Engine" Icon={FaHome} />
       <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
       <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
-      <SideBarLink to="/reports" name="Reports" Icon={FaFileAlt} />
+      <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
       <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
-      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
       <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
       <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
+      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       {/* <SideBarLink to="/vibration" name="Vibration" Icon={GiVibratingBall} /> */}
     </ul>
   );

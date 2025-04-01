@@ -68,11 +68,11 @@ const Alarms = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
-    const dt = DateTime.fromMillis(parseInt(timestamp));
+    const dt = DateTime.fromISO(timestamp);
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  useMessageBus("notifications", (msg) => {
+  useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     fetchNotifications();
   });
@@ -242,7 +242,19 @@ const Alarms = () => {
           </div>
         </div>
 
-        <button className="btn btn-primary btn-outline text-base-200 font-semibold" onClick={handleResetFilters}>
+        <div className="flex flex-row time-picker-container gap-2 ">
+          <div className="flex  time-picker">
+            <label>From : </label>
+            <input aria-label="Time" type="time" />
+          </div>
+
+          <div className="flex time-picker  ">
+            <label>To : </label>
+            <input aria-label="Time" type="time" />
+          </div>
+        </div>
+
+        <button className="btn btn-neutral text-base-200 font-semibold" onClick={handleResetFilters}>
           Reset
         </button>
       </div>
@@ -268,7 +280,6 @@ const Alarms = () => {
                 <td>{formatTimestamp(entry.startedAt)}</td>
                 <td>{entry.summary}</td>
                 <td>{entry.message}</td>
-                <td>{entry.shouldBeDisplayed ? "Unresolved" : "Resolved"}</td>
                 <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
                 <td>
                   <button
@@ -276,6 +287,10 @@ const Alarms = () => {
                     className={`btn btn-outline btn-info ${
                       entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
                     }`}>
+                    className={cn(
+                      "btn btn-outline btn-info",
+                      `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
+                      }`)}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

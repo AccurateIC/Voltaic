@@ -5,7 +5,7 @@ import renderCustomDot from "./renderCustomDot";
 export const OilPressureLineChart = ({ value }) => {
   return (
     <div className="h-[400px] w-full relative">
-      <h2 className="text-lg font-semibold p-4  text-black">Oil Pressure </h2>
+      <h2 className="text-lg font-semibold p-4  text-black text-base-content">Oil Pressure </h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">

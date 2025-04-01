@@ -3,7 +3,7 @@ import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";
 import Layout from "./components/Layout.jsx";
 import Anomalies from "./pages/Anomalies.jsx";
-import  Reports  from "./pages/Reports.jsx";
+import  LiveData  from "./pages/LiveData.jsx";
 import Vibration from "./pages/Vibration.jsx";
 import Maintenance from "./pages/Maintenance.jsx";
 import { Generator } from "./pages/Generator.jsx";
@@ -40,7 +40,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="engine" element={<Engine />} />
           <Route path="generator" element={<Generator />} />
           <Route path="mains" element={<Mains />} />
-          <Route path="reports" element={<Reports />} />
+          <Route path="live-data" element={<LiveData />} />
           <Route path="anomalies" element={<Anomalies />} />
           <Route path="alarms-backup" element={<AlarmsBackup />} />
           <Route path="alarms" element={<Alarms />} />

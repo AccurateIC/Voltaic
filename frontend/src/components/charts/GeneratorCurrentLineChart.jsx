@@ -2,10 +2,9 @@ import renderCustomDot from "./renderCustomDot";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export const GeneratorCurrentLineChart = ({ value }) => {
-
   return (
     <div className="h-[400px] w-full relative pb-6">
-      <h2 className="text-lg font-semibold p-4  text-black">Generator Current </h2>
+      <h2 className="text-lg font-semibold p-4  text-black text-base-content">Generator Current </h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
