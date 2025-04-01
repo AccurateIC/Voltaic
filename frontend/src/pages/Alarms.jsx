@@ -3,7 +3,7 @@ import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
-
+import { cn } from "../lib/Utils";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
