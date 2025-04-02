@@ -148,6 +148,28 @@ const Anomalies = () => {
     });
   };
 
+  const handleViewClick = (entry) => {
+    if (!entry.startedAt) {
+      toast.error("No startedAt timestamp available.");
+      return;
+    }
+  
+    // Generate dummy finishedAt if missing (5 to 10 minutes after startedAt)
+    const finishedAt = entry.finishedAt
+      ? parseInt(entry.finishedAt)
+      : parseInt(entry.startedAt) + Math.floor(Math.random() * (600000 - 300000) + 300000); // Random 5-10 min
+  
+    setGraphData([
+      {
+        x: parseInt(entry.startedAt), // StartedAt as X-axis
+        y: finishedAt, // FinishedAt as Y-axis (with dummy data if missing)
+      },
+    ]);
+  
+    setShowGraph(true);
+  };
+  
+
   const handleEntryResolution = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
@@ -178,8 +200,6 @@ const Anomalies = () => {
   const handleGensetPropertyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
-
-  
 
   const exportToExcel = () => {
     if (filteredData.length === 0) {
@@ -282,7 +302,7 @@ const Anomalies = () => {
         <div className="mt-2 bg-sky-950 p-4 rounded-lg shadow-lg overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-sky-950 text-base-200 p-">
+              <tr className="bg-sky-950 text-base-200">
                 <th>Started At</th>
                 <th>Summary</th>
                 <th>Message</th>
@@ -299,9 +319,9 @@ const Anomalies = () => {
                   <td>{entry.summary}</td>
                   <td>{entry.message}</td>
                   <td>{entry.shouldBeDisplayed ? "" : ""}</td>
-                  <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
+                  <td>{formatTimestamp(entry.finishedAt)}</td>
                   <td>
-                    <button className="bg-blue-500 px-3 py-1 rounded-md" onClick={showGraph}>
+                    <button className="bg-blue-500 px-5 py-2 rounded-md" onClick={() => handleViewClick(entry)}>
                       View
                     </button>
                   </td>
@@ -310,6 +330,30 @@ const Anomalies = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Graph Section */}
+        {showGraph && graphData.length > 0 ? (
+          <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+            <h3 className="text-white text-lg mb-4">Anomaly Graph</h3>
+            <LineChart width={600} height={300} data={graphData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="x"
+                label={{ value: "Started At (Timestamp)", position: "insideBottom", offset: -5 }}
+                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
+              />
+              <YAxis
+                label={{ value: "Finished At (Timestamp)", angle: -90, position: "insideLeft" }}
+                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
+              />
+              <Tooltip labelFormatter={(value) => DateTime.fromMillis(value).toFormat("HH:mm:ss")} />
+              <Legend />
+              <Line type="monotone" dataKey="y" stroke="#82ca9d" />
+            </LineChart>
+          </div>
+        ) : (
+          showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+        )}
       </div>
     </div>
   );
