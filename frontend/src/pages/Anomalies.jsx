@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend, Label } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
+import { useMessageBus } from "../lib/MessageBus";
+import { toast } from "sonner";
+import { DateTime } from "luxon";
 
 const anomalyData = {
   today: [],
@@ -11,19 +14,172 @@ const anomalyData = {
 
 const Anomalies = () => {
   const [filteredData, setFilteredData] = useState(anomalyData.today);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState("today");
-
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
+  const [notifications, setNotifications] = useState([]); // original notifications
+  const [isLoading, setIsLoading] = useState(true);
+  const [gensetProperties, setGensetProperties] = useState([]);
 
-  const handleAnomalyClick = (period) => {
-    setSelectedPeriod(period);
-    setFilteredData(anomalyData[period]);
+  const [filters, setFilters] = useState({
+    fromDate: "",
+    toDate: new Date().toISOString().split("T")[0],
+    property: "Property",
+    anomalyStatus: "",
+  });
+
+  // apply filters whenever filters or notifications change
+  useEffect(() => {
+    let filtered = [...notifications];
+
+    // Filter by date range
+    if (filters.fromDate) {
+      filtered = filtered.filter(
+        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
+      );
+    }
+    if (filters.toDate) {
+      filtered = filtered.filter(
+        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
+      );
+    }
+
+    // Filter by property
+    if (filters.property && filters.property !== "Property") {
+      filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
+    }
+
+    // Filter by anomaly status
+    if (filters.anomalyStatus) {
+      filtered = filtered.filter(
+        (notif) =>
+          (filters.anomalyStatus === "Resolved" && !notif.shouldBeDisplayed) ||
+          (filters.anomalyStatus === "Unresolved" && notif.shouldBeDisplayed)
+      );
+    }
+
+    setFilteredNotifications(filtered);
+  }, [filters, notifications]);
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return;
+    const dt = DateTime.fromMillis(parseInt(timestamp));
+    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
+
+  useMessageBus("notifications", (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    fetchNotifications();
+  });
+
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notification data");
+      }
+      const data = await response.json();
+      console.log("alarms", data);
+      setNotifications(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // initial fetch of notifications
+  useEffect(() => {
+    console.log("Alarms page mount effect running");
+    fetchNotifications();
+  }, []);
+
+  // fetch genset properties
+  // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
+  //       in the future, pagination should be implemented to reduce database querying times
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch genset data");
+        }
+        const data = await response.json();
+        setGensetProperties(data);
+      } catch (error) {
+        console.error("Fetch error:", error);
+        toast.error("Error fetching genset property data");
+      }
+    };
+    fetchProperties();
+  }, []);
+
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  };
+
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      fromDate: "",
+      toDate: new Date().toISOString().split("T")[0],
+      property: "Property",
+      anomalyStatus: "",
+    });
+  };
+
+  const handleEntryResolution = async (notificationId) => {
+    try {
+      // make req to backend to mark notification as read
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || `Failed to resolve notification`);
+        return;
+      }
+
+      // re fetch notifications?
+      await fetchNotifications();
+    } catch (err) {
+      console.error("Error resolving notification:", err);
+      toast.error(`Failed to resolve notification: ${err.message}`);
+    }
+  };
+
+  const handleAnomalyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
+  };
+
+  const handleGensetPropertyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
+  };
+
+  
 
   const exportToExcel = () => {
     if (filteredData.length === 0) {
@@ -37,41 +193,11 @@ const Anomalies = () => {
     XLSX.writeFile(wb, `Anomaly_Data_${selectedPeriod}.xlsx`);
   };
 
-  const filterData = () => {
-    const filtered = anomalyData[selectedPeriod].filter((item) => {
-      const [date, time] = item.Timestamp.split(" - ");
-      const itemDate = new Date(date);
-
-      if (fromDate && toDate) {
-        const startDate = new Date(fromDate);
-        const endDate = new Date(toDate);
-        if (itemDate < startDate || itemDate > endDate) return false;
-      }
-
-      if (fromTime && toTime) {
-        const itemTime = time.split(" ")[0];
-        if (itemTime < fromTime || itemTime > toTime) return false;
-      }
-
-      return true;
-    });
-    setFilteredData(filtered);
-  };
-
-  useEffect(() => {
-    filterData();
-  }, [fromDate, toDate, fromTime, toTime, selectedPeriod]);
-
-  const handleShowGraph = () => {
-    setShowGraph(!showGraph);
-  };
-
-  const resetFilters = () => {
-    setFromDate("");
-    setToDate("");
-    setFromTime("");
-    setToTime("");
-  };
+  // const formatTimestamp = (timestamp) => {
+  //   if (!timestamp) return;
+  //   const dt = DateTime.fromMillis(parseInt(timestamp));
+  //   return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
+  // };
 
   return (
     <div className="h-full w-full flex flex-col p-2 overflow-x-scroll">
@@ -108,41 +234,76 @@ const Anomalies = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex gap-4 bg-gray-800">
-        <label>From Date:</label>
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-2 rounded" />
-          <label>To Date:</label>
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="p-2 rounded" />
-          <label>From Time:</label>
-          <input type="time" value={fromTime} onChange={(e) => setFromTime(e.target.value)} className="p-2 rounded" />
-          <label>To Time:</label>
-          <button onClick={resetFilters} className="bg-gray-500 px-4 py-2 rounded-lg">Reset</button>
+        <div className="mt-5 flex flex-wrap items-center gap-4 bg-gray-800 p-2 rounded-lg">
+          <div className="flex items-center gap-4">
+            <label className="text-white">From Date:</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            />
+
+            <label className="text-white">To Date:</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="text-white">From Time:</label>
+            <input
+              type="time"
+              value={fromTime}
+              onChange={(e) => setFromTime(e.target.value)}
+              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            />
+
+            <label className="text-white">To Time:</label>
+            <input
+              type="time"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
+              className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            />
+          </div>
+
+          <button onClick={handleResetFilters} className="bg-gray-500 px-4 py-2 rounded-lg text-white">
+            Reset
+          </button>
+
+          <button onClick={exportToExcel} className="bg-green-500 px-4 py-2 rounded-lg text-white">
+            Export to Excel
+          </button>
         </div>
 
-        <button onClick={exportToExcel} className="bg-green-500 px-4 py-2 rounded-lg mt-4">Export to Excel</button>
-
-        <div className="mt-6 bg-sky-950 p-4 rounded-lg shadow-lg overflow-x-auto">
+        <div className="mt-2 bg-sky-950 p-4 rounded-lg shadow-lg overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-sky-950 text-base-200">
+              <tr className="bg-sky-950 text-base-200 p-">
                 <th>Started At</th>
                 <th>Summary</th>
                 <th>Message</th>
                 <th>Anomaly Status</th>
                 <th>Finished At</th>
-                <th>Resolve</th>
+                <th>View</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredData.map((item, index) => (
-                <tr key={index} className="border-b border-gray-600">
-                  <td className="p-2">{item.startedAt}</td>
-                  <td className="p-2">{item.summary}</td>
-                  <td className="p-2">{item.message}</td>
-                  <td className="p-2">{item.status}</td>
-                  <td className="p-2">{item.finishedAt}</td>
-                  <td className="p-2">
-                    <button className="bg-blue-500 px-3 py-1 rounded-md" onClick={handleShowGraph}>View</button>
+            <tbody className="bg-sky-950/50">
+              {filteredNotifications.map((entry, index) => (
+                <tr key={index}>
+                  <th>{index + 1}</th>
+                  <td>{formatTimestamp(entry.startedAt)}</td>
+                  <td>{entry.summary}</td>
+                  <td>{entry.message}</td>
+                  <td>{entry.shouldBeDisplayed ? "" : ""}</td>
+                  <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
+                  <td>
+                    <button className="bg-blue-500 px-3 py-1 rounded-md" onClick={showGraph}>
+                      View
+                    </button>
                   </td>
                 </tr>
               ))}

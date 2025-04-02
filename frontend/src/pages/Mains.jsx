@@ -88,7 +88,7 @@ export const Mains = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-2">
         <button
           onClick={() => setPhase("1-phase")}
           className={`px-4 py-2 m-2 ${phase === "1-phase" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>1 Phase</button>

@@ -122,7 +122,7 @@ const Maintenance = () => {
               tick={{
                 fontSize: 15,
                 dy: 10, 
-                dx: 0, // Shifts left for better alignment
+                dx: 0, 
                 textAnchor: "middle", 
                 fill: "#fff",
               }}
