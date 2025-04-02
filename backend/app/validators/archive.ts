@@ -25,6 +25,16 @@ export const getArchiveDataBetweenValidator = vine.compile(
   })
 );
 
+export const getArchiveDataPropertyBetweenValidator = vine.compile(
+  vine.object({
+    from: vine.date({ formats: ["iso8601"] }),
+    to: vine.date({ formats: ["iso8601"] }).afterField("from", { compare: "second" }),
+    propertyName: vine
+    .string()
+    .exists({ table: "genset_properties", column: "property_name" }),
+  })
+);
+
 export const getPaginatedDataValidator = vine.compile(
   vine.object({
     page: vine.number(),

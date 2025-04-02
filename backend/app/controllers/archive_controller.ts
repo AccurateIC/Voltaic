@@ -1,4 +1,9 @@
-import { createArchiveValidator, getArchiveDataBetweenValidator, getPaginatedDataValidator } from "#validators/archive";
+import {
+  createArchiveValidator,
+  getArchiveDataBetweenValidator,
+  getArchiveDataPropertyBetweenValidator,
+  getPaginatedDataValidator,
+} from "#validators/archive";
 import Archive from "#models/archive";
 import Notification from "#models/notification";
 import GensetProperty from "#models/genset_property";
@@ -57,15 +62,19 @@ export default class ArchiveController {
   }
 
   async getPropertyDataBetween({ request }: HttpContext) {
-    const queryParams = request.qs(); 
-    // Validate request parameters using Vine.js
-    // const data = await vine.validateUsing(getArchiveDataBetweenValidator, request.qs());
-    const data = await getArchiveDataBetweenValidator.validate(queryParams);
+    const queryParams = request.qs();
+    // Validate request parameters
+    const data = await getArchiveDataPropertyBetweenValidator.validate(queryParams);
 
-    // Fetch property data between the specified timestamps
+    // query archives within the given timestamp range
     const propertyData = await Archive.query()
       .whereBetween("timestamp", [data.from, data.to])
-      .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+      .whereHas("gensetProperty", (gensetQuery) => {
+        gensetQuery.where("propertyName", data.propertyName);
+      })
+      .preload("gensetProperty", (preloadQuery) => {
+        preloadQuery.preload("physicalQuantity"); // Preload physicalQuantity
+      });
 
     return propertyData;
   }
