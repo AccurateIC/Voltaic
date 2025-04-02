@@ -45,52 +45,67 @@ const Maintenance = () => {
 
   // fetch pdmData from localstorage
   useEffect(() => {
-    const pdmDataString = localStorage.getItem("pdmData");
-    setPdmData(JSON.parse(pdmDataString));
+    fetchPdmVibrationData()
+    // const pdmDataString = localStorage.getItem("pdmData");
+    // setPdmData(JSON.parse(pdmDataString));
   }, []);
+
+
+  const fetchPdmVibrationData = async () => {
+    try {
+      setIsPdmLoading(true)
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecent`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to fetch pdm data`)
+      }
+
+      const data = await response.json();
+      console.log("PDM DATAAA", data);
+      setPdmData(data);
+    } catch (err) {
+      console.error(err)
+      toast.error(`Failed to fetch vibration data`)
+    } finally {
+      setIsPdmLoading(false)
+    }
+  }
+
 
   useMessageBus("pdm", (message) => {
     console.log("new pdm data received liveeee");
-    setPdmData(JSON.parse(localStorage.getItem("pdmData")));
+    // setPdmData(JSON.parse(localStorage.getItem("pdmData")));
+
+    // fetch data from database
+    fetchPdmVibrationData()
+
   });
 
   useEffect(() => {
     console.log("pdm data changed", pdmData);
-    if (!pdmData || !pdmData.last_values) {
+    if (!pdmData || !Array.isArray(pdmData) || pdmData.length === 0) {
       toast.error("No Predictive Maintenance Data available.");
       return;
     }
-    //if (pdmData.maintenance_needed === true) {
-    //  setIsPdmError(true);
-    //  setPdmErrorMessage("Problem detected in Vibration Frequency");
-    //} else {
-    //  setIsPdmError(false);
-    //}
-
     // transform data for plotting graph
-    const numberOfLastValues = pdmData.last_values.accel_x.length;
-    const baseTimestamp = DateTime.fromISO(pdmData.time);
+    const formattedData = pdmData.map(item => {
+      return {
+        timestamp: item.timestamp,
+        value: item.value,
+        actual: item.pdmDataKind.kind === 'actual' ? item.value : null,
+        forecast: item.pdmDataKind.kind === 'forecasted' ? item.value : null,
+        sensorProperty: item.sensorProperty.propertyName,
+        unit: item.sensorProperty.unit
+      }
+    })
 
-    // Create formatted data for the graph
-    const formattedData = [];
+    formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    // Add last_values data points
-    pdmData.last_values.accel_x.forEach((value, index) => {
-      formattedData.push({
-        timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
-        actual: value,
-        forecast: null,
-      });
-    });
-
-    // Add forecasted_values data points
-    pdmData.forecasted_values.accel_x.forEach((value, index) => {
-      formattedData.push({
-        timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
-        actual: null,
-        forecast: value,
-      });
-    });
 
     setPdmDataForGraph(formattedData);
 
@@ -115,7 +130,7 @@ const Maintenance = () => {
         </div>
       </div>
       <div className="flex-1 min-h-0">
-        {pdmData && pdmDataForGraph && (
+        {pdmDataForGraph.length > 0 && (
           <div className="h-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={pdmDataForGraph}
@@ -138,17 +153,19 @@ const Maintenance = () => {
                   dataKey="actual"
                   stroke="#ff7300"
                   strokeWidth={2}
-                  dot={{ r: 4 }}
+                  dot={false}
                   name="Actual"
                   connectNulls
                 />
+                {/*
+                */}
                 <Line
                   type="monotone"
                   dataKey="forecast"
                   stroke="#8884d8"
                   strokeWidth={2}
-                  strokeDasharray="5 5" // This creates the dotted/dashed line
-                  dot={{ r: 4 }}
+                  // strokeDasharray="5 5" // This creates the dotted/dashed line
+                  dot={false}
                   name="Forecast"
                   connectNulls
                 />
