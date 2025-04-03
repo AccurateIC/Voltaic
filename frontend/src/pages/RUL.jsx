@@ -27,10 +27,10 @@ const RulChart = ({ apiPoint }) => {
           bottom: 5,
         }}
       >
-        <XAxis dataKey="name" />
-        <YAxis />
+        <XAxis dataKey="name" label={{ value: "Running Hours", position: "bottom", }} />
+        <YAxis label={{ value: "Health Index (HI)", angle: -90, position: "insideLeft" }} />
         <Tooltip />
-        <Legend />
+        <Legend verticalAlign="top" align="right" />
         <Line type="monotone" name="Ideal Health Index Trend" dataKey="Predicted_Health_Index" strokeWidth={3} stroke="#8884d8" dot={false} activeDot={{ r: 8 }} />
       </LineChart>
     </ResponsiveContainer>

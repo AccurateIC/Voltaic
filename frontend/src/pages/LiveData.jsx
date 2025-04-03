@@ -33,9 +33,16 @@ export const LiveData = () => {
     oilPressIsAnomaly: true,
     batteryVoltsIsAnomaly: true,
     chargeAltVoltsIsAnomaly: true,
+    
   });
 
   const [selectedTimeRange, setSelectedTimeRange] = useState();
+  const [pdmData, setPdmData] =useState([]);
+  const [pdmDataForGraph, setPdmDataForGraph] = useState([]);
+  const [isPdmLoading, setIsPdmLoading] = useState(true);
+  const [isPdmError, setIsPdmError] = useState(false);
+  const [pdmErrorMessage, setPdmErrorMessage] = useState("");
+
   const [selectedProperties, setSelectedProperties] = useState([
     "Engine Fuel Level",
     "Engine Speed",
@@ -155,7 +162,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const l2Voltage = generateEmptyDataPoints(
@@ -166,7 +173,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const l3Voltage = generateEmptyDataPoints(
@@ -177,7 +184,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const l1Current = generateEmptyDataPoints(
@@ -188,7 +195,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const l2Current = generateEmptyDataPoints(
@@ -199,7 +206,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const l3Current = generateEmptyDataPoints(
@@ -210,7 +217,7 @@ export const LiveData = () => {
               timestamp: item.timestamp,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const engineFuelLevel = generateEmptyDataPoints(
@@ -221,7 +228,7 @@ export const LiveData = () => {
               propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const engineSpeed = generateEmptyDataPoints(
@@ -232,7 +239,7 @@ export const LiveData = () => {
               propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const oilPress = generateEmptyDataPoints(
@@ -243,7 +250,7 @@ export const LiveData = () => {
               propertyValue: item.propertyValue,
               isAnomaly: item.isAnomaly,
             })),
-          selectedTimeRange
+          
         );
 
         const batteryVolts = generateEmptyDataPoints(
@@ -285,7 +292,48 @@ export const LiveData = () => {
     } catch (error) {
       console.log("Error fetching data", error);
     }
+    try{
+      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecent`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        const data = await pdmResponse.json();
+  
+        console.log("pdmResponse", data);
+        setPdmData(data);
+        if(pdmResponse.ok)
+        {
+          console.log("PDM Response", pdmResponse);
+        }
+    }
+    catch (error) {
+      console.log("Error fetching data", error);
+    }
   };
+
+  useEffect(() => {
+    console.log("pdm data changed", pdmData);
+  
+    // transform data for plotting graph
+    const formattedData = pdmData.map(item => {
+      return {
+        timestamp: item.timestamp,
+        value: item.value,
+        actual: item.pdmDataKind.kind === 'actual' ? item.value : null,
+        forecast: item.pdmDataKind.kind === 'forecasted' ? item.value : null,
+        sensorProperty: item.sensorProperty.propertyName,
+        unit: item.sensorProperty.unit
+      }
+    })
+
+    formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+console.log("formattedDAta0", formattedData);
+    setPdmDataForGraph(formattedData);
+
+    setIsPdmLoading(false);
+  }, [pdmData]);
 
   useEffect(() => {
     console.log("Engine page mount effect running");
@@ -506,38 +554,38 @@ export const LiveData = () => {
       <div className="py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
           {selectedProperties.includes("Engine Fuel Level") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
             </div>
           )}
           {selectedProperties.includes("Engine Speed") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <EngineSpeedLineChart value={engineSpeedData} />
             </div>
           )}
           {selectedProperties.includes("Generator Current") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <GeneratorCurrentLineChart value={currentData} />
             </div>
           )}
           {selectedProperties.includes("Generator Voltage") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <GeneratorVoltageLineChart value={voltageData} />
             </div>
           )}
           {selectedProperties.includes("Oil Pressure") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <OilPressureLineChart value={oilPressureData} />
             </div>
           )}
           {selectedProperties.includes("Battery Charge") && (
-            <div className="min-h-[400px] bg-base-200">
+            <div className="h-[410px] bg-base-200 rounded-lg">
               <BatteryChargeLineChart value={batteryData} />
             </div>
           )}
           {selectedProperties.includes("PDM") && (
-            <div className="min-h-[400px] bg-base-200">
-              <PDMLineChart />
+            <div className="h-[410px] bg-base-200 rounded-lg">
+              <PDMLineChart value={pdmDataForGraph}/>
             </div>
           )}
         </div>

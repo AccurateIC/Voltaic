@@ -3,21 +3,23 @@ import renderCustomDot from "./renderCustomDot";
 
 export const BatteryChargeLineChart = ({ value }) => {
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[400px] w-full relative pb-4">
       <h2 className="text-lg font-semibold p-4  text-black text-base-content">Battery Charge Monitor</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" label={{ value: "Time(seconds)", position: "bottom", offset: 0 }}/>
+            <XAxis dataKey="time" stroke="#000" label={{ value: "Time(seconds)",dy:7, dx:-30, fill:"#000",position: "bottom", offset: 0 }}/>
             <YAxis
               label={{
                 value: "Voltage (Volts)",
                 angle: -90,
                 position: "insideLeft",
                 dy: 60,
+                fill:"#000",
               }}
+               stroke="#000"
               domain={[0, 15]}
             />
             <Tooltip />
