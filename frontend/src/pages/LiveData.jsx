@@ -35,7 +35,7 @@ export const LiveData = () => {
     chargeAltVoltsIsAnomaly: true,
   });
 
-  const [selectedTimeRange, setSelectedTimeRange] = useState("24 Hours");
+  const [selectedTimeRange, setSelectedTimeRange] = useState();
   const [selectedProperties, setSelectedProperties] = useState([
     "Engine Fuel Level",
     "Engine Speed",
@@ -488,7 +488,7 @@ export const LiveData = () => {
             </div>
           </div>
         </div>
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <div className="w-25 font-semibold tex-md">Time:</div>
           <select 
             className="select select-neutral font-semibold text-md bg-black text-white" 
@@ -500,7 +500,7 @@ export const LiveData = () => {
             <option value="01 Hour">01 Hour</option>
             <option value="24 Hours">24 Hours</option>
           </select>
-        </div>
+        </div> */}
       </div>
 
       <div className="py-5">
