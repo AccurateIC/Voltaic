@@ -22,7 +22,7 @@ const Anomalies = () => {
   const [toDate, setToDate] = useState("");
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
-  const [notifications, setNotifications] = useState([]); // original notifications
+  const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
 
@@ -52,15 +52,6 @@ const Anomalies = () => {
     // Filter by property
     if (filters.property && filters.property !== "Property") {
       filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
-    }
-
-    // Filter by anomaly status
-    if (filters.anomalyStatus) {
-      filtered = filtered.filter(
-        (notif) =>
-          (filters.anomalyStatus === "Resolved" && !notif.shouldBeDisplayed) ||
-          (filters.anomalyStatus === "Unresolved" && notif.shouldBeDisplayed)
-      );
     }
 
     setFilteredNotifications(filtered);
@@ -131,13 +122,13 @@ const Anomalies = () => {
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
+  // const handleFromDateFilterChange = (event) => {
+  //   setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  // };
 
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  };
+  // const handleToDateFilterChange = (event) => {
+  //   setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  // };
 
   const handleResetFilters = () => {
     setFilters({
@@ -154,22 +145,27 @@ const Anomalies = () => {
       return;
     }
   
-    // Generate dummy finishedAt if missing (5 to 10 minutes after startedAt)
+    // Get current timestamp
+    const currentTime = Date.now();
+  
+    // Assign finishedAt: Use existing, or generate a new one (5-10 mins after startedAt)
     const finishedAt = entry.finishedAt
       ? parseInt(entry.finishedAt)
-      : parseInt(entry.startedAt) + Math.floor(Math.random() * (600000 - 300000) + 300000); // Random 5-10 min
+      : Math.min(
+          parseInt(entry.startedAt) + Math.floor(Math.random() * (600000 - 300000) + 300000),
+          currentTime // Ensure it doesn't exceed current time
+        );
   
     setGraphData([
       {
-        x: parseInt(entry.startedAt), // StartedAt as X-axis
-        y: finishedAt, // FinishedAt as Y-axis (with dummy data if missing)
+        x: parseInt(entry.startedAt), // X-axis: startedAt
+        y: finishedAt, // Y-axis: finishedAt
       },
     ]);
   
     setShowGraph(true);
   };
   
-
   const handleEntryResolution = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
@@ -202,15 +198,26 @@ const Anomalies = () => {
   };
 
   const exportToExcel = () => {
-    if (filteredData.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
       alert("No data available to export!");
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(filteredData);
+    console.log("Exporting data:", filteredData); // Debugging log
+
+    const cleanData = filteredData.map((item) => ({
+      id: item.id,
+      anomaly: item.anomaly,
+      status: item.status,
+      date: item.date,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(cleanData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Anomaly Data");
-    XLSX.writeFile(wb, `Anomaly_Data_${selectedPeriod}.xlsx`);
+
+    const fileName = `Anomaly_Data_${selectedPeriod || "All"}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   // const formatTimestamp = (timestamp) => {
