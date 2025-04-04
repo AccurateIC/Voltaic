@@ -155,14 +155,17 @@ const Login = () => {
 
       // send to rul server
       try {
-        const sendUserToRulServerResponse = fetch(`${import.meta.env.VITS_RUL_BACKEND}/user`, {
+        console.log("rul req start");
+        const sendUserToRulServerResponse = fetch(`${import.meta.env.VITE_RUL_BACKEND}/user`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user),
+          body: JSON.stringify({ ...user, logged_in: true }),
         });
         if (!sendUserToRulServerResponse.ok) {
           toast.error("Failed to send user details to RUL server");
         }
+        console.log("rul req end");
+        // console.log(await sendUserToRulServerResponse.json());
       } catch (rulErr) {
         console.error(rulErr);
       }

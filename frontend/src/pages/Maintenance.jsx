@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { Transmit } from "@adonisjs/transmit-client";
-import { TransmitChannels } from "../lib/TransmitChannels.js";
 import { useMessageBus } from "../lib/MessageBus.js";
+import { cn } from "../lib/Utils.js";
 
-const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
+const StatusCard = ({ isLoading, title, isError, errorMessage, disabled }) => {
   return (
-    <div className="bg-base-200 w-full h-18 shadow-sm flex flex-row text-base-content rounded items-center p-4">
+
+    <div className={cn(
+      "w-full h-18 shadow-sm flex flex-row rounded items-center p-4",
+      disabled ? "text-gray-600 bg-gray-400" : "text-base-content bg-base-200"
+    )}>
       <div className="font-bold flex flex-row space-x-2">
         {isLoading ? (
           <>
@@ -19,17 +22,17 @@ const StatusCard = ({ isLoading, title, isError, errorMessage }) => {
         ) : (
           <div>{title}</div>
         )}
-        {!isLoading && isError ? (
+        {!isLoading && isError && !disabled ? (
           <div className="tooltip tooltip-error" data-tip={errorMessage}>
             <XCircle className="text-error" />
           </div>
-        ) : !isLoading && !isError ? (
+        ) : !isLoading && !isError && !disabled ? (
           <div>
             <CheckCircle className="text-success" />
           </div>
         ) : null}
       </div>
-    </div>
+    </div >
   );
 };
 
@@ -42,61 +45,76 @@ const Maintenance = () => {
 
   // fetch pdmData from localstorage
   useEffect(() => {
-    const pdmDataString = localStorage.getItem("pdmData");
-    setPdmData(JSON.parse(pdmDataString));
+    fetchPdmVibrationData()
+    // const pdmDataString = localStorage.getItem("pdmData");
+    // setPdmData(JSON.parse(pdmDataString));
   }, []);
+
+
+  const fetchPdmVibrationData = async () => {
+    try {
+      setIsPdmLoading(true)
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecent`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to fetch pdm data`)
+      }
+
+      const data = await response.json();
+      console.log("PDM DATAAA", data);
+      setPdmData(data);
+    } catch (err) {
+      console.error(err)
+      toast.error(`Failed to fetch vibration data`)
+    } finally {
+      setIsPdmLoading(false)
+    }
+  }
+
 
   useMessageBus("pdm", (message) => {
     console.log("new pdm data received liveeee");
-    setPdmData(JSON.parse(localStorage.getItem("pdmData")));
+    // setPdmData(JSON.parse(localStorage.getItem("pdmData")));
+
+    // fetch data from database
+    fetchPdmVibrationData()
+
   });
 
   useEffect(() => {
     console.log("pdm data changed", pdmData);
-    if (!pdmData) {
+    if (!pdmData || !Array.isArray(pdmData) || pdmData.length === 0) {
       toast.error("No Predictive Maintenance Data available.");
       return;
     }
-    if (pdmData.maintenance_needed === true) {
-      setIsPdmError(true);
-      setPdmErrorMessage("Problem detected in Vibration Frequency");
+    // transform data for plotting graph
+    const formattedData = pdmData.map(item => {
+      return {
+        timestamp: item.timestamp,
+        value: item.value,
+        actual: item.pdmDataKind.kind === 'actual' ? item.value : null,
+        forecast: item.pdmDataKind.kind === 'forecasted' ? item.value : null,
+        sensorProperty: item.sensorProperty.propertyName,
+        unit: item.sensorProperty.unit
+      }
+    })
 
-      // transform data for plotting graph
-      const numberOfLastValues = pdmData.last_values.accel_x.length;
-      const baseTimestamp = DateTime.fromISO(pdmData?.time);
+    formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      // Create formatted data for the graph
-      const formattedData = [];
 
-      // Add last_values data points
-      pdmData?.last_values.accel_x.forEach((value, index) => {
-        formattedData.push({
-          timestamp: baseTimestamp.plus({ seconds: index }).toISO(),
-          actual: value,
-          forecast: null,
-        });
-      });
-
-      // Add forecasted_values data points
-      pdmData?.forecasted_values.accel_x.forEach((value, index) => {
-        formattedData.push({
-          timestamp: baseTimestamp.plus({ seconds: numberOfLastValues + index }).toISO(),
-          actual: null,
-          forecast: value,
-        });
-      });
-
-      setPdmDataForGraph(formattedData);
-    } else {
-      setIsPdmError(false);
-    }
+    setPdmDataForGraph(formattedData);
 
     setIsPdmLoading(false);
   }, [pdmData]);
 
   return (
-    <>
-      <div className="p-4 flex flex-col gap-4">
+    <div className="flex flex-col w-full h-full">
+      <div className="p-4 flex flex-col gap-4 shrink-0">
         <h2 className="text-2xl font-bold mb-4 text-base-200">Predictive Maintenance</h2>
         {/* Predictive Maintenance */}
         <div className="flex flex-row gap-4">
@@ -105,85 +123,59 @@ const Maintenance = () => {
             title={`Vibration Frequency`}
             isError={isPdmError}
             errorMessage={pdmErrorMessage}
+            disabled={false}
           />
-          {/* <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} />
-          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} /> */}
+          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} disabled={true} />
+          <StatusCard isLoading={isPdmLoading} title={`Hydrocarbon Emission`} isError={false} errorMessage={``} disabled={true} />
         </div>
       </div>
-      <div className="mt-6 w-full h-128">
-        <h3 className="text-xl font-semibold text-white">Analysis Graph</h3>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={pdmDataForGraph}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-            <XAxis
-              dataKey="timestamp"
-              stroke="#fff"
-              angle={-30}
-              tick={{
-                fontSize: 15,
-                dy: 10, 
-                dx: 0, 
-                textAnchor: "middle", 
-                fill: "#fff",
-              }}
-              tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
-              label={{
-                value: "Time (HH:mm:ss)",
-                position: "insideBottom",
-                offset: -15,
-                fill: "#fff",
-                fontSize: 20,
-                fontWeight: "bold",
-              }}
-            />
-
-            <YAxis
-              stroke="#fff"
-              tick={{ fontSize: 14, fill: "#fff" }}
-              label={{
-                value: "Vibration Acceleration (G Units)",
-                angle: -90,
-                position: "insideLeft",
-                offset: -80,
-                fill: "#fff",
-                fontSize: 18,
-                fontWeight: "bold",
-                textAnchor: "middle",
-              }}
-            />
-
-            <Tooltip
-              contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
-              labelFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
-            />
-
-            <Line
-              type="monotone"
-              dataKey="actual"
-              stroke="#ff7300"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              name="Actual"
-              connectNulls
-            />
-            <Line
-              type="monotone"
-              dataKey="forecast"
-              stroke="#8884d8"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={{ r: 4 }}
-              name="Forecast"
-              connectNulls
-            />
-          </LineChart>
-        </ResponsiveContainer>
-
-        {!isPdmError && !isPdmLoading && (
-          <div className="text-success font-bold text-center mt-4 text-xl">All set - Working in Good Condition</div>
+      <div className="flex-1 min-h-0">
+        {pdmDataForGraph.length > 0 && (
+          <div className="h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={pdmDataForGraph}
+                margin={{ top: 5, right: 30, left: 20, bottom: 25 }} // Add bottom margin
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+                <XAxis
+                  dataKey="timestamp"
+                  stroke="#fff"
+                  tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+                  label={{ value: "Timestamp", position: "insideBottom", offset: -10 }}
+                />
+                <YAxis stroke="#fff" label={{ value: "Vibration (G-Units)", position: "insideLeft", angle: -90 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
+                  labelFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="actual"
+                  stroke="#ff7300"
+                  strokeWidth={2}
+                  dot={false}
+                  name="Actual"
+                  connectNulls
+                />
+                {/*
+                */}
+                <Line
+                  type="monotone"
+                  dataKey="forecast"
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                  // strokeDasharray="5 5" // This creates the dotted/dashed line
+                  dot={false}
+                  name="Forecast"
+                  connectNulls
+                />
+                <Legend verticalAlign="top" iconType="diamond" height={36} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

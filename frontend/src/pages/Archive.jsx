@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
-import * as XLSX from "xlsx";
+import { useMessageBus } from "../lib/MessageBus";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -20,7 +20,7 @@ const Archive = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
-    const dt = DateTime.fromMillis(parseInt(timestamp));
+    const dt = DateTime.fromISO(timestamp);
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
@@ -29,9 +29,17 @@ const Archive = () => {
     fetchArchiveData();
   }, [filters]);
 
-  useEffect(() => {
-    console.log("::: meta :::", paginationMetadata);
-  }, [paginationMetadata]);
+  // useEffect(() => {
+  //   console.log("::: meta :::", paginationMetadata);
+  // }, [paginationMetadata]);
+
+  // we receive message on this bus if archive table updates
+  useMessageBus("archive", (msg) => {
+    // console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    (async () => {
+      await fetchArchiveData();
+    })();
+  });
 
   const fetchArchiveData = async () => {
     try {

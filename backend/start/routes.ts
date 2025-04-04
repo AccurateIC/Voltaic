@@ -141,5 +141,6 @@ router
 router
   .group(() => {
     router.post("create", "#controllers/pdm_controller.create");
+    router.get("getRecent", "#controllers/pdm_controller.getRecent");
   })
   .prefix("pdm");

@@ -3,7 +3,7 @@ import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
-
+import { cn } from "../lib/Utils";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
@@ -54,11 +54,11 @@ const Alarms = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
-    const dt = DateTime.fromMillis(parseInt(timestamp));
+    const dt = DateTime.fromISO(timestamp);
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  useMessageBus("notifications", (msg) => {
+  useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     fetchNotifications();
   });
@@ -222,7 +222,6 @@ const Alarms = () => {
               <th>Started At</th>
               <th>Summary</th>
               <th>Message</th>
-              <th>Anomaly Status</th>
               <th>Finished At</th>
               <th>Resolve</th>
             </tr>
@@ -234,14 +233,14 @@ const Alarms = () => {
                 <td>{formatTimestamp(entry.startedAt)}</td>
                 <td>{entry.summary}</td>
                 <td>{entry.message}</td>
-                <td>{entry.shouldBeDisplayed ? "Unresolved" : "Resolved"}</td>
                 <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
                 <td>
                   <button
                     onClick={() => handleEntryResolution(entry.id)}
-                    className={`btn btn-outline btn-info ${
-                      entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
-                    }`}>
+                    className={cn(
+                      "btn btn-outline btn-info",
+                      `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
+                      }`)}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

@@ -8,6 +8,7 @@ export default class extends BaseSchema {
       table.increments("id").primary();
 
       table.string("property_name").notNullable().unique();
+      table.string("readable_property_name").notNullable().unique();
       table.integer("physical_quantity_id").unsigned().references("physical_quantities.id").onDelete("RESTRICT");
 
       table.timestamp("created_at").notNullable();

@@ -3,8 +3,8 @@ import renderCustomDot from "./renderCustomDot";
 
 export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
   return (
-    <div className="h-[400px] w-full">
-      <h2 className="text-lg font-semibold p-4 text-black">Engine Fuel Level Monitor</h2>
+    <div className="h-full w-full">
+      <h2 className="text-lg font-semibold p-4 text-base-content">Engine Fuel Level Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={fuelLevelData} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>

@@ -13,6 +13,9 @@ export default class GensetProperty extends BaseModel {
   declare propertyName: string;
 
   @column()
+  declare readablePropertyName: string;
+
+  @column()
   declare physicalQuantityId: number;
 
   @belongsTo(() => PhysicalQuantity)

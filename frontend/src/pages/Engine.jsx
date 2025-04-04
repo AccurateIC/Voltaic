@@ -5,19 +5,8 @@ import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
-
-const DummyCard = () => {
-  return (
-    <div className="card bg-base-300 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto">
-        <h2 className="card-title text-base-content">Card Title</h2>
-        <p className="overflow-auto text-base-content">
-          A card component has a figure, a body part, and inside body there are title and actions parts
-        </p>
-      </div>
-    </div>
-  );
-};
+import { FaTemperatureEmpty } from "react-icons/fa6";
+import { MdEnergySavingsLeaf } from "react-icons/md";
 
 const EngineRPM = ({ engineRpmDetails }) => {
   let engineRpm;
@@ -53,65 +42,6 @@ const EngineRPM = ({ engineRpmDetails }) => {
               height: "auto",
             }}
           />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const OilPressureCard = ({ oilPressureDetails }) => {
-  let oilPressure;
-  if (!oilPressureDetails[0]) oilPressure = 0;
-  else oilPressure = oilPressureDetails[0].propertyValue;
-
-  return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto">
-        <h2 className="card-title text-base-content">Oil Pressure</h2>
-        <div className="flex flex-col items-center justify-center h-full ">
-          <div className="text-success/20 h-42 mb-10">
-            <FaOilCan className="w-full h-full" />
-          </div>
-          <div className="text-base-content font-semibold text-4xl">{oilPressure} bar</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ChargeAltVoltageCard = ({ altVoltageDetails }) => {
-  let altVoltage;
-  if (!altVoltageDetails[0]) altVoltage = 0;
-  else altVoltage = altVoltageDetails[0].propertyValue;
-
-  return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto">
-        <h2 className="card-title text-base-content">Charge Alt Voltage</h2>
-        <div className="flex flex-col items-center justify-center h-full ">
-          <div className="text-success/20 h-42 mb-10">
-            <GiElectric className="w-full h-full" />
-          </div>
-          <div className="text-base-content font-semibold text-4xl">{altVoltage} volt</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const BatteryVoltageCard = ({ batteryVoltageDetails }) => {
-  let batteryVoltage;
-  if (!batteryVoltageDetails[0]) batteryVoltage = 0;
-  else batteryVoltage = batteryVoltageDetails[0].propertyValue;
-  return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto">
-        <h2 className="card-title text-base-content">Battery Voltage</h2>
-        <div className="flex flex-col items-center justify-center h-full ">
-          <div className="text-success/20 h-42 mb-10">
-            <FaBatteryThreeQuarters className="w-full h-full" />
-          </div>
-          <div className="text-base-content font-semibold text-4xl">{batteryVoltage} volt</div>
         </div>
       </div>
     </div>
@@ -171,16 +101,35 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
           {fuelLevelPercentage >= 75
             ? "Full"
             : fuelLevelPercentage >= 40
-            ? "Medium"
-            : fuelLevelPercentage >= 20
-            ? "Low"
-            : "Critical"}
+              ? "Medium"
+              : fuelLevelPercentage >= 20
+                ? "Low"
+                : "Critical"}
         </p>
       </div>
     </div>
   );
 };
 
+const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit }) => {
+  return (
+    <div className="card bg-base-200 h-full w-full">
+      <div className="card-body min-h-0 min-w-0">
+        <h2 className="card-title text-base-content">{propertyName}</h2>
+        <div className="flex flex-col items-center justify-center h-full">
+          {PropertyIcon && (
+            <div className="text-success/20 text-9xl mb-10 flex items-center justify-center">
+              <PropertyIcon className="w-full h-full" />
+            </div>
+          )}
+          <div className="text-base-content font-semibold text-4xl">
+            {propertyValue} {propertyUnit && <span>{propertyUnit}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Engine = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -237,9 +186,17 @@ const Engine = () => {
                 </Panel>
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
-                  {/* <RadialFuelLevelIndicator
-                    fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
-                  /> */}
+                  <PropertyCard
+                    propertyName={"Total Power Output"}
+                    propertyValue={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.propertyValue
+                    }
+                    PropertyIcon={MdEnergySavingsLeaf}
+                    propertyUnit={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.gensetProperty
+                        .physicalQuantity.unitSymbol
+                    }
+                  />
                 </Panel>
               </PanelGroup>
             </Panel>
@@ -249,24 +206,49 @@ const Engine = () => {
             <Panel>
               <PanelGroup direction="horizontal" className="gap-1">
                 <Panel>
-                  <OilPressureCard
-                    oilPressureDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")}
+                  {/* Engine Oil Pressure */}
+                  <PropertyCard
+                    propertyName={"Engine Oil Pressure"}
+                    propertyValue={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.propertyValue
+                    }
+                    PropertyIcon={FaOilCan}
+                    propertyUnit={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty
+                        .physicalQuantity.unitSymbol
+                    }
                   />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel>
-                  <ChargeAltVoltageCard
-                    altVoltageDetails={archiveData.filter(
-                      (entry) => entry.gensetProperty.propertyName === "engChargeAltVolts"
-                    )}
+                  {/* Charge Alt Voltage */}
+                  <PropertyCard
+                    propertyName={"Charge Alt Voltage"}
+                    propertyValue={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
+                        ?.propertyValue
+                    }
+                    PropertyIcon={GiElectric}
+                    propertyUnit={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
+                        ?.gensetProperty.physicalQuantity.unitSymbol
+                    }
                   />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel>
-                  <BatteryVoltageCard
-                    batteryVoltageDetails={archiveData.filter(
-                      (entry) => entry.gensetProperty.propertyName === "engBatteryVolts"
-                    )}
+                  {/* Battery Voltage */}
+                  <PropertyCard
+                    propertyName={"Charge Alt Voltage"}
+                    propertyValue={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
+                        ?.propertyValue
+                    }
+                    PropertyIcon={FaBatteryThreeQuarters}
+                    propertyUnit={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
+                        ?.gensetProperty.physicalQuantity.unitSymbol
+                    }
                   />
                 </Panel>
               </PanelGroup>
@@ -281,7 +263,7 @@ const Engine = () => {
 
         <Panel>
           <VerticalFuelLevelIndicator
-            fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevel")}
+            fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevelUnits")}
           />
         </Panel>
         {/* */}
