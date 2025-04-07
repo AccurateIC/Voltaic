@@ -1,0 +1,134 @@
+import React from "react";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import { Line } from "react-chartjs-2";
+import { filteredHealthIndexData } from "../components/filteredHealthIndexData";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+export const options = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "top",
+    },
+    title: {
+      display: true,
+      text: "Health Index Detrioration",
+      color: "#fff",
+      font: {
+        size: 18,
+        weight: "bold",
+      },
+    },
+    tooltip: {
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+      titleColor: "#ffffff",
+      titleFont: {
+        size: 14,
+        weight: "bold",
+      },
+      bodyColor: "#ffffff",
+      bodyFont: {
+        size: 13,
+      },
+      padding: 12,
+      displayColors: true,
+      borderColor: "rgba(255, 255, 255, 0.2)",
+      borderWidth: 1,
+      cornerRadius: 6,
+      // custom callback for tooltip content
+      callbacks: {
+        title: (tooltipItems) => {
+          return `Time: ${tooltipItems[0].raw.x} Hours`;
+        },
+
+        label: (tooltipItems) => {
+          const point = tooltipItems.raw;
+          // different labels based on dataset
+          if (tooltipItems.datasetIndex === 0) {
+            return `Health Index: ${point.y.toFixed(3)}`;
+          } else {
+            return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${(10000 - point.x).toFixed(1)} Hours`];
+          }
+        },
+      },
+
+      yAlign: "top",
+      xAlign: "center",
+
+      position: "nearest",
+
+      animation: {
+        duration: 200,
+      },
+
+      mode: "nearest",
+      intersect: false,
+    },
+  },
+  scales: {
+    x: {
+      type: "linear",
+      position: "bottom",
+      title: {
+        display: true,
+        text: "Time (Hours)",
+        color: "#ffffff", // Change X-axis title color
+      },
+      ticks: {
+        color: "#ffffff", // Change X-axis tick labels color
+      },
+      grid: {
+        color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
+      },
+    },
+    y: {
+      title: {
+        display: true,
+        text: "Predicted Health Index",
+        color: "#ffffff", // Change X-axis title color
+      },
+      ticks: {
+        color: "#ffffff", // Change X-axis tick labels color
+      },
+      grid: {
+        color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
+      },
+    },
+  },
+};
+
+export function RulChart({ currentRulPoint }) {
+  const data = {
+    datasets: [
+      {
+        label: "Health Index Trend",
+        data: filteredHealthIndexData.map((item) => ({
+          x: item.Time_Hours,
+          y: item.Predicted_Health_Index,
+        })),
+        borderColor: "rgb(255, 99, 132)",
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        pointStyle: "circle",
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+      },
+      {
+        label: "Current Health Index",
+        data: [
+          {
+            x: 10000 - currentRulPoint.Remaining_Useful_Life,
+            y: currentRulPoint.Predicted_Health_Index,
+          },
+        ],
+        borderColor: "rgb(53, 162, 235)",
+        backgroundColor: "rgba(53, 162, 235, 0.5)",
+        pointRadius: 8,
+        pointStyle: "circle",
+        showLine: false,
+      },
+    ],
+  };
+  return <Line options={options} data={data} />;
+}
