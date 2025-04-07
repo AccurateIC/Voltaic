@@ -5,6 +5,7 @@ import GensetProperty from "#models/genset_property";
 import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
 import db from "@adonisjs/lucid/services/db";
+import PhysicalQuantity from "#models/physical_quantity";
 
 export default class ArchiveController {
   async getAll({}: HttpContext) {
@@ -216,13 +217,17 @@ export default class ArchiveController {
           const property = propertyMap.get(data[insertedArchives.indexOf(archive)].property)!;
           const activeNotification = activeNotificationMap.get(property.propertyName);
 
-          console.log("PROPERTY", property);
+          // console.log("ARCHIVE", archive);
+          // console.log("PROPERTY", property);
+
+          const phyQty = await PhysicalQuantity.find(property.physicalQuantityId);
+          const unit = phyQty?.unitSymbol;
 
           if (archive.isAnomaly) {
             if (!activeNotification) {
               newNotifications.push({
                 summary: `Anomaly detected for ${property.readablePropertyName}`,
-                message: `Property value ${archive.propertyValue} is anomalous`,
+                message: `Property value ${archive.propertyValue}${unit} is anomalous`,
                 archiveId: archive.id,
                 shouldBeDisplayed: true,
                 notificationTypeId: 3,
