@@ -5,7 +5,6 @@ import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
-import { FaTemperatureEmpty } from "react-icons/fa6";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 
 const EngineRPM = ({ engineRpmDetails }) => {
@@ -83,17 +82,6 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
             <span className="text-base-content font-bold text-lg">{fuelLevel} L</span>
           </div>
         </div>
-
-        {/* Fuel status text */}
-        <p className="mt-4 text-base-content font-semibold">
-          {fuelLevelPercentage >= 75
-            ? "Full"
-            : fuelLevelPercentage >= 40
-              ? "Medium"
-              : fuelLevelPercentage >= 20
-                ? "Low"
-                : "Critical"}
-        </p>
       </div>
     </div>
   );
