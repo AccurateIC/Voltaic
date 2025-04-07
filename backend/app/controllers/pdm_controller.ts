@@ -11,11 +11,34 @@ export default class PdmController {
   //    const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   //    return archiveData;
   //  }
+
+  async getRecentActual({}: HttpContext) {
+    const pdmVibrationData = await Vibration.query()
+      .preload("sensorProperty")
+      .preload("pdmDataKind")
+      .whereHas("pdmDataKind", (kindQuery) => {
+        kindQuery.where("kind", "actual");
+      })
+      .limit(60 * 27);
+    return pdmVibrationData;
+  }
+
+  async getRecentForecasted({}: HttpContext) {
+    const pdmVibrationData = await Vibration.query()
+      .preload("sensorProperty")
+      .preload("pdmDataKind")
+      .whereHas("pdmDataKind", (kindQuery) => {
+        kindQuery.where("kind", "forecasted");
+      })
+      .limit(60 * 27);
+    return pdmVibrationData;
+  }
+
   async getRecent({}: HttpContext) {
     const pdmVibrationData = await Vibration.query()
       .preload("sensorProperty")
       .preload("pdmDataKind")
-      .limit(60 * 60 * 2); // 10 minutes
+      .limit(60 * 60 * 2); // 1 hour
     return pdmVibrationData;
   }
 

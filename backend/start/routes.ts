@@ -139,5 +139,7 @@ router
   .group(() => {
     router.post("create", "#controllers/pdm_controller.create");
     router.get("getRecent", "#controllers/pdm_controller.getRecent");
+    router.get("getRecentActual", "#controllers/pdm_controller.getRecentActual");
+    router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted");
   })
   .prefix("pdm");
