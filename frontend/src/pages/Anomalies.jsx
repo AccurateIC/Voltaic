@@ -59,7 +59,7 @@ const Anomalies = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
-    const dt = DateTime.fromMillis(parseInt(timestamp));
+    const dt = DateTime.fromISO(timestamp);
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
@@ -122,13 +122,13 @@ const Anomalies = () => {
     fetchProperties();
   }, []);
 
-  // const handleFromDateFilterChange = (event) => {
-  //   setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  // };
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  };
 
-  // const handleToDateFilterChange = (event) => {
-  //   setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  // };
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  };
 
   const handleResetFilters = () => {
     setFilters({
@@ -140,53 +140,21 @@ const Anomalies = () => {
   };
 
   const handleViewClick = (entry) => {
-    if (!entry.startedAt) {
-      toast.error("No startedAt timestamp available.");
+    if (!entry.startedAt || !entry.finishedAt) {
+      toast.error("Both startedAt and finishedAt must be present.");
       return;
     }
-  
-    // Get current timestamp
-    const currentTime = Date.now();
-  
-    // Assign finishedAt: Use existing, or generate a new one (5-10 mins after startedAt)
-    const finishedAt = entry.finishedAt
-      ? parseInt(entry.finishedAt)
-      : Math.min(
-          parseInt(entry.startedAt) + Math.floor(Math.random() * (600000 - 300000) + 300000),
-          currentTime // Ensure it doesn't exceed current time
-        );
-  
-    setGraphData([
-      {
-        x: parseInt(entry.startedAt), // X-axis: startedAt
-        y: finishedAt, // Y-axis: finishedAt
-      },
-    ]);
-  
+
+    const startedAt = parseInt(entry.startedAt);
+    const finishedAt = parseInt(entry.finishedAt);
+
+    const data = [
+      { x: startedAt, y: 1, label: "Started At" },
+      { x: finishedAt, y: 1, label: "Finished At" },
+    ];
+
+    setGraphData(data);
     setShowGraph(true);
-  };
-  
-  const handleEntryResolution = async (notificationId) => {
-    try {
-      // make req to backend to mark notification as read
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.message || `Failed to resolve notification`);
-        return;
-      }
-
-      // re fetch notifications?
-      await fetchNotifications();
-    } catch (err) {
-      console.error("Error resolving notification:", err);
-      toast.error(`Failed to resolve notification: ${err.message}`);
-    }
   };
 
   const handleAnomalyFilterChange = (event) => {
@@ -266,16 +234,18 @@ const Anomalies = () => {
             <label className="text-white">From Date:</label>
             <input
               type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
+              value={filters.fromDate}
+              // onChange={(e) => setFromDate(e.target.value)}
+              onChange={handleFromDateFilterChange}
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
 
             <label className="text-white">To Date:</label>
             <input
               type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
+              value={filters.toDate}
+              // onChange={(e) => setToDate(e.target.value)}
+              onChange={handleToDateFilterChange}
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
           </div>
@@ -325,10 +295,9 @@ const Anomalies = () => {
                   <td>{formatTimestamp(entry.startedAt)}</td>
                   <td>{entry.summary}</td>
                   <td>{entry.message}</td>
-                  <td>{entry.shouldBeDisplayed ? "" : ""}</td>
                   <td>{formatTimestamp(entry.finishedAt)}</td>
                   <td>
-                    <button className="bg-blue-500 px-5 py-2 rounded-md" onClick={() => handleViewClick(entry)}>
+                    <button className="bg-blue-500 px-5 py-3.5 rounded-md" onClick={() => handleViewClick(entry)}>
                       View
                     </button>
                   </td>
@@ -340,27 +309,58 @@ const Anomalies = () => {
 
         {/* Graph Section */}
         {showGraph && graphData.length > 0 ? (
-          <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-            <h3 className="text-white text-lg mb-4">Anomaly Graph</h3>
-            <LineChart width={600} height={300} data={graphData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="x"
-                label={{ value: "Started At (Timestamp)", position: "insideBottom", offset: -5 }}
-                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-              />
-              <YAxis
-                label={{ value: "Finished At (Timestamp)", angle: -90, position: "insideLeft" }}
-                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-              />
-              <Tooltip labelFormatter={(value) => DateTime.fromMillis(value).toFormat("HH:mm:ss")} />
-              <Legend />
-              <Line type="monotone" dataKey="y" stroke="#82ca9d" />
-            </LineChart>
-          </div>
-        ) : (
-          showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
-        )}
+  <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+    <h3 className="text-white text-xl font-semibold mb-4 text-center">
+      Anomaly Detection Timeline
+    </h3>
+    <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+      <CartesianGrid strokeDasharray="3 3" />
+      
+      <XAxis
+        dataKey="x"
+        tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
+        label={{
+          value: "Timestamp",
+          position: "insideBottom",
+          offset: -10,
+          style: { fill: "#fff", fontSize: 14 },
+        }}
+        stroke="#ffffff"
+      />
+
+      <YAxis
+        type="number"
+        domain={[0, 2]}
+        ticks={[1, 2]}
+        tickFormatter={(tick) => (tick === 1 ? "startedAt" : "finishedAt")}
+        label={{
+          value: "Anomaly Event",
+          angle: -90,
+          position: "insideLeft",
+          style: { fill: "#fff", fontSize: 14 },
+        }}
+        stroke="#ffffff"
+      />
+
+      <Tooltip
+        formatter={(val, name, props) => `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toFormat("HH:mm:ss")}`}
+        labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
+      />
+      <Legend verticalAlign="top" height={36} />
+      <Line
+        type="monotone"
+        dataKey="y"
+        stroke="#00d4ff"
+        name="Anomaly Event"
+        dot={{ r: 6 }}
+        isAnimationActive={true}
+      />
+    </LineChart>
+  </div>
+) : (
+  showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+)}
+
       </div>
     </div>
   );
