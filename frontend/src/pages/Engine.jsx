@@ -8,14 +8,17 @@ import { useMessageBus } from "../lib/MessageBus";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 
 const EngineRPM = ({ engineRpmDetails }) => {
+  console.log(engineRpmDetails)
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;
   else engineRpm = engineRpmDetails[0].propertyValue;
+  const unit = engineRpmDetails[0]?.gensetProperty?.physicalQuantity?.unitSymbol
+  if (unit) console.log(unit.toUpperCase())
 
   return (
     <div className="card bg-base-200 h-full w-full flex flex-col">
       <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col">
-        <h2 className="card-title text-base-content">Engine RPM</h2>
+        <h2 className="card-title text-base-content">{engineRpmDetails[0]?.gensetProperty?.readablePropertyName}</h2>
         <div className="flex items-center justify-center h-full w-full">
           <GaugeComponent
             minValue={0}
@@ -30,7 +33,7 @@ const EngineRPM = ({ engineRpmDetails }) => {
               ],
             }}
             labels={{
-              valueLabel: { style: { color: "#000" } }, // For the central value
+              valueLabel: { style: { color: "#000" }, formatTextValue: (value) => (`${value} ${unit?.toUpperCase()} `) }, // For the central value
               tickLabels: { defaultTickValueConfig: { style: { fill: "#6a7282" } } }, // For the tick labels (500, 1000, etc)
             }}
             value={engineRpm}
@@ -47,12 +50,13 @@ const EngineRPM = ({ engineRpmDetails }) => {
   );
 };
 
+
 const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
   let fuelLevel;
   if (!fuelDetails[0]) fuelLevel = 0;
   else fuelLevel = fuelDetails[0].propertyValue;
 
-  const maxFuelLevel = 50;
+  const maxFuelLevel = 60; // Changed to 60L
   const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
 
   // Get fuel status color
@@ -60,32 +64,68 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
     if (fuelLevelPercentage >= 75) return "bg-success/30";
     if (fuelLevelPercentage >= 40) return "bg-warning/30";
     if (fuelLevelPercentage >= 20) return "bg-orange-500/30";
-    return "bg-error/30";
+    return "bg-error/70";
   };
+
+  // Generate measurement marks
+  const measurementMarks = [...Array(7)].map((_, index) => {
+    const level = (6 - index) * 10; // Will create marks at 60, 50, 40, 30, 20, 10, 0
+    return (
+      <div
+        key={level}
+        className="absolute w-full flex items-center"
+        // style={{ bottom: `${(level / maxFuelLevel) * 100}%` }}
+        style={{
+          // Added a 10px offset to shift marks down and adjusted calculation
+          bottom: `calc(${(level / maxFuelLevel) * 100}% - 10px)`,
+          left: "60px"
+        }}
+      >
+        {/* Line mark */}
+        <div className="w-3 h-[2px] bg-base-content"></div>
+        {/* Level number */}
+        <span className="text-xs text-base-content ml-1">{level}L</span>
+      </div>
+    );
+  });
 
   return (
     <div className="card bg-base-200 h-full w-full">
       <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col items-center">
         <h2 className="card-title text-base-content mb-4">Fuel Level</h2>
 
-        {/* Fuel gauge container */}
-        <div className="relative w-20 h-full bg-base-200 rounded-full border-2 border-base-content">
-          {/* Fuel level indicator */}
-          <div
-            className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
-            style={{ height: `${fuelLevelPercentage}%` }}>
-            {/* */}
-          </div>
+        {/* Fuel gauge container with padding for marks */}
+        <div className="relative h-full flex items-center">
+          {/* Measurement marks container */}
+          <div className="relative w-24 h-full flex items-center">
+            {/* Beaker/pill container */}
+            <div className="relative w-16 h-full bg-base-200 rounded-full border-2 border-base-content mx-auto">
+              {/* Measurement marks */}
+              <div className="">
+                {measurementMarks}
+              </div>
 
-          {/* Fuel percentage text */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-base-content font-bold text-lg">{fuelLevel} L</span>
+              {/* Fuel level indicator */}
+              <div
+                className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
+                style={{ height: `${fuelLevelPercentage}%` }}
+              />
+
+              {/* Current fuel level text */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-base-content font-bold text-lg">
+                  {fuelLevel}L
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+
 
 const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit }) => {
   return (
@@ -145,6 +185,12 @@ const Engine = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    console.log("84646",
+      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty?.readablePropertyName
+    )
+  }, [archiveData])
+
   return (
     <div className="h-full w-full min-h-0 min-w-0">
       <PanelGroup direction="horizontal" className="gap-1">
@@ -163,7 +209,9 @@ const Engine = () => {
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
                   <PropertyCard
-                    propertyName={"Total Power Output"}
+                    propertyName={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.gensetProperty?.readablePropertyName
+                    }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.propertyValue
                     }
@@ -184,7 +232,9 @@ const Engine = () => {
                 <Panel>
                   {/* Engine Oil Pressure */}
                   <PropertyCard
-                    propertyName={"Engine Oil Pressure"}
+                    propertyName={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty?.readablePropertyName
+                    }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.propertyValue
                     }
@@ -199,7 +249,9 @@ const Engine = () => {
                 <Panel>
                   {/* Charge Alt Voltage */}
                   <PropertyCard
-                    propertyName={"Charge Alt Voltage"}
+                    propertyName={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty?.readablePropertyName
+                    }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
                         ?.propertyValue
@@ -215,7 +267,9 @@ const Engine = () => {
                 <Panel>
                   {/* Battery Voltage */}
                   <PropertyCard
-                    propertyName={"Charge Alt Voltage"}
+                    propertyName={
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]?.gensetProperty?.readablePropertyName
+                    }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
                         ?.propertyValue

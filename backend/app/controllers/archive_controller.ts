@@ -166,7 +166,7 @@ export default class ArchiveController {
     const timestamp = payload.timestamp;
     const data = payload.data;
 
-    // begin sqlite transaction
+    // begin db transaction
     const trxResult = await db.transaction(async (trx) => {
       try {
         // fetch all genset properties
@@ -188,6 +188,9 @@ export default class ArchiveController {
         const insertedArchives = await Archive.createMany(archiveData, { client: trx });
         // console.log("inserted archives", insertedArchives);
 
+        //
+        // process notifications
+        //
         const activeNotifications = await Notification.query({ client: trx })
           .whereNull("finishedAt")
           .preload("archive", (query) => {
@@ -196,8 +199,6 @@ export default class ArchiveController {
           .exec();
 
         // console.log("active notifications", activeNotifications);
-
-        // process notifications
 
         const notificationUpdates = [];
         const newNotifications = [];
@@ -215,10 +216,12 @@ export default class ArchiveController {
           const property = propertyMap.get(data[insertedArchives.indexOf(archive)].property)!;
           const activeNotification = activeNotificationMap.get(property.propertyName);
 
+          console.log("PROPERTY", property);
+
           if (archive.isAnomaly) {
             if (!activeNotification) {
               newNotifications.push({
-                summary: `Anomaly detected for ${property.propertyName}`,
+                summary: `Anomaly detected for ${property.readablePropertyName}`,
                 message: `Property value ${archive.propertyValue} is anomalous`,
                 archiveId: archive.id,
                 shouldBeDisplayed: true,
@@ -270,7 +273,7 @@ export default class ArchiveController {
       transmit.broadcast("notification", { message: "notification table updated" });
     }
 
-    console.log(trxResult);
+    // console.log(trxResult);
 
     return trxResult;
   }

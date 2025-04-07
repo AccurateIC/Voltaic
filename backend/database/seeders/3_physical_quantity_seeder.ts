@@ -11,6 +11,7 @@ export default class extends BaseSeeder {
       { quantityName: "temperature", unitName: "celsius", unitSymbol: "°C" }, // 5
       { quantityName: "volume", unitName: "litre", unitSymbol: "L" }, // 6
       { quantityName: "power", unitName: "watt", unitSymbol: "W" }, // 7
+      { quantityName: "apparent-power", unitName: "kilovolt-amperes", unitSymbol: "kVA" }, // 8
     ]);
   }
 }

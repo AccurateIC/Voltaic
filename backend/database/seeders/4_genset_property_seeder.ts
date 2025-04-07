@@ -27,7 +27,7 @@ export default class extends BaseSeeder {
       // { propertyName: "genL1L2Volts", physicalQuantityId: 1 },
       // { propertyName: "genL2L3Volts", physicalQuantityId: 1 },
       // { propertyName: "genL3L1Volts", physicalQuantityId: 1 },
-      { propertyName: "genTotalVA", physicalQuantityId: 1, readablePropertyName: "Generator Power Output" },
+      { propertyName: "genTotalVA", physicalQuantityId: 8, readablePropertyName: "Generator Power Output" },
 
       { propertyName: "mainsL1Current", physicalQuantityId: 2, readablePropertyName: "Mains Phase 1 Current" },
       { propertyName: "mainsL2Current", physicalQuantityId: 2, readablePropertyName: "Mains Phase 2 Current" },
