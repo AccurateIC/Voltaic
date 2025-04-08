@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DateTime } from "luxon";
 import { CiBellOn } from "react-icons/ci";
 import Profile from "./Profile";
 import Logo from "../assets/accurate.svg";
@@ -14,25 +15,32 @@ const Navbar = () => {
   const notificationMessageBus = useMessageBus("notification");
   const pdmMessageBus = useMessageBus("pdm");
 
-  // fetch initial notifications
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json();
-        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
-        setNotifications(unreadNotifications);
-      } catch (error) {
-        console.error(error);
-        toast.error("Error fetching notifications");
-      }
-    };
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return;
+    const dt = DateTime.fromISO(timestamp);
+    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
+  };
+
+
+  // fetch initial notifications
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
+      setNotifications(unreadNotifications);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching notifications");
+    }
+  };
+  useEffect(() => {
     fetchNotifications();
   }, []);
 
@@ -111,6 +119,41 @@ const Navbar = () => {
     };
   }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
 
+
+  const handleMarkNotificationAsRead = async (notificationId) => {
+    try {
+      // make req to backend to mark notification as read
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || `Failed to resolve notification`);
+        return;
+      }
+
+
+      // Send message on the notification bus to inform other components
+      notificationMessageBus({
+        time: Date.now(),
+        message: "notification marked as read",
+        notificationId: notificationId
+      });
+
+      // re fetch notifications?
+      fetchNotifications();
+    } catch (err) {
+      console.error("Error resolving notification:", err);
+      toast.error(`Failed to resolve notification: ${err.message}`);
+    }
+  };
+
+
+
+
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
       <div className="">
@@ -130,9 +173,19 @@ const Navbar = () => {
             <div className="absolute right-0 mt-4 w-96 max-h-[32vh] overflow-y-auto rounded-lg shadow-lg bg-base-200 z-50">
               <div className="p-2 space-y-2 text-base-content">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="bg-error/20 hover:bg-error/40 p-4 rounded transition-all">
-                    <h3 className="text-lg font-semibold break-words">{notification.summary}</h3>
-                    <p className="text-sm mt-1 break-words">{notification.message}</p>
+                  <div key={notification.id} className="flex flex-row justify-between bg-error/20 hover:bg-error/40 p-4 rounded transition-all">
+                    <div>
+                      <h3 className="text-lg font-semibold break-words">{notification.summary}</h3>
+                      <p className="text-sm mt-1 break-words">{notification.message}</p>
+                      <p className="text-sm mt-1">Started At: {formatTimestamp(notification.startedAt)}</p>
+                    </div>
+                    <div className="flex items-center">
+                      {notification.shouldBeDisplayed &&
+                        <button className="btn btn-primary btn-outline btn-sm"
+                          onClick={() => handleMarkNotificationAsRead(notification.id)}
+                        >Resolve</button>
+                      }
+                    </div>
                   </div>
                 ))}
               </div>
