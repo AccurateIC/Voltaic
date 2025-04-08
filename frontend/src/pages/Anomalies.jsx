@@ -139,23 +139,28 @@ const Anomalies = () => {
     });
   };
 
+
   const handleViewClick = (entry) => {
     if (!entry.startedAt || !entry.finishedAt) {
       toast.error("Both startedAt and finishedAt must be present.");
       return;
     }
-
-    const startedAt = parseInt(entry.startedAt);
-    const finishedAt = parseInt(entry.finishedAt);
+  
+    const startedAtMillis = DateTime.fromISO(entry.startedAt).toMillis();
+    const finishedAtMillis = DateTime.fromISO(entry.finishedAt).toMillis();
+    const value = entry.archive.propertyValue;
+ 
 
     const data = [
-      { x: startedAt, y: 1, label: "Started At" },
-      { x: finishedAt, y: 1, label: "Finished At" },
+      { x: DateTime.fromISO(entry.startedAt).toMillis(), y: entry.archive.propertyValue, label: "Started At" },
+      { x: DateTime.fromISO(entry.finishedAt).toMillis(), y: entry.archive.propertyValue, label: "Finished At" },
     ];
-
+  console.log("data",data);
     setGraphData(data);
+    console.log("grapgdata", graphData);
     setShowGraph(true);
   };
+  
 
   const handleAnomalyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
@@ -188,12 +193,7 @@ const Anomalies = () => {
     XLSX.writeFile(wb, fileName);
   };
 
-  // const formatTimestamp = (timestamp) => {
-  //   if (!timestamp) return;
-  //   const dt = DateTime.fromMillis(parseInt(timestamp));
-  //   return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  // };
-
+  
   return (
     <div className="h-full w-full flex flex-col p-2 overflow-x-scroll">
       <div className="h-20 bg-gray-900 text-white p-6">
@@ -313,31 +313,33 @@ const Anomalies = () => {
     <h3 className="text-white text-xl font-semibold mb-4 text-center">
       Anomaly Detection Timeline
     </h3>
-    <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+    <LineChart width={1000} height={400} data={graphData} margin={{ top: 20, right: 10, left: 300, bottom: 40 }}>
       <CartesianGrid strokeDasharray="3 3" />
       
       <XAxis
         dataKey="x"
+        domain={['dataMin', 'dataMax']} 
+
         tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
         label={{
           value: "Timestamp",
           position: "insideBottom",
           offset: -10,
-          style: { fill: "#fff", fontSize: 14 },
+          style: { fill: "#fff" },
         }}
         stroke="#ffffff"
       />
 
       <YAxis
         type="number"
-        domain={[0, 2]}
-        ticks={[1, 2]}
-        tickFormatter={(tick) => (tick === 1 ? "startedAt" : "finishedAt")}
+        domain={[0, 'dataMax + 10']}
         label={{
-          value: "Anomaly Event",
+          value: "Property  Value",
+          dy: 50,
+          dx:-19,
           angle: -90,
           position: "insideLeft",
-          style: { fill: "#fff", fontSize: 14 },
+          style: { fill: "#fff" },
         }}
         stroke="#ffffff"
       />
@@ -350,10 +352,10 @@ const Anomalies = () => {
       <Line
         type="monotone"
         dataKey="y"
-        stroke="#00d4ff"
+        stroke="#ff0000"
         name="Anomaly Event"
-        dot={{ r: 6 }}
-        isAnimationActive={true}
+        dot={{ r: 4 }}
+        isAnimationActive={false}
       />
     </LineChart>
   </div>
