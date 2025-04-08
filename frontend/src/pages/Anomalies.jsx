@@ -120,8 +120,12 @@ const Anomalies = () => {
       if (!selectedEntry) return;
 
       const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
-      const from = selectedEntry?.startedAt;
-      const to = selectedEntry?.finishedAt;
+      const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
+const to = selectedEntry?.finishedAt
+  ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
+  : DateTime.now().toUTC().toISO();
+
+      console.log("to updated to now", to);
 
       if (!propertyName || !from || !to) {
         console.error("Missing required fields in selectedEntry");
@@ -143,6 +147,7 @@ const Anomalies = () => {
           credentials: "include",
         });
 
+        console.log("response getBetweeen", response);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to fetch property data");
@@ -174,6 +179,8 @@ const Anomalies = () => {
     console.log("Alarms page mount effect running");
     fetchNotifications();
   }, []);
+
+  
 
   // fetch genset properties
   // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
@@ -219,8 +226,8 @@ const Anomalies = () => {
   };
 
   const handleViewClick = (entry) => {
-    if (!entry.startedAt || !entry.finishedAt) {
-      toast.error("Both startedAt and finishedAt must be present.");
+    if (!entry.startedAt) {
+      toast.error("startedAt must be present.");
       return;
     }
 
@@ -228,17 +235,17 @@ const Anomalies = () => {
 
     console.log("entry ", entry);
     console.log("entry startedAt", entry.startedAt);
+
     const startedAtMillis = DateTime.fromISO(entry.startedAt).toMillis();
-    const finishedAtMillis = DateTime.fromISO(entry.finishedAt).toMillis();
+    const finishedAtMillis = entry.finishedAt ? DateTime.fromISO(entry.finishedAt).toMillis() : DateTime.now().toMillis();
     const value = entry.archive.propertyValue;
 
     const data = [
-      { x: DateTime.fromISO(entry.startedAt).toMillis(), y: entry.archive.propertyValue, label: "Started At" },
-      { x: DateTime.fromISO(entry.finishedAt).toMillis(), y: entry.archive.propertyValue, label: "Finished At" },
+      { x: startedAtMillis, y: entry.archive.propertyValue, label: "Started At" },
+      { x: finishedAtMillis, y: entry.archive.propertyValue, label: "Finished At" },
     ];
+
     console.log("data", data);
-    // setGraphData(data);
-    console.log("grapgdata", graphData);
     setShowGraph(true);
   };
 
@@ -272,9 +279,10 @@ const Anomalies = () => {
     const fileName = `Anomaly_Data_${selectedPeriod || "All"}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
+  
 
   return (
-    <div className="h-full w-full flex flex-col p-2 overflow-x-scroll">
+    <div className="h-full w-full flex flex-col p-2">
       <div className="h-20 bg-gray-900 text-white p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div
@@ -376,7 +384,12 @@ const Anomalies = () => {
                   <td>{entry.message}</td>
                   <td>{formatTimestamp(entry.finishedAt)}</td>
                   <td>
-                    <button className="bg-blue-500 px-5 py-3.5 rounded-md" onClick={() => handleViewClick(entry)}>
+                    <button
+                      className="bg-blue-500 px-5 py-3.5 rounded-md text-white"
+                      onClick={() => {
+                        handleViewClick(entry); // Set data for the graph
+                        document.getElementById("my_modal_2").showModal(); // Open modal
+                      }}>
                       View
                     </button>
                   </td>
@@ -386,59 +399,68 @@ const Anomalies = () => {
           </table>
         </div>
 
-        {/* Graph Section */}
-        {showGraph && graphData.length > 0 ? (
-          <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+        <dialog id="my_modal_2" fixed className="modal">
+          <div className="modal-box max-w-6xl w-full bg-gray-900">
             <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
-            <LineChart width={1000} height={400} data={graphData} margin={{ top: 20, right: 10, left: 300, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" />
 
-              <XAxis
-                dataKey="x"
-                domain={["dataMin", "dataMax"]}
-                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-                label={{
-                  value: "Timestamp",
-                  position: "insideBottom",
-                  offset: -10,
-                  style: { fill: "#fff" },
-                }}
-                stroke="#ffffff"
-              />
+            {/* Graph Section */}
+            {graphData.length > 0 ? (
+              <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 10, left: 120, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="x"
+                  domain={["dataMin", "dataMax"]}
+                  tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
+                  label={{
+                    value: "Timestamp",
+                    position: "insideBottom",
+                    dy: 25,
+                    offset: -10,
+                    style: { fill: "#fff" },
+                  }}
+                  stroke="#ffffff"
+                />
+                <YAxis
+                  type="number"
+                  domain={[0, "dataMax + 10"]}
+                  label={{
+                    value: `${selectedEntry?.archive?.gensetProperty?.readablePropertyName || "Property"} (${
+                      selectedEntry?.archive?.gensetProperty?.physicalQuantity?.unitSymbol || "unit"
+                    })`,
+                    dy: 100,
+                    dx: -19,
+                    angle: -90,
+                    position: "insideLeft",
+                    style: { fill: "#fff" },
+                  }}
+                  stroke="#ffffff"
+                />
+                <Tooltip
+                  formatter={(value) => `Value: ${value}`}
+                  labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
+                />
+                <Legend verticalAlign="top" height={36} />
+                <Line
+                  type="monotone"
+                  dataKey="y"
+                  stroke="#ff0000"
+                  name="Anomaly Event"
+                  dot={{ r: 4 }}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            ) : (
+              <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+            )}
 
-              <YAxis
-                type="number"
-                domain={[0, "dataMax + 10"]}
-                label={{
-                  value: "Property  Value",
-                  dy: 50,
-                  dx: -19,
-                  angle: -90,
-                  position: "insideLeft",
-                  style: { fill: "#fff" },
-                }}
-                stroke="#ffffff"
-              />
-
-              <Tooltip
-                formatter={(val, name, props) =>
-                  `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toFormat("HH:mm:ss")} Value: ${val}`
-                }
-              />
-              <Legend verticalAlign="top" height={36} />
-              <Line
-                type="monotone"
-                dataKey="y"
-                stroke="#ff0000"
-                name="Anomaly Event"
-                dot={{ r: 4 }}
-                isAnimationActive={false}
-              />
-            </LineChart>
+            {/* Close Button */}
+            <div className="flex justify-end mt-4">
+              <form method="dialog">
+                <button className="btn">Close</button>
+              </form>
+            </div>
           </div>
-        ) : (
-          showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
-        )}
+        </dialog>
       </div>
     </div>
   );
