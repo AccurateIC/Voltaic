@@ -134,7 +134,7 @@ const Alarms = () => {
     });
   };
 
-  const handleEntryResolution = async (notificationId) => {
+  const handleMarkNotificationAsRead = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
@@ -244,7 +244,7 @@ const Alarms = () => {
                 <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
                 <td>
                   <button
-                    onClick={() => handleEntryResolution(entry.id)}
+                    onClick={() => handleMarkNotificationAsRead(entry.id)}
                     className={cn(
                       "btn btn-outline btn-info",
                       `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
