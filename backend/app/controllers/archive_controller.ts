@@ -227,7 +227,7 @@ export default class ArchiveController {
             if (!activeNotification) {
               newNotifications.push({
                 summary: `Anomaly detected for ${property.readablePropertyName}`,
-                message: `Property value ${archive.propertyValue}${unit} is anomalous`,
+                message: `Property value: ${archive.propertyValue}${unit}`,
                 archiveId: archive.id,
                 shouldBeDisplayed: true,
                 notificationTypeId: 3,
