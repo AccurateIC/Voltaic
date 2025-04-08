@@ -1,37 +1,73 @@
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend, Label } from "recharts";
+import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 
-const anomalyData = {
-  today: [],
-  week: [],
-  month: [],
-};
-
 const Anomalies = () => {
-  const [filteredData, setFilteredData] = useState(anomalyData.today);
+  const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
+  const [filteredData, setFilteredData] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState("today");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [fromTime, setFromTime] = useState("");
-  const [toTime, setToTime] = useState("");
+  // const [fromTime, setFromTime] = useState("");
+  // const [toTime, setToTime] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
 
   const [filters, setFilters] = useState({
     fromDate: "",
+    fromTime: "",
     toDate: new Date().toISOString().split("T")[0],
+    toTime: "",
     property: "Property",
     anomalyStatus: "",
   });
+
+  const handleFromDateFilterChange = (e) => {
+    setFilters((prev) => ({ ...prev, fromDate: e.target.value }));
+  };
+
+  const handleToDateFilterChange = (e) => {
+    setFilters((prev) => ({ ...prev, toDate: e.target.value }));
+  };
+
+  // const handleFromTimeChange = (e) => {
+  //   setFromTime(e.target.value);
+  //   setFilters((prev) => ({ ...prev, fromTime: e.target.value }));
+  // };
+
+  // const handleToTimeChange = (e) => {
+  //   setToTime(e.target.value);
+  //   setFilters((prev) => ({ ...prev, toTime: e.target.value }));
+  // };
+
+  const getAnomalyDataByPeriod = (notifications) => {
+    const now = DateTime.local();
+    const todayStart = now.startOf("day");
+    const weekStart = now.startOf("week");
+    const monthStart = now.startOf("month");
+
+    const data = { today: [], week: [], month: [] };
+
+    notifications.forEach((notif) => {
+      const notifTime = DateTime.fromMillis(parseInt(notif.startedAt));
+      if (notifTime >= monthStart) {
+        data.month.push(notif);
+        if (notifTime >= weekStart) {
+          data.week.push(notif);
+          if (notifTime >= todayStart) {
+            data.today.push(notif);
+          }
+        }
+      }
+    });
+
+    return data;
+  };
 
   // apply filters whenever filters or notifications change
   useEffect(() => {
@@ -49,7 +85,14 @@ const Anomalies = () => {
       );
     }
 
-    // Filter by property
+    // if (fromDateTime) {
+    //   filtered = filtered.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= fromDateTime);
+    // }
+
+    // if (toDateTime) {
+    //   filtered = filtered.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() <= toDateTime);
+    // }
+
     if (filters.property && filters.property !== "Property") {
       filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
     }
@@ -63,7 +106,7 @@ const Anomalies = () => {
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  useMessageBus("notifications", (msg) => {
+  useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     fetchNotifications();
   });
@@ -76,13 +119,18 @@ const Anomalies = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch notification data");
       }
+
       const data = await response.json();
-      console.log("alarms", data);
       setNotifications(data);
+
+      const anomalyStats = getAnomalyDataByPeriod(data);
+      setAnomalyData(anomalyStats);
+      setFilteredData(anomalyStats.today);
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
@@ -91,43 +139,41 @@ const Anomalies = () => {
     }
   };
 
-  // initial fetch of notifications
   useEffect(() => {
-    console.log("Alarms page mount effect running");
     fetchNotifications();
   }, []);
 
-  // fetch genset properties
-  // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
-  //       in the future, pagination should be implemented to reduce database querying times
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
+        const res = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch genset data");
-        }
-        const data = await response.json();
+        if (!res.ok) throw new Error((await res.json()).message);
+        const data = await res.json();
         setGensetProperties(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
+      } catch (err) {
+        console.error("Fetch error:", err);
         toast.error("Error fetching genset property data");
       }
     };
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
+  const handleAnomalyClick = (period) => {
+    setSelectedPeriod(period);
+    const now = DateTime.local();
+    let start;
+    if (period === "today") start = now.startOf("day");
+    else if (period === "week") start = now.startOf("week");
+    else if (period === "month") start = now.startOf("month");
+    else start = now.startOf("day");
 
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+    const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
+    setFilteredData(filtered);
+    setFilteredNotifications(filtered);
   };
 
   const handleResetFilters = () => {
@@ -136,7 +182,11 @@ const Anomalies = () => {
       toDate: new Date().toISOString().split("T")[0],
       property: "Property",
       anomalyStatus: "",
+      fromTime: "",
+      toTime: "",
     });
+    setFromTime("");
+    setToTime("");
   };
 
   const handleViewClick = (entry) => {
@@ -145,54 +195,36 @@ const Anomalies = () => {
       return;
     }
 
-    const startedAt = parseInt(entry.startedAt);
-    const finishedAt = parseInt(entry.finishedAt);
-
     const data = [
-      { x: startedAt, y: 1, label: "Started At" },
-      { x: finishedAt, y: 1, label: "Finished At" },
+      { x: parseInt(entry.startedAt), y: 1, label: "Started At" },
+      { x: parseInt(entry.finishedAt), y: 2, label: "Finished At" },
     ];
-
     setGraphData(data);
     setShowGraph(true);
   };
 
-  const handleAnomalyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
-  };
-
-  const handleGensetPropertyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
-  };
-
   const exportToExcel = () => {
-    if (!filteredData || filteredData.length === 0) {
+    if (!filteredNotifications || filteredNotifications.length === 0) {
       alert("No data available to export!");
       return;
     }
-
-    console.log("Exporting data:", filteredData); // Debugging log
 
     const cleanData = filteredData.map((item) => ({
       id: item.id,
       anomaly: item.anomaly,
       status: item.status,
-      date: item.date,
+      message: item.message,
+      startedAt: formatTimestamp(item.startedAt),
+      finishedAt: formatTimestamp(item.finishedAt),
     }));
 
     const ws = XLSX.utils.json_to_sheet(cleanData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Anomaly Data");
+    XLSX.utils.book_append_sheet(wb, ws, "Anomalies");
 
     const fileName = `Anomaly_Data_${selectedPeriod || "All"}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
-
-  // const formatTimestamp = (timestamp) => {
-  //   if (!timestamp) return;
-  //   const dt = DateTime.fromMillis(parseInt(timestamp));
-  //   return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  // };
 
   return (
     <div className="h-full w-full flex flex-col p-2 overflow-x-scroll">
@@ -249,7 +281,7 @@ const Anomalies = () => {
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
           </div>
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <label className="text-white">From Time:</label>
             <input
               type="time"
@@ -265,7 +297,7 @@ const Anomalies = () => {
               onChange={(e) => setToTime(e.target.value)}
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
-          </div>
+          </div> */}
 
           <button onClick={handleResetFilters} className="bg-gray-500 px-4 py-2 rounded-lg text-white">
             Reset
@@ -280,10 +312,10 @@ const Anomalies = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-sky-950 text-base-200">
+                <th>#</th>
                 <th>Started At</th>
                 <th>Summary</th>
                 <th>Message</th>
-                <th>Anomaly Status</th>
                 <th>Finished At</th>
                 <th>View</th>
               </tr>
@@ -291,7 +323,7 @@ const Anomalies = () => {
             <tbody className="bg-sky-950/50">
               {filteredNotifications.map((entry, index) => (
                 <tr key={index}>
-                  <th>{index + 1}</th>
+                  <td>{index + 1}</td>
                   <td>{formatTimestamp(entry.startedAt)}</td>
                   <td>{entry.summary}</td>
                   <td>{entry.message}</td>
@@ -307,60 +339,56 @@ const Anomalies = () => {
           </table>
         </div>
 
-        {/* Graph Section */}
+        {/* Graph */}
         {showGraph && graphData.length > 0 ? (
-  <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-    <h3 className="text-white text-xl font-semibold mb-4 text-center">
-      Anomaly Detection Timeline
-    </h3>
-    <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
-      <CartesianGrid strokeDasharray="3 3" />
-      
-      <XAxis
-        dataKey="x"
-        tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-        label={{
-          value: "Timestamp",
-          position: "insideBottom",
-          offset: -10,
-          style: { fill: "#fff", fontSize: 14 },
-        }}
-        stroke="#ffffff"
-      />
-
-      <YAxis
-        type="number"
-        domain={[0, 2]}
-        ticks={[1, 2]}
-        tickFormatter={(tick) => (tick === 1 ? "startedAt" : "finishedAt")}
-        label={{
-          value: "Anomaly Event",
-          angle: -90,
-          position: "insideLeft",
-          style: { fill: "#fff", fontSize: 14 },
-        }}
-        stroke="#ffffff"
-      />
-
-      <Tooltip
-        formatter={(val, name, props) => `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toFormat("HH:mm:ss")}`}
-        labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
-      />
-      <Legend verticalAlign="top" height={36} />
-      <Line
-        type="monotone"
-        dataKey="y"
-        stroke="#00d4ff"
-        name="Anomaly Event"
-        dot={{ r: 6 }}
-        isAnimationActive={true}
-      />
-    </LineChart>
-  </div>
-) : (
-  showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
-)}
-
+          <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+            <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
+            <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="x"
+                tickFormatter={(tick) => DateTime.fromMillis(tick).toLocal().toFormat("HH:mm:ss")}
+                label={{
+                  value: "Timestamp",
+                  position: "insideBottom",
+                  offset: -10,
+                  style: { fill: "#fff", fontSize: 14 },
+                }}
+                stroke="#ffffff"
+              />
+              <YAxis
+                type="number"
+                domain={[0, 3]}
+                ticks={[1, 2]}
+                tickFormatter={(tick) => (tick === 1 ? "Started At" : tick === 2 ? "Finished At" : "")}
+                label={{
+                  value: "Anomaly Event",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { fill: "#fff", fontSize: 14 },
+                }}
+                stroke="#ffffff"
+              />
+              <Tooltip
+                formatter={(val, name, props) =>
+                  `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toLocal().toFormat("HH:mm:ss")}`
+                }
+                labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toLocal().toFormat("HH:mm:ss")}`}
+              />
+              <Legend verticalAlign="top" height={36} />
+              <Line
+                type="monotone"
+                dataKey="y"
+                stroke="#00d4ff"
+                name="Anomaly Event"
+                dot={{ r: 6 }}
+                isAnimationActive={true}
+              />
+            </LineChart>
+          </div>
+        ) : (
+          showGraph && <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+        )}
       </div>
     </div>
   );
