@@ -8,17 +8,19 @@ import { useMessageBus } from "../lib/MessageBus";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 
 const EngineRPM = ({ engineRpmDetails }) => {
-  console.log(engineRpmDetails)
+  console.log(engineRpmDetails);
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;
   else engineRpm = engineRpmDetails[0].propertyValue;
-  const unit = engineRpmDetails[0]?.gensetProperty?.physicalQuantity?.unitSymbol
-  if (unit) console.log(unit.toUpperCase())
+  const unit = engineRpmDetails[0]?.gensetProperty?.physicalQuantity?.unitSymbol;
+  if (unit) console.log(unit.toUpperCase());
 
   return (
     <div className="card bg-base-200 h-full w-full flex flex-col">
       <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col">
-        <h2 className="card-title text-base-content">{engineRpmDetails[0]?.gensetProperty?.readablePropertyName}</h2>
+        <h2 className="card-title text-base-content">
+          {engineRpmDetails[0]?.gensetProperty?.readablePropertyName || "Engine Speed"}
+        </h2>
         <div className="flex items-center justify-center h-full w-full">
           <GaugeComponent
             minValue={0}
@@ -33,7 +35,10 @@ const EngineRPM = ({ engineRpmDetails }) => {
               ],
             }}
             labels={{
-              valueLabel: { style: { color: "#000" }, formatTextValue: (value) => (`${value} ${unit?.toUpperCase()} `) }, // For the central value
+              valueLabel: {
+                style: { color: "#000" },
+                formatTextValue: (value) => `${value} ${unit?.toUpperCase() || "RPM"} `,
+              }, // For the central value
               tickLabels: { defaultTickValueConfig: { style: { fill: "#6a7282" } } }, // For the tick labels (500, 1000, etc)
             }}
             value={engineRpm}
@@ -49,7 +54,6 @@ const EngineRPM = ({ engineRpmDetails }) => {
     </div>
   );
 };
-
 
 const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
   let fuelLevel;
@@ -78,9 +82,8 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
         style={{
           // Added a 10px offset to shift marks down and adjusted calculation
           bottom: `calc(${(level / maxFuelLevel) * 100}% - 10px)`,
-          left: "60px"
-        }}
-      >
+          left: "60px",
+        }}>
         {/* Line mark */}
         <div className="w-3 h-[2px] bg-base-content"></div>
         {/* Level number */}
@@ -101,9 +104,7 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
             {/* Beaker/pill container */}
             <div className="relative w-16 h-full bg-base-200 rounded-full border-2 border-base-content mx-auto">
               {/* Measurement marks */}
-              <div className="">
-                {measurementMarks}
-              </div>
+              <div className="">{measurementMarks}</div>
 
               {/* Fuel level indicator */}
               <div
@@ -113,9 +114,7 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
               {/* Current fuel level text */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-base-content font-bold text-lg">
-                  {fuelLevel}L
-                </span>
+                <span className="text-base-content font-bold text-lg">{fuelLevel}L</span>
               </div>
             </div>
           </div>
@@ -124,8 +123,6 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
     </div>
   );
 };
-
-
 
 const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit }) => {
   return (
@@ -186,10 +183,12 @@ const Engine = () => {
   }, []);
 
   useEffect(() => {
-    console.log("84646",
-      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty?.readablePropertyName
-    )
-  }, [archiveData])
+    console.log(
+      "84646",
+      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty
+        ?.readablePropertyName
+    );
+  }, [archiveData]);
 
   return (
     <div className="h-full w-full min-h-0 min-w-0">
@@ -210,10 +209,11 @@ const Engine = () => {
                 <Panel defaultSize={50}>
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.gensetProperty?.readablePropertyName
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.gensetProperty
+                        ?.readablePropertyName || "Generator Power Output"
                     }
                     propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engTemp")[0]?.propertyValue
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.propertyValue
                     }
                     PropertyIcon={MdEnergySavingsLeaf}
                     propertyUnit={
@@ -233,7 +233,8 @@ const Engine = () => {
                   {/* Engine Oil Pressure */}
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty?.readablePropertyName
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty
+                        ?.readablePropertyName || "Engine Oil Pressure"
                     }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.propertyValue
@@ -250,7 +251,8 @@ const Engine = () => {
                   {/* Charge Alt Voltage */}
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty?.readablePropertyName
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
+                        ?.gensetProperty?.readablePropertyName || "Engine Charging Alternator Voltage"
                     }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
@@ -268,7 +270,8 @@ const Engine = () => {
                   {/* Battery Voltage */}
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]?.gensetProperty?.readablePropertyName
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
+                        ?.gensetProperty?.readablePropertyName || "Engine Battery Voltage"
                     }
                     propertyValue={
                       archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
