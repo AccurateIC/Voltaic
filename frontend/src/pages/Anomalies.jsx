@@ -5,6 +5,7 @@ import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icon
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
+import { format } from "date-fns";
 
 const Anomalies = () => {
   const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
@@ -17,6 +18,7 @@ const Anomalies = () => {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
   const [filters, setFilters] = useState({
     fromDate: "",
@@ -79,6 +81,7 @@ const Anomalies = () => {
         (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
       );
     }
+
     if (filters.toDate) {
       filtered = filtered.filter(
         (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
@@ -111,6 +114,13 @@ const Anomalies = () => {
     fetchNotifications();
   });
 
+  useEffect(() => {
+    if (selectedEntry) {
+      console.log("selectedEntry updated dsdsd:", selectedEntry);
+      console.log(selectedEntry.archive.gensetProperty.propertyName);
+    }
+  }, [selectedEntry]);
+
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
@@ -126,6 +136,7 @@ const Anomalies = () => {
       }
 
       const data = await response.json();
+      console.log("/notification/getAll", data);
       setNotifications(data);
 
       const anomalyStats = getAnomalyDataByPeriod(data);
@@ -137,8 +148,77 @@ const Anomalies = () => {
     } finally {
       setIsLoading(false);
     }
+
+    if (
+      !selectedEntry ||
+      !selectedEntry.startedAt ||
+      !selectedEntry.finishedAt ||
+      !selectedEntry.archive?.gensetProperty?.propertyName
+    ) {
+      toast.error("Invalid selected entry data.");
+      return;
+    }
+
+    const from = selectedEntry.startedAt;
+    const to = selectedEntry.finishedAt;
+    const propertyName = selectedEntry.archive.gensetProperty.propertyName;
   };
 
+  useEffect(() => {
+    const fetchPropertyData = async () => {
+      if (!selectedEntry) return;
+
+      const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
+      const from = selectedEntry?.startedAt;
+      const to = selectedEntry?.finishedAt;
+
+      if (!propertyName || !from || !to) {
+        console.error("Missing required fields in selectedEntry");
+        toast.error("Incomplete data for fetching property info");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const url = `${
+          import.meta.env.VITE_ADONIS_BACKEND
+        }/archive/getPropertyDataBetween?from=${from}&to=${to}&propertyName=${propertyName}`;
+
+        console.log("Calling API:", url);
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch property data");
+        }
+
+        const data = await response.json();
+        console.log("Property data response using from, to, property name:", data);
+
+        const formattedData = data.map((item) => ({
+          x: new Date(item.timestamp).getTime(), // keep it numeric
+          y: item.propertyValue,
+          label: "Anomaly Event",
+        }));
+
+        setGraphData(formattedData); // <-- you need this state for the chart
+      } catch (error) {
+        console.error("Fetch error:", error);
+        toast.error("Error fetching property data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPropertyData();
+  }, [selectedEntry]);
+
+  // initial fetch of notifications
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -151,8 +231,12 @@ const Anomalies = () => {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
-        if (!res.ok) throw new Error((await res.json()).message);
-        const data = await res.json();
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch genset data");
+        }
+        const data = await response.json();
+        console.log("/property/getAll", data);
         setGensetProperties(data);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -195,11 +279,21 @@ const Anomalies = () => {
       return;
     }
 
+    setSelectedEntry(entry);
+
+    console.log("entry ", entry);
+    console.log("entry startedAt", entry.startedAt);
+    const startedAtMillis = DateTime.fromISO(entry.startedAt).toMillis();
+    const finishedAtMillis = DateTime.fromISO(entry.finishedAt).toMillis();
+    const value = entry.archive.propertyValue;
+
     const data = [
-      { x: parseInt(entry.startedAt), y: 1, label: "Started At" },
-      { x: parseInt(entry.finishedAt), y: 2, label: "Finished At" },
+      { x: DateTime.fromISO(entry.startedAt).toMillis(), y: entry.archive.propertyValue, label: "Started At" },
+      { x: DateTime.fromISO(entry.finishedAt).toMillis(), y: entry.archive.propertyValue, label: "Finished At" },
     ];
-    setGraphData(data);
+    console.log("data", data);
+    // setGraphData(data);
+    console.log("grapgdata", graphData);
     setShowGraph(true);
   };
 
@@ -343,46 +437,49 @@ const Anomalies = () => {
         {showGraph && graphData.length > 0 ? (
           <div className="mt-6 bg-gray-800 p-6 rounded-lg">
             <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
-            <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+            <LineChart width={1000} height={400} data={graphData} margin={{ top: 20, right: 10, left: 300, bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" />
+
               <XAxis
                 dataKey="x"
-                tickFormatter={(tick) => DateTime.fromMillis(tick).toLocal().toFormat("HH:mm:ss")}
+                domain={["dataMin", "dataMax"]}
+                tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
                 label={{
                   value: "Timestamp",
                   position: "insideBottom",
                   offset: -10,
-                  style: { fill: "#fff", fontSize: 14 },
+                  style: { fill: "#fff" },
                 }}
                 stroke="#ffffff"
               />
+
               <YAxis
                 type="number"
-                domain={[0, 3]}
-                ticks={[1, 2]}
-                tickFormatter={(tick) => (tick === 1 ? "Started At" : tick === 2 ? "Finished At" : "")}
+                domain={[0, "dataMax + 10"]}
                 label={{
-                  value: "Anomaly Event",
+                  value: "Property  Value",
+                  dy: 50,
+                  dx: -19,
                   angle: -90,
                   position: "insideLeft",
-                  style: { fill: "#fff", fontSize: 14 },
+                  style: { fill: "#fff" },
                 }}
                 stroke="#ffffff"
               />
+
               <Tooltip
                 formatter={(val, name, props) =>
-                  `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toLocal().toFormat("HH:mm:ss")}`
+                  `${props.payload.label}: ${DateTime.fromMillis(props.payload.x).toFormat("HH:mm:ss")} Value: ${val}`
                 }
-                labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toLocal().toFormat("HH:mm:ss")}`}
               />
               <Legend verticalAlign="top" height={36} />
               <Line
                 type="monotone"
                 dataKey="y"
-                stroke="#00d4ff"
+                stroke="#ff0000"
                 name="Anomaly Event"
-                dot={{ r: 6 }}
-                isAnimationActive={true}
+                dot={{ r: 4 }}
+                isAnimationActive={false}
               />
             </LineChart>
           </div>
@@ -395,3 +492,5 @@ const Anomalies = () => {
 };
 
 export default Anomalies;
+
+//  Anomaly Event: undefined: 11:20:12 Value: 60
