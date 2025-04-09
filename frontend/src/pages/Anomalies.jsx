@@ -42,6 +42,8 @@ const Anomalies = () => {
     setFilters((prev) => ({ ...prev, toTime: e.target.value }));
   };
 
+  console.log("notifications", notifications);
+
   const getAnomalyDataByPeriod = (notifications) => {
     const now = DateTime.local();
     const todayStart = now.startOf("day");
@@ -51,7 +53,7 @@ const Anomalies = () => {
     const data = { today: [], week: [], month: [] };
 
     notifications.forEach((notif) => {
-      const notifTime = DateTime.fromMillis(parseInt(notif.startedAt));
+      const notifTime = DateTime.fromISO(notif.startedAt);
       if (notifTime >= monthStart) {
         data.month.push(notif);
         if (notifTime >= weekStart) {
@@ -62,37 +64,45 @@ const Anomalies = () => {
         }
       }
     });
+    console.log("Today’s anomalies:", data.today);
+    console.log("Week’s anomalies:", data.week);
+    console.log("Month’s anomalies:", data.month);
 
     return data;
   };
+  console.log("agetAnomalyDataByPeriod", getAnomalyDataByPeriod(notifications));
 
   useEffect(() => {
     let filtered = [...notifications];
 
-    // Combine fromDate and fromTime
+    console.log("fromDate:", filters.fromDate);
+    console.log("fromTime:", filters.fromTime);
+    console.log("toDate:", filters.toDate);
+    console.log("toTime:", filters.toTime);
+
     let fromDateTime = null;
     if (filters.fromDate && filters.fromTime) {
       fromDateTime = DateTime.fromISO(`${filters.fromDate}T${filters.fromTime}`);
     }
 
-    // Combine toDate and toTime
     let toDateTime = null;
     if (filters.toDate && filters.toTime) {
       toDateTime = DateTime.fromISO(`${filters.toDate}T${filters.toTime}`);
     }
 
-    // Filter by fromDateTime
     if (fromDateTime) {
       filtered = filtered.filter((notif) => {
-        const startedAt = DateTime.fromMillis(parseInt(notif.startedAt));
+        const startedAt = DateTime.fromISO(notif.startedAt);
+
         return startedAt >= fromDateTime;
       });
     }
 
-    // Filter by toDateTime
+    console.log("toDateTime", toDateTime);
+
     if (toDateTime) {
       filtered = filtered.filter((notif) => {
-        const startedAt = DateTime.fromMillis(parseInt(notif.startedAt));
+        const startedAt = DateTime.fromISO(notif.startedAt);
         return startedAt <= toDateTime;
       });
     }
@@ -110,7 +120,6 @@ const Anomalies = () => {
     const dt = DateTime.fromISO(timestamp);
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
-
 
   useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -133,8 +142,9 @@ const Anomalies = () => {
 
       const data = await response.json();
       setNotifications(data);
-
+      console.log("data", data);
       const anomalyStats = getAnomalyDataByPeriod(data);
+      console.log("anomalyStats0", anomalyStats);
       setAnomalyData(anomalyStats);
       setFilteredData(anomalyStats.today);
     } catch (error) {
@@ -168,6 +178,10 @@ const Anomalies = () => {
     fetchProperties();
   }, []);
 
+  const now = new Date();
+  const todayDate = now.toISOString().split("T")[0];
+  const currentTime = now.toTimeString().split(" ")[0].slice(0, 5);
+
   const handleAnomalyClick = (period) => {
     setSelectedPeriod(period);
     const now = DateTime.local();
@@ -184,12 +198,12 @@ const Anomalies = () => {
 
   const handleResetFilters = () => {
     setFilters({
-      fromDate: "",
-      toDate: new Date().toISOString().split("T")[0],
+      fromDate: todayDate,
+      toDate: todayDate,
+      fromTime: "00:00",
+      toTime: currentTime, // or "23:59" if you want full day
       property: "Property",
       anomalyStatus: "",
-      fromTime: "",
-      toTime: "",
     });
     setFromTime("");
     setToTime("");
