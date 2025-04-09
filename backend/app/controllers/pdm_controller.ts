@@ -5,12 +5,26 @@ import MaintenanceNotification from "#models/maintenance_notification";
 import Vibration from "#models/vibration";
 import PdmDataKind from "#models/pdm_data_kind";
 import SensorProperty from "#models/sensor_property";
+import { DateTime } from "luxon";
 
 export default class PdmController {
-  // async getAll({}: HttpContext) {
-  //    const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
-  //    return archiveData;
-  //  }
+  async markNotificationRead({ params }: HttpContext) {
+    const pdmNotification = await MaintenanceNotification.findOrFail(params.id);
+    pdmNotification.shouldBeDisplayed = false;
+    pdmNotification.resolvedAt = DateTime.now();
+    await pdmNotification.save();
+    return pdmNotification;
+  }
+
+  async getAllNotifications({}: HttpContext) {
+    const pdmNotifications = await MaintenanceNotification.all();
+    return pdmNotifications;
+  }
+
+  async getAllUnreadNotifications({}: HttpContext) {
+    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", true);
+    return pdmNotifications;
+  }
 
   async getRecentActual({}: HttpContext) {
     const pdmVibrationData = await Vibration.query()
@@ -19,7 +33,7 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "actual");
       })
-      .limit(60 * 27);
+      .limit(60 * 25);
     return pdmVibrationData;
   }
 
@@ -30,7 +44,7 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
-      .limit(60 * 27);
+      .limit(60 * 25);
     return pdmVibrationData;
   }
 
@@ -55,6 +69,7 @@ export default class PdmController {
       const maintenance_notif = new MaintenanceNotification();
       maintenance_notif.timestamp = data.actual_values_timestamp[0];
       maintenance_notif.maintenanceReason = data.maintenance_reason;
+      maintenance_notif.shouldBeDisplayed = true;
       await maintenance_notif.save();
       maintenance_notif_id = maintenance_notif.id;
     }

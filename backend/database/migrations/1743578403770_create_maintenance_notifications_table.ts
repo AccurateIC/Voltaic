@@ -8,6 +8,8 @@ export default class extends BaseSchema {
       table.increments("id");
       table.timestamp("timestamp").notNullable();
       table.json("maintenance_reason");
+      table.boolean("should_be_displayed").notNullable();
+      table.timestamp("resolved_at");
 
       table.timestamp("created_at");
       table.timestamp("updated_at");
@@ -18,4 +20,3 @@ export default class extends BaseSchema {
     this.schema.dropTable(this.tableName);
   }
 }
-

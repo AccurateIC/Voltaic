@@ -13,7 +13,6 @@ export default class NotificationController {
 
   // mark a notification as `read`
   async read({ params }: HttpContext) {
-    console.log(params.id);
     const notification = await Notification.findOrFail(params.id);
     notification.shouldBeDisplayed = false;
     notification.finishedAt = DateTime.now();

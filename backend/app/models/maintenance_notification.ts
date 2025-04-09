@@ -17,6 +17,12 @@ export default class MaintenanceNotification extends BaseModel {
   @column()
   declare maintenanceReason: MaintenanceReason;
 
+  @column()
+  declare shouldBeDisplayed: boolean;
+
+  @column()
+  declare resolvedAt: DateTime;
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime;
 

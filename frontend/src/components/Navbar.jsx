@@ -7,14 +7,29 @@ import { TransmitChannels } from "../lib/TransmitChannels.js";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.js";
 import transmitConnection from "../lib/TransmitConnection";
+import { useRef } from "react";
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
+  const [pdmNotifications, setPdmNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [activeTab, setActiveTab] = useState("anomalies");
   const archiveMessageBus = useMessageBus("archive");
   const notificationMessageBus = useMessageBus("notification");
   const pdmMessageBus = useMessageBus("pdm");
+  const detailsRef = useRef(null); // used to close notification dropdown when clicking outside
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (detailsRef.current && !detailsRef.current.contains(event.target)) {
+        detailsRef.current.removeAttribute("open");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
@@ -22,6 +37,21 @@ const Navbar = () => {
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
+  // fetch pdm notifications
+  const fetchPdmNotifications = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getAllUnread`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`Failed to fetch PDM notifications`);
+      const data = await response.json();
+      setPdmNotifications(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // fetch initial notifications
   const fetchNotifications = async () => {
@@ -40,19 +70,12 @@ const Navbar = () => {
       toast.error("Error fetching notifications");
     }
   };
+
+  // fetch anomaly and pdm notifications on first render
   useEffect(() => {
     fetchNotifications();
+    fetchPdmNotifications();
   }, []);
-
-  // Toggle notifications dropdown
-  const toggleNotifications = () => {
-    if (notifications.length === 0) {
-      toast.info("No new notifications");
-      setShowNotifications(false);
-    } else {
-      setShowNotifications(!showNotifications);
-    }
-  };
 
   // Subscribe to real-time notifications
   useEffect(() => {
@@ -100,9 +123,8 @@ const Navbar = () => {
 
     const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
       try {
-        console.log("::::new pdm data:::", message);
-        localStorage.setItem("pdmData", JSON.stringify(message));
-        console.log("pdm data stored to local storage");
+        console.log("::::new pdm data:::");
+        await fetchPdmNotifications();
         pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
       } catch (err) {
         console.error(err);
@@ -119,6 +141,35 @@ const Navbar = () => {
     };
   }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
 
+  const handleMarkPdmNotificationAsRead = async (pdmNotificationId) => {
+    try {
+      // make req to backend to mark notification as read
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/read/${pdmNotificationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || `Failed to resolve notification`);
+        return;
+      }
+
+      // Send message on the notification bus to inform other components
+      notificationMessageBus({
+        time: Date.now(),
+        message: "pdm notification marked as read",
+        notificationId: pdmNotificationId,
+      });
+
+      // re fetch notifications?
+      fetchPdmNotifications();
+    } catch (err) {
+      console.error("Error resolving notification:", err);
+      toast.error(`Failed to resolve notification: ${err.message}`);
+    }
+  };
 
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
@@ -135,12 +186,11 @@ const Navbar = () => {
         return;
       }
 
-
       // Send message on the notification bus to inform other components
       notificationMessageBus({
         time: Date.now(),
         message: "notification marked as read",
-        notificationId: notificationId
+        notificationId: notificationId,
       });
 
       // re fetch notifications?
@@ -151,51 +201,132 @@ const Navbar = () => {
     }
   };
 
-
-
-
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
-      <div className="">
+      <div>
         <img src={Logo} alt="AccurateIC Logo" className="w-40" />
       </div>
 
       <div className="flex items-center space-x-3">
-        <div className="relative">
-          <button onClick={toggleNotifications} className="btn btn-ghost rounded-field relative">
+        {/* --- DaisyUI Dropdown Structure --- */}
+        <details ref={detailsRef} className="dropdown dropdown-end">
+          <summary className="btn btn-ghost btn-circle relative">
             <CiBellOn size={38} color="black" />
-            {notifications.length > 0 && (
-              <div className="badge badge-xs badge-primary absolute -top-1 -right-1">{notifications.length}</div>
-            )}
-          </button>
-
-          {showNotifications && notifications.length > 0 && (
-            <div className="absolute right-0 mt-4 w-96 max-h-[32vh] overflow-y-auto rounded-lg shadow-lg bg-base-200 z-50">
-              <div className="p-2 space-y-2 text-base-content">
-                {notifications.map((notification) => (
-                  <div key={notification.id} className="flex flex-row justify-between bg-error/20 hover:bg-error/40 p-4 rounded transition-all">
-                    <div>
-                      <h3 className="text-lg font-semibold break-words">{notification.summary}</h3>
-                      <p className="text-sm mt-1 break-words">{notification.message}</p>
-                      <p className="text-sm mt-1">Started At: {formatTimestamp(notification.startedAt)}</p>
-                    </div>
-                    <div className="flex items-center">
-                      {notification.shouldBeDisplayed &&
-                        <button className="btn btn-primary btn-outline btn-sm"
-                          onClick={() => handleMarkNotificationAsRead(notification.id)}
-                        >Resolve</button>
-                      }
-                    </div>
-                  </div>
-                ))}
+            {notifications.length + pdmNotifications.length > 0 && (
+              <div className="badge badge-sm badge-primary absolute top-0 right-4">
+                {notifications.length + pdmNotifications.length}
               </div>
+            )}
+          </summary>
+          <div className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100">
+            {/* Your existing dropdown content */}
+            {/* Dropdown Content */}
+            <div
+              tabIndex={0}
+              className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100"
+              onClick={(e) => e.stopPropagation()}
+              data-modal="true">
+              {/* Tabs */}
+              <div className="tabs tabs-bordered px-2">
+                <button
+                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === "anomalies" ? "tab-active " : ""}`}
+                  onClick={() => setActiveTab("anomalies")}>
+                  <p
+                    className={` ${activeTab === "anomalies" ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
+                    Anomalies
+                  </p>
+                  {notifications.length > 0 && (
+                    <span className="ml-2 badge badge-sm badge-primary">{notifications.length}</span>
+                  )}
+                </button>
+                <button
+                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
+                  onClick={() => setActiveTab("maintenance")}>
+                  <p
+                    className={` ${activeTab === "maintenance" ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
+                    Maintenance
+                  </p>
+                  {pdmNotifications.length > 0 && (
+                    <span className="ml-2 badge badge-sm badge-warning">{pdmNotifications.length}</span>
+                  )}
+                </button>
+              </div>
+              {/* Notifications Content */}
+              <div className="max-h-[400px] overflow-y-auto">
+                {activeTab === "anomalies" ? (
+                  <div className="p-2">
+                    {notifications.length === 0 ? (
+                      <div className="text-center py-8 text-base-content/70">
+                        <p>No new anomalies</p>
+                      </div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          <div className="card-body">
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
+                                <p className="text-xs text-base-content/70 mt-1">
+                                  {formatTimestamp(notification.startedAt)}
+                                </p>
+                                <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
+                              </div>
+                              {notification.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                  className="btn btn-xs btn-error btn-outline">
+                                  Resolve
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-2">
+                    {pdmNotifications.length === 0 ? (
+                      <div className="text-center py-8 text-base-content/70">
+                        <p>No maintenance alerts</p>
+                      </div>
+                    ) : (
+                      pdmNotifications.map((pdmNotif) => (
+                        <div
+                          key={pdmNotif.id}
+                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          <div className="card-body">
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <h4 className="card-title text-sm text-base-content">Maintenance Alert</h4>
+                                <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
+                                <p className="text-sm mt-2 break-words text-base-content/90">
+                                  {pdmNotif.maintenanceReason?.accel_x}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                className="btn btn-xs btn-warning btn-outline">
+                                Resolve
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Footer */}
+              {/* <div className="bg-base-200 rounded-b-box p-2 border-t border-base-300">
+              <button className="btn btn-ghost btn-sm w-full">View all notifications</button>
+            </div> */}
             </div>
-          )}
-        </div>
+          </div>
+        </details>
 
-        {/*
-        <ThemeSwitcher size={32} />
-      */}
         <Profile />
       </div>
     </nav>
