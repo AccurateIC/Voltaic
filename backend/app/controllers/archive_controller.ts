@@ -1,4 +1,9 @@
-import { createArchiveValidator, getArchiveDataBetweenValidator, getPaginatedDataValidator } from "#validators/archive";
+import {
+  createArchiveValidator,
+  getArchiveDataBetweenValidator,
+  getArchiveDataPropertyBetweenValidator,
+  getPaginatedDataValidator,
+} from "#validators/archive";
 import Archive from "#models/archive";
 import Notification from "#models/notification";
 import GensetProperty from "#models/genset_property";
@@ -15,11 +20,21 @@ export default class ArchiveController {
 
   async getPaginated({ request }: HttpContext) {
     const requestData = await request.validateUsing(getPaginatedDataValidator);
+    console.log(requestData);
 
     // start building the select query
     const archiveQuery = Archive.query();
 
     // FILTERING
+
+    // filter by timestamp range
+    if (requestData.from && requestData.to) {
+      archiveQuery.whereBetween("timestamp", [requestData.from, requestData.to]);
+    } else if (requestData.from) {
+      archiveQuery.where("timestamp", ">=", requestData.from);
+    } else if (requestData.to) {
+      archiveQuery.where("timestamp", "<=", requestData.to);
+    }
 
     // filter property name
     if (requestData?.propertyNames && requestData.propertyNames.length > 0) {
@@ -37,6 +52,9 @@ export default class ArchiveController {
     archiveQuery.preload("gensetProperty", (preloadQuery) => {
       preloadQuery.preload("physicalQuantity");
     });
+
+    // order by timestamp descending (most recent first)
+    archiveQuery.orderBy("timestamp", "desc");
 
     // pagination
     const archiveData = await archiveQuery.paginate(requestData.page);
@@ -57,8 +75,34 @@ export default class ArchiveController {
     return archiveData;
   }
 
-  async getLatest({}: HttpContext) {
+  async getPropertyDataBetween({ request }: HttpContext) {
+    const queryParams = request.qs();
+    // Validate request parameters
+    const data = await getArchiveDataPropertyBetweenValidator.validate(queryParams);
+
+    // query archives within the given timestamp range
+    const propertyData = await Archive.query()
+      .whereBetween("timestamp", [data.from, data.to])
+      .whereHas("gensetProperty", (gensetQuery) => {
+        gensetQuery.where("propertyName", data.propertyName);
+      })
+      .preload("gensetProperty", (preloadQuery) => {
+        preloadQuery.preload("physicalQuantity"); // Preload physicalQuantity
+      });
+
+    return propertyData;
+  }
+
+  async getLatest({ response }: HttpContext) {
     const latestArchiveEntry = await Archive.query().orderBy("timestamp", "desc").limit(1);
+
+    // when no entries exist, return a 404 with a clear message
+    if (!latestArchiveEntry.length) {
+      return response.status(404).json({
+        message: "No archive entries found",
+        data: [],
+      });
+    }
     const latestTimestamp = latestArchiveEntry[0].timestamp;
     const latestArchiveData = await Archive.query()
       .where("timestamp", latestTimestamp)
