@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { FaFilter } from "react-icons/fa6";
-import { cn } from "../lib/Utils";
+import { FaFileExport, FaFilter } from "react-icons/fa6";
+import { cn, formatTimestamp } from "../lib/Utils";
+import * as XLSX from "xlsx";
+import { RiResetLeftLine } from "react-icons/ri";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
@@ -51,12 +53,6 @@ const Alarms = () => {
 
     setFilteredNotifications(filtered);
   }, [filters, notifications]);
-
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return;
-    const dt = DateTime.fromISO(timestamp);
-    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  };
 
   useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
@@ -165,6 +161,44 @@ const Alarms = () => {
     setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
 
+  const exportToExcel = () => {
+    // prepare data for export
+    const exportData = filteredNotifications.map((entry, index) => ({
+      "No.": index + 1,
+      ID: entry.id,
+      "Started At": formatTimestamp(entry.startedAt),
+      Summary: entry.summary,
+      Message: entry.message,
+      "Finished At": entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A",
+      Status: entry.shouldBeDisplayed ? "Unresolved" : "Resolved",
+    }));
+
+    // create worksheet
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // set column widths
+    const columnWidths = [
+      { wch: 5 }, // No.
+      { wch: 5 }, // Id
+      { wch: 20 }, // Started At
+      { wch: 50 }, // Summary
+      { wch: 40 }, // Message
+      { wch: 20 }, // Finished At
+      { wch: 15 }, // Status
+    ];
+    ws["!cols"] = columnWidths;
+
+    // create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Alarms");
+
+    // generate file name with current date
+    const fileName = `alarms_${new Date().toISOString().split("T")[0]}.xlsx`;
+
+    // save file
+    XLSX.writeFile(wb, fileName);
+  };
+
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex flex-row justify-between bg-primary text-base-200 font-semibold items-center rounded-box p-4 mb-2">
@@ -193,32 +227,43 @@ const Alarms = () => {
           </div>
 
           {/* Genset Property */}
-          <select
-            className="select select-neutral text-base-content"
-            value={filters.property}
-            onChange={handleGensetPropertyFilterChange}>
-            <option value="Property">Property</option>
-            {gensetProperties.map((property, index) => (
-              <option key={index} value={property.propertyName}>
-                {property.propertyName}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center">
+            <div className="m-1">Properties:</div>
+            <select
+              className="select select-neutral text-base-content"
+              value={filters.property}
+              onChange={handleGensetPropertyFilterChange}>
+              <option value="Property">All</option>
+              {gensetProperties.map((property, index) => (
+                <option key={index} value={property.propertyName}>
+                  {property.propertyName}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Anomaly Status */}
-          <select
-            className="select select-neutral text-base-content"
-            value={filters.anomalyStatus}
-            onChange={handleAnomalyFilterChange}>
-            <option value="">Anomaly Status</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Unresolved">Unresolved</option>
-          </select>
+          <div className="flex items-center">
+            <div className="m-1">Anomaly Status:</div>
+            <select
+              className="select select-neutral text-base-content"
+              value={filters.anomalyStatus}
+              onChange={handleAnomalyFilterChange}>
+              <option value="">All</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Unresolved">Unresolved</option>
+            </select>
+          </div>
         </div>
 
-        <button className="btn btn-neutral text-base-200 font-semibold" onClick={handleResetFilters}>
-          Reset
-        </button>
+        <div className="flex gap-2">
+          <button className="btn btn-success text-base-200 font-semibold" onClick={exportToExcel}>
+            <FaFileExport className="mr-2" /> Export
+          </button>
+          <button className="btn btn-neutral text-base-200 font-semibold hover:bg-base-content" onClick={handleResetFilters}>
+            <RiResetLeftLine /> Reset
+          </button>
+        </div>
       </div>
 
       {/* Notification Table */}
@@ -247,8 +292,8 @@ const Alarms = () => {
                     onClick={() => handleMarkNotificationAsRead(entry.id)}
                     className={cn(
                       "btn btn-outline btn-info",
-                      `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"
-                      }`)}>
+                      `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"}`
+                    )}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>
