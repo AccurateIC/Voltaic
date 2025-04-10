@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.js";
 import transmitConnection from "../lib/TransmitConnection";
 import { useRef } from "react";
+import { formatTimestamp } from "../lib/Utils.js";
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [pdmNotifications, setPdmNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState("anomalies");
   const archiveMessageBus = useMessageBus("archive");
   const notificationMessageBus = useMessageBus("notification");
@@ -30,12 +30,6 @@ const Navbar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return;
-    const dt = DateTime.fromISO(timestamp);
-    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  };
 
   // fetch pdm notifications
   const fetchPdmNotifications = async () => {
@@ -123,7 +117,7 @@ const Navbar = () => {
 
     const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
       try {
-        console.log("::::new pdm data:::");
+        console.log("::::new pdm data:::", message);
         await fetchPdmNotifications();
         pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
       } catch (err) {
@@ -243,7 +237,7 @@ const Navbar = () => {
                   className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
                   onClick={() => setActiveTab("maintenance")}>
                   <p
-                    className={` ${activeTab === "maintenance" ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
+                    className={` ${activeTab === "maintenance" ? "underline underline-offset-4 decoration-warning decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
                     Maintenance
                   </p>
                   {pdmNotifications.length > 0 && (
