@@ -10,6 +10,31 @@ import router from "@adonisjs/core/services/router";
 import { middleware } from "./kernel.js";
 import transmit from "@adonisjs/transmit/services/main";
 
+import AutoSwagger from "adonis-autoswagger";
+import swagger from "#config/swagger";
+
+// index route
+router.get("/", async () => {
+  return { message: "neurogen server is live!" };
+});
+
+// swagger docs
+router
+  .group(() => {
+    router.get("/yaml", async () => {
+      return AutoSwagger.default.docs(router.toJSON(), swagger);
+    });
+
+    router.get("/json", async () => {
+      return AutoSwagger.default.json(router.toJSON(), swagger);
+    });
+
+    router.get("/ui", async () => {
+      return AutoSwagger.default.ui("/docs/yaml");
+    });
+  })
+  .prefix("docs");
+
 // this is for sending server sent events to the frontend without having to use websockets
 // see: https://en.wikipedia.org/wiki/Server-sent_events
 transmit.registerRoutes();
