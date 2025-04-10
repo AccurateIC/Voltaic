@@ -322,37 +322,37 @@ const to = selectedEntry?.finishedAt
   
 
   return (
-    <div className="h-full w-full flex flex-col p-2">
-      <div className="h-20 bg-gray-900 text-white p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div className="h-full w-full flex flex-col ">
+      <div className="h-20 bg-gray-900 text-white p-2 top-0">
+        <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
           <div
             onClick={() => handleAnomalyClick("today")}
-            className="h-20 bg-red-500 p-6 rounded-lg flex items-center gap-6 shadow-md cursor-pointer">
-            <FaExclamationTriangle className="text-3xl" />
+            className=" flex flex-row items-center justify-center  h-16 gap-5 bg-red-500 p-6 rounded-lg  shadow-md cursor-pointer">
+           <div> <FaExclamationTriangle className="text-2xl" /></div>
             <div>
-              <h3 className="text-lg font-bold">Today's Anomaly</h3>
+              <h3 className="text-lg font-bold  ">Today's Anomaly</h3></div>
               <p className="text-2xl font-semibold">{anomalyData.today.length}</p>
-            </div>
+            
           </div>
 
           <div
             onClick={() => handleAnomalyClick("week")}
-            className="h-20 bg-blue-400 p-6 rounded-lg flex items-center gap-6 shadow-md cursor-pointer">
-            <FaCalendarWeek className="text-3xl" />
+            className="flex flex-row items-center justify-center h-16 bg-blue-400 p-6 rounded-lg gap-5  shadow-md cursor-pointer">
+            <div><FaCalendarWeek className="text-3xl" /></div>
             <div>
-              <h3 className="text-lg font-bold">Weekly Anomaly</h3>
+              <h3 className="text-lg font-bold">Weekly Anomaly</h3></div>
               <p className="text-2xl font-semibold">{anomalyData.week.length}</p>
-            </div>
+            
           </div>
 
           <div
             onClick={() => handleAnomalyClick("month")}
-            className="h-20 bg-[#B1D5BD] p-6 rounded-lg flex items-center gap-6 shadow-md cursor-pointer">
+            className="flex flex-row items-center justify-center h-16 bg-[#B1D5BD] p-6 rounded-lg gap-5   shadow-md cursor-pointer">
             <FaCalendarAlt className="text-3xl" />
             <div>
-              <h3 className="text-lg font-bold">Monthly Anomaly</h3>
-              <p className="text-2xl font-semibold">{anomalyData.month.length}</p>
-            </div>
+              <h3 className="text-lg font-bold">Monthly Anomaly</h3>  </div> 
+              <div><p className="text-2xl font-semibold">{anomalyData.month.length}</p></div>
+          
           </div>
         </div>
 
@@ -403,19 +403,19 @@ const to = selectedEntry?.finishedAt
           </button>
         </div>
 
-        <div className="mt-2 bg-sky-950 p-4 rounded-lg shadow-lg overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-sky-950 text-base-200">
-                <th>#</th>
+       <div className="mt-2  p-0  rounded-box shadow-lg overflow-y-scroll bg-base-content max-h-147">
+          <table className="table table-pin-rows">
+           <thead className="sticky top-0"> 
+              <tr className="bg-sky-950 text-base-200 h-10">
+                <th></th>
                 <th>Started At</th>
                 <th>Summary</th>
                 <th>Message</th>
                 <th>Finished At</th>
-                <th>View</th>
+                <th>View</th> 
               </tr>
             </thead>
-            <tbody className="bg-sky-950/50">
+            <tbody className="bg-sky-950/50 ">
               {filteredNotifications.map((entry, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
@@ -425,7 +425,7 @@ const to = selectedEntry?.finishedAt
                   <td>{formatTimestamp(entry.finishedAt)}</td>
                   <td>
                     <button
-                      className="bg-blue-500 px-5 py-3.5 rounded-md text-white"
+                      className="bg-blue-500 px-3 py-2 rounded-md text-white"
                       onClick={() => {
                         handleViewClick(entry); // Set data for the graph
                         document.getElementById("my_modal_2").showModal(); // Open modal
