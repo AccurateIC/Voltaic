@@ -1,55 +1,111 @@
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend, Label } from "recharts";
+import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { format } from "date-fns";
-
-const anomalyData = {
-  today: [],
-  week: [],
-  month: [],
-};
 
 const Anomalies = () => {
-  const [filteredData, setFilteredData] = useState(anomalyData.today);
+  const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
+  const [filteredData, setFilteredData] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState("today");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-
   const [filters, setFilters] = useState({
     fromDate: "",
-    toDate: new Date().toISOString().split("T")[0],
+    fromTime: "",
+    toDate: "",
+    toTime: "",
     property: "Property",
     anomalyStatus: "",
   });
 
-  // apply filters whenever filters or notifications change
+  const handleFromDateFilterChange = (e) => {
+    setFilters((prev) => ({ ...prev, fromDate: e.target.value }));
+  };
+
+  const handleToDateFilterChange = (e) => {
+    setFilters((prev) => ({ ...prev, toDate: e.target.value }));
+  };
+
+  const handleFromTimeChange = (e) => {
+    setFilters((prev) => ({ ...prev, fromTime: e.target.value }));
+  };
+
+  const handleToTimeChange = (e) => {
+    setFilters((prev) => ({ ...prev, toTime: e.target.value }));
+  };
+
+  console.log("notifications", notifications);
+
+  const getAnomalyDataByPeriod = (notifications) => {
+    const now = DateTime.local();
+    const todayStart = now.startOf("day");
+    const weekStart = now.startOf("week");
+    const monthStart = now.startOf("month");
+
+    const data = { today: [], week: [], month: [] };
+
+    notifications.forEach((notif) => {
+      const notifTime = DateTime.fromISO(notif.startedAt);
+      if (notifTime >= monthStart) {
+        data.month.push(notif);
+        if (notifTime >= weekStart) {
+          data.week.push(notif);
+          if (notifTime >= todayStart) {
+            data.today.push(notif);
+          }
+        }
+      }
+    });
+    console.log("Today’s anomalies:", data.today);
+    console.log("Week’s anomalies:", data.week);
+    console.log("Month’s anomalies:", data.month);
+
+    return data;
+  };
+  console.log("agetAnomalyDataByPeriod", getAnomalyDataByPeriod(notifications));
+
   useEffect(() => {
     let filtered = [...notifications];
 
-    // Filter by date range
-    if (filters.fromDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
-      );
+    console.log("fromDate:", filters.fromDate);
+    console.log("fromTime:", filters.fromTime);
+    console.log("toDate:", filters.toDate);
+    console.log("toTime:", filters.toTime);
+
+    let fromDateTime = null;
+    if (filters.fromDate && filters.fromTime) {
+      fromDateTime = DateTime.fromISO(`${filters.fromDate}T${filters.fromTime}`);
     }
 
-    if (filters.toDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
-      );
+    let toDateTime = null;
+    if (filters.toDate && filters.toTime) {
+      toDateTime = DateTime.fromISO(`${filters.toDate}T${filters.toTime}`);
+    }
+
+    if (fromDateTime) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+
+        return startedAt >= fromDateTime;
+      });
+    }
+
+    console.log("toDateTime", toDateTime);
+
+    if (toDateTime) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+        return startedAt <= toDateTime;
+      });
     }
 
     // Filter by property
@@ -66,17 +122,10 @@ const Anomalies = () => {
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  useMessageBus("notifications", (msg) => {
+  useMessageBus("notification", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     fetchNotifications();
   });
-
-  useEffect(() => {
-    if (selectedEntry) {
-      console.log("selectedEntry updated dsdsd:", selectedEntry);
-      console.log(selectedEntry.archive.gensetProperty.propertyName);
-    }
-  }, [selectedEntry]);
 
   const fetchNotifications = async () => {
     try {
@@ -86,33 +135,25 @@ const Anomalies = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch notification data");
       }
+
       const data = await response.json();
-      console.log("/notification/getAll", data);
       setNotifications(data);
+      console.log("data", data);
+      const anomalyStats = getAnomalyDataByPeriod(data);
+      console.log("anomalyStats0", anomalyStats);
+      setAnomalyData(anomalyStats);
+      setFilteredData(anomalyStats.today);
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
     } finally {
       setIsLoading(false);
     }
-
-    if (
-      !selectedEntry ||
-      !selectedEntry.startedAt ||
-      !selectedEntry.finishedAt ||
-      !selectedEntry.archive?.gensetProperty?.propertyName
-    ) {
-      toast.error("Invalid selected entry data.");
-      return;
-    }
-
-    const from = selectedEntry.startedAt;
-    const to = selectedEntry.finishedAt;
-    const propertyName = selectedEntry.archive.gensetProperty.propertyName;
   };
 
   useEffect(() => {
@@ -182,47 +223,56 @@ const to = selectedEntry?.finishedAt
 
   
 
-  // fetch genset properties
-  // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
-  //       in the future, pagination should be implemented to reduce database querying times
+  
+
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
+        const res = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch genset data");
-        }
-        const data = await response.json();
-        console.log("/property/getAll", data);
+        if (!res.ok) throw new Error((await res.json()).message);
+        const data = await res.json();
         setGensetProperties(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
+      } catch (err) {
+        console.error("Fetch error:", err);
         toast.error("Error fetching genset property data");
       }
     };
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
+  const now = new Date();
+  const todayDate = now.toISOString().split("T")[0];
+  const currentTime = now.toTimeString().split(" ")[0].slice(0, 5);
 
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  const handleAnomalyClick = (period) => {
+    setSelectedPeriod(period);
+    const now = DateTime.local();
+    let start;
+    if (period === "today") start = now.startOf("day");
+    else if (period === "week") start = now.startOf("week");
+    else if (period === "month") start = now.startOf("month");
+    else start = now.startOf("day");
+
+    const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
+    setFilteredData(filtered);
+    setFilteredNotifications(filtered);
   };
 
   const handleResetFilters = () => {
     setFilters({
-      fromDate: "",
-      toDate: new Date().toISOString().split("T")[0],
+      fromDate: todayDate,
+      toDate: todayDate,
+      fromTime: "00:00",
+      toTime: currentTime, // or "23:59" if you want full day
       property: "Property",
       anomalyStatus: "",
     });
+    setFromTime("");
+    setToTime("");
   };
 
   const handleViewClick = (entry) => {
@@ -249,27 +299,17 @@ const to = selectedEntry?.finishedAt
     setShowGraph(true);
   };
 
-  const handleAnomalyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
-  };
-
-  const handleGensetPropertyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
-  };
-
   const exportToExcel = () => {
     if (!filteredData || filteredData.length === 0) {
       alert("No data available to export!");
       return;
     }
 
-    console.log("Exporting data:", filteredData); // Debugging log
-
     const cleanData = filteredData.map((item) => ({
       id: item.id,
       anomaly: item.anomaly,
       status: item.status,
-      date: item.date,
+      date: formatTimestamp(item.startedAt),
     }));
 
     const ws = XLSX.utils.json_to_sheet(cleanData);
@@ -340,16 +380,16 @@ const to = selectedEntry?.finishedAt
             <label className="text-white">From Time:</label>
             <input
               type="time"
-              value={fromTime}
-              onChange={(e) => setFromTime(e.target.value)}
+              value={filters.fromTime}
+              onChange={handleFromTimeChange}
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
 
             <label className="text-white">To Time:</label>
             <input
               type="time"
-              value={toTime}
-              onChange={(e) => setToTime(e.target.value)}
+              value={filters.toTime}
+              onChange={handleToTimeChange}
               className="p-2 rounded bg-gray-700 text-white border border-gray-600"
             />
           </div>
@@ -367,10 +407,10 @@ const to = selectedEntry?.finishedAt
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-sky-950 text-base-200">
+                <th>#</th>
                 <th>Started At</th>
                 <th>Summary</th>
                 <th>Message</th>
-                <th>Anomaly Status</th>
                 <th>Finished At</th>
                 <th>View</th>
               </tr>
@@ -378,7 +418,7 @@ const to = selectedEntry?.finishedAt
             <tbody className="bg-sky-950/50">
               {filteredNotifications.map((entry, index) => (
                 <tr key={index}>
-                  <th>{index + 1}</th>
+                  <td>{index + 1}</td>
                   <td>{formatTimestamp(entry.startedAt)}</td>
                   <td>{entry.summary}</td>
                   <td>{entry.message}</td>
@@ -467,5 +507,3 @@ const to = selectedEntry?.finishedAt
 };
 
 export default Anomalies;
-
-//  Anomaly Event: undefined: 11:20:12 Value: 60
