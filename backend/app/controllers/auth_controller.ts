@@ -13,6 +13,12 @@ export default class AuthController {
     return users;
   }
 
+  /**
+   * @getAll
+   * @summary Get all users
+   * @description Returns an array of all registered users from the database
+   * @responseBody 200 - <User[]>
+   */
   async getAll({}: HttpContext) {
     const users = await User.all();
     return users;
