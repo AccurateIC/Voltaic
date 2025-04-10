@@ -86,7 +86,7 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
         color: "#fff",
         font: {
           size: 18,
-          weight: "bold",
+          weight: "normal",
         },
       },
       tooltip: {},
@@ -107,12 +107,20 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
         title: {
           display: true,
           text: "Timestamp",
+          font: {
+            size: 18,
+            weight: "normal",
+          },
         },
       },
       y: {
         title: {
           display: true,
           text: "Vibration Acceleration (g-units)",
+          font: {
+            size: 18,
+            weight: "normal",
+          },
         },
       },
     },
@@ -126,7 +134,6 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
         data: actualPdmData.map((item) => ({
           // x: new Date(item.timestamp).getTime(),
           x: DateTime.fromISO(item.timestamp).toJSDate(),
-
           y: item.value,
         })),
         borderColor: "rgb(255, 99, 132)",

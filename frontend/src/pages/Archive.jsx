@@ -4,25 +4,21 @@ import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
+import { formatTimestamp } from "../lib/Utils";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
-
   const [filters, setFilters] = useState({
     page: 1,
     propertyNames: [],
     isAnomaly: null,
+    from: null,
+    to: null,
   });
 
   const [paginationMetadata, setPaginationMetadata] = useState({});
-
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return;
-    const dt = DateTime.fromISO(timestamp);
-    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  };
 
   useEffect(() => {
     console.log(filters);
@@ -44,11 +40,16 @@ const Archive = () => {
   const fetchArchiveData = async () => {
     try {
       setIsLoading(true);
+      const requestFilters = {
+        ...filters,
+        from: filters.from ? DateTime.fromISO(filters.from).toUTC().toISO() : null,
+        to: filters.to ? DateTime.fromISO(filters.to).toUTC().toISO() : null,
+      };
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getPaginated`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(filters),
+        body: JSON.stringify(requestFilters),
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -97,6 +98,8 @@ const Archive = () => {
       page: 1,
       propertyNames: [],
       isAnomaly: null,
+      from: null,
+      to: null,
     });
   };
 
@@ -115,7 +118,66 @@ const Archive = () => {
             <thead className="">
               <tr className="bg-sky-950 text-base-200">
                 <th>ID</th>
-                <th>Timestamp</th>
+                {/* NEW TS BEGINS */}
+                <th className="gap-2">
+                  Timestamp
+                  <div className="dropdown dropdown-bottom">
+                    <div tabIndex={0} role="button" className="btn btn-xs bg-sky-950 text-base-200 border-none">
+                      <FaFilter size={24} />
+                    </div>
+                    <div tabIndex={0} className="dropdown-content z-10 w-72 bg-sky-950 rounded-box shadow-lg p-4">
+                      <div className="flex flex-col gap-2">
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text text-base-200">From: </span>
+                          </label>
+                          <input
+                            type="datetime-local"
+                            className="input input-bordered w-full text-base-content"
+                            value={filters.from || ""}
+                            onChange={(e) =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                page: 1,
+                                from: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="form-control">
+                          <label className="label">
+                            <span className="label-text text-base-200">To: </span>
+                          </label>
+                          <input
+                            type="datetime-local"
+                            className="input input-bordered w-full text-base-content"
+                            value={filters.to || ""}
+                            onChange={(e) =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                page: 1,
+                                to: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <button
+                          className="btn btn-sm btn-outline mt-2"
+                          onClick={() =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              from: null,
+                              to: null,
+                            }))
+                          }>
+                          Clear Dates
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </th>
+
+                {/* NEW TS ENDS */}
                 <th className="flex gap-2 relative">
                   Property
                   <div className="dropdown dropdown-bottom">
@@ -202,7 +264,9 @@ const Archive = () => {
                   <th>{entry.id}</th>
                   <td>{formatTimestamp(entry.timestamp)}</td>
                   <td>{entry.gensetProperty.propertyName}</td>
-                  <td>{entry.propertyValue}</td>
+                  <td>
+                    {entry.propertyValue} {entry.gensetProperty.physicalQuantity.unitSymbol}
+                  </td>
                   <td>{entry.isAnomaly ? "Yes" : "No"}</td>
                 </tr>
               ))}
