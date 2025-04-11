@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
 import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import { useMessageBus } from "../lib/MessageBus";

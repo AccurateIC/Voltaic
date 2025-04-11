@@ -40,6 +40,13 @@ export const LiveData = () => {
   const [isPdmError, setIsPdmError] = useState(false);
   const [pdmErrorMessage, setPdmErrorMessage] = useState("");
 
+  const [batteryData, setBatteryData] = useState([]);
+  const [currentData, setCurrentData] = useState([]);
+  const [voltageData, setVoltageData] = useState([]);
+  const [fuelLevelData, setFuelLevelData] = useState([]);
+  const [engineSpeedData, setEngineSpeedData] = useState([]);
+  const [oilPressureData, setOilPressureData] = useState([]);
+
   const [selectedProperties, setSelectedProperties] = useState([
     "Engine Fuel Level",
     "Engine Speed",
@@ -49,6 +56,10 @@ export const LiveData = () => {
     "Battery Charge",
     "PDM",
   ]);
+
+  useEffect(() => {
+    console.log("voltage date 894984", voltageData);
+  }, [voltageData]);
 
   const generateEmptyDataPoints = (data, timeRange) => {
     if (data.length === 0) return [];
@@ -209,7 +220,7 @@ export const LiveData = () => {
 
         const engineFuelLevel = generateEmptyDataPoints(
           data
-            .filter((item) => item.gensetProperty.propertyName === "engFuelLevel")
+            .filter((item) => item.gensetProperty.propertyName === "engFuelLevelUnits")
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
@@ -324,13 +335,6 @@ export const LiveData = () => {
     })();
   }, []);
 
-  const [batteryData, setBatteryData] = useState([]);
-  const [currentData, setCurrentData] = useState([]);
-  const [voltageData, setVoltageData] = useState([]);
-  const [fuelLevelData, setFuelLevelData] = useState([]);
-  const [engineSpeedData, setEngineSpeedData] = useState([]);
-  const [oilPressureData, setOilPressureData] = useState([]);
-
   useEffect(() => {
     if (
       Array.isArray(stats.batteryVolts) &&
@@ -390,6 +394,7 @@ export const LiveData = () => {
         const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
         const time = new Date(l1Item.timestamp);
 
+        // console.log(l1Item, l2Item, l3Item);
         return {
           time: time.toLocaleTimeString(),
           L1: l1Item.propertyValue,
@@ -401,6 +406,8 @@ export const LiveData = () => {
         };
       });
 
+      // console.log("6985464568", newDataVoltage);
+      console.log(stats.l1Voltage, stats.l2Voltage, stats.l3Voltage);
       setVoltageData(newDataVoltage);
     }
     if (Array.isArray(stats.engineFuelLevel) && stats.engineFuelLevel.length > 0) {
