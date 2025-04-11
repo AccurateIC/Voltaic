@@ -422,7 +422,7 @@ const Anomalies = () => {
 
         {/* MODAL FOR GRAPH */}
         <dialog id="my_modal_2" className="modal">
-          <div className="modal-box max-w-6xl w-full bg-gray-900">
+          <div className="modal-box max-w-6xl bg-gray-900">
             <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
 
             {/* Graph Section */}

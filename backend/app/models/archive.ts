@@ -8,7 +8,7 @@ export default class Archive extends BaseModel {
   declare id: number;
 
   @column()
-  declare timestamp: DateTime; // unix epoch?
+  declare timestamp: DateTime;
 
   @column()
   declare gensetPropertyId: number; //

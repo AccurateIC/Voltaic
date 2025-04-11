@@ -30,7 +30,7 @@ router
     });
 
     router.get("/ui", async () => {
-      return AutoSwagger.default.ui("/docs/yaml");
+      return AutoSwagger.default.scalar("/docs/yaml");
     });
   })
   .prefix("docs");
