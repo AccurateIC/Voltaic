@@ -40,7 +40,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
               type="line"
               isAnimationActive={false}
               dataKey="L2"
-              stroke="#ede907"
+              stroke="#c847d1"
               name="L2 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.l2IsAnomaly)}

@@ -65,10 +65,10 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
   // Get fuel status color
   const getFuelStatusColor = () => {
-    if (fuelLevelPercentage >= 75) return "bg-success/30";
-    if (fuelLevelPercentage >= 40) return "bg-warning/30";
-    if (fuelLevelPercentage >= 20) return "bg-orange-500/30";
-    return "bg-error/70";
+    if (fuelLevelPercentage >= 75) return "bg-success/50";
+    if (fuelLevelPercentage >= 40) return "bg-amber-500/80";
+    if (fuelLevelPercentage >= 20) return "bg-amber-400/80";
+    return "bg-red-500"; // critical
   };
 
   // Generate measurement marks
@@ -169,7 +169,7 @@ const Engine = () => {
       setArchiveData(data);
     } catch (error) {
       console.error("Fetch error:", error);
-      toast.error("Error fetching data");
+      // toast.error("Error fetching data");
     } finally {
       setIsLoading(false);
     }

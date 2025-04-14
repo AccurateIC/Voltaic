@@ -10,7 +10,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+            <XAxis dataKey="time" label={{ value: "Time(seconds)", dy: 7, position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Current (A)",
@@ -40,7 +40,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
               type="line"
               isAnimationActive={false}
               dataKey="L2"
-              stroke="#ede907"
+              stroke="#c847d1"
               name="L2 Phase"
               strokeWidth={2}
               dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
