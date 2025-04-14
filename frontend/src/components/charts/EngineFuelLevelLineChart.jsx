@@ -12,9 +12,10 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Fuel Level (%)",
+                value: "Fuel Level (Liter)",
                 angle: -90,
                 position: "insideLeft",
+                dy: 50,
               }}
               domain={[0, 80]}
             />
@@ -34,9 +35,9 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
               stroke="#5278d1"
               name="Fuel Level"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.fuelLevelISAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
-          </LineChart>
+       </LineChart>
         </ResponsiveContainer>
       </div>
     </div>

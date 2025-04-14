@@ -9,7 +9,7 @@ export const PDMLineChart = ({ value }) => {
   });
   return (
     <div className="h-[400px] w-full relative pb-4">
-      <h2 className="text-lg font-semibold p-4 text-black">Predictive Maintenance</h2>
+      <h2 className="text-lg font-semibold p-4 text-black">Vibration</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
@@ -19,7 +19,7 @@ export const PDMLineChart = ({ value }) => {
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
             <XAxis
-              dataKey="timestamp"
+              dataKey="time"
               stroke="#000"
               tickFormatter={(timestamp) => DateTime.fromISO(timestamp).toFormat("HH:mm:ss")}
               label={{ value: "Time(second)", fill: "#000", dy: 7, dx: -30, position: "insideBottom", offset: -10 }}
@@ -27,6 +27,7 @@ export const PDMLineChart = ({ value }) => {
             <YAxis
               stroke="#000"
               tick={{ fill: "#000" }}
+              
               label={{ value: "Vibration (G-Units)", fill: "#000", dy: 60, position: "insideLeft", angle: -90 }}
             />
             <Tooltip

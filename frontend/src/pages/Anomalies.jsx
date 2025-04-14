@@ -300,7 +300,7 @@ const Anomalies = () => {
   };
 
   return (
-    <div className="h-full w-full flex flex-col ">
+    <div className={`h-full w-full flex flex-col transition-all duration-300 ${showGraph ? "backdrop-blur-sm" : ""}`}>
       <div className="h-20 bg-gray-900 text-white p-2 top-0">
         <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
           <div
@@ -423,10 +423,11 @@ const Anomalies = () => {
             </tbody>
           </table>
         </div>
+        {showGraph && <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"></div>}
 
         {/* MODAL FOR GRAPH */}
         <dialog id="my_modal_2" className="modal">
-          <div className="modal-box max-w-6xl bg-gray-900">
+          <div className="modal-box max-w-6xl  bg-gray-900">
             <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
 
             {/* Graph Section */}
@@ -481,7 +482,7 @@ const Anomalies = () => {
 
             {/* Close Button */}
             <div className="flex justify-end mt-4">
-              <form method="dialog">
+              <form method="dialog" onClick={() => setShowGraph(false)}>
                 <button className="btn">Close</button>
               </form>
             </div>

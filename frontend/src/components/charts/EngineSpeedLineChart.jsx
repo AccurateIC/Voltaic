@@ -8,15 +8,16 @@ export const EngineSpeedLineChart = ({ value }) => {
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+          <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
                 value: "Engine Speed (RPM)",
                 angle: -90,
                 position: "insideLeft",
                 dy: 60,
+                dx:-10,
               }}
               domain={[0, 2000]}
             />
@@ -35,7 +36,7 @@ export const EngineSpeedLineChart = ({ value }) => {
               stroke="#5278d1"
               name="Engine Speed"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.engSpeedDisplayIsAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
           </LineChart>
         </ResponsiveContainer>

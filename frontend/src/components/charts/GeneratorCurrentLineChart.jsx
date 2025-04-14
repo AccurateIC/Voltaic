@@ -10,12 +10,13 @@ export const GeneratorCurrentLineChart = ({ value }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" label={{ value: "Time(seconds)", dy: 7, position: "bottom", offset: 0 }} />
+            <XAxis dataKey="time" label={{ value: "Time", dy: 7, position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Current (A)",
+                value: "Current (Amp)",
                 angle: -90,
                 position: "insideLeft",
+                dy: 50,
               }}
               domain={[0, 30]}
             />
@@ -34,7 +35,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l1CIsAnomaly)}
+              dot={{ stroke: '#5dd12c', fill: '#5dd12c' }}
             />
             <Line
               type="line"
@@ -43,7 +44,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
               stroke="#c847d1"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l2CIsAnomaly)}
+              dot={{ stroke: '#c847d1', fill: '#c847d1' }}
             />
             <Line
               type="line"
@@ -52,7 +53,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l3CIsAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
           </LineChart>
         </ResponsiveContainer>
