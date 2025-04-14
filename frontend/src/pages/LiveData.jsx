@@ -7,6 +7,7 @@ import { OilPressureLineChart } from "../components/charts/OilPressureLineChart"
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
 import { useMessageBus } from "../lib/MessageBus";
 import { FaFilter } from "react-icons/fa";
+import { PDMLineChart } from "../components/charts/PDMLineChart";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -147,7 +148,11 @@ export const LiveData = () => {
   };
 
   const getReportData = async () => {
-    const { from, to } = calculateTimeRange(selectedTimeRange);
+    const now = new Date();
+    const hours = 2;
+    const from = new Date(now - hours * 60 * 60 * 1000).toISOString();
+    const to = now.toISOString();
+    // const { from, to } = calculateTimeRange(selectedTimeRange);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
@@ -482,16 +487,12 @@ export const LiveData = () => {
     }
   };
 
-  const handleTimefilter = (e) => {
-    setSelectedTimeRange(e.target.value); //time from onClick
-  };
-
   return (
     <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
         {/* Property Filter */}
         <div className="flex items-center">
-          <div className="w-32 font-semibold tex-md">Property Name:</div>
+          <div className="font-semibold tex-md">Properties: </div>
           <div className="dropdown dropdown-bottom">
             <div tabIndex={0} role="button" className="btn btn-neutral w-56">
               <FaFilter className="mr-2" />
@@ -570,6 +571,11 @@ export const LiveData = () => {
           {selectedProperties.includes("Battery Charge") && (
             <div className="h-[410px] bg-base-200 rounded-lg">
               <BatteryChargeLineChart value={batteryData} />
+            </div>
+          )}
+          {selectedProperties.includes("PDM") && (
+            <div className="h-[410px] bg-base-200 rounded-lg">
+              <PDMLineChart value={pdmDataForGraph} />
             </div>
           )}
         </div>
