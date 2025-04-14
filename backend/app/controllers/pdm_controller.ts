@@ -33,6 +33,7 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "actual");
       })
+      .orderBy("timestamp")
       .limit(60 * 25);
     return pdmVibrationData;
   }
@@ -44,6 +45,7 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
+      .orderBy("timestamp")
       .limit(60 * 25);
     return pdmVibrationData;
   }

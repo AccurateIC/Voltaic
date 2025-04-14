@@ -83,6 +83,7 @@ export default class ArchiveController {
     // query archives within the given timestamp range
     const propertyData = await Archive.query()
       .whereBetween("timestamp", [data.from, data.to])
+      .orderBy("timestamp")
       .whereHas("gensetProperty", (gensetQuery) => {
         gensetQuery.where("propertyName", data.propertyName);
       })
@@ -318,8 +319,8 @@ export default class ArchiveController {
     transmit.broadcast("archive", {
       message: "new entry created",
     });
+    transmit.broadcast("notification", { message: "notification table updated" });
     if (trxResult.newNotifications.length > 0 || trxResult.notificationUpdates.length > 0) {
-      transmit.broadcast("notification", { message: "notification table updated" });
     }
 
     // console.log(trxResult);
