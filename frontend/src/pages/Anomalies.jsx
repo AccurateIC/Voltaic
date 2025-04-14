@@ -4,6 +4,7 @@ import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icon
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
+import { TransmitChannels } from "../lib/TransmitChannels";
 
 const Anomalies = () => {
   const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
@@ -121,9 +122,10 @@ const Anomalies = () => {
     return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
   };
 
-  useMessageBus("notification", (msg) => {
+  useMessageBus(TransmitChannels.NOTIFICATION, (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     fetchNotifications();
+    fetchPropertyData();
   });
 
   const fetchNotifications = async () => {
@@ -155,62 +157,62 @@ const Anomalies = () => {
     }
   };
 
+  const fetchPropertyData = async () => {
+    if (!selectedEntry) return;
+
+    const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
+    const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
+    const to = selectedEntry?.finishedAt
+      ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
+      : DateTime.now().toUTC().toISO();
+
+    console.log("to updated to now", to);
+
+    if (!propertyName || !from || !to) {
+      console.error("Missing required fields in selectedEntry");
+      toast.error("Incomplete data for fetching property info");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const url = `${
+        import.meta.env.VITE_ADONIS_BACKEND
+      }/archive/getPropertyDataBetween?from=${from}&to=${to}&propertyName=${propertyName}`;
+
+      console.log("Calling API:", url);
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      console.log("response getBetweeen", response);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch property data");
+      }
+
+      const data = await response.json();
+      console.log("Property data response using from, to, property name:", data);
+
+      const formattedData = data.map((item) => ({
+        x: new Date(item.timestamp).getTime(), // keep it numeric
+        y: item.propertyValue,
+        label: "Anomaly Event",
+      }));
+
+      setGraphData(formattedData); // <-- you need this state for the chart
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching property data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPropertyData = async () => {
-      if (!selectedEntry) return;
-
-      const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
-      const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
-      const to = selectedEntry?.finishedAt
-        ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
-        : DateTime.now().toUTC().toISO();
-
-      console.log("to updated to now", to);
-
-      if (!propertyName || !from || !to) {
-        console.error("Missing required fields in selectedEntry");
-        toast.error("Incomplete data for fetching property info");
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const url = `${
-          import.meta.env.VITE_ADONIS_BACKEND
-        }/archive/getPropertyDataBetween?from=${from}&to=${to}&propertyName=${propertyName}`;
-
-        console.log("Calling API:", url);
-
-        const response = await fetch(url, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-
-        console.log("response getBetweeen", response);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch property data");
-        }
-
-        const data = await response.json();
-        console.log("Property data response using from, to, property name:", data);
-
-        const formattedData = data.map((item) => ({
-          x: new Date(item.timestamp).getTime(), // keep it numeric
-          y: item.propertyValue,
-          label: "Anomaly Event",
-        }));
-
-        setGraphData(formattedData); // <-- you need this state for the chart
-      } catch (error) {
-        console.error("Fetch error:", error);
-        toast.error("Error fetching property data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPropertyData();
   }, [selectedEntry]);
 
@@ -259,10 +261,10 @@ const Anomalies = () => {
 
   const handleResetFilters = () => {
     setFilters({
-      fromDate: todayDate,
-      toDate: todayDate,
-      fromTime: "00:00",
-      toTime: currentTime, // or "23:59" if you want full day
+      fromDate: "",
+      toDate: "",
+      fromTime: "",
+      toTime: "",
       property: "Property",
       anomalyStatus: "",
     });
@@ -291,6 +293,9 @@ const Anomalies = () => {
     ];
 
     console.log("data", data);
+    // TODO: use a more unified approach than
+    // having to fetch property data in so many places
+    fetchPropertyData();
     setShowGraph(true);
   };
 
