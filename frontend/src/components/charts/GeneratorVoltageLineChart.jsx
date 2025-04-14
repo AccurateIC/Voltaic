@@ -13,9 +13,10 @@ export const GeneratorVoltageLineChart = ({ value }) => {
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Voltage (V)",
+                value: "Voltage (Volts)",
                 angle: -90,
                 position: "insideLeft",
+                dy: 50,
               }}
               domain={[0, 300]}
             />
@@ -34,7 +35,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
               stroke="#5dd12c"
               name="L1 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l1IsAnomaly)}
+              dot={{ stroke: '#5dd12c', fill: '#5dd12c' }}
             />
             <Line
               type="line"
@@ -43,7 +44,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
               stroke="#c847d1"
               name="L2 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l2IsAnomaly)}
+              dot={{ stroke: '#c847d1', fill: '#c847d1' }}
             />
             <Line
               type="line"
@@ -52,7 +53,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
               stroke="#5278d1"
               name="L3 Phase"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.l3IsAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
           </LineChart>
         </ResponsiveContainer>

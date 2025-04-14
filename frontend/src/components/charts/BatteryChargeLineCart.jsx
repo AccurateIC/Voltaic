@@ -10,10 +10,10 @@ export const BatteryChargeLineChart = ({ value }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
+           <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
               label={{
-                value: "Voltage (V)",
+                value: "Voltage (Volts)",
                 angle: -90,
                 position: "insideLeft",
                 dy: 60,
@@ -35,7 +35,7 @@ export const BatteryChargeLineChart = ({ value }) => {
               stroke="#5278d1"
               name="Battery Voltage"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.batteryVoltsIsAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
             <Line
               type="line"
@@ -44,7 +44,7 @@ export const BatteryChargeLineChart = ({ value }) => {
               stroke="#5dd12c"
               name="Charge Alternator Voltage"
               strokeWidth={2}
-              dot={(props) => renderCustomDot(props, props.payload.chargeAltVoltsIsAnomaly)}
+              dot={{ stroke: '#5278d1', fill: '#5dd12c' }}
             />
           </LineChart>
         </ResponsiveContainer>
