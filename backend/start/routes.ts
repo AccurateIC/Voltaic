@@ -166,6 +166,7 @@ router
     router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted");
     router.get("notification/getAll", "#controllers/pdm_controller.getAllNotifications");
     router.get("notification/getAllUnread", "#controllers/pdm_controller.getAllUnreadNotifications");
+    router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
     router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
   })
   .prefix("pdm");

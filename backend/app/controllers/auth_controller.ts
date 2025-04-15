@@ -32,6 +32,12 @@ export default class AuthController {
     return user.serialize();
   }
 
+  /**
+   * @login
+   * @description Login an existing user
+   * @summary Login an existing user
+   * @requestBody <loginValidator>
+   */
   async login({ request, auth }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator);
     const user = await User.query().where("email", email).where("is_active", true).firstOrFail();

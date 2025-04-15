@@ -17,10 +17,32 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
+import { TransmitChannels } from "../lib/TransmitChannels.js";
 
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const StatusCard = ({ isLoading, title, isError, errorMessage, disabled }) => {
+const StatusCard = ({ maintenanceNotification }) => {
+  console.log("96846848", maintenanceNotification);
+  return (
+    <div className="card bg-base-100 w-1/2 shadow-sm text-base-content">
+      <div className="card-body">
+        <h2 className="card-title">
+          Vibration Frequency
+          {maintenanceNotification !== null && <XCircle className="text-error" />}
+          {maintenanceNotification === null && <CheckCircle className="text-success" />}
+        </h2>
+        {maintenanceNotification !== null && (
+          <>
+            <p className="text-sm text-base-content/70">{maintenanceNotification?.timestamp}</p>
+            <p>{maintenanceNotification?.maintenanceReason?.accel_x}</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const StatusCardd = ({ isLoading, title, isError, errorMessage, disabled }) => {
   return (
     <div
       className={cn(
@@ -50,46 +72,23 @@ const StatusCard = ({ isLoading, title, isError, errorMessage, disabled }) => {
   );
 };
 
-// {
-//   "id": 1,
-//   "timestamp": "2025-03-27T07:21:22.000Z",
-//   "sensorPropertyId": 1,
-//   "value": 0,
-//   "maintenanceNotificationId": null,
-//   "pdmDataKindId": 1,
-//   "createdAt": "2025-04-02T11:13:03.418+00:00",
-//   "updatedAt": "2025-04-02T11:13:03.418+00:00",
-//   "sensorProperty": {
-//     "id": 1,
-//     "propertyName": "vibration_acceleration_x",
-//     "unit": "g",
-//     "createdAt": "2025-04-02T11:12:51.769+00:00",
-//     "updatedAt": "2025-04-02T11:12:51.770+00:00"
-//   },
-//   "pdmDataKind": {
-//     "id": 1,
-//     "kind": "actual",
-//     "createdAt": "2025-04-02T11:12:51.763+00:00",
-//     "updatedAt": "2025-04-02T11:12:51.763+00:00"
-//   }
-// }
-
 const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
   const options = {
     responsive: true,
+    animation: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { position: "top" },
-      title: {
-        display: true,
-        text: "Vibration Sensor Data",
-        color: "#fff",
-        font: {
-          size: 18,
-          weight: "normal",
-        },
-      },
       tooltip: {},
+      // title: {
+      //   display: true,
+      //   text: "Vibration Sensor Data",
+      //   color: "#fff",
+      //   font: {
+      //     size: 18,
+      //     weight: "normal",
+      //   },
+      // },
     },
     scales: {
       x: {
@@ -114,6 +113,7 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
         },
       },
       y: {
+        type: "linear",
         title: {
           display: true,
           text: "Vibration Acceleration (g-units)",
@@ -161,7 +161,7 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData }) => {
     ],
   };
 
-  return <Line options={options} data={data} />;
+  return <Line key={actualPdmData.length + "-" + forecastedPdmData.length} options={options} data={data} />;
 };
 
 const Maintenance = () => {
@@ -169,12 +169,41 @@ const Maintenance = () => {
   const [forecastedPdmData, setForecastedPdmData] = useState([]);
 
   const [isPdmLoading, setIsPdmLoading] = useState(true);
-  const [isPdmError, setIsPdmError] = useState(false);
-  const [pdmErrorMessage, setPdmErrorMessage] = useState("");
+  const [pdmError, setPdmError] = useState(null);
+
+  const fetchLatestPdmNotification = async () => {
+    try {
+      setIsPdmLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getLatestUnresolved`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notification data");
+      }
+      const data = await response.json();
+
+      if (data.length > 0) setPdmError(data[0]);
+      else setPdmError(null);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsPdmLoading(false);
+    }
+  };
+
+  useMessageBus(TransmitChannels.PDM, (msg) => {
+    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    fetchLatestPdmNotification();
+  });
 
   // fetch pdmData from localstorage
   useEffect(() => {
     fetchPdmVibrationData();
+    fetchLatestPdmNotification();
     // const pdmDataString = localStorage.getItem("pdmData");
     // setPdmData(JSON.parse(pdmDataString));
   }, []);
@@ -224,6 +253,7 @@ const Maintenance = () => {
     // setPdmData(JSON.parse(localStorage.getItem("pdmData")));
     // fetch data from database
     fetchPdmVibrationData();
+    fetchLatestPdmNotification();
   });
 
   return (
@@ -232,23 +262,7 @@ const Maintenance = () => {
         <h2 className="text-2xl font-bold mb-4 text-base-200">Predictive Maintenance</h2>
         {/* Predictive Maintenance */}
         <div className="flex flex-row gap-4">
-          <StatusCard
-            isLoading={isPdmLoading}
-            title={`Vibration Frequency`}
-            isError={isPdmError}
-            errorMessage={pdmErrorMessage}
-            disabled={false}
-          />
-          {/*
-          <StatusCard isLoading={isPdmLoading} title={`Temperature`} isError={false} errorMessage={``} disabled={true} />
-          <StatusCard
-            isLoading={isPdmLoading}
-            title={`Hydrocarbon Emission`}
-            isError={false}
-            errorMessage={``}
-            disabled={true}
-          />
-          */}
+          <StatusCard maintenanceNotification={pdmError} />
         </div>
       </div>
       <div className="flex-1 min-h-0">
