@@ -183,9 +183,14 @@ const Anomalies = () => {
       console.log("Calling API:", url);
 
       const response = await fetch(url, {
-        method: "GET",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({
+          from,
+          to,
+          properties: [propertyName],
+        }),
       });
 
       console.log("response getBetweeen", response);

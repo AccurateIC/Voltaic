@@ -117,7 +117,7 @@ router
     router.get("getLatest", "#controllers/archive_controller.getLatest").use([middleware.auth()]);
 
     // Get property data between timestamps
-    router.get("getPropertyDataBetween", "#controllers/archive_controller.getPropertyDataBetween").use([middleware.auth()]);
+    router.post("getPropertyDataBetween", "#controllers/archive_controller.getPropertyDataBetween").use([middleware.auth()]);
 
     // TODO: maybe we need an api endpoint which returns paginated data
     router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);

@@ -76,20 +76,33 @@ export default class ArchiveController {
   }
 
   async getPropertyDataBetween({ request }: HttpContext) {
-    const queryParams = request.qs();
-    // Validate request parameters
-    const data = await getArchiveDataPropertyBetweenValidator.validate(queryParams);
+    const data = await request.validateUsing(getArchiveDataPropertyBetweenValidator);
 
-    // query archives within the given timestamp range
-    const propertyData = await Archive.query()
-      .whereBetween("timestamp", [data.from, data.to])
-      .orderBy("timestamp")
-      .whereHas("gensetProperty", (gensetQuery) => {
-        gensetQuery.where("propertyName", data.propertyName);
-      })
-      .preload("gensetProperty", (preloadQuery) => {
-        preloadQuery.preload("physicalQuantity"); // Preload physicalQuantity
+    const query = Archive.query();
+
+    // filter by time
+    if (data.from && data.to) {
+      query.whereBetween("timestamp", [data.from, data.to]);
+    } else {
+      console.log("unexpected");
+    }
+
+    // filter by property names
+    if (data?.properties && data.properties.length > 0) {
+      query.whereHas("gensetProperty", (propertyQuery) => {
+        propertyQuery.whereIn("propertyName", data.properties);
       });
+    }
+
+    // preload
+    query.preload("gensetProperty", (preloadQuery) => {
+      preloadQuery.preload("physicalQuantity");
+    });
+
+    // latest first
+    query.orderBy("timestamp", "desc");
+
+    const propertyData = await query.exec();
 
     return propertyData;
   }

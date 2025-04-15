@@ -5,6 +5,7 @@ import { FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
+import * as XLSX from "xlsx";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -36,6 +37,66 @@ const Archive = () => {
       await fetchArchiveData();
     })();
   });
+
+  const excelify = (data) => {
+    const excelData = data.map((entry, index) => ({
+      "Sr No": index + 1,
+      ID: entry.id,
+      Timestamp: entry.timestamp,
+      Property: `${entry.gensetProperty.readablePropertyName}`,
+      Value: `${entry.propertyValue}  ${entry.gensetProperty.physicalQuantity.unitSymbol}`,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    const columnWidths = [
+      { wch: 5 }, // serial number
+      { wch: 5 }, // id
+      { wch: 30 }, // timestamp
+      { wch: 40 }, // property
+      { wch: 8 }, // value
+    ];
+    ws["!cols"] = columnWidths;
+
+    // create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Genset Data");
+
+    // generate timestamped file
+    const fileName = `genset_data_${new Date().toISOString().split("T")[0]}.xlsx`;
+
+    // save
+    XLSX.writeFile(wb, fileName);
+  };
+
+  // export all the filtered data to excel without pagination
+  const handleExportToExcel = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getPropertyDataBetween`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          from: filters.from,
+          to: filters.to,
+          properties: filters.propertyNames,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch filtered data");
+      }
+
+      const data = await response.json();
+
+      // pass this data to form the excel file
+      excelify(data);
+      toast.info("Data successfully exported to excel.");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchArchiveData = async () => {
     try {
@@ -107,9 +168,14 @@ const Archive = () => {
     <div className="h-full w-full flex flex-col">
       <div className="flex items-center justify-between">
         <div className="text-2xl font-semibold flex items-center mb-2">Historical Genset Data</div>
-        <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
-          Reset Filters
-        </button>
+        <div>
+          <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
+            Reset Filters
+          </button>
+          <button onClick={handleExportToExcel} className="btn btn-sm btn-outline m-2">
+            Export to Excel
+          </button>
+        </div>
       </div>
       {/* Notification Table */}
       <div className="flex-1 rounded-box shadow-lg bg-base-content text-base-200 overflow-hidden">
@@ -225,7 +291,7 @@ const Archive = () => {
                               onClick={() =>
                                 setFilters((prevFilters) => ({ ...prevFilters, propertyName: property.propertyName }))
                               }>
-                              {property.propertyName}
+                              {property.readablePropertyName}
                             </div>
                           </li>
                         ))}
@@ -263,7 +329,7 @@ const Archive = () => {
                 <tr key={index}>
                   <th>{entry.id}</th>
                   <td>{formatTimestamp(entry.timestamp)}</td>
-                  <td>{entry.gensetProperty.propertyName}</td>
+                  <td>{entry.gensetProperty.readablePropertyName}</td>
                   <td>
                     {entry.propertyValue} {entry.gensetProperty.physicalQuantity.unitSymbol}
                   </td>
