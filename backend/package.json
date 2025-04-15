@@ -40,7 +40,7 @@
     "@japa/assert": "^4.0.1",
     "@japa/plugin-adonisjs": "^4.0.0",
     "@japa/runner": "^4.2.0",
-    "@swc/core": "1.11.20",
+    "@swc/core": "1.11.21",
     "@types/luxon": "^3.6.2",
     "@types/node": "^22.14.1",
     "eslint": "^9.24.0",
