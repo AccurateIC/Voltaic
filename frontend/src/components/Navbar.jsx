@@ -57,8 +57,11 @@ const Navbar = () => {
       });
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
-      setNotifications(unreadNotifications);
+
+      // if we need only unread notifications & the backend doesnt do the filtering
+      // const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
+
+      setNotifications(data.slice(0, 3));
     } catch (error) {
       console.error(error);
       toast.error("Error fetching notifications");
@@ -87,24 +90,7 @@ const Navbar = () => {
       console.log("Subscribed to pdm channel");
     })();
 
-    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
-      try {
-        console.log("new notificationssss");
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error("Fetch failed");
-        const data = await response.json();
-        const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
-        setNotifications(unreadNotifications);
-        notificationMessageBus({ time: Date.now(), message: "data inserted in notification table" });
-      } catch (error) {
-        console.error(error);
-        toast.error("Error updating notifications");
-      }
-    });
+    const notificationUnsubscribe = notificationSubscription.onMessage(async () => await fetchNotifications());
 
     const archiveUnsubscribe = archiveSubscription.onMessage(async () => {
       try {
@@ -272,6 +258,13 @@ const Navbar = () => {
                                   onClick={() => handleMarkNotificationAsRead(notification.id)}
                                   className="btn btn-xs btn-error btn-outline">
                                   Resolve
+                                </button>
+                              )}
+                              {!notification.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                  className="btn btn-xs btn-disabled">
+                                  Resolved
                                 </button>
                               )}
                             </div>
