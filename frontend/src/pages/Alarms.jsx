@@ -39,7 +39,7 @@ const Alarms = () => {
 
     // Filter by property
     if (filters.property && filters.property !== "Property") {
-      filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
+      filtered = filtered.filter((notif) => notif.archive.gensetProperty.readablePropertyName === filters.property);
     }
 
     // Filter by anomaly status
@@ -235,8 +235,8 @@ const Alarms = () => {
               onChange={handleGensetPropertyFilterChange}>
               <option value="Property">All</option>
               {gensetProperties.map((property, index) => (
-                <option key={index} value={property.propertyName}>
-                  {property.propertyName}
+                <option key={index} value={property.readablePropertyName}>
+                  {property.readablePropertyName}
                 </option>
               ))}
             </select>
