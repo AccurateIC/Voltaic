@@ -1,12 +1,14 @@
+import { cn } from "../lib/Utils";
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { RiAlertFill } from "react-icons/ri";
-import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
-import { RxArchive } from "react-icons/rx";
-import { ImPowerCord } from "react-icons/im";
+
 import { FaGears } from "react-icons/fa6";
 import { GoPerson } from "react-icons/go";
+import { RxArchive } from "react-icons/rx";
+import { ImPowerCord } from "react-icons/im";
+import { RiAlertFill } from "react-icons/ri";
+import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
+import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
 
 const SideBarLink = ({ to, name, Icon }) => {
   return (
@@ -14,9 +16,11 @@ const SideBarLink = ({ to, name, Icon }) => {
       <NavLink
         to={to}
         className={({ isActive }) =>
-          `flex items-center duration-200 transition-all hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg ${
-            isActive ? "bg-base-content text-base-100 rounded-md" : "text-gray-700"
-          }`
+          cn(
+            "flex items-center duration-200 transition-all hover:bg-base-content/50 hover:text-base-200",
+            "rounded p-4 m-2 font-semibold text-lg",
+            `${isActive ? "bg-base-content text-base-100 rounded-md" : "text-gray-700"}`
+          )
         }
         end>
         <Icon className="text-xl" />
@@ -45,7 +49,10 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
   return (
     <li>
       <div
-        className="flex items-center justify-between cursor-pointer duration-200 transition-all hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg text-gray-700"
+        className={cn(
+          "flex items-center justify-between cursor-pointer duration-200 transition-all ",
+          "hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg text-gray-700"
+        )}
         onClick={() => setIsOpen(!isOpen)}>
         <div className="flex items-center">
           <Icon className="text-xl" />
@@ -53,14 +60,14 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
         </div>
         {isOpen ? <FaChevronDown className="text-sm" /> : <FaChevronRight className="text-sm" />}
       </div>
-      {isOpen && <ul className="ml-4 border-l-2 border-base-content/30 pl-2">{children}</ul>}
+      {isOpen && <ul className="ml-7 border-l-1 border-base-content/30 px-1">{children}</ul>}
     </li>
   );
 };
 
 const SideBar = () => {
   return (
-    <ul className="bg-[rgba(177,213,189,1)] px-1 py-2 overflow-y-auto">
+    <ul className="bg-[rgba(177,213,189,1)] px-1 py-2 w-58 overflow-y-auto">
       <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
         <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
         <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
