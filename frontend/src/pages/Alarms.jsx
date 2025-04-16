@@ -16,26 +16,67 @@ const Alarms = () => {
 
   const [filters, setFilters] = useState({
     fromDate: "",
-    toDate: new Date().toISOString().split("T")[0],
+    toDate: "",
     property: "Property",
     anomalyStatus: "",
   });
 
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  };
+
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  };
   // apply filters whenever filters or notifications change
   useEffect(() => {
     let filtered = [...notifications];
 
+    console.log("fromDate:", filters.fromDate);
+    console.log("toDate:", filters.toDate);
+   
     // Filter by date range
+    // if (filters.fromDate) {
+    //   filtered = filtered.filter(
+    //     (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
+    //   );
+    // }
+
+    let fromDate = null;
     if (filters.fromDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
-      );
+      fromDate = DateTime.fromISO(`${filters.fromDate}`);
     }
-    if (filters.toDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
-      );
+
+
+    // if (filters.toDate) {
+    //   filtered = filtered.filter(
+    //     (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
+    //   );
+    // }
+
+
+    let toDate = null;
+    if (filters.toDate ) {
+      toDate = DateTime.fromISO(`${filters.toDate}`);
     }
+
+  if (fromDate) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+
+        return startedAt >= fromDate;
+      });
+    }
+
+    console.log("toDateTime", toDate);
+
+    if (toDate) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+        return startedAt <= toDate;
+      });
+    }
+
 
     // Filter by property
     if (filters.property && filters.property !== "Property") {
@@ -113,21 +154,17 @@ const Alarms = () => {
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
-
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  };
+  
 
   const handleResetFilters = () => {
     setFilters({
       fromDate: "",
-      toDate: new Date().toISOString().split("T")[0],
+      toDate: "",
       property: "Property",
       anomalyStatus: "",
     });
+    setFromTime("");
+    setToTime("");
   };
 
   const handleMarkNotificationAsRead = async (notificationId) => {
