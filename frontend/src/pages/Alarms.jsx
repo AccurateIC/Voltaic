@@ -28,47 +28,38 @@ const Alarms = () => {
   const handleToDateFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
   };
+
+  const handleAnomalyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
+  };
+
+  const handleGensetPropertyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
+  };
+
+
   // apply filters whenever filters or notifications change
   useEffect(() => {
     let filtered = [...notifications];
 
-    console.log("fromDate:", filters.fromDate);
-    console.log("toDate:", filters.toDate);
-   
-    // Filter by date range
-    // if (filters.fromDate) {
-    //   filtered = filtered.filter(
-    //     (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
-    //   );
-    // }
-
+    // Filter by fromDate
     let fromDate = null;
     if (filters.fromDate) {
       fromDate = DateTime.fromISO(`${filters.fromDate}`);
     }
 
-
-    // if (filters.toDate) {
-    //   filtered = filtered.filter(
-    //     (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
-    //   );
-    // }
-
-
+    // Filter by toDate
     let toDate = null;
-    if (filters.toDate ) {
+    if (filters.toDate) {
       toDate = DateTime.fromISO(`${filters.toDate}`);
     }
 
-  if (fromDate) {
+    if (fromDate) {
       filtered = filtered.filter((notif) => {
         const startedAt = DateTime.fromISO(notif.startedAt);
-
         return startedAt >= fromDate;
       });
     }
-
-    console.log("toDateTime", toDate);
 
     if (toDate) {
       filtered = filtered.filter((notif) => {
@@ -76,7 +67,6 @@ const Alarms = () => {
         return startedAt <= toDate;
       });
     }
-
 
     // Filter by property
     if (filters.property && filters.property !== "Property") {
@@ -154,8 +144,6 @@ const Alarms = () => {
     fetchProperties();
   }, []);
 
-  
-
   const handleResetFilters = () => {
     setFilters({
       fromDate: "",
@@ -188,14 +176,6 @@ const Alarms = () => {
       console.error("Error resolving notification:", err);
       toast.error(`Failed to resolve notification: ${err.message}`);
     }
-  };
-
-  const handleAnomalyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
-  };
-
-  const handleGensetPropertyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
 
   const exportToExcel = () => {
