@@ -151,8 +151,7 @@ const Alarms = () => {
       property: "Property",
       anomalyStatus: "",
     });
-    setFromTime("");
-    setToTime("");
+  
   };
 
   const handleMarkNotificationAsRead = async (notificationId) => {
