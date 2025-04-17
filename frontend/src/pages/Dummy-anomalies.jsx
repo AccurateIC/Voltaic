@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import { useMessageBus } from "../lib/MessageBus";
@@ -14,7 +15,7 @@ const Anomalies = () => {
   const [graphData, setGraphData] = useState([]);
   const [fromTime, setFromTime] = useState("");
   const [toTime, setToTime] = useState("");
-  const [anolmalies, setAnomalies] = useState("");
+  const [anolmalies, setAnomalies]= useState("");
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
@@ -44,6 +45,8 @@ const Anomalies = () => {
     setFilters((prev) => ({ ...prev, toTime: e.target.value }));
   };
 
+  console.log("notifications", notifications[3]);
+ 
 
 
   const getAnomalyDataByPeriod = (notifications) => {
@@ -66,7 +69,7 @@ const Anomalies = () => {
         }
       }
     });
-
+  
     return data;
   };
   // console.log("agetAnomalyDataByPeriod today-monthly-weekly", getAnomalyDataByPeriod(notifications));
@@ -91,6 +94,7 @@ const Anomalies = () => {
         return startedAt >= fromDateTime;
       });
     }
+
 
     if (toDateTime) {
       filtered = filtered.filter((notif) => {
@@ -135,6 +139,7 @@ const Anomalies = () => {
 
       const data = await response.json();
       setNotifications(data);
+     
       console.log("getall notification", data);
       const anomalyStats = getAnomalyDataByPeriod(data);
       setAnomalyData(anomalyStats);
@@ -198,8 +203,7 @@ const Anomalies = () => {
         label: "Anomaly Event",
       }));
 
-      setGraphData(formattedData);// <-- you need this state for the chart
-      // console.log("formatted data  set to graphdata", formattedData); // particular propety anomalies onClick view graph
+      setGraphData(formattedData); // <-- you need this state for the chart
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching property data");
@@ -274,7 +278,7 @@ const Anomalies = () => {
       toast.error("startedAt must be present.");
       return;
     }
-
+   
     console.log("entry", entry);
     setSelectedEntry(entry);
 
@@ -384,45 +388,47 @@ const Anomalies = () => {
           </div>
         </div>
 
-        <div className="h-[400px] w-200 relative">
-          <h2 className="text-lg font-semibold p-4 text-base-content">Engine Speed Monitor</h2>
+        {/* Graph Section */}
+         <div className="h-[400px] w-200 relative">
+              <h2 className="text-lg font-semibold p-4 text-base-content">Engine Speed Monitor</h2>
+        
+              <div className="h-[calc(100%-3rem)]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 10, right: 30, bottom: 30, left: 30 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
+                    <YAxis
+                      label={{
+                        value: "Engine Speed (RPM)",
+                        angle: -90,
+                        position: "insideLeft",
+                        dy: 60,
+                        dx:-10,
+                      }}
+                      domain={[0, 2000]}
+                    />
+                    <Tooltip />
+                    <Legend
+                      layout="horizontal"
+                      verticalAlign="top"
+                      align="center"
+                      iconType="engine"
+                      wrapperStyle={{ paddingBottom: 15 }}
+                    />
+                    <Line
+                      type="line"
+                      isAnimationActive={false}
+                      dataKey="engineSpeed"
+                      stroke="#5278d1"
+                      name="Engine Speed"
+                      strokeWidth={2}
+                      dot={{ stroke: '#5278d1', fill: '#5278d1' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-          <div className="h-[calc(100%-3rem)]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={graphData} margin={{ top: 10, right: 30, bottom: 30, left: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
-                <YAxis
-                  label={{
-                    value: "Engine Speed (RPM)",
-                    angle: -90,
-                    position: "insideLeft",
-                    dy: 60,
-                    dx: -10,
-                  }}
-                  domain={[0, 2000]}
-                />
-                <Tooltip />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="top"
-                  align="center"
-                  iconType="engine"
-                  wrapperStyle={{ paddingBottom: 15 }}
-                />
-                <Line
-                  type="line"
-                  isAnimationActive={false}
-                  dataKey="engineSpeed"
-                  stroke="#5278d1"
-                  name="Engine Speed"
-                  strokeWidth={2}
-                  dot={{ stroke: "#5278d1", fill: "#5278d1" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
         {/* TABLE */}
         <div className="mt-2 p-0 rounded-box rounded-lg shadow-lg overflow-y-auto bg-base-content h-[calc(100vh-250px)]">
           <table className="table table-pin-rows">
@@ -448,7 +454,7 @@ const Anomalies = () => {
                     <button
                       className="bg-blue-500 px-3 py-2 rounded-md text-white"
                       onClick={() => {
-                        handleViewClick(entry); // Set data for the graph
+                        handleViewClick(notifications[3]); // Set data for the graph
                         document.getElementById("my_modal_2").showModal(); // Open modal
                       }}>
                       View

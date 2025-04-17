@@ -289,7 +289,7 @@ export const LiveData = () => {
           chargeAltVolts,
         });
       }
-    } catch (error) {
+     } catch (error) {
       console.log("Error fetching data", error);
     }
     try {
