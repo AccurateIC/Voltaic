@@ -5,6 +5,7 @@ import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";
+import { RiResetLeftLine } from "react-icons/ri";
 
 const Anomalies = () => {
   const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
@@ -387,7 +388,7 @@ const Anomalies = () => {
 
           <div>
             <button onClick={handleResetFilters} className="btn btn-neutral">
-              Reset
+              <RiResetLeftLine/>Reset
             </button>
           </div>
         </div>
