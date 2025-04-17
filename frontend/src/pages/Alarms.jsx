@@ -161,44 +161,50 @@ const Alarms = () => {
     setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
 
-  const exportToExcel = () => {
-    // prepare data for export
-    const exportData = filteredNotifications.map((entry, index) => ({
-      "No.": index + 1,
-      ID: entry.id,
-      "Started At": formatTimestamp(entry.startedAt),
-      Summary: entry.summary,
-      Message: entry.message,
-      "Finished At": entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A",
-      Status: entry.shouldBeDisplayed ? "Unresolved" : "Resolved",
-    }));
-
-    // create worksheet
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    // set column widths
-    const columnWidths = [
-      { wch: 5 }, // No.
-      { wch: 5 }, // Id
-      { wch: 20 }, // Started At
-      { wch: 50 }, // Summary
-      { wch: 40 }, // Message
-      { wch: 20 }, // Finished At
-      { wch: 15 }, // Status
-    ];
-    ws["!cols"] = columnWidths;
-
-    // create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Alarms");
-
-    // generate file name with current date
-    const fileName = `alarms_${new Date().toISOString().split("T")[0]}.xlsx`;
-
-    // save file
-    XLSX.writeFile(wb, fileName);
-  };
-
+  
+    const exportToExcel = () => {
+      // prepare data for export
+      if (filteredNotifications.length>0)
+      {
+      const exportData = filteredNotifications.map((entry, index) => ({
+        "No.": index + 1,
+        ID: entry.id,
+        "Started At": formatTimestamp(entry.startedAt),
+        Summary: entry.summary,
+        Message: entry.message,
+        "Finished At": entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A",
+        Status: entry.shouldBeDisplayed ? "Unresolved" : "Resolved",
+      }));
+  
+      // create worksheet
+      const ws = XLSX.utils.json_to_sheet(exportData);
+  
+      // set column widths
+      const columnWidths = [
+        { wch: 5 }, // No.
+        { wch: 5 }, // Id
+        { wch: 20 }, // Started At
+        { wch: 50 }, // Summary
+        { wch: 40 }, // Message
+        { wch: 20 }, // Finished At
+        { wch: 15 }, // Status
+      ];
+      ws["!cols"] = columnWidths;
+  
+      // create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Alarms");
+  
+      // generate file name with current date
+      const fileName = `alarms_${new Date().toISOString().split("T")[0]}.xlsx`;
+  
+      // save file
+      XLSX.writeFile(wb, fileName);
+    }
+    else{
+    toast.error("No notifications data available for export.");
+    }
+    };
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex flex-row justify-between bg-primary text-base-200 font-semibold items-center rounded-box p-4 mb-2">
