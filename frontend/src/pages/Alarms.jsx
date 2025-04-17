@@ -16,25 +16,56 @@ const Alarms = () => {
 
   const [filters, setFilters] = useState({
     fromDate: "",
-    toDate: new Date().toISOString().split("T")[0],
+    toDate: "",
     property: "Property",
     anomalyStatus: "",
   });
+
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  };
+
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  };
+
+  const handleAnomalyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
+  };
+
+  const handleGensetPropertyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
+  };
+
 
   // apply filters whenever filters or notifications change
   useEffect(() => {
     let filtered = [...notifications];
 
-    // Filter by date range
+    // Filter by fromDate
+    let fromDate = null;
     if (filters.fromDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
-      );
+      fromDate = DateTime.fromISO(`${filters.fromDate}`);
     }
+
+    // Filter by toDate
+    let toDate = null;
     if (filters.toDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
-      );
+      toDate = DateTime.fromISO(`${filters.toDate}`);
+    }
+
+    if (fromDate) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+        return startedAt >= fromDate;
+      });
+    }
+
+    if (toDate) {
+      filtered = filtered.filter((notif) => {
+        const startedAt = DateTime.fromISO(notif.startedAt);
+        return startedAt <= toDate;
+      });
     }
 
     // Filter by property
@@ -113,21 +144,15 @@ const Alarms = () => {
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
-
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  };
-
   const handleResetFilters = () => {
     setFilters({
       fromDate: "",
-      toDate: new Date().toISOString().split("T")[0],
+      toDate: "",
       property: "Property",
       anomalyStatus: "",
     });
+    setFromTime("");
+    setToTime("");
   };
 
   const handleMarkNotificationAsRead = async (notificationId) => {
@@ -151,14 +176,6 @@ const Alarms = () => {
       console.error("Error resolving notification:", err);
       toast.error(`Failed to resolve notification: ${err.message}`);
     }
-  };
-
-  const handleAnomalyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
-  };
-
-  const handleGensetPropertyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
 
   const exportToExcel = () => {
