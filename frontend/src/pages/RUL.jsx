@@ -1,13 +1,159 @@
-import { useEffect, useState } from "react";
-import { RulChart } from "./LineChart.jsx";
-import { filteredHealthIndexData } from "../components/filteredHealthIndexData";
-import { rulInputData } from "../components/rulData";
 import { cn } from "../lib/Utils";
+import { useEffect, useState } from "react";
+
+import { RulChart } from "../components/charts/RulTrendChart";
+import { rulInputData } from "../components/rulData";
 
 const RUL = () => {
-  const [loggedInUser, setLoggedInUser] = useState("");
   const [count, setCount] = useState(0);
+  const [loggedInUser, setLoggedInUser] = useState("");
   const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
+
+  const SimulateRulModal = () => {
+    const [form, setForm] = useState({
+      Time_Hours: "",
+      RPM_Deviation_Percentage: "",
+      Oil_Pressure: "",
+      Power_Output_kW: "",
+      Inverse_Fuel_Consumption: "",
+    });
+    const [rul, setRul] = useState(null);
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
+    };
+
+    const fetchRulData = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await fetch(`${import.meta.env.VITE_RUL_BACKEND}/predict`, {
+          method: "POST",
+          body: JSON.stringify(form),
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!response.ok) throw new Error(`Failed to simulate RUL`);
+        const data = await response.json();
+        setRul(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    return (
+      <dialog id="simulateRulModal" className="modal text-base-content">
+        <div className="modal-box">
+          <form onSubmit={fetchRulData}>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Simulate RUL</legend>
+
+              {/* Running Hours */}
+              <div className="">
+                <label className="fieldset-label my-2">Genset Running Time (Hours)</label>
+                <input
+                  type="number"
+                  name="Time_Hours"
+                  value={form.Time_Hours}
+                  onChange={handleChange}
+                  className="input validator"
+                  required
+                  placeholder="Type Genset's running time in hours"
+                  min="0"
+                  max="10000"
+                  title="Must be between be 0 to 10000"
+                />
+                <p className="validator-hint">Running hours must be between be 0 & 10,000</p>
+              </div>
+
+              {/* RPM Deviation */}
+              <div>
+                <label className="fieldset-label">RPM Deviation Percentage (%)</label>
+                <input
+                  type="number"
+                  name="RPM_Deviation_Percentage"
+                  value={form.RPM_Deviation_Percentage}
+                  onChange={handleChange}
+                  className="input validator"
+                  required
+                  placeholder="Type RPM Deviation Percentage"
+                  min="0"
+                  max="100"
+                  step="0.001"
+                  title="Must be between be 1 to 100"
+                />
+                <p className="validator-hint">Deviation percentage must be between be 0 & 100</p>
+              </div>
+
+              {/* Oil Pressure */}
+              <div>
+                <label className="fieldset-label">Oil Pressure (Hours)</label>
+                <input
+                  type="number"
+                  name="Oil_Pressure"
+                  value={form.Oil_Pressure}
+                  onChange={handleChange}
+                  className="input validator"
+                  required
+                  placeholder="Type Oil Pressure in bar"
+                  min="0"
+                  step="0.001"
+                  title="Oil Pressure"
+                />
+                <p className="validator-hint">Oil pressure must be numerical & greater than 0</p>
+              </div>
+
+              {/* Power Output */}
+              <div>
+                <label className="fieldset-label">Power Output (kVA)</label>
+                <input
+                  type="number"
+                  name="Power_Output_kW"
+                  value={form.Power_Output_kW}
+                  onChange={handleChange}
+                  className="input validator"
+                  required
+                  placeholder="Type Power Output in kVA"
+                  min="0"
+                  step="0.001"
+                  title="Power Output"
+                />
+                <p className="validator-hint">Power output must be numerical & greater than 0</p>
+              </div>
+
+              {/* Fuel Consumption */}
+              <div>
+                <label className="fieldset-label">Inverse Fuel Consumption (Hour/Litre)</label>
+                <input
+                  type="number"
+                  name="Inverse_Fuel_Consumption"
+                  value={form.Inverse_Fuel_Consumption}
+                  onChange={handleChange}
+                  className="input validator"
+                  required
+                  placeholder="Type Inverse Fuel Consumption in Hour/Litre"
+                  min="0"
+                  step="0.001"
+                  title="Inverse Fuel Consumption"
+                />
+                <p className="validator-hint">Inverse Fuel Consumption must be numerical & greater than 0</p>
+              </div>
+              <div className="flex">
+                <button className="btn btn-neutral mt-4">Calculate</button>
+              </div>
+            </fieldset>
+          </form>
+          {rul !== null && (
+            <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
+              Remaining Useful Life: {parseInt(rul?.Remaining_Useful_Life, 10) || "N/A"} hours
+            </div>
+          )}
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    );
+  };
 
   const fetchUserDetails = async () => {
     const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
@@ -81,6 +227,11 @@ const RUL = () => {
       <div className="flex justify-between mb-2">
         <div className="text-base-200 text-3xl">Remaining Useful Life</div>
         <div className="flex gap-2">
+          <button className="btn" onClick={() => document.getElementById("simulateRulModal").showModal()}>
+            Simulate RUL Calculation
+          </button>
+          <SimulateRulModal />
+
           <button onClick={fetchRulData} className="btn btn-primary">
             Calculate RUL
           </button>
