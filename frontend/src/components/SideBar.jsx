@@ -10,6 +10,8 @@ import { RiAlertFill } from "react-icons/ri";
 import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
 import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
 
+const VERSION = "v1.0.0";
+
 const SideBarLink = ({ to, name, Icon }) => {
   return (
     <li>
@@ -67,7 +69,8 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 
 const SideBar = () => {
   return (
-    <ul className="bg-[rgba(177,213,189,1)] px-1 py-2 w-58 overflow-y-auto">
+    <div className="bg-[rgba(177,213,189,1)] w-58 flex flex-col h-full">
+    <ul className="px-1 py-2 overflow-y-auto flex-1">
       <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
         <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
         <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
@@ -82,6 +85,11 @@ const SideBar = () => {
       <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />
     </ul>
+
+    <div className="text-center text-lg text-gray-600 py-5 border-t border-gray-300">
+      Version <span className="font-semibold">{VERSION}</span>
+    </div>
+  </div>
   );
 };
 

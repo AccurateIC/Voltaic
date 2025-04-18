@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { FaFilter } from "react-icons/fa6";
+import {FaFileExport, FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
+import { RiResetLeftLine } from "react-icons/ri";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -170,10 +171,10 @@ const Archive = () => {
         <div className="text-2xl font-semibold flex items-center mb-2">Historical Genset Data</div>
         <div>
           <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
-            Reset Filters
+          <RiResetLeftLine />Reset Filters
           </button>
           <button onClick={handleExportToExcel} className="btn btn-sm btn-outline m-2">
-            Export to Excel
+          <FaFileExport/>Export to Excel
           </button>
         </div>
       </div>
