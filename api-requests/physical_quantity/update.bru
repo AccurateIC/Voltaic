@@ -1,0 +1,23 @@
+meta {
+  name: update
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{BASE_URL}}/physicalQuantity/update/:id
+  body: json
+  auth: none
+}
+
+params:path {
+  id: 7
+}
+
+body:json {
+  {
+      "quantityName": "power",
+      "unitName": "watt",
+      "unitSymbol": "kW"
+  }
+}

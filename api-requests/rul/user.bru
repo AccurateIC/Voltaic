@@ -1,0 +1,25 @@
+meta {
+  name: user
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{RUL_URL}}/user
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": 2,
+    "firstName": "Swarnim",
+    "lastName": "Barapatre",
+    "email": "swarnim@accurateic.in",
+    "roleId": 1,
+    "isActive": 1,
+    "createdAt": "2025-03-18T06:38:31.000+00:00",
+    "updatedAt": "2025-03-18T06:38:31.000+00:00",
+    "logged_in": true
+  }
+}
