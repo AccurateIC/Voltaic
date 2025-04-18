@@ -1,0 +1,17 @@
+meta {
+  name: update
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{BASE_URL}}/notificationType/update/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "type": "info"
+  }
+}

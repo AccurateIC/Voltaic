@@ -1,0 +1,15 @@
+meta {
+  name: delete
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{BASE_URL}}/physicalQuantity/delete/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 7
+}

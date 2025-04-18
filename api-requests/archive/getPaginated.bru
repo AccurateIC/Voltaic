@@ -1,0 +1,19 @@
+meta {
+  name: getPaginated
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/archive/getPaginated
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "page": 1 ,
+      "propertyNames": ["engOilPress", "engSpeedDisplay"],
+      "isAnomaly": false
+  }
+}
