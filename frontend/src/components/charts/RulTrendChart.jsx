@@ -84,6 +84,7 @@ export const options = {
       },
     },
     y: {
+      reverse: false,
       title: {
         display: true,
         text: "Predicted Health Index",
@@ -118,7 +119,8 @@ export function RulChart({ currentRulPoint }) {
         label: "Current Health Index",
         data: [
           {
-            x: 10000 - currentRulPoint.Remaining_Useful_Life,
+            // x: currentRulPoint.Remaining_Useful_Life,
+            x: currentRulPoint.Time_Hours,
             y: currentRulPoint.Predicted_Health_Index,
           },
         ],

@@ -8,6 +8,7 @@ const RUL = () => {
   const [count, setCount] = useState(0);
   const [loggedInUser, setLoggedInUser] = useState("");
   const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
+  const [rul, setRul] = useState(null);
 
   const SimulateRulModal = () => {
     const [form, setForm] = useState({
@@ -17,7 +18,6 @@ const RUL = () => {
       Power_Output_kW: "",
       Inverse_Fuel_Consumption: "",
     });
-    const [rul, setRul] = useState(null);
 
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -201,6 +201,7 @@ const RUL = () => {
         headers: { "Content-Type": "application/json" },
       });
       const data = await response.json();
+      data.Time_Hours = newEntry.Time_Hours;
       setApiPoint(data);
       // Update count based on the user's data array length
       setCount((prevCount) => (prevCount + 1) % userDataArray.length);
