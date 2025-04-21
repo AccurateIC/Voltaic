@@ -39,7 +39,7 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
       x: {
         title: {
           display: true,
-          text: "Properties",
+          text: "Days",
         },
       },
       y: {

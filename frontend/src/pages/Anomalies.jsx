@@ -33,7 +33,7 @@ export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
 
 export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
   return (
-    <div className="mt-5 flex justify-between items-center gap-4 p-2 rounded-lg">
+    <div className=" flex justify-between items-center gap-4 p-2 rounded-lg">
       <div className="flex flex-row">
         <div className="flex items-center gap-4">
           <label className="text-white">From Date:</label>
@@ -225,7 +225,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="mt-2 p-0 rounded-box rounded-lg shadow-lg overflow-y-auto bg-base-content h-[calc(100vh-250px)]">
+    <div className="mt-2 p-0 overflow-y-scroll rounded-box rounded-lg shadow-lg  bg-base-content h-[350px]">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200 h-10">
@@ -417,7 +417,7 @@ const Anomalies = () => {
 
       const data = await response.json();
       const anomalies = data.filter((item) => item.isAnomaly);
-
+console.log("anomalies", anomalies);
       const allPropertiesSet = new Set();
       data.forEach((item) => {
         const name = item.gensetProperty?.readablePropertyName || `Property ${item.gensetPropertyId}`;
@@ -641,7 +641,7 @@ console.log(gensetProperties);
     <div className={`h-full w-full flex flex-col transition-all duration-300 ${showGraph ? "backdrop-blur-sm" : ""}`}>
       <div className="h-20 bg-gray-900 text-white p-2 top-0">
         {/* Stats Cards */}
-        <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
+        <div className="items-center grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
           <AnomalyStatsCard
             icon="FaExclamationTriangle"
             title="Today's Anomaly"
@@ -663,9 +663,8 @@ console.log(gensetProperties);
         </div>
 
         {/* Filters */}
-        <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
-
-        <div className="flex items-center gap-10">
+       
+        <div className="flex items-center gap-10 py-2">
           <div className="font-semibold text-md">Properties: </div>
           <PropertyFilter
             gensetProperties={gensetProperties}
@@ -677,12 +676,14 @@ console.log(gensetProperties);
         </div>
 
         {/* Charts */}
-        <div className="flex col-auto gap-10 h-300 w-250">
+        <div className="flex col-auto gap-10 h-130 w-250">
           <PropertyBarChart labels={labels} dataset={dataset} />
           <AnomaliesBarChart labels={labels1} dataset={dataset1} />
         </div>
 
         {/* Table */}
+        <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
+
         <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
 
         {/* Graph Modal */}
