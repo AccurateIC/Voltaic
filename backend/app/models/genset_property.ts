@@ -1,7 +1,9 @@
 import { DateTime } from "luxon";
 import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm";
 import PhysicalQuantity from "#models/physical_quantity";
+// import GensetProperty from "#models/genset_property";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
+
 
 // id (primary key)	propertyName	quantityId	createdAt	updatedAt
 
@@ -16,7 +18,7 @@ export default class GensetProperty extends BaseModel {
   declare readablePropertyName: string;
 
   @column()
-  declare physicalQuantityId: number;
+  declare physicalQuantityId: number
 
   @belongsTo(() => PhysicalQuantity)
   declare physicalQuantity: BelongsTo<typeof PhysicalQuantity>;
@@ -26,4 +28,5 @@ export default class GensetProperty extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
 }

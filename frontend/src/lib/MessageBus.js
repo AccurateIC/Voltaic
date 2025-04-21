@@ -13,8 +13,8 @@ class MessageBus {
         }
 
         this.subscribers.get(channel).add(callback);
-        console.log(`Subscriber added for channel ${channel} with callback func ${callback}`)
-        console.log(`Subscribers: `, this.subscribers);
+        // console.log(`Subscriber added for channel ${channel} with callback func ${callback}`)
+        // console.log(`Subscribers: `, this.subscribers);
 
         return () => {
             const channelSubscribers = this.subscribers.get(channel);
@@ -31,10 +31,10 @@ class MessageBus {
         if (!channel || !this.subscribers.has(channel)) return;
         const channelSubscribers = this.subscribers.get(channel);
         if (channelSubscribers) {
-            console.log("Publishing")
-            console.log("Channel: ", channel);
-            console.log("Data: ", data);
-            console.log("Channel Subscribers: ", channelSubscribers);
+            // console.log("Publishing")
+            // console.log("Channel: ", channel);
+            // console.log("Data: ", data);
+            // console.log("Channel Subscribers: ", channelSubscribers);
             channelSubscribers.forEach(callback => callback(data));
         }
     }

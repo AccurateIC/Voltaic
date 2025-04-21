@@ -398,20 +398,14 @@ export const LiveData = () => {
         const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
         const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
         const time = new Date(l1Item.timestamp);
-
-        // console.log(l1Item, l2Item, l3Item);
         return {
           time: time.toLocaleTimeString(),
           L1: l1Item.propertyValue,
           L2: l2Item ? l2Item.propertyValue : null,
           L3: l3Item ? l3Item.propertyValue : null,
-          l1IsAnomaly: l1Item.isAnomaly,
-          // l2IsAnomaly: l2Item.isAnomaly,
-          // l3IsAnomaly: l3Item.isAnomaly,
+         l1IsAnomaly: l1Item.isAnomaly,   
         };
       });
-
-      // console.log("6985464568", newDataVoltage);
       console.log(stats.l1Voltage, stats.l2Voltage, stats.l3Voltage);
       setVoltageData(newDataVoltage);
     }
@@ -432,7 +426,6 @@ export const LiveData = () => {
       }));
       setEngineSpeedData(newData4);
     }
-
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
       const newData = stats.oilPress.map((item) => ({
         time: new Date(item.timestamp).toLocaleTimeString(),
@@ -454,11 +447,9 @@ export const LiveData = () => {
     stats.engineSpeed,
     stats.oilPress,
   ]);
-
   useEffect(() => {
     getReportData();
   }, [selectedTimeRange]);
-
   const propertyOptions = [
     { value: "Engine Fuel Level", label: "Engine Fuel Level" },
     { value: "Engine Speed", label: "Engine Speed" },
@@ -468,7 +459,6 @@ export const LiveData = () => {
     { value: "Battery Charge", label: "Battery Charge" },
     { value: "PDM", label: "PDM" },
   ];
-
   const handlePropertyChange = (propertyValue) => {
     setSelectedProperties((prev) => {
       if (prev.includes(propertyValue)) {
@@ -478,7 +468,6 @@ export const LiveData = () => {
       }
     });
   };
-
   const toggleSelectAll = () => {
     if (selectedProperties.length === propertyOptions.length) {
       setSelectedProperties([]);
@@ -486,11 +475,11 @@ export const LiveData = () => {
       setSelectedProperties(propertyOptions.map((option) => option.value));
     }
   };
-
   return (
     <div className="overflow-y-auto h-[calc(100vh-100px)]">
       <div className="flex flex-wrap gap-4">
         {/* Property Filter */}
+        
         <div className="flex items-center">
           <div className="font-semibold tex-md">Properties: </div>
           <div className="dropdown dropdown-bottom">
@@ -526,19 +515,7 @@ export const LiveData = () => {
             </div>
           </div>
         </div>
-        {/* <div className="flex items-center">
-          <div className="w-25 font-semibold tex-md">Time:</div>
-          <select 
-            className="select select-neutral font-semibold text-md bg-black text-white" 
-            value={selectedTimeRange} 
-            onChange={handleTimefilter}
-          >
-            <option value="15 Minutes">15 Minutes</option>
-            <option value="30 Minutes">30 Minutes</option>
-            <option value="01 Hour">01 Hour</option>
-            <option value="24 Hours">24 Hours</option>
-          </select>
-        </div> */}
+
       </div>
 
       <div className="py-5">

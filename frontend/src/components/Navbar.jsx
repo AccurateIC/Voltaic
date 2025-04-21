@@ -83,11 +83,11 @@ const Navbar = () => {
 
     (async () => {
       await notificationSubscription.create();
-      console.log("Subscribed to notification channel");
+      // console.log("Subscribed to notification channel");
       await archiveSubscription.create();
-      console.log("Subscribed to archive channel");
+      // console.log("Subscribed to archive channel");
       await pdmSubscription.create();
-      console.log("Subscribed to pdm channel");
+      // console.log("Subscribed to pdm channel");
     })();
 
     const notificationUnsubscribe = notificationSubscription.onMessage(async () => await fetchNotifications());
@@ -113,11 +113,11 @@ const Navbar = () => {
 
     return () => {
       notificationUnsubscribe();
-      console.log("Unsubscribed from notification channel");
+      // console.log("Unsubscribed from notification channel");
       archiveUnsubscribe();
-      console.log("Unsubscribed from archive channel");
+      // console.log("Unsubscribed from archive channel");
       pdmUnsubscribe();
-      console.log("Unsubscribed from pdm channel");
+      // console.log("Unsubscribed from pdm channel");
     };
   }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
 
