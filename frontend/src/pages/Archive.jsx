@@ -167,7 +167,7 @@ const Archive = () => {
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-semibold flex items-center mb-2">Historical Genset Data</div>
+        <div className="text-2xl text-base-200 font-semibold flex items-center mb-2">Historical Genset Data</div>
         <div>
           <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
             Reset Filters
@@ -344,21 +344,21 @@ const Archive = () => {
       {/* Pagination */}
       <div className="join flex justify-between items-center m-2">
         <div></div>
-        <div className="join-item">
+        <div className="join-item text-base-200">
           Page {filters.page} / {paginationMetadata.lastPage}
         </div>
         <div className="join gap-3">
           <button
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page - 1 }))}
             className={`join-item btn btn-outline rounded-r-none rounded-l-lg ${
-              paginationMetadata.firstPage === filters.page ? "btn-disabled" : ""
+              paginationMetadata.firstPage === filters.page ? "btn-disabled" : "text-base-200"
             } `}>
             <MdKeyboardArrowLeft size={24} />
           </button>
           <button
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page + 1 }))}
             className={`join-item btn btn-outline rounded-l-none rounded-r-lg ${
-              paginationMetadata.lastPage === filters.page ? "btn-disabled" : ""
+              paginationMetadata.lastPage === filters.page ? "btn-disabled" : "text-base-200"
             } `}>
             <MdKeyboardArrowRight size={24} />
           </button>
