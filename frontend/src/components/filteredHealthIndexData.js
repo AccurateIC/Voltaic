@@ -400,4 +400,3 @@ export const filteredHealthIndexData = [
     Predicted_Health_Index: 0.16715603099999998,
   },
 ];
-

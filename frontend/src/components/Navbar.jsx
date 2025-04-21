@@ -8,15 +8,30 @@ import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.js";
 import transmitConnection from "../lib/TransmitConnection";
 import { useRef } from "react";
-import { formatTimestamp } from "../lib/Utils.js";
+import { cn, formatTimestamp } from "../lib/Utils.js";
+
+const primaryTab = Object.freeze({
+  ANOMALIES: "Anomalies",
+  MAINTENANCE: "Maintenance",
+});
+
+const secondaryTab = Object.freeze({
+  RESOLVED: "Resolved",
+  UNRESOLVED: "Unresolved",
+});
 
 const Navbar = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [pdmNotifications, setPdmNotifications] = useState([]);
-  const [activeTab, setActiveTab] = useState("anomalies");
-  const archiveMessageBus = useMessageBus("archive");
-  const notificationMessageBus = useMessageBus("notification");
-  const pdmMessageBus = useMessageBus("pdm");
+  const [anomalyResolvedNotifications, setAnomalyResolvedNotifications] = useState([]);
+  const [anomalyUnresolvedNotifications, setAnomalyUnresolvedNotifications] = useState([]);
+
+  const [pdmResolvedNotifications, setPdmResolvedNotifications] = useState([]);
+  const [pdmUnresolvedNotifications, setPdmUnresolvedNotifications] = useState([]);
+
+  const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
+  const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.RESOLVED);
+  const archiveMessageBus = useMessageBus(TransmitChannels.ARCHIVE);
+  const notificationMessageBus = useMessageBus(TransmitChannels.NOTIFICATION);
+  const pdmMessageBus = useMessageBus(TransmitChannels.PDM);
   const detailsRef = useRef(null); // used to close notification dropdown when clicking outside
 
   useEffect(() => {
@@ -31,37 +46,68 @@ const Navbar = () => {
     };
   }, []);
 
-  // fetch pdm notifications
-  const fetchPdmNotifications = async () => {
+  // fetch resolved anomaly notifications
+  const fetchResolvedPdmNotifications = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getAllUnread`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error(`Failed to fetch PDM notifications`);
-      const data = await response.json();
-      setPdmNotifications(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // fetch initial notifications
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getResolved`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
+      setPdmResolvedNotifications(data.slice(0, 3));
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching pdm notifications");
+    }
+  };
 
-      // if we need only unread notifications & the backend doesnt do the filtering
-      // const unreadNotifications = data.filter((element) => element.shouldBeDisplayed === true);
+  // fetch unresolved anomaly notifications
+  const fetchUnresolvedPdmNotifications = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getUnresolved`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setPdmUnresolvedNotifications(data.slice(0, 3));
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching pdm notifications");
+    }
+  };
 
-      setNotifications(data.slice(0, 3));
+  // fetch resolved anomaly notifications
+  const fetchResolvedAnomalyNotifications = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getResolved`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setAnomalyResolvedNotifications(data.slice(0, 3));
+    } catch (error) {
+      console.error(error);
+      toast.error("Error fetching notifications");
+    }
+  };
+
+  // fetch unresolved anomaly notifications
+  const fetchUnresolvedAnomalyNotifications = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getUnresolved`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch");
+      const data = await response.json();
+      setAnomalyUnresolvedNotifications(data.slice(0, 3));
     } catch (error) {
       console.error(error);
       toast.error("Error fetching notifications");
@@ -70,8 +116,12 @@ const Navbar = () => {
 
   // fetch anomaly and pdm notifications on first render
   useEffect(() => {
-    fetchNotifications();
-    fetchPdmNotifications();
+    Promise.all([
+      fetchResolvedPdmNotifications(),
+      fetchUnresolvedPdmNotifications(),
+      fetchResolvedAnomalyNotifications(),
+      fetchUnresolvedAnomalyNotifications(),
+    ]);
   }, []);
 
   // Subscribe to real-time notifications
@@ -90,7 +140,14 @@ const Navbar = () => {
       console.log("Subscribed to pdm channel");
     })();
 
-    const notificationUnsubscribe = notificationSubscription.onMessage(async () => await fetchNotifications());
+    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
+      Promise.all([
+        fetchResolvedPdmNotifications(),
+        fetchUnresolvedPdmNotifications(),
+        fetchResolvedAnomalyNotifications(),
+        fetchUnresolvedAnomalyNotifications(),
+      ]);
+    });
 
     const archiveUnsubscribe = archiveSubscription.onMessage(async () => {
       try {
@@ -104,7 +161,7 @@ const Navbar = () => {
     const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
       try {
         console.log("::::new pdm data:::", message);
-        await fetchPdmNotifications();
+        Promise.all([fetchResolvedPdmNotifications(), fetchUnresolvedPdmNotifications()]);
         pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
       } catch (err) {
         console.error(err);
@@ -144,7 +201,7 @@ const Navbar = () => {
       });
 
       // re fetch notifications?
-      fetchPdmNotifications();
+      Promise.all([fetchResolvedPdmNotifications(), fetchUnresolvedPdmNotifications()]);
     } catch (err) {
       console.error("Error resolving notification:", err);
       toast.error(`Failed to resolve notification: ${err.message}`);
@@ -174,7 +231,7 @@ const Navbar = () => {
       });
 
       // re fetch notifications?
-      fetchNotifications();
+      Promise.all([fetchResolvedAnomalyNotifications(), fetchUnresolvedAnomalyNotifications()]);
     } catch (err) {
       console.error("Error resolving notification:", err);
       toast.error(`Failed to resolve notification: ${err.message}`);
@@ -192,14 +249,20 @@ const Navbar = () => {
         <details ref={detailsRef} className="dropdown dropdown-end">
           <summary className="btn btn-ghost btn-circle relative">
             <CiBellOn size={38} color="black" />
-            {notifications.length + pdmNotifications.length > 0 && (
+            {anomalyResolvedNotifications.length +
+              anomalyUnresolvedNotifications.length +
+              pdmResolvedNotifications.length +
+              pdmUnresolvedNotifications.length >
+              0 && (
               <div className="badge badge-sm badge-primary absolute top-0 right-4">
-                {notifications.length + pdmNotifications.length}
+                {anomalyResolvedNotifications.length +
+                  anomalyUnresolvedNotifications.length +
+                  pdmResolvedNotifications.length +
+                  pdmUnresolvedNotifications.length}
               </div>
             )}
           </summary>
           <div className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100">
-            {/* Your existing dropdown content */}
             {/* Dropdown Content */}
             <div
               tabIndex={0}
@@ -209,78 +272,158 @@ const Navbar = () => {
               {/* Tabs */}
               <div className="tabs tabs-bordered px-2">
                 <button
-                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === "anomalies" ? "tab-active " : ""}`}
-                  onClick={() => setActiveTab("anomalies")}>
+                  className={`tab tab-lifted flex-1 text-base-content ${
+                    activeTab === primaryTab.ANOMALIES ? "tab-active " : ""
+                  }`}
+                  onClick={() => setActiveTab(primaryTab.ANOMALIES)}>
                   <p
-                    className={` ${activeTab === "anomalies" ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
-                    Anomalies
+                    className={` ${
+                      activeTab === primaryTab.ANOMALIES
+                        ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out"
+                        : ""
+                    }`}>
+                    {primaryTab.ANOMALIES}
                   </p>
-                  {notifications.length > 0 && (
-                    <span className="ml-2 badge badge-sm badge-primary">{notifications.length}</span>
+                  {anomalyResolvedNotifications.length + anomalyUnresolvedNotifications.length > 0 && (
+                    <span className="ml-2 badge badge-sm badge-primary">
+                      {anomalyResolvedNotifications.length + anomalyUnresolvedNotifications.length}
+                    </span>
                   )}
                 </button>
                 <button
                   className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
-                  onClick={() => setActiveTab("maintenance")}>
+                  onClick={() => setActiveTab(primaryTab.MAINTENANCE)}>
                   <p
-                    className={` ${activeTab === "maintenance" ? "underline underline-offset-4 decoration-warning decoration-solid decoration-2 transition-all duration-200 ease-in-out" : ""}`}>
-                    Maintenance
+                    className={` ${
+                      activeTab === primaryTab.MAINTENANCE
+                        ? "underline underline-offset-4 decoration-error decoration-solid decoration-2 transition-all duration-200 ease-in-out"
+                        : ""
+                    }`}>
+                    {primaryTab.MAINTENANCE}
                   </p>
-                  {pdmNotifications.length > 0 && (
-                    <span className="ml-2 badge badge-sm badge-warning">{pdmNotifications.length}</span>
+                  {pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
+                    <span className="ml-2 badge badge-sm badge-error">
+                      {pdmResolvedNotifications.length + pdmUnresolvedNotifications.length}
+                    </span>
                   )}
                 </button>
               </div>
+
+              {/* READ / UNREAD TABS */}
+              <div role="tablist" className="tabs tabs-box tabs-xs">
+                <a
+                  onClick={() => {
+                    setActiveSecondaryTab(secondaryTab.UNRESOLVED);
+                  }}
+                  role="tab"
+                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.UNRESOLVED ? "tab-active" : "")}>
+                  {secondaryTab.UNRESOLVED}
+                </a>
+                <a
+                  onClick={() => {
+                    setActiveSecondaryTab(secondaryTab.RESOLVED);
+                  }}
+                  role="tab"
+                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.RESOLVED ? "tab-active" : "")}>
+                  {secondaryTab.RESOLVED}
+                </a>
+              </div>
+
               {/* Notifications Content */}
               <div className="max-h-[400px] overflow-y-auto">
-                {activeTab === "anomalies" ? (
-                  <div className="p-2">
-                    {notifications.length === 0 ? (
-                      <div className="text-center py-8 text-base-content/70">
-                        <p>No new anomalies</p>
-                      </div>
-                    ) : (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
-                          <div className="card-body">
-                            <div className="flex justify-between items-start gap-2">
-                              <div>
-                                <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
-                                <p className="text-xs text-base-content/70 mt-1">
-                                  {formatTimestamp(notification.startedAt)}
-                                </p>
-                                <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
+                {activeTab === primaryTab.ANOMALIES ? (
+                  activeSecondaryTab === secondaryTab.UNRESOLVED ? (
+                    // anomaly tab + unresolved tab
+                    <div className="p-2">
+                      {anomalyUnresolvedNotifications.length === 0 ? (
+                        <div className="text-center py-8 text-base-content/70">
+                          <p>No new unresolved anomalies</p>
+                        </div>
+                      ) : (
+                        anomalyUnresolvedNotifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start gap-2">
+                                <div>
+                                  <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
+                                  <p className="text-xs text-base-content/70 mt-1">
+                                    {formatTimestamp(notification.startedAt)}
+                                  </p>
+                                  <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
+                                </div>
+                                {notification.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                    className="btn btn-xs btn-error btn-outline">
+                                    Resolve
+                                  </button>
+                                )}
+                                {!notification.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                    className="btn btn-xs btn-disabled">
+                                    Resolved
+                                  </button>
+                                )}
                               </div>
-                              {notification.shouldBeDisplayed && (
-                                <button
-                                  onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                  className="btn btn-xs btn-error btn-outline">
-                                  Resolve
-                                </button>
-                              )}
-                              {!notification.shouldBeDisplayed && (
-                                <button
-                                  onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                  className="btn btn-xs btn-disabled">
-                                  Resolved
-                                </button>
-                              )}
                             </div>
                           </div>
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    // anomaly + resolved
+                    <div className="p-2">
+                      {anomalyResolvedNotifications.length === 0 ? (
+                        <div className="text-center py-8 text-base-content/70">
+                          <p>No new resolved anomalies</p>
                         </div>
-                      ))
-                    )}
-                  </div>
-                ) : (
+                      ) : (
+                        anomalyResolvedNotifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start gap-2">
+                                <div>
+                                  <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
+                                  <p className="text-xs text-base-content/70 mt-1">
+                                    {formatTimestamp(notification.startedAt)}
+                                  </p>
+                                  <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
+                                </div>
+                                {notification.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                    className="btn btn-xs btn-error btn-outline">
+                                    Resolve
+                                  </button>
+                                )}
+                                {!notification.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                    className="btn btn-xs btn-disabled">
+                                    Resolved
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )
+                ) : activeSecondaryTab === secondaryTab.UNRESOLVED ? (
+                  // maintenance tab + unresolved tab
                   <div className="p-2">
-                    {pdmNotifications.length === 0 ? (
+                    {pdmUnresolvedNotifications.length === 0 ? (
                       <div className="text-center py-8 text-base-content/70">
-                        <p>No maintenance alerts</p>
+                        <p>No new resolved maintenance alerts</p>
                       </div>
                     ) : (
-                      pdmNotifications.map((pdmNotif) => (
+                      pdmUnresolvedNotifications.map((pdmNotif) => (
                         <div
                           key={pdmNotif.id}
                           className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
@@ -293,11 +436,61 @@ const Navbar = () => {
                                   {pdmNotif.maintenanceReason?.accel_x}
                                 </p>
                               </div>
-                              <button
-                                onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                className="btn btn-xs btn-warning btn-outline">
-                                Resolve
-                              </button>
+                              {pdmNotif.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                  className="btn btn-xs btn-error">
+                                  Resolve
+                                </button>
+                              )}
+                              {!pdmNotif.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                  className="btn btn-xs btn-disabled">
+                                  Resolved
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : (
+                  // maintenance tab + resolved tab
+                  <div className="p-2">
+                    {pdmResolvedNotifications.length === 0 ? (
+                      <div className="text-center py-8 text-base-content/70">
+                        <p>No new resolved maintenance alerts</p>
+                      </div>
+                    ) : (
+                      pdmResolvedNotifications.map((pdmNotif) => (
+                        <div
+                          key={pdmNotif.id}
+                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          <div className="card-body">
+                            <div className="flex justify-between items-start gap-2">
+                              <div>
+                                <h4 className="card-title text-sm text-base-content">Maintenance Alert</h4>
+                                <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
+                                <p className="text-sm mt-2 break-words text-base-content/90">
+                                  {pdmNotif.maintenanceReason?.accel_x}
+                                </p>
+                              </div>
+                              {pdmNotif.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                  className="btn btn-xs btn-error">
+                                  Resolve
+                                </button>
+                              )}
+                              {!pdmNotif.shouldBeDisplayed && (
+                                <button
+                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                  className="btn btn-xs btn-disabled">
+                                  Resolved
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>

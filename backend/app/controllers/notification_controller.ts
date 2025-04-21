@@ -11,6 +11,24 @@ export default class NotificationController {
     // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
 
+  // getResolved
+  async getResolved({}: HttpContext) {
+    return await Notification.query()
+      .where("shouldBeDisplayed", false)
+      .preload("notificationType")
+      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+    // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+  }
+
+  // getUnresolved
+  async getUnresolved({}: HttpContext) {
+    return await Notification.query()
+      .where("shouldBeDisplayed", true)
+      .preload("notificationType")
+      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+    // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+  }
+
   // mark a notification as `read`
   async read({ params }: HttpContext) {
     const notification = await Notification.findOrFail(params.id);

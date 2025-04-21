@@ -21,15 +21,20 @@ export default class PdmController {
     return pdmNotifications;
   }
 
-  async getAllUnreadNotifications({}: HttpContext) {
+  async getUnresolved({}: HttpContext) {
     const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", true);
+    return pdmNotifications;
+  }
+
+  async getResolved({}: HttpContext) {
+    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", false);
     return pdmNotifications;
   }
 
   async getLatestUnresolvedNotification({}: HttpContext) {
     const latestPdmNotification = await MaintenanceNotification.query()
       .where("shouldBeDisplayed", true)
-      .orderBy("timestamp")
+      .orderBy("timestamp", "desc")
       .limit(1);
     return latestPdmNotification;
   }
