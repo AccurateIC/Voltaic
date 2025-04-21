@@ -1,3 +1,4 @@
+import { scan } from "react-scan"; // must be imported before React and React DOM
 import RUL from "./pages/RUL.jsx";
 import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";
@@ -21,6 +22,10 @@ import "/node_modules/react-resizable/css/styles.css";
 import "/node_modules/react-grid-layout/css/styles.css";
 import { BrowserRouter, Route, Routes } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+// react-scan: automatically detects performance issues in your React app
+// see: https://react-scan.com/
+scan({ enabled: true }); // DISABLE IN PRODUCTION
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
