@@ -162,6 +162,7 @@ router
   .group(() => {
     router.post("create", "#controllers/pdm_controller.create");
     router.get("getRecent", "#controllers/pdm_controller.getRecent");
+    router.get("getLatestEntry", "#controllers/pdm_controller.getLatestEntry");
     router.get("getRecentActual", "#controllers/pdm_controller.getRecentActual");
     router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted");
     router.get("notification/getAll", "#controllers/pdm_controller.getAllNotifications");

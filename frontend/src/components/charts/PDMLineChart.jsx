@@ -1,12 +1,8 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
-import renderCustomDot from "./renderCustomDot";
-import { useEffect } from "react";
 import { DateTime } from "luxon";
 
 export const PDMLineChart = ({ value }) => {
-  useEffect(() => {
-    console.log("PDM");
-  });
+  console.log(value);
   return (
     <div className="h-[400px] w-full relative pb-4">
       <h2 className="text-lg font-semibold p-4 text-black">Vibration</h2>
@@ -27,7 +23,6 @@ export const PDMLineChart = ({ value }) => {
             <YAxis
               stroke="#000"
               tick={{ fill: "#000" }}
-              
               label={{ value: "Vibration (G-Units)", fill: "#000", dy: 60, position: "insideLeft", angle: -90 }}
             />
             <Tooltip

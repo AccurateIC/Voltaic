@@ -41,8 +41,8 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "actual");
       })
-      .orderBy("timestamp", "desc")
-      .limit(60 * 25);
+      .orderBy("timestamp", "desc");
+    // .limit(60 * 25);
 
     return pdmVibrationData;
   }
@@ -54,9 +54,14 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
-      .orderBy("timestamp", "desc")
-      .limit(60 * 25);
+      .orderBy("timestamp", "desc");
+    // .limit(60 * 25);
     return pdmVibrationData;
+  }
+
+  async getLatestEntry({}: HttpContext) {
+    const pdmVibrationEntry = await Vibration.query().orderBy("timestamp", "desc").limit(1);
+    return pdmVibrationEntry;
   }
 
   async getRecent({}: HttpContext) {
