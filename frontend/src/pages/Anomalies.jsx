@@ -225,7 +225,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="mt-2 p-0 overflow-y-scroll rounded-box rounded-lg shadow-lg  bg-base-content h-[350px]">
+    <div className="mt-2 p-0 overflow-y-scroll rounded-box rounded-lg shadow-lg  bg-base-content h-[820px]">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200 h-10">
@@ -337,6 +337,7 @@ const Anomalies = () => {
 
     if (range === "1d") {
       const dateKey = today.toISOString().split("T")[0];
+      console.log("dateKey", dateKey);
       const count = anomalies.filter((item) => item.timestamp.startsWith(dateKey)).length;
       groupedData[dateKey] = count;
       labels.push(dateKey);
@@ -345,6 +346,7 @@ const Anomalies = () => {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
         const dateKey = date.toISOString().split("T")[0];
+        console.log("1 week", dateKey);
         groupedData[dateKey] = 0;
       }
 
@@ -417,7 +419,7 @@ const Anomalies = () => {
 
       const data = await response.json();
       const anomalies = data.filter((item) => item.isAnomaly);
-console.log("anomalies", anomalies);
+      console.log("anomalies", anomalies);
       const allPropertiesSet = new Set();
       data.forEach((item) => {
         const name = item.gensetProperty?.readablePropertyName || `Property ${item.gensetPropertyId}`;
@@ -458,7 +460,7 @@ console.log("anomalies", anomalies);
 
   const fetchPropertyData = async () => {
     if (!selectedEntry) return;
-console.log("selectedEntry", selectedEntry);
+    console.log("selectedEntry", selectedEntry);
     const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
     console.log("propertyName", propertyName);
     const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
@@ -552,19 +554,19 @@ console.log("selectedEntry", selectedEntry);
       toast.error("startedAt must be present.");
       return;
     }
-console.log(entry);
-console.log("entry", entry);
+    console.log(entry);
+    console.log("entry", entry);
     setSelectedEntry(entry);
     setShowGraph(true);
   };
 
   const toggleSelectAll = () => {
     if (selectedProperties.length === gensetProperties.length) {
-     
       setSelectedProperties([]);
       console.log(selectedProperties);
     } else {
       setSelectedProperties(gensetProperties.map((property) => property.propertyName));
+      console.log("gensetProperties.map((property) => property.propertyName", gensetProperties);
       console.log(selectedProperties);
     }
   };
@@ -577,7 +579,6 @@ console.log("entry", entry);
         : [...prevSelected, propertyName]
     );
   };
-  
 
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
@@ -632,11 +633,13 @@ console.log("entry", entry);
     fetchPropertyData();
   }, [selectedEntry]);
 
+  
   useEffect(() => {
     fetchNotifications();
     fetchProperties();
   }, []);
-console.log(gensetProperties);
+  
+  console.log(gensetProperties);
   return (
     <div className={`h-full w-full flex flex-col transition-all duration-300 ${showGraph ? "backdrop-blur-sm" : ""}`}>
       <div className="h-20 bg-gray-900 text-white p-2 top-0">
@@ -663,28 +666,39 @@ console.log(gensetProperties);
         </div>
 
         {/* Filters */}
-       
-        <div className="flex items-center gap-10 py-2">
-          <div className="font-semibold text-md">Properties: </div>
-          <PropertyFilter
-            gensetProperties={gensetProperties}
-            selectedProperties={selectedProperties}
-            onPropertyChange={handlePropertyChange}
-            onToggleSelectAll={toggleSelectAll}
-          />
-          <TimeRangeSelector value={archiveTimeFilter} onChange={setArchiveTimeFilter} />
+
+        <div className="flex items-center mt-4 gap-120 py-2">
+          <div className=" flex gap-4 ">
+            <div className="font-semibold text-md">Properties: </div>
+            <PropertyFilter
+              gensetProperties={gensetProperties}
+              selectedProperties={selectedProperties}
+              onPropertyChange={handlePropertyChange}
+              onToggleSelectAll={toggleSelectAll}
+            />
+            <TimeRangeSelector value={archiveTimeFilter} onChange={setArchiveTimeFilter} />
+          </div>
+
+          <div>
+            {" "}
+            <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
+          </div>
         </div>
 
-        {/* Charts */}
-        <div className="flex col-auto gap-10 h-130 w-250">
-          <PropertyBarChart labels={labels} dataset={dataset} />
-          <AnomaliesBarChart labels={labels1} dataset={dataset1} />
+        <div className="flex h-[540px] gap-1">
+          {/* First Column: Two stacked charts */}
+          <div className="flex flex-col  gap-2 h-[440px] w-[1000px]">
+            <PropertyBarChart labels={labels} dataset={dataset} />
+            <AnomaliesBarChart labels={labels1} dataset={dataset1} />
+          </div>
+
+          {/* Second Column: Table takes full height of chart column */}
+          <div className="w-1/2 h-full ">
+            {/* Optional filter */}
+              <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
+           
+          </div>
         </div>
-
-        {/* Table */}
-        <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
-
-        <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
 
         {/* Graph Modal */}
         <AnomalyGraphModal
