@@ -1,5 +1,5 @@
 import Notification from "#models/notification";
-import { createNotificationValidator, getDataBetweenValidator } from "#validators/notification";
+import { createNotificationValidator } from "#validators/notification";
 import type { HttpContext } from "@adonisjs/core/http";
 import { DateTime } from "luxon";
 
@@ -30,14 +30,4 @@ export default class NotificationController {
     return response.status(400).send({ message: "Not Implemented" });
   }
 
-  async getBetween({ request }: HttpContext) {
-    const queryParams = request.qs();
-    const data = await getDataBetweenValidator.validate(queryParams);
-    // console.log("Data", data);
-    // const data = await request.qs().validateUsing(getArchiveDataBetweenValidator);
-    const propertyData = await Notification.query()
-      .whereBetween("startedAt", [data.from, data.to])
-      .preload("archive", (query) => query.preload("gensetProperty"));
-    return propertyData;
-  }
 }

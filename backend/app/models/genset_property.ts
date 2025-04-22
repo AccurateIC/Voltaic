@@ -18,7 +18,7 @@ export default class GensetProperty extends BaseModel {
   declare readablePropertyName: string;
 
   @column()
-  declare physicalQuantityId: number
+  declare physicalQuantityId: number;
 
   @belongsTo(() => PhysicalQuantity)
   declare physicalQuantity: BelongsTo<typeof PhysicalQuantity>;
