@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";

@@ -4,7 +4,7 @@ import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 
 // #fff627

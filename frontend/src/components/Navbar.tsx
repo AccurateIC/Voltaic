@@ -1,34 +1,41 @@
+// frontend/src/components/Navbar.tsx
+import { useRef } from "react";
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { CiBellOn } from "react-icons/ci";
 import Profile from "./Profile";
 import Logo from "../assets/accurate.svg";
-import { TransmitChannels } from "../lib/TransmitChannels.js";
+import { TransmitChannels } from "../lib/TransmitChannels";
 import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus.js";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import transmitConnection from "../lib/TransmitConnection";
-import { useRef } from "react";
-import { cn, formatTimestamp } from "../lib/Utils.js";
+import { cn, formatTimestamp } from "../lib/Utils";
+import { useAnomalyNotification } from "../hooks/anomalies/useAnomalyNotification";
 
-const primaryTab = Object.freeze({
+const primaryTab = {
   ANOMALIES: "Anomalies",
   MAINTENANCE: "Maintenance",
-});
+} as const;
 
-const secondaryTab = Object.freeze({
+const secondaryTab = {
   RESOLVED: "Resolved",
   UNRESOLVED: "Unresolved",
-});
+} as const;
 
 const Navbar = () => {
-  const [anomalyResolvedNotifications, setAnomalyResolvedNotifications] = useState([]);
-  const [anomalyUnresolvedNotifications, setAnomalyUnresolvedNotifications] = useState([]);
+  const { getResolvedAnomalies, getUnresolvedAnomalies, markAnomaliesRead, totalAnomalyCount } = useAnomalyNotification();
+  const resolvedAnomalies = getResolvedAnomalies.data || [];
+  const unresolvedAnomalies = getUnresolvedAnomalies.data || [];
+
+  // const [anomalyResolvedNotifications, setAnomalyResolvedNotifications] = useState([]);
+  // const [anomalyUnresolvedNotifications, setAnomalyUnresolvedNotifications] = useState([]);
 
   const [pdmResolvedNotifications, setPdmResolvedNotifications] = useState([]);
   const [pdmUnresolvedNotifications, setPdmUnresolvedNotifications] = useState([]);
 
   const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
   const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.RESOLVED);
+
   const archiveMessageBus = useMessageBus(TransmitChannels.ARCHIVE);
   const notificationMessageBus = useMessageBus(TransmitChannels.NOTIFICATION);
   const pdmMessageBus = useMessageBus(TransmitChannels.PDM);
@@ -80,47 +87,49 @@ const Navbar = () => {
     }
   };
 
-  // fetch resolved anomaly notifications
-  const fetchResolvedAnomalyNotifications = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getResolved`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setAnomalyResolvedNotifications(data.slice(0, 3));
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching notifications");
-    }
-  };
+  // // fetch resolved anomaly notifications
+  // const fetchResolvedAnomalyNotifications = async () => {
+  //   try {
+  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getResolved`, {
+  //       method: "GET",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //     });
+  //     if (!response.ok) throw new Error("Failed to fetch");
+  //     const data = await response.json();
+  //     setAnomalyResolvedNotifications(data.slice(0, 3));
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Error fetching notifications");
+  //   }
+  // };
 
-  // fetch unresolved anomaly notifications
-  const fetchUnresolvedAnomalyNotifications = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getUnresolved`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setAnomalyUnresolvedNotifications(data.slice(0, 3));
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching notifications");
-    }
-  };
+  // // fetch unresolved anomaly notifications
+  // const fetchUnresolvedAnomalyNotifications = async () => {
+  //   try {
+  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getUnresolved`, {
+  //       method: "GET",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //     });
+  //     if (!response.ok) throw new Error("Failed to fetch");
+  //     const data = await response.json();
+  //     setAnomalyUnresolvedNotifications(data.slice(0, 3));
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Error fetching notifications");
+  //   }
+  // };
 
   // fetch anomaly and pdm notifications on first render
   useEffect(() => {
     Promise.all([
       fetchResolvedPdmNotifications(),
       fetchUnresolvedPdmNotifications(),
-      fetchResolvedAnomalyNotifications(),
-      fetchUnresolvedAnomalyNotifications(),
+      // getResolvedAnomalies.refetch(),
+      // getUnresolvedAnomalies.refetch(),
+      // fetchResolvedAnomalyNotifications(),
+      // fetchUnresolvedAnomalyNotifications(),
     ]);
   }, []);
 
@@ -144,8 +153,10 @@ const Navbar = () => {
       Promise.all([
         fetchResolvedPdmNotifications(),
         fetchUnresolvedPdmNotifications(),
-        fetchResolvedAnomalyNotifications(),
-        fetchUnresolvedAnomalyNotifications(),
+        // getResolvedAnomalies.refetch(),
+        // getUnresolvedAnomalies.refetch(),
+        // fetchResolvedAnomalyNotifications(),
+        // fetchUnresolvedAnomalyNotifications(),
       ]);
     });
 
@@ -210,33 +221,51 @@ const Navbar = () => {
 
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
-      // make req to backend to mark notification as read
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await response.json();
+      await markAnomaliesRead.mutateAsync(notificationId);
 
-      if (!response.ok) {
-        toast.error(data.message || `Failed to resolve notification`);
-        return;
-      }
+      // The mutation will automatically trigger a refetch of the queries
+      // No need to manually refetch
 
-      // Send message on the notification bus to inform other components
       notificationMessageBus({
         time: Date.now(),
         message: "notification marked as read",
         notificationId: notificationId,
       });
-
-      // re fetch notifications?
-      Promise.all([fetchResolvedAnomalyNotifications(), fetchUnresolvedAnomalyNotifications()]);
     } catch (err) {
       console.error("Error resolving notification:", err);
-      toast.error(`Failed to resolve notification: ${err.message}`);
+      // Toast error is handled by the mutation
     }
   };
+
+  // const handleMarkNotificationAsRead = async (notificationId) => {
+  //   try {
+  //     // make req to backend to mark notification as read
+  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
+  //       method: "PATCH",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //     });
+  //     const data = await response.json();
+
+  //     if (!response.ok) {
+  //       toast.error(data.message || `Failed to resolve notification`);
+  //       return;
+  //     }
+
+  //     // Send message on the notification bus to inform other components
+  //     notificationMessageBus({
+  //       time: Date.now(),
+  //       message: "notification marked as read",
+  //       notificationId: notificationId,
+  //     });
+
+  //     // re fetch notifications?
+  //     Promise.all([fetchResolvedAnomalyNotifications(), fetchUnresolvedAnomalyNotifications()]);
+  //   } catch (err) {
+  //     console.error("Error resolving notification:", err);
+  //     toast.error(`Failed to resolve notification: ${err.message}`);
+  //   }
+  // };
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
@@ -249,16 +278,9 @@ const Navbar = () => {
         <details ref={detailsRef} className="dropdown dropdown-end">
           <summary className="btn btn-ghost btn-circle relative">
             <CiBellOn size={38} color="black" />
-            {anomalyResolvedNotifications.length +
-              anomalyUnresolvedNotifications.length +
-              pdmResolvedNotifications.length +
-              pdmUnresolvedNotifications.length >
-              0 && (
+            {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
               <div className="badge badge-sm badge-primary absolute top-0 right-4">
-                {anomalyResolvedNotifications.length +
-                  anomalyUnresolvedNotifications.length +
-                  pdmResolvedNotifications.length +
-                  pdmUnresolvedNotifications.length}
+                {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length}
               </div>
             )}
           </summary>
@@ -284,11 +306,7 @@ const Navbar = () => {
                     }`}>
                     {primaryTab.ANOMALIES}
                   </p>
-                  {anomalyResolvedNotifications.length + anomalyUnresolvedNotifications.length > 0 && (
-                    <span className="ml-2 badge badge-sm badge-primary">
-                      {anomalyResolvedNotifications.length + anomalyUnresolvedNotifications.length}
-                    </span>
-                  )}
+                  {totalAnomalyCount > 0 && <span className="ml-2 badge badge-sm badge-primary">{totalAnomalyCount}</span>}
                 </button>
                 <button
                   className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
@@ -335,12 +353,12 @@ const Navbar = () => {
                   activeSecondaryTab === secondaryTab.UNRESOLVED ? (
                     // anomaly tab + unresolved tab
                     <div className="p-2">
-                      {anomalyUnresolvedNotifications.length === 0 ? (
+                      {unresolvedAnomalies.length === 0 ? (
                         <div className="text-center py-8 text-base-content/70">
                           <p>No new unresolved anomalies</p>
                         </div>
                       ) : (
-                        anomalyUnresolvedNotifications.map((notification) => (
+                        unresolvedAnomalies.map((notification) => (
                           <div
                             key={notification.id}
                             className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
@@ -376,12 +394,12 @@ const Navbar = () => {
                   ) : (
                     // anomaly + resolved
                     <div className="p-2">
-                      {anomalyResolvedNotifications.length === 0 ? (
+                      {resolvedAnomalies.length === 0 ? (
                         <div className="text-center py-8 text-base-content/70">
                           <p>No new resolved anomalies</p>
                         </div>
                       ) : (
-                        anomalyResolvedNotifications.map((notification) => (
+                        resolvedAnomalies.map((notification) => (
                           <div
                             key={notification.id}
                             className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">

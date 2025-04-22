@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import { useMessageBus } from "../lib/MessageBus.js";
-import { cn } from "../lib/Utils.js";
+import { useMessageBus } from "../lib/MessageBus";
+import { cn } from "../lib/Utils";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,7 +17,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
-import { TransmitChannels } from "../lib/TransmitChannels.js";
+import { TransmitChannels } from "../lib/TransmitChannels";
 
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 

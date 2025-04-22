@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFileExport, FaFilter } from "react-icons/fa6";

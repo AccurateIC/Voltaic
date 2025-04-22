@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;

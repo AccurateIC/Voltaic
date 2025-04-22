@@ -5,7 +5,7 @@ import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltage
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
 import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart";
 

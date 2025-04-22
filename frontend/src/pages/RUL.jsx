@@ -4,49 +4,43 @@ import { useEffect, useState } from "react";
 import { RulChart } from "../components/charts/RulTrendChart";
 import { rulInputData } from "../components/rulData";
 
-const RUL = () => {
-  const [count, setCount] = useState(0);
-  const [loggedInUser, setLoggedInUser] = useState("");
-  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
-  const [rul, setRul] = useState(null);
+const SimulateRulModal = ({ setRul, rul }) => {
+  const [form, setForm] = useState({
+    Time_Hours: 0,
+    RPM_Deviation_Percentage: 0.117,
+    Oil_Pressure: 2.875,
+    Power_Output_kW: 9.175,
+    Inverse_Fuel_Consumption: 1,
+  });
 
-  const SimulateRulModal = () => {
-    const [form, setForm] = useState({
-      Time_Hours: "",
-      RPM_Deviation_Percentage: "",
-      Oil_Pressure: "",
-      Power_Output_kW: "",
-      Inverse_Fuel_Consumption: "",
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
+  };
 
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
-    };
+  const fetchRulData = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_RUL_BACKEND}/predict`, {
+        method: "POST",
+        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error(`Failed to simulate RUL`);
+      const data = await response.json();
+      setRul(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    const fetchRulData = async (e) => {
-      e.preventDefault();
-      try {
-        const response = await fetch(`${import.meta.env.VITE_RUL_BACKEND}/predict`, {
-          method: "POST",
-          body: JSON.stringify(form),
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!response.ok) throw new Error(`Failed to simulate RUL`);
-        const data = await response.json();
-        setRul(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    return (
-      <dialog id="simulateRulModal" className="modal text-base-content">
-        <div className="modal-box">
-          <form onSubmit={fetchRulData}>
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Simulate RUL</legend>
-
+  return (
+    <dialog id="simulateRulModal" className="modal text-base-content">
+      <div className="modal-box">
+        <fieldset className="fieldset">
+          <legend className="fieldset-legend">Simulate RUL</legend>
+          <div>
+            <form onSubmit={fetchRulData}>
               {/* Running Hours */}
               <div className="">
                 <label className="fieldset-label my-2">Genset Running Time (Hours)</label>
@@ -137,23 +131,42 @@ const RUL = () => {
                 />
                 <p className="validator-hint">Inverse Fuel Consumption must be numerical & greater than 0</p>
               </div>
+              {/* Submit Button */}
               <div className="flex">
-                <button className="btn btn-neutral mt-4">Calculate</button>
+                <button type="submit" className="btn btn-neutral mt-4">
+                  Calculate
+                </button>
               </div>
-            </fieldset>
-          </form>
-          {rul !== null && (
-            <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
-              Remaining Useful Life: {parseInt(rul?.Remaining_Useful_Life, 10) || "N/A"} hours
-            </div>
-          )}
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-    );
-  };
+
+              {/* Add a separate close button */}
+              <button
+                type="button"
+                className="btn btn-ghost mt-4"
+                onClick={() => document.getElementById("simulateRulModal").close()}>
+                Close
+              </button>
+            </form>
+          </div>
+        </fieldset>
+        {rul !== null && (
+          <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
+            Remaining Useful Life: {parseInt(rul?.Remaining_Useful_Life, 10) || "N/A"} hours
+          </div>
+        )}
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button>close</button>
+      </form>
+      {/* <div className="modal-backdrop" onClick={(e) => e.stopPropagation()}></div> */}
+    </dialog>
+  );
+};
+
+const RUL = () => {
+  const [count, setCount] = useState(0);
+  const [loggedInUser, setLoggedInUser] = useState("");
+  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
+  const [rul, setRul] = useState(null);
 
   const fetchUserDetails = async () => {
     const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
@@ -231,7 +244,7 @@ const RUL = () => {
           <button className="btn" onClick={() => document.getElementById("simulateRulModal").showModal()}>
             Simulate RUL Calculation
           </button>
-          <SimulateRulModal />
+          <SimulateRulModal setRul={setRul} rul={rul} />
 
           <button onClick={fetchRulData} className="btn btn-primary">
             Calculate RUL

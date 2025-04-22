@@ -4,8 +4,12 @@ meta {
   seq: 8
 }
 
-get {
-  url: 
+patch {
+  url: {{BASE_URL}}/pdm/notification/read/:id
   body: none
   auth: none
+}
+
+params:path {
+  id: 1
 }
