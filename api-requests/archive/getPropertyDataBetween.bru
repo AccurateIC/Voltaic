@@ -1,0 +1,19 @@
+meta {
+  name: getPropertyDataBetween
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URL}}/archive/getPropertyDataBetween
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "from": "2025-04-15T08:35:29.832Z",
+      "to": "2025-04-15T08:35:29.832Z"
+      //, "properties": []
+  }
+}

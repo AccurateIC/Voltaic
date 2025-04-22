@@ -77,7 +77,7 @@ const SideBar = () => {
       <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
       <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
       <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
-      <SideBarLink to="/predictive-maintenance" name="Predictive" Icon={GiAutoRepair} />
+      <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
       <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
       <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
       <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />

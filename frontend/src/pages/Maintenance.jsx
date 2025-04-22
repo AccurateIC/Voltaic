@@ -22,7 +22,6 @@ import { TransmitChannels } from "../lib/TransmitChannels.js";
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const StatusCard = ({ maintenanceNotification }) => {
-  console.log("96846848", maintenanceNotification);
   return (
     <div className="card bg-base-100 w-1/2 shadow-sm text-base-content">
       <div className="card-body">
@@ -37,36 +36,6 @@ const StatusCard = ({ maintenanceNotification }) => {
             <p>{maintenanceNotification?.maintenanceReason?.accel_x}</p>
           </>
         )}
-      </div>
-    </div>
-  );
-};
-
-const StatusCardd = ({ isLoading, title, isError, errorMessage, disabled }) => {
-  return (
-    <div
-      className={cn(
-        "w-full h-18 shadow-sm flex flex-row rounded items-center p-4",
-        disabled ? "text-gray-600 bg-gray-400" : "text-base-content bg-base-200"
-      )}>
-      <div className="font-bold flex flex-row space-x-2">
-        {isLoading ? (
-          <>
-            <div>{`Checking ${title}`}</div>
-            <span className="loading loading-infinity loading-md"></span>
-          </>
-        ) : (
-          <div>{title}</div>
-        )}
-        {!isLoading && isError && !disabled ? (
-          <div className="tooltip tooltip-error" data-tip={errorMessage}>
-            <XCircle className="text-error" />
-          </div>
-        ) : !isLoading && !isError && !disabled ? (
-          <div>
-            <CheckCircle className="text-success" />
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -185,8 +154,12 @@ const Maintenance = () => {
       }
       const data = await response.json();
 
-      if (data.length > 0) setPdmError(data[0]);
-      else setPdmError(null);
+      if (data.length > 0) {
+        setPdmError(data[0]);
+        toast.warning(`Maintenance Alert: ${data[0]?.maintenanceReason?.accel_x}`);
+      } else {
+        setPdmError(null);
+      }
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
