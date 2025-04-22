@@ -43,35 +43,6 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             onChange={(e) => onFilterChange("fromDate", e.target.value)}
             className="p-2 rounded bg-gray-700 text-white border border-gray-600"
           />
-    <div
-      onClick={onClick}
-      className="flex flex-row items-center justify-center h-16 gap-5 p-6 rounded-lg shadow-md cursor-pointer"
-      style={{
-        backgroundColor: icon === "FaExclamationTriangle" ? "#ef4444" : icon === "FaCalendarWeek" ? "#60a5fa" : "#B1D5BD",
-      }}>
-      <div>
-        <IconComponent className="text-2xl" />
-      </div>
-      <div>
-        <h3 className="text-lg font-bold">{title}</h3>
-      </div>
-      <p className="text-2xl font-semibold">{count}</p>
-    </div>
-  );
-};
-
-export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
-  return (
-    <div className=" flex justify-between items-center gap-4 p-2 rounded-lg">
-      <div className="flex flex-row">
-        <div className="flex items-center gap-4">
-          <label className="text-white">From Date:</label>
-          <input
-            type="date"
-            value={filters.fromDate}
-            onChange={(e) => onFilterChange("fromDate", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
-          />
 
           <label className="text-white">To Date:</label>
           <input
@@ -89,32 +60,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             onChange={(e) => onFilterChange("fromTime", e.target.value)}
             className="p-2 rounded bg-gray-700 text-white border border-gray-600"
           />
-          <label className="text-white">To Date:</label>
-          <input
-            type="date"
-            value={filters.toDate}
-            onChange={(e) => onFilterChange("toDate", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="text-white">From Time:</label>
-          <input
-            type="time"
-            value={filters.fromTime}
-            onChange={(e) => onFilterChange("fromTime", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
-          />
 
-          <label className="text-white">To Time:</label>
-          <input
-            type="time"
-            value={filters.toTime}
-            onChange={(e) => onFilterChange("toTime", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
-          />
-        </div>
-      </div>
           <label className="text-white">To Time:</label>
           <input
             type="time"
@@ -212,55 +158,6 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
       <div className="modal-box max-w-6xl bg-gray-900">
         <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
 
-        {/* Graph Section */}
-        {graphData.length > 0 ? (
-          <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 10, left: 120, bottom: 40 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="x"
-              domain={["dataMin", "dataMax"]}
-              tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-              label={{
-                value: "Timestamp",
-                position: "insideBottom",
-                dy: 25,
-                offset: -10,
-                style: { fill: "#fff" },
-              }}
-              stroke="#ffffff"
-            />
-            <YAxis
-              type="number"
-              domain={[0, "dataMax + 10"]}
-              label={{
-                value: `${selectedEntry?.archive?.gensetProperty?.readablePropertyName || "Property"} (${
-                  selectedEntry?.archive?.gensetProperty?.physicalQuantity?.unitSymbol || "unit"
-                })`,
-                dy: 100,
-                dx: -19,
-                angle: -90,
-                position: "insideLeft",
-                style: { fill: "#fff" },
-              }}
-              stroke="#ffffff"
-            />
-            <Tooltip
-              formatter={(value) => `Value: ${value}`}
-              labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
-            />
-            <Legend verticalAlign="top" height={36} />
-            <Line
-              type="monotone"
-              dataKey="y"
-              stroke="#ff0000"
-              name="Anomaly Event"
-              dot={{ r: 4 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        ) : (
-          <p className="text-red-500 text-center mt-4">No data available for graph.</p>
-        )}
         {/* Graph Section */}
         {graphData.length > 0 ? (
           <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 10, left: 120, bottom: 40 }}>
@@ -828,13 +725,6 @@ console.log("PropertyFilter",PropertyFilter);
           selectedEntry={selectedEntry}
         />
       </div>
-      {/* Graph Modal */}
-      <AnomalyGraphModal
-        isOpen={showGraph}
-        onClose={() => setShowGraph(false)}
-        graphData={graphData}
-        selectedEntry={selectedEntry}
-      />
     </div>
   );
 };
