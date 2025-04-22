@@ -4,8 +4,10 @@ import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { MdEnergySavingsLeaf } from "react-icons/md";
+
+// #fff627
 
 const EngineRPM = ({ engineRpmDetails }) => {
   console.log(engineRpmDetails);
@@ -65,10 +67,9 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
   // Get fuel status color
   const getFuelStatusColor = () => {
-    if (fuelLevelPercentage >= 75) return "bg-success/50";
-    if (fuelLevelPercentage >= 40) return "bg-amber-500/80";
-    if (fuelLevelPercentage >= 20) return "bg-amber-400/80";
-    return "bg-red-500"; // critical
+    if (fuelLevel >= 40) return "#9be4b4";
+    if (fuelLevel >= 20) return "#fff627";
+    return "#ff0000"; // critical
   };
 
   // Generate measurement marks
@@ -108,14 +109,15 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
               {/* Fuel level indicator */}
               <div
-                className={`absolute bottom-0 w-full ${getFuelStatusColor()} rounded-b-full transition-all duration-300 ease-in-out`}
-                style={{ height: `${fuelLevelPercentage}%` }}
+                className={`absolute bottom-0 w-full rounded-b-full transition-all duration-300 ease-in-out`}
+                style={{ height: `${fuelLevelPercentage}%`, backgroundColor: getFuelStatusColor() }}
               />
 
-              {/* Current fuel level text */}
+              {/* Current fuel level text
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-base-content font-bold text-lg">{fuelLevel}L</span>
               </div>
+                */}
             </div>
           </div>
         </div>

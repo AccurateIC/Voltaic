@@ -150,6 +150,8 @@ router
 router
   .group(() => {
     router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
+    router.get("getResolved", "#controllers/notification_controller.getResolved").use([middleware.auth()]);
+    router.get("getUnresolved", "#controllers/notification_controller.getUnresolved").use([middleware.auth()]);
     router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
 
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
@@ -162,11 +164,15 @@ router
 router
   .group(() => {
     router.post("create", "#controllers/pdm_controller.create");
+
     router.get("getRecent", "#controllers/pdm_controller.getRecent");
+    router.get("getLatestEntry", "#controllers/pdm_controller.getLatestEntry");
     router.get("getRecentActual", "#controllers/pdm_controller.getRecentActual");
     router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted");
+
+    router.get("notification/getResolved", "#controllers/pdm_controller.getResolved");
     router.get("notification/getAll", "#controllers/pdm_controller.getAllNotifications");
-    router.get("notification/getAllUnread", "#controllers/pdm_controller.getAllUnreadNotifications");
+    router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved");
     router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
     router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
   })

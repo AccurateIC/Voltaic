@@ -1,0 +1,21 @@
+meta {
+  name: predict
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{RUL_URL}}/predict
+  body: json
+  auth: none
+}
+
+body:json {
+    {
+      "Time_Hours": 315,
+      "RPM_Deviation_Percentage": 0.085,
+      "Oil_Pressure": 3.8,
+      "Power_Output_kW": 12.05,
+      "Inverse_Fuel_Consumption": 0.94
+    }
+}

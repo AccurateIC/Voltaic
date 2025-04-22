@@ -1,0 +1,22 @@
+meta {
+  name: register
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "email": "abcdefgh@accurateic.in",
+      "password": "12345",
+      "firstName": "ABCD",
+      "lastName": "BEFGH",
+      "isActive": true,
+      "roleId": 1
+  }
+}

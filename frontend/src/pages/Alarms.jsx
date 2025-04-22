@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMessageBus } from "../lib/MessageBus";
+import { useMessageBus } from "../lib/MessageBus.ts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFileExport, FaFilter } from "react-icons/fa6";
@@ -16,10 +16,31 @@ const Alarms = () => {
 
   const [filters, setFilters] = useState({
     fromDate: "",
-    toDate: new Date().toISOString().split("T")[0],
+    toDate: DateTime.now().toISODate(),
     property: "Property",
     anomalyStatus: "",
   });
+
+  const handleAnomalyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
+  };
+  const handleGensetPropertyFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
+  };
+  const handleFromDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
+  };
+  const handleToDateFilterChange = (event) => {
+    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
+  };
+  const handleResetFilters = () => {
+    setFilters({
+      fromDate: "",
+      toDate: DateTime.now().toISODate(),
+      property: "Property",
+      anomalyStatus: "",
+    });
+  };
 
   // apply filters whenever filters or notifications change
   useEffect(() => {
@@ -27,13 +48,11 @@ const Alarms = () => {
 
     // Filter by date range
     if (filters.fromDate) {
-      filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) >= DateTime.fromISO(filters.fromDate)
-      );
+      filtered = filtered.filter((notif) => DateTime.fromISO(notif.startedAt) >= DateTime.fromISO(filters.fromDate));
     }
     if (filters.toDate) {
       filtered = filtered.filter(
-        (notif) => DateTime.fromMillis(parseInt(notif.startedAt)) <= DateTime.fromISO(filters.toDate).endOf("day")
+        (notif) => DateTime.fromISO(notif.startedAt) <= DateTime.fromISO(filters.toDate).endOf("day")
       );
     }
 
@@ -113,23 +132,6 @@ const Alarms = () => {
     fetchProperties();
   }, []);
 
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
-
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      fromDate: "",
-      toDate: new Date().toISOString().split("T")[0],
-      property: "Property",
-      anomalyStatus: "",
-    });
-  };
-
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
@@ -153,15 +155,13 @@ const Alarms = () => {
     }
   };
 
-  const handleAnomalyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
-  };
-
-  const handleGensetPropertyFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
-  };
-
   const exportToExcel = () => {
+    // early return when no data
+    if (filteredNotifications.length === 0) {
+      toast.info("No data available for export");
+      return;
+    }
+
     // prepare data for export
     const exportData = filteredNotifications.map((entry, index) => ({
       "No.": index + 1,

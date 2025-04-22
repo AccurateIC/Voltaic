@@ -1,0 +1,18 @@
+meta {
+  name: delete
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{BASE_URL}}/property/delete/19
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "propertyName": "test2",
+      "quantityId": 1
+  }
+}

@@ -1,0 +1,18 @@
+meta {
+  name: update
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{BASE_URL}}/property/update/19
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "propertyName": "engTemperature",
+      "quantityId": 1
+  }
+}

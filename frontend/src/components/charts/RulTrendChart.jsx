@@ -1,11 +1,10 @@
-import React from "react";
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { filteredHealthIndexData } from "../components/filteredHealthIndexData";
+import { filteredHealthIndexData } from "../../components/filteredHealthIndexData";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export const options = {
+const options = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -84,6 +83,7 @@ export const options = {
       },
     },
     y: {
+      reverse: false,
       title: {
         display: true,
         text: "Predicted Health Index",
@@ -118,7 +118,8 @@ export function RulChart({ currentRulPoint }) {
         label: "Current Health Index",
         data: [
           {
-            x: 10000 - currentRulPoint.Remaining_Useful_Life,
+            // x: currentRulPoint.Remaining_Useful_Life,
+            x: currentRulPoint.Time_Hours,
             y: currentRulPoint.Predicted_Health_Index,
           },
         ],

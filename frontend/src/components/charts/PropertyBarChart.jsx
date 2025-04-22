@@ -1,0 +1,106 @@
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+
+// Register required components with Chart.js
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+export const PropertyBarChart = ({ labels, dataset }) => {
+  // Define an array of colors for each bar
+  const backgroundColors = [
+    "#FF6384",
+    "#36A2EB",
+    "#FFCE56",
+    "#4BC0C0",
+    "#9966FF",
+    "#FF9F40",
+    "#8AC24A",
+    "#EA5F89",
+    "#00BBD6",
+    "#F06292",
+  ];
+
+  // If you have more bars than colors, cycle through the colors
+  const getBackgroundColor = (index) => {
+    return backgroundColors[index % backgroundColors.length];
+  };
+
+  const data = {
+    labels: labels,
+    datasets: [
+      {
+        label: "Property Data",
+        data: dataset,
+        backgroundColor: labels.map((_, index) => getBackgroundColor(index)),
+        borderColor: labels.map((_, index) => getBackgroundColor(index)),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: "Anomalies by Property",
+        color: "White",
+        font: {
+          color: "red",
+          weight: "bold",
+          size: 22,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return `Count: ${context.raw}`;
+          },
+        },
+      },
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Properties",
+          color: "white",
+          font: {
+            weight: "bold",
+            size: 18,
+          },
+        },
+        ticks: {
+          color: "white",
+          font: {
+            weight: "bold",
+            size: 12, // This makes X-axis tick labels bold
+          },
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Anomalies Count",
+          color: "white",
+          font: {
+            weight: "bold",
+            size: 18,
+          },
+        },
+        ticks: {
+          color: "white",
+          beginAtZero: true,
+          font: {
+            weight: "bold",
+          },
+        },
+      },
+    },
+  };
+
+  return <Bar data={data} options={options} />;
+};

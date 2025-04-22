@@ -1,0 +1,15 @@
+meta {
+  name: markNotificationRead
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{BASE_URL}}/pdm/notification/read/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 1
+}

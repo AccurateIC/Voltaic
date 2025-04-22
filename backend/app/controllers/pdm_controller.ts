@@ -21,15 +21,20 @@ export default class PdmController {
     return pdmNotifications;
   }
 
-  async getAllUnreadNotifications({}: HttpContext) {
+  async getUnresolved({}: HttpContext) {
     const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", true);
+    return pdmNotifications;
+  }
+
+  async getResolved({}: HttpContext) {
+    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", false);
     return pdmNotifications;
   }
 
   async getLatestUnresolvedNotification({}: HttpContext) {
     const latestPdmNotification = await MaintenanceNotification.query()
       .where("shouldBeDisplayed", true)
-      .orderBy("timestamp")
+      .orderBy("timestamp", "desc")
       .limit(1);
     return latestPdmNotification;
   }
@@ -41,8 +46,8 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "actual");
       })
-      .orderBy("timestamp", "desc")
-      .limit(60 * 25);
+      .orderBy("timestamp", "desc");
+    // .limit(60 * 25);
 
     return pdmVibrationData;
   }
@@ -54,9 +59,14 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
-      .orderBy("timestamp", "desc")
-      .limit(60 * 25);
+      .orderBy("timestamp", "desc");
+    // .limit(60 * 25);
     return pdmVibrationData;
+  }
+
+  async getLatestEntry({}: HttpContext) {
+    const pdmVibrationEntry = await Vibration.query().orderBy("timestamp", "desc").limit(1);
+    return pdmVibrationEntry;
   }
 
   async getRecent({}: HttpContext) {

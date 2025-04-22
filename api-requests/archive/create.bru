@@ -1,0 +1,124 @@
+meta {
+  name: create
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/archive/create
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "timestamp": "2025-04-16T04:42:15.691Z",
+      "data": [
+          {
+              "property": "engTemp",
+              "value": 75,
+              "is_anomaly": false
+          },
+          {
+              "property": "genTotalVA",
+              "value": 150,
+              "is_anomaly":  true
+          },
+          {
+              "property": "engFuelLevelUnits",
+              "value": 35,
+              "is_anomaly": true
+          },
+          {
+              "property": "engSpeedDisplay",
+              "value": 190,
+              "is_anomaly": true
+          },
+          {
+              "property": "engOilPress",
+              "value": 2,
+              "is_anomaly": false
+          },
+          {
+              "property": "engBatteryVolts",
+              "value": 12.55,
+              "is_anomaly": false
+          },
+          {
+              "property": "engChargeAltVolts",
+              "value": 1.6,
+              "is_anomaly": false
+          },
+          {
+              "property": "genL1Volts",
+              "value": 200,
+              "is_anomaly": false
+          },
+          {
+              "property": "genL2Volts",
+              "value": 234.5,
+              "is_anomaly": true
+          },
+          {
+              "property": "genL3Volts",
+              "value": 17,
+              "is_anomaly": true
+          },
+          {
+              "property": "genL1Current",
+              "value": 190,
+              "is_anomaly": false
+          },
+          {
+              "property": "genL2Current",
+              "value": 17,
+              "is_anomaly": false
+          },
+          {
+              "property": "genL3Current",
+              "value": 109,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL1Volts",
+              "value": 200,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL2Volts",
+              "value": 234.5,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL3Volts",
+              "value": 10,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL1Current",
+              "value": 19,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL2Current",
+              "value": 109,
+              "is_anomaly": true
+          },
+          {
+              "property": "mainsL3Current",
+              "value": 17,
+              "is_anomaly": true
+          }
+      ]
+  }
+  // {
+  //     "timestamp": "2025-02-18T00:04:56.585Z",
+  //     "data": [
+  //         {
+  //             "property": "genL3Current",
+  //             "value": 17.9,
+  //             "is_anomaly": false
+  //         }
+  //     ]
+  // }
+}
