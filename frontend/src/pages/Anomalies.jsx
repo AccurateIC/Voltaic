@@ -266,6 +266,7 @@ const Anomalies = () => {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [gensetProperties, setGensetProperties] = useState([]);
+  const [anomalies, setAnomalies] =useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [archiveTimeFilter, setArchiveTimeFilter] = useState("1d");
   const [archiveTimeFilter1, setArchiveTimeFilter1] = useState("1w");
@@ -418,7 +419,19 @@ const Anomalies = () => {
       });
 
       const data = await response.json();
+
       const anomalies = data.filter((item) => item.isAnomaly);
+
+      // Step 1: Extract unique gensetProperties from anomalies
+const uniqueProperties = Array.from(
+  new Map(
+    anomalies.map(item => [item.gensetProperty.id, item.gensetProperty])
+  ).values()
+);
+
+// Save to state
+setGensetProperties(uniqueProperties); // For your filter
+setAnomalies(anomalies);               // For filtering & charts
       console.log("anomalies", anomalies);
       const allPropertiesSet = new Set();
       data.forEach((item) => {
@@ -519,7 +532,7 @@ const Anomalies = () => {
       });
       if (!res.ok) throw new Error((await res.json()).message);
       const data = await res.json();
-      setGensetProperties(data);
+      // setGensetProperties(data);
     } catch (err) {
       console.error("Fetch error:", err);
       toast.error("Error fetching genset property data");
@@ -560,25 +573,22 @@ const Anomalies = () => {
     setShowGraph(true);
   };
 
+  const handlePropertyChange = (propertyName) => {
+    setSelectedProperties(prev =>
+      prev.includes(propertyName)
+        ? prev.filter(p => p !== propertyName)
+        : [...prev, propertyName]
+    );
+  };
+  
   const toggleSelectAll = () => {
     if (selectedProperties.length === gensetProperties.length) {
       setSelectedProperties([]);
-      console.log(selectedProperties);
     } else {
-      setSelectedProperties(gensetProperties.map((property) => property.propertyName));
-      console.log("gensetProperties.map((property) => property.propertyName", gensetProperties);
-      console.log(selectedProperties);
+      setSelectedProperties(gensetProperties.map(p => p.propertyName));
     }
   };
-
-  const handlePropertyChange = (propertyName) => {
-    console.log(propertyName);
-    setSelectedProperties((prevSelected) =>
-      prevSelected.includes(propertyName)
-        ? prevSelected.filter((name) => name !== propertyName)
-        : [...prevSelected, propertyName]
-    );
-  };
+  
 
   const handleFilterChange = (filterName, value) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
@@ -638,7 +648,7 @@ const Anomalies = () => {
     fetchNotifications();
     fetchProperties();
   }, []);
-  
+
   console.log(gensetProperties);
   return (
     <div className={`h-full w-full flex flex-col transition-all duration-300 ${showGraph ? "backdrop-blur-sm" : ""}`}>
