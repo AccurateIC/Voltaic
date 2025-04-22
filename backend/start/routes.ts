@@ -156,7 +156,7 @@ router
 
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
-    router.get("getBetween", "#controllers/notification_controller.getBetween").use([middleware.auth()]);
+   
   })
   .prefix("notification");
 

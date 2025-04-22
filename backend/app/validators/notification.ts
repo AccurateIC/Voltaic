@@ -12,10 +12,3 @@ export const createNotificationValidator = vine.compile(
   })
 );
 
-
-export const getDataBetweenValidator = vine.compile(
-  vine.object({
-    from: vine.date({ formats: ["iso8601"] }),
-    to: vine.date({ formats: ["iso8601"] }).afterField("from", { compare: "second" }),
-  })
-);
