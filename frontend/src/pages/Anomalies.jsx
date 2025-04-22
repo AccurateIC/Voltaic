@@ -81,6 +81,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 };
 
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
+  console.log("selectedProperties", selectedProperties);
   return (
     <div className="dropdown dropdown-bottom">
       <div tabIndex={0} role="button" className="btn btn-neutral w-56">
@@ -117,6 +118,7 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
   );
 };
 
+console.log("PropertyFilter",PropertyFilter);
 export const TimeRangeSelector = ({ value, onChange }) => {
   return (
     <div className="mb-4">
@@ -420,7 +422,7 @@ const Anomalies = () => {
       const data = await response.json();
       const anomalies = data.filter((item) => item.isAnomaly);
       console.log("anomalies", anomalies);
-
+console.log("PropertyFilter",PropertyFilter);
       // Step 1: Extract unique gensetProperties from anomalies
       const uniqueProperties = Array.from(
         new Map(anomalies.map((item) => [item.gensetProperty.id, item.gensetProperty])).values()
@@ -603,6 +605,12 @@ const Anomalies = () => {
   });
 
   useEffect(() => {
+    if (gensetProperties.length > 0) {
+      setSelectedProperties(gensetProperties.map((property) => property.propertyName));
+    }
+  }, [gensetProperties]);
+  
+  useEffect(() => {
     let filtered = [...notifications];
 
     let fromDateTime = null;
@@ -698,7 +706,7 @@ const Anomalies = () => {
         <div className="flex h-[540px] gap-1">
           {/* First Column: Two stacked charts */}
           <div className="flex flex-col  gap-2 h-[440px] w-[1000px]">
-            <PropertyBarChart labels={labels} dataset={dataset} selected={selectedProperties} />
+            <PropertyBarChart labels={selectedProperties} dataset={dataset} selected={selectedProperties} />
             <AnomaliesBarChart labels={labels1} dataset={dataset1}  />
           </div>
 
