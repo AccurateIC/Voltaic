@@ -79,7 +79,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
     </div>
   );
 };
-
+console.log("selectedProperties", selectedProperties);
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
