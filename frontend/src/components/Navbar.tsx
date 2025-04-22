@@ -1,13 +1,12 @@
 // frontend/src/components/Navbar.tsx
 import { useRef } from "react";
 import { useEffect, useState } from "react";
-import { DateTime } from "luxon";
 import { CiBellOn } from "react-icons/ci";
 import Profile from "./Profile";
 import Logo from "../assets/accurate.svg";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus.ts";
+import { useMessageBus } from "../lib/MessageBus";
 import transmitConnection from "../lib/TransmitConnection";
 import { cn, formatTimestamp } from "../lib/Utils";
 import { useAnomalyNotification } from "../hooks/anomalies/useAnomalyNotification";
