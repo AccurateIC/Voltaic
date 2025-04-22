@@ -2,12 +2,22 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, Responsi
 import renderCustomDot from "./renderCustomDot";
 
 export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
+  const now = new Date();
+  const timeOnly = now.toLocaleTimeString(); 
+  const xAxisStart = new Date(now.getTime() - 3600 * 1000);
+  const startAt = xAxisStart.toLocaleTimeString();
+  const fallbackData = [
+    { time: startAt },
+    { time: timeOnly  },
+  ];
+
+  const value = fuelLevelData && fuelLevelData.length ? fuelLevelData : fallbackData;
   return (
     <div className="h-full w-full">
       <h2 className="text-lg font-semibold p-4 text-base-content">Engine Fuel Level Monitor</h2>
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={fuelLevelData} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={value} margin={{ top: 15, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
@@ -37,6 +47,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
               strokeWidth={2}
               dot={{ stroke: '#5278d1', fill: '#5278d1' }}
             />
+            
        </LineChart>
         </ResponsiveContainer>
       </div>

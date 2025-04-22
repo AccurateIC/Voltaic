@@ -2,13 +2,24 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, Legend, X
 import renderCustomDot from "./renderCustomDot";
 
 export const BatteryChargeLineChart = ({ value }) => {
+  const now = new Date();
+  const timeOnly = now.toLocaleTimeString(); 
+  const xAxisStart = new Date(now.getTime() - 3600 * 1000);
+  const startAt = xAxisStart.toLocaleTimeString();
+
+  const fallbackData = [
+    { time: startAt },
+    { time: timeOnly },
+  ];
+
+  const batteryChargeValue = value && value.length ? value : fallbackData;
   return (
     <div className="h-[400px] w-full relative">
       <h2 className="text-lg font-semibold p-4 text-base-content">Battery Charge Monitor</h2>
 
       <div className="h-[calc(100%-3rem)]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={value} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
+          <LineChart data={batteryChargeValue} margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
             <YAxis
