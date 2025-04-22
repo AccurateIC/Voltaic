@@ -448,12 +448,10 @@ const Anomalies = () => {
       });
 
       const selectedProperty = filters.property;
-      console.log("selectedProperty",selectedProperty);
       console.log("selectedProperty", selectedProperty);
       if (selectedProperty !== "Property" && selectedProperty) {
         setDataset([anomalyCounts[selectedProperty]]);
-        console.log(dataset);
-        setLabels(selectedProperty); 
+        setLabels([selectedProperty]);
       } else {
         const propertiesWithAnomalies = allProperties.filter((name) => anomalyCounts[name] > 0);
         console.log("propertiesWithAnomalies", propertiesWithAnomalies);
@@ -698,8 +696,8 @@ const Anomalies = () => {
         <div className="flex h-[540px] gap-1">
           {/* First Column: Two stacked charts */}
           <div className="flex flex-col  gap-2 h-[440px] w-[1000px]">
-            <PropertyBarChart labels={labels} dataset={dataset} selected={selectedProperties} />
-            <AnomaliesBarChart labels={labels1} dataset={dataset1}  />
+            <PropertyBarChart labels={labels} dataset={dataset} />
+            <AnomaliesBarChart labels={labels1} dataset={dataset1} />
           </div>
 
           {/* Second Column: Table takes full height of chart column */}
