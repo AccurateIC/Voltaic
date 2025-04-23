@@ -138,7 +138,7 @@ export const TimeRangeSelector1 = ({ value, onChange }) => {
     <div className="mb-4">
       <label className="mr-2 font-medium text-sm">Time Range:</label>
       <select
-        className="border border-gray-300 rounded px-2 py-1 text-sm"
+        className="border border-gray-300 rounded px-2 py-1 text-xl"
         value={value}
         onChange={(e) => onChange(e.target.value)}>
         <option value="7d">1 Week</option>
@@ -289,12 +289,13 @@ const Anomalies = () => {
     console.log(notifications);
     const now = DateTime.local();
     const todayStart = now.startOf("day");
+    console.log(todayStart);
     const weekStart = now.startOf("week");
     const monthStart = now.startOf("month");
     const data = { today: [], week: [], month: [] };
 
     notifications.forEach((notif) => {
-      const notifTime = DateTime.fromISO(notif.startedAt);
+      const notifTime = DateTime.fromISO(notif.timestamp);
       if (notifTime >= monthStart) {
         data.month.push(notif);
         if (notifTime >= weekStart) {
@@ -413,35 +414,38 @@ const Anomalies = () => {
       setIsLoading(false);
     }
 
-    // try {
-    //   setIsLoading(true);
-    //   const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
-    //     method: "GET",
-    //     headers: { "Content-Type": "application/json" },
-    //   });
-
-    //   if (!response.ok) {
-    //     const errorData = await response.json();
-    //     throw new Error(errorData.message || "Failed to fetch notification data");
-    //   }
-    //   const data = await response.json();
-    //   console.log(data);
-    //   const anomalies = data.filter((item) => item.isAnomaly);
-    //   setNotifications(anomalies);
-    //   console.log(anomalies);
-
-    //   const anomalyStats = getAnomalyDataByPeriod(anomalies);
-    //   setAnomalyData(anomalyStats);
-    //   console.log(anomalyStats.week);
-    //   // setFilteredNotifications(anomalyStats.today);
-    // } catch (error) {
-    //   console.error("Fetch error:", error);
-    //   toast.error("Error fetching notification data");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    
   };
 
+  const countFun  = async()=> {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notification data");
+      }
+      const data = await response.json();
+      const anomalies = data.filter((item) => item.isAnomaly);
+      setNotifications(data);
+      console.log(data);
+
+      const anomalyStats = getAnomalyDataByPeriod(anomalies);
+       setAnomalyData(anomalyStats);
+      // console.log(anomalyStats.week);
+       setFilteredNotifications(anomalyStats.today);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsLoading(false);
+    }
+  }
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
@@ -500,7 +504,12 @@ const Anomalies = () => {
     } finally {
       setIsLoading(false);
     }
+
+    
   };
+  
+ 
+
 
   const fetchPropertyData = async () => {
     if (!selectedEntry) return;
@@ -580,7 +589,7 @@ const Anomalies = () => {
 
     const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
     console.log(filtered);
-    setFilteredNotifications(filtered);
+    // setFilteredNotifications(filtered);
   };
 
   const handleResetFilters = () => {
@@ -626,6 +635,7 @@ const Anomalies = () => {
   // Effects
   useMessageBus(TransmitChannels.NOTIFICATION, (msg) => {
     fetchNotifications();
+    countFun();
     fetchProperties();
   });
 
@@ -674,6 +684,7 @@ const Anomalies = () => {
 
   useEffect(() => {
     fetchNotifications();
+    countFun();
     fetchProperties();
   }, []);
 
@@ -706,9 +717,9 @@ const Anomalies = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center py-2">
-        <div className="flex gap-4 ">
-          <div className="font-semibold text-md">Properties: </div>
+      <div className="flex items-center gap-130 py-2 ">
+        <div className="flex gap-4 py-3">
+          <div className="font-semibold text-md ">Properties: </div>
           <PropertyFilter
             gensetProperties={gensetProperties}
             selectedProperties={selectedProperties}
