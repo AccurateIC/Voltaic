@@ -119,8 +119,8 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
 
 export const TimeRangeSelector = ({ value, onChange }) => {
   return (
-    <div className="mb-4 flex flex-row">
-      <label className="mr-2 font-medium text-sm">Time Range:</label>
+    <div className="flex flex-row items-center gap-2">
+      <label className="">Time Range:</label>
       <select
         className="border border-black-300 rounded px-2 py-1 text-sm"
         value={value}
@@ -225,7 +225,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="overflow-y-auto w-fill max-h-[70vh] p-0 rounded-box rounded-lg shadow-lg bg-base-content">
+    <div className="overflow-y-auto w-full max-h-[74vh] p-0 rounded-box rounded-lg shadow-lg bg-base-content">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200">
@@ -237,7 +237,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
             <th>View</th>
           </tr>
         </thead>
-        <tbody className="bg-sky-950/50">
+        <tbody className="bg-sky-950/50 h-full">
           {data.map((entry, index) => (
             <tr key={index}>
               <td>{index + 1}</td>
@@ -331,7 +331,7 @@ const Anomalies = () => {
     };
   };
 
-  const groupAnomalies = (anomalies, range) => {
+  const groupAnomalies = (filteredAnomalies, range) => {
     const today = new Date();
     const groupedData = {};
     const labels = [];
@@ -347,11 +347,10 @@ const Anomalies = () => {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
         const dateKey = date.toISOString().split("T")[0];
-        console.log("1 week", dateKey);
         groupedData[dateKey] = 0;
       }
 
-      anomalies.forEach((item) => {
+      filteredAnomalies.forEach((item) => {
         const dateKey = new Date(item.timestamp).toISOString().split("T")[0];
         if (groupedData.hasOwnProperty(dateKey)) {
           groupedData[dateKey]++;
@@ -362,14 +361,16 @@ const Anomalies = () => {
     } else if (range === "1m") {
       const weeks = [0, 0, 0, 0];
       const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 27); // Last 4 weeks = 28 days
+      startDate.setDate(today.getDate() - 27);
 
-      anomalies.forEach((item) => {
+      filteredAnomalies.forEach((item) => {
         const timestamp = new Date(item.timestamp);
         if (timestamp >= startDate && timestamp <= today) {
           const daysAgo = Math.floor((today - timestamp) / (1000 * 60 * 60 * 24));
           const weekIndex = Math.floor((27 - daysAgo) / 7);
-          weeks[weekIndex]++;
+          if (weekIndex >= 0 && weekIndex < 4) {
+            weeks[weekIndex]++;
+          }
         }
       });
 
@@ -419,21 +420,25 @@ const Anomalies = () => {
       });
 
       const data = await response.json();
-
       const anomalies = data.filter((item) => item.isAnomaly);
 
-      // Step 1: Extract unique gensetProperties from anomalies
+      // Extract unique gensetProperties from anomalies
       const uniqueProperties = Array.from(
         new Map(anomalies.map((item) => [item.gensetProperty.id, item.gensetProperty])).values()
       );
+      setGensetProperties(uniqueProperties);
+      setAnomalies(anomalies);
 
-      // Save to state
-      setGensetProperties(uniqueProperties); // For your filter
-      setAnomalies(anomalies); // For filtering & charts
-      console.log("anomalies", anomalies);
+      // filter anomalies based on selected properties
+      const filteredAnomalies =
+        selectedProperties.length > 0
+          ? anomalies.filter((item) => selectedProperties.includes(item.gensetProperty.propertyName))
+          : anomalies;
+
+      // property bar chart data
       const allPropertiesSet = new Set();
-      data.forEach((item) => {
-        const name = item.gensetProperty?.readablePropertyName || `Property ${item.gensetPropertyId}`;
+      filteredAnomalies.forEach((item) => {
+        const name = item.gensetProperty.readablePropertyName;
         allPropertiesSet.add(name);
       });
 
@@ -443,24 +448,16 @@ const Anomalies = () => {
         anomalyCounts[name] = 0;
       });
 
-      anomalies.forEach((anomaly) => {
-        const name = anomaly.gensetProperty?.readablePropertyName || `Property ${anomaly.gensetPropertyId}`;
+      filteredAnomalies.forEach((anomaly) => {
+        const name = anomaly.gensetProperty.readablePropertyName;
         anomalyCounts[name]++;
       });
 
-      const selectedProperty = filters.property;
-      console.log("selectedProperty", selectedProperty);
-      if (selectedProperty !== "Property" && selectedProperty) {
-        setDataset([anomalyCounts[selectedProperty]]);
-        setLabels([selectedProperty]);
-      } else {
-        const propertiesWithAnomalies = allProperties.filter((name) => anomalyCounts[name] > 0);
-        console.log("propertiesWithAnomalies", propertiesWithAnomalies);
-        setLabels(propertiesWithAnomalies);
-        setDataset(propertiesWithAnomalies.map((name) => anomalyCounts[name]));
-      }
+      const propertiesWithAnomalies = allProperties.filter((name) => anomalyCounts[name] > 0);
+      setLabels(propertiesWithAnomalies);
+      setDataset(propertiesWithAnomalies.map((name) => anomalyCounts[name]));
 
-      groupAnomalies(anomalies, archiveTimeFilter);
+      groupAnomalies(filteredAnomalies, archiveTimeFilter);
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
@@ -626,13 +623,18 @@ const Anomalies = () => {
       filtered = filtered.filter((notif) => notif.archive.gensetProperty.propertyName === filters.property);
     }
 
+    // Filter by selected properties
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter((notif) => selectedProperties.includes(notif.archive?.gensetProperty?.propertyName));
+    }
+
     setFilteredNotifications(filtered);
-  }, [filters, notifications]);
+  }, [filters, notifications, selectedProperties]);
 
   useEffect(() => {
     const { from, to } = getFromToDates(archiveTimeFilter);
     fetchAnomaliesData(from, to);
-  }, [archiveTimeFilter]);
+  }, [archiveTimeFilter, selectedProperties]);
 
   useEffect(() => {
     fetchPropertyData();
@@ -643,7 +645,6 @@ const Anomalies = () => {
     fetchProperties();
   }, []);
 
-  console.log(gensetProperties);
   return (
     <div
       className={`bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 ${
@@ -688,19 +689,19 @@ const Anomalies = () => {
           <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
         </div>
       </div>
-      <div className="flex flex-row gap-1 h-full">
+      <div className="flex flex-row gap-4 h-full">
         {/* First Column: Two stacked charts */}
-        <div className="flex flex-col gap-2 w-1/2">
-          <div className="h-1/2">
+        <div className="flex flex-col gap-4 w-1/2">
+          <div className="h-1/2 bg-[#1d2130] rounded p-5">
             <PropertyBarChart labels={labels} dataset={dataset} />
           </div>
-          <div className="h-1/2">
+          <div className="h-1/2 bg-[#1d2130] rounded p-5">
             <AnomaliesBarChart labels={labels1} dataset={dataset1} />
           </div>
         </div>
 
         {/* Second Column: Table takes full height of chart column */}
-        <div className="flex w-1/2">
+        <div className="flex w-1/2 bg-[#1d2130]">
           {/* Optional filter */}
           <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
         </div>

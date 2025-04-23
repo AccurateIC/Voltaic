@@ -16,8 +16,7 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
         backgroundColor: "#8884d8",
         borderColor: "#8884d8",
         borderWidth: 1,
-        barPercentage: 0.5, // 👈 controls actual bar width
-        categoryPercentage: 0.5, // 👈 controls spacing between bars in a category
+        maxBarThickness: 40,
       },
     ],
   };
@@ -28,8 +27,8 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
     plugins: {
       title: {
         display: true,
-        // text: "Anomalies By ",
-        color: "White",
+        text: "Anomaly Count",
+        color: "white",
         font: {
           weight: "bold",
           size: 22,
@@ -42,35 +41,41 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
           },
         },
       },
+      legend: {
+        display: false,
+      },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: "Days",
+          text: "Time Range ⟶",
           maxBarThickness: 40,
           color: "white",
           font: {
             weight: "bold",
-            size: 18,
+            size: 14,
           },
         },
         ticks: {
           color: "white",
           font: {
             weight: "bold",
-            size: 16, // This makes X-axis tick labels bold
+            size: 12,
           },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
         },
       },
       y: {
         title: {
           display: true,
-          text: "Anomalies Counts",
+          text: "Anomalies Counts ⟶",
           color: "white",
           font: {
             weight: "bold",
-            size: 18,
+            size: 14,
           },
         },
         ticks: {
@@ -79,6 +84,9 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
           font: {
             weight: "bold",
           },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
         },
       },
     },

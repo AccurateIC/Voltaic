@@ -33,6 +33,7 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         backgroundColor: labels.map((_, index) => getBackgroundColor(index)),
         borderColor: labels.map((_, index) => getBackgroundColor(index)),
         borderWidth: 1,
+        maxBarThickness: 40,
       },
     ],
   };
@@ -43,7 +44,7 @@ export const PropertyBarChart = ({ labels, dataset }) => {
     plugins: {
       title: {
         display: true,
-        text: "Anomalies by Property",
+        text: "Anomaly Count by Property",
         color: "White",
         font: {
           color: "red",
@@ -66,7 +67,7 @@ export const PropertyBarChart = ({ labels, dataset }) => {
       x: {
         title: {
           display: true,
-          text: "Properties",
+          text: "Properties ⟶",
           color: "white",
           font: {
             weight: "bold",
@@ -76,27 +77,32 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         ticks: {
           color: "white",
           font: {
-            weight: "bold",
-            size: 12, // This makes X-axis tick labels bold
+            size: 12,
           },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
         },
       },
       y: {
         title: {
           display: true,
-          text: "Anomalies Count",
+          text: "No. of Anomalies ⟶",
           color: "white",
           font: {
             weight: "bold",
-            size: 18,
+            size: 14,
           },
         },
         ticks: {
           color: "white",
           beginAtZero: true,
           font: {
-            weight: "bold",
+            size: 12,
           },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
         },
       },
     },
