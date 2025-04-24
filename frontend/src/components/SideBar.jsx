@@ -9,6 +9,7 @@ import { ImPowerCord } from "react-icons/im";
 import { RiAlertFill } from "react-icons/ri";
 import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
 import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { TbReportAnalytics } from "react-icons/tb";
 
 const SideBarLink = ({ to, name, Icon }) => {
   return (
@@ -67,21 +68,27 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 
 const SideBar = () => {
   return (
-    <ul className="bg-[rgba(177,213,189,1)] px-1 py-2 w-58 overflow-y-auto">
-      <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
-        <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
-        <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
-        <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
-      </SideBarGroup>
+    <div className="h-full flex flex-col justify-between bg-[rgba(177,213,189,1)] text-base-content w-15 md:w-58">
+      <ul className="bg-[rgba(177,213,189,1)] h-full px-1 py-2overflow-y-auto">
+        <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
+          <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
+          <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
+          <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
+        </SideBarGroup>
 
-      <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
-      <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
-      <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
-      <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
-      <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
-      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
-      <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />
-    </ul>
+        <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
+        <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
+        <SideBarLink to="/reports" name="Reports" Icon={TbReportAnalytics} />
+        <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
+        <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
+        <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
+        <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
+      </ul>
+      <div className="flex flex-col text-xs items-center justify-center p-2 md:visible">
+        <span>Neurogen v1.3.5</span>
+        <span>© NeuBodhi 2025</span>
+      </div>
+    </div>
   );
 };
 
