@@ -86,40 +86,6 @@ const Navbar = () => {
     }
   };
 
-  // // fetch resolved anomaly notifications
-  // const fetchResolvedAnomalyNotifications = async () => {
-  //   try {
-  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getResolved`, {
-  //       method: "GET",
-  //       headers: { "Content-Type": "application/json" },
-  //       credentials: "include",
-  //     });
-  //     if (!response.ok) throw new Error("Failed to fetch");
-  //     const data = await response.json();
-  //     setAnomalyResolvedNotifications(data.slice(0, 3));
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("Error fetching notifications");
-  //   }
-  // };
-
-  // // fetch unresolved anomaly notifications
-  // const fetchUnresolvedAnomalyNotifications = async () => {
-  //   try {
-  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getUnresolved`, {
-  //       method: "GET",
-  //       headers: { "Content-Type": "application/json" },
-  //       credentials: "include",
-  //     });
-  //     if (!response.ok) throw new Error("Failed to fetch");
-  //     const data = await response.json();
-  //     setAnomalyUnresolvedNotifications(data.slice(0, 3));
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("Error fetching notifications");
-  //   }
-  // };
-
   // fetch anomaly and pdm notifications on first render
   useEffect(() => {
     Promise.all([
@@ -152,8 +118,8 @@ const Navbar = () => {
       Promise.all([
         fetchResolvedPdmNotifications(),
         fetchUnresolvedPdmNotifications(),
-        // getResolvedAnomalies.refetch(),
-        // getUnresolvedAnomalies.refetch(),
+        getResolvedAnomalies.refetch(),
+        getUnresolvedAnomalies.refetch(),
         // fetchResolvedAnomalyNotifications(),
         // fetchUnresolvedAnomalyNotifications(),
       ]);
@@ -203,7 +169,7 @@ const Navbar = () => {
         return;
       }
 
-      // Send message on the notification bus to inform other components
+      // send message on the notification bus to inform other components
       notificationMessageBus({
         time: Date.now(),
         message: "pdm notification marked as read",
@@ -235,36 +201,6 @@ const Navbar = () => {
       // Toast error is handled by the mutation
     }
   };
-
-  // const handleMarkNotificationAsRead = async (notificationId) => {
-  //   try {
-  //     // make req to backend to mark notification as read
-  //     const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
-  //       method: "PATCH",
-  //       headers: { "Content-Type": "application/json" },
-  //       credentials: "include",
-  //     });
-  //     const data = await response.json();
-
-  //     if (!response.ok) {
-  //       toast.error(data.message || `Failed to resolve notification`);
-  //       return;
-  //     }
-
-  //     // Send message on the notification bus to inform other components
-  //     notificationMessageBus({
-  //       time: Date.now(),
-  //       message: "notification marked as read",
-  //       notificationId: notificationId,
-  //     });
-
-  //     // re fetch notifications?
-  //     Promise.all([fetchResolvedAnomalyNotifications(), fetchUnresolvedAnomalyNotifications()]);
-  //   } catch (err) {
-  //     console.error("Error resolving notification:", err);
-  //     toast.error(`Failed to resolve notification: ${err.message}`);
-  //   }
-  // };
 
   return (
     <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
