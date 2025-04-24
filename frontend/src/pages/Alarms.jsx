@@ -271,7 +271,7 @@ const Alarms = () => {
         <table className="table table-pin-rows">
           <thead className="">
             <tr className="bg-sky-950 text-base-200">
-              <th></th>
+              <th>Sr. No.</th>
               <th>Started At</th>
               <th>Summary</th>
               <th>Message</th>

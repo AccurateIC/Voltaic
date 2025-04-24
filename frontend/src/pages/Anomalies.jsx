@@ -83,11 +83,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-72 bg-gray-700">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content text-white bg-gray-900 z-[1] menu p-2 shadow rounded-box w-72">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -108,7 +108,7 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
                 checked={selectedProperties.includes(property.propertyName)}
                 onChange={() => onPropertyChange(property.propertyName)}
               />
-              <span className="label-text">{property.propertyName}</span>
+              <span className="label-text">{property.readablePropertyName}</span>
             </label>
           </div>
         ))}
@@ -133,20 +133,20 @@ export const TimeRangeSelector = ({ value, onChange }) => {
   );
 };
 
-export const TimeRangeSelector1 = ({ value, onChange }) => {
-  return (
-    <div className="mb-4">
-      <label className="mr-2 font-medium text-sm">Time Range:</label>
-      <select
-        className="border border-gray-300 rounded px-2 py-1 text-sm"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}>
-        <option value="7d">1 Week</option>
-        <option value="30d">1 Month</option>
-      </select>
-    </div>
-  );
-};
+// export const TimeRangeSelector1 = ({ value, onChange }) => {
+//   return (
+//     <div className="mb-4">
+//       <label className="mr-2 font-medium text-sm">Time Range:</label>
+//       <select
+//         className="border border-gray-300 rounded px-2 py-1 text-sm"
+//         value={value}
+//         onChange={(e) => onChange(e.target.value)}>
+//         <option value="7d">1 Week</option>
+//         <option value="30d">1 Month</option>
+//       </select>
+//     </div>
+//   );
+// };
 
 const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
   if (!isOpen) return null;
@@ -229,7 +229,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200">
-            <th></th>
+            <th>Sr. No</th>
             <th>Started At</th>
             <th>Summary</th>
             <th>Message</th>
@@ -401,7 +401,7 @@ const Anomalies = () => {
       setNotifications(data);
       const anomalyStats = getAnomalyDataByPeriod(data);
       setAnomalyData(anomalyStats);
-      setFilteredNotifications(anomalyStats.today);
+      // setFilteredNotifications(anomalyStats.today);
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
@@ -427,6 +427,7 @@ const Anomalies = () => {
         new Map(anomalies.map((item) => [item.gensetProperty.id, item.gensetProperty])).values()
       );
       setGensetProperties(uniqueProperties);
+      console.log("uniqueProperties", uniqueProperties);
       setAnomalies(anomalies);
 
       // filter anomalies based on selected properties
@@ -456,7 +457,7 @@ const Anomalies = () => {
       const propertiesWithAnomalies = allProperties.filter((name) => anomalyCounts[name] > 0);
       setLabels(propertiesWithAnomalies);
       setDataset(propertiesWithAnomalies.map((name) => anomalyCounts[name]));
-
+      console.log("filteredAnomalies",filteredAnomalies);
       groupAnomalies(filteredAnomalies, archiveTimeFilter);
     } catch (error) {
       console.error("Fetch error:", error);
@@ -472,10 +473,13 @@ const Anomalies = () => {
     const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
     console.log("propertyName", propertyName);
     const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
+    console.log("from", from);
+   
     const to = selectedEntry?.finishedAt
       ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
       : DateTime.now().toUTC().toISO();
-
+      console.log("to", to);
+      
     if (!propertyName || !from || !to) {
       console.error("Missing required fields in selectedEntry");
       toast.error("Incomplete data for fetching property info");
@@ -534,17 +538,7 @@ const Anomalies = () => {
     }
   };
 
-  const handleAnomalyClick = (period) => {
-    const now = DateTime.local();
-    let start;
-    if (period === "today") start = now.startOf("day");
-    else if (period === "week") start = now.startOf("week");
-    else if (period === "month") start = now.startOf("month");
-    else start = now.startOf("day");
 
-    const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
-    setFilteredNotifications(filtered);
-  };
 
   const handleResetFilters = () => {
     setFilters({
@@ -569,6 +563,7 @@ const Anomalies = () => {
   };
 
   const handlePropertyChange = (propertyName) => {
+    console.log(propertyName);
     setSelectedProperties((prev) =>
       prev.includes(propertyName) ? prev.filter((p) => p !== propertyName) : [...prev, propertyName]
     );
@@ -627,7 +622,7 @@ const Anomalies = () => {
     if (selectedProperties.length > 0) {
       filtered = filtered.filter((notif) => selectedProperties.includes(notif.archive?.gensetProperty?.propertyName));
     }
-
+console.log(filtered);
     setFilteredNotifications(filtered);
   }, [filters, notifications, selectedProperties]);
 
@@ -656,19 +651,19 @@ const Anomalies = () => {
           icon="FaExclamationTriangle"
           title="Today's Anomaly"
           count={anomalyData.today.length}
-          onClick={() => handleAnomalyClick("today")}
+       
         />
         <AnomalyStatsCard
           icon="FaCalendarWeek"
           title="Weekly Anomaly"
           count={anomalyData.week.length}
-          onClick={() => handleAnomalyClick("week")}
+         
         />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
           title="Monthly Anomaly"
           count={anomalyData.month.length}
-          onClick={() => handleAnomalyClick("month")}
+        
         />
       </div>
 
