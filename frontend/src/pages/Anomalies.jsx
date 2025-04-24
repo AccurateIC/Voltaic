@@ -83,11 +83,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-gray-700">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-72 bg-gray-700">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content text-white bg-gray-900 z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content text-white bg-gray-900 z-[1] menu p-2 shadow rounded-box w-72">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -108,7 +108,7 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
                 checked={selectedProperties.includes(property.propertyName)}
                 onChange={() => onPropertyChange(property.propertyName)}
               />
-              <span className="label-text">{property.propertyName}</span>
+              <span className="label-text">{property.readablePropertyName}</span>
             </label>
           </div>
         ))}
@@ -427,6 +427,7 @@ const Anomalies = () => {
         new Map(anomalies.map((item) => [item.gensetProperty.id, item.gensetProperty])).values()
       );
       setGensetProperties(uniqueProperties);
+      console.log("uniqueProperties", uniqueProperties);
       setAnomalies(anomalies);
 
       // filter anomalies based on selected properties
@@ -569,6 +570,7 @@ const Anomalies = () => {
   };
 
   const handlePropertyChange = (propertyName) => {
+    console.log(propertyName);
     setSelectedProperties((prev) =>
       prev.includes(propertyName) ? prev.filter((p) => p !== propertyName) : [...prev, propertyName]
     );
