@@ -155,7 +155,7 @@ const Profile = () => {
   const getUserDetails = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

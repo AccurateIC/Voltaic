@@ -52,7 +52,7 @@ router
     router.get("/google/redirect", "#controllers/auth_controller.googleRedirect");
     router.get("/google/callback", "#controllers/auth_controller.googleCallback");
 
-    router.get("isAuthenticated", "#controllers/auth_controller.isAuthenticated");
+    router.get("getLoggedInUser", "#controllers/auth_controller.getLoggedInUser");
     router.get("getActive", "#controllers/auth_controller.getActive");
     router.get("getAll", "#controllers/auth_controller.getAll");
     router.post("register", "#controllers/auth_controller.register");

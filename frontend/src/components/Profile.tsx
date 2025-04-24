@@ -11,7 +11,7 @@ const Profile = () => {
       // TEMPORARY
       // ####################################
       // fetch logged in user details
-      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

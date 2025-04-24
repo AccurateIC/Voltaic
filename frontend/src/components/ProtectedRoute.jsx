@@ -7,7 +7,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const checkIfAuthenticated = async () => {
   await sleep(1500);
-  const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, { credentials: "include" });
+  const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, { credentials: "include" });
   if (!response.ok) return false;
   return true;
 };

@@ -34,7 +34,7 @@ const Login = () => {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -111,7 +111,7 @@ const Login = () => {
 
       // TEMPORARY: send request to ML models to notify which user has logged in
       // fetch logged in user details
-      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
+      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +131,7 @@ const Login = () => {
         });
         console.log(":::");
         if (!sendUserToAnomalyServerResponse.ok) {
-          toast.error("Failed to send user details to Anomaly server");
+          // toast.error("Failed to send user details to Anomaly server");
         }
       } catch (anomalyErr) {
         console.error(anomalyErr);
@@ -146,7 +146,7 @@ const Login = () => {
           body: JSON.stringify({ ...user, logged_in: true }),
         });
         if (!sendUserToPdmServerResponse.ok) {
-          toast.error("Failed to send user details to PDM server");
+          // toast.error("Failed to send user details to PDM server");
         }
         console.log("sent to pdm");
       } catch (pdmErr) {
@@ -162,7 +162,7 @@ const Login = () => {
           body: JSON.stringify({ ...user, logged_in: true }),
         });
         if (!sendUserToRulServerResponse.ok) {
-          toast.error("Failed to send user details to RUL server");
+          // toast.error("Failed to send user details to RUL server");
         }
         console.log("rul req end");
         // console.log(await sendUserToRulServerResponse.json());
@@ -175,7 +175,7 @@ const Login = () => {
       navigate("/engine");
     } catch (error) {
       console.error(isSignUp ? "Error creating account:" : "Error logging in:", error);
-      toast.error(error.message || "An error occurred");
+      // toast.error(error.message || "An error occurred");
     }
   };
 
