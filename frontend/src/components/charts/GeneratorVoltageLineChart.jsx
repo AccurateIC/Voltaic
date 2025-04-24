@@ -1,63 +1,119 @@
 import React from "react";
-import renderCustomDot from "./renderCustomDot";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const GeneratorVoltageLineChart = ({ value }) => {
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: "top",
+        align: "center",
+        labels: {
+          boxWidth: 12,
+          color: "#000",
+        },
+      },
+      tooltip: {},
+      title: {
+        display: true,
+        text: "Generator Voltage Monitor",
+        color: "#000",
+        font: {
+          size: 18,
+          weight: "normal",
+        },
+        padding: {
+          bottom: 20,
+        },
+      },
+    },
+    scales: {
+      x: {
+        type: "category",
+        title: {
+          display: true,
+          text: "Time",
+          font: { size: 16 },
+        },
+        ticks: {
+          autoSkip: true,
+          maxRotation: 45,
+          minRotation: 0,
+        },
+        grid: {
+          color: "#ccc",
+        },
+      },
+      y: {
+        type: "linear",
+        min: 0,
+        max: 300,
+        title: {
+          display: true,
+          text: "Voltage (Volts)",
+          font: { size: 16 },
+        },
+        grid: {
+          color: "#ccc",
+        },
+      },
+    },
+  };
+
+  const data = {
+    labels: value.map((item) => item.time),
+    datasets: [
+      {
+        label: "L1 Phase",
+        data: value.map((item) => item.L1),
+        borderColor: "#5dd12c",
+        backgroundColor: "#5dd12c",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      },
+      {
+        label: "L2 Phase",
+        data: value.map((item) => item.L2),
+        borderColor: "#c847d1",
+        backgroundColor: "#c847d1",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      },
+      {
+        label: "L3 Phase",
+        data: value.map((item) => item.L3),
+        borderColor: "#5278d1",
+        backgroundColor: "#5278d1",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+      },
+    ],
+  };
+
   return (
     <div className="h-[400px] w-full relative">
-      <h2 className="text-lg font-semibold p-4 text-base-content">Generator Voltage Monitor</h2>
-      <div className="h-[calc(100%-3rem)]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={value} margin={{ top: 1, right: 30, bottom: 30, left: 20 }}>
-            <CartesianGrid strokeDasharray="1 1" />
-            <XAxis dataKey="time" label={{ value: "Time", position: "bottom", offset: 0 }} />
-            <YAxis
-              label={{
-                value: "Voltage (Volts)",
-                angle: -90,
-                position: "insideLeft",
-                dy: 50,
-              }}
-              domain={[0, 300]}
-            />
-            <Tooltip />
-            <Legend
-              layout="horizontal"
-              verticalAlign="top"
-              align="center"
-              iconType="voltage"
-              wrapperStyle={{ paddingBottom: 15 }}
-            />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L1"
-              stroke="#5dd12c"
-              name="L1 Phase"
-              strokeWidth={2}
-              dot={{ stroke: '#5dd12c', fill: '#5dd12c' }}
-            />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L2"
-              stroke="#c847d1"
-              name="L2 Phase"
-              strokeWidth={2}
-              dot={{ stroke: '#c847d1', fill: '#c847d1' }}
-            />
-            <Line
-              type="line"
-              isAnimationActive={false}
-              dataKey="L3"
-              stroke="#5278d1"
-              name="L3 Phase"
-              strokeWidth={2}
-              dot={{ stroke: '#5278d1', fill: '#5278d1' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <Line options={options} data={data} />
     </div>
   );
 };
+
+export default GeneratorVoltageLineChart;
