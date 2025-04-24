@@ -1,10 +1,11 @@
 import { cn } from "../../../lib/Utils";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { RulChart } from "../../../components/charts/RulTrendChart";
 import { rulInputData } from "../../../components/rulData";
 import { useAuth } from "../../shared/hooks/useAuth";
 import { useRulPrediction } from "../hooks/useRulPrediction";
+import { RulPrediction } from "../types/rul.types";
 
 const SimulateRulModal = ({ setRul, rul }) => {
   const [form, setForm] = useState({
@@ -15,7 +16,7 @@ const SimulateRulModal = ({ setRul, rul }) => {
     Inverse_Fuel_Consumption: 0.03,
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
   };
@@ -170,7 +171,11 @@ const SimulateRulModal = ({ setRul, rul }) => {
 const RUL = () => {
   // state
   const [count, setCount] = useState(0);
-  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null, Time_Hours: null });
+  const [apiPoint, setApiPoint] = useState<RulPrediction>({
+    Remaining_Useful_Life: undefined,
+    Predicted_Health_Index: undefined,
+    Time_Hours: undefined,
+  });
   const [rul, setRul] = useState(null);
 
   // hooks

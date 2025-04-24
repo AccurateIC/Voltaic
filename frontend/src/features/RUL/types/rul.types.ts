@@ -1,9 +1,10 @@
 // src/features/RUL/types/rul.types.ts
 
 export interface RulPrediction {
-  Predicted_Health_Index: number;
-  Remaining_Useful_Life: number;
-  User: string;
+  Predicted_Health_Index?: number;
+  Remaining_Useful_Life?: number;
+  User?: string;
+  Time_Hours?: number;
 }
 
 export interface RulInputData {

@@ -1,7 +1,7 @@
 // src/features/RUL/hooks/useRulPrediction.ts
 
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { rulApi } from "../api/rul";
 
 // export const QUERY_KEYS = {
@@ -9,22 +9,20 @@ import { rulApi } from "../api/rul";
 // };
 
 export function useRulPrediction() {
-  const queryClient = useQueryClient();
-
   const getRulPrediction = useMutation({
     mutationFn: rulApi.getPrediction,
     onError: (error) => {
       toast.error(`Failed to fetch RUL prediction: ${error?.message}`);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("RUL prediction fetched successfully");
     },
   });
 
   const sendLoggedInUser = useMutation({
     mutationFn: rulApi.sendLoggedInUser,
-    onError: (error) => {},
-    onSuccess: (data) => {},
+    onError: () => {},
+    onSuccess: () => {},
   });
 
   return {
