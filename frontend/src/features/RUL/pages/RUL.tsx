@@ -1,16 +1,18 @@
-import { cn } from "../lib/Utils";
+import { cn } from "../../../lib/Utils";
 import { useEffect, useState } from "react";
 
-import { RulChart } from "../components/charts/RulTrendChart";
-import { rulInputData } from "../components/rulData";
+import { RulChart } from "../../../components/charts/RulTrendChart";
+import { rulInputData } from "../../../components/rulData";
+import { useAuth } from "../../shared/hooks/useAuth";
+import { useRulPrediction } from "../hooks/useRulPrediction";
 
 const SimulateRulModal = ({ setRul, rul }) => {
   const [form, setForm] = useState({
-    Time_Hours: 0,
-    RPM_Deviation_Percentage: 0.117,
-    Oil_Pressure: 2.875,
-    Power_Output_kW: 9.175,
-    Inverse_Fuel_Consumption: 1,
+    Time_Hours: 500,
+    RPM_Deviation_Percentage: 0.08,
+    Oil_Pressure: 1.56,
+    Power_Output_kW: 2.5,
+    Inverse_Fuel_Consumption: 0.03,
   });
 
   const handleChange = (e) => {
@@ -70,10 +72,10 @@ const SimulateRulModal = ({ setRul, rul }) => {
                   className="input validator"
                   required
                   placeholder="Type RPM Deviation Percentage"
-                  min="0"
-                  max="100"
+                  min="0.06"
+                  max="4.96"
                   step="0.001"
-                  title="Must be between be 1 to 100"
+                  title="Must be between be 0.06 to 4.96"
                 />
                 <p className="validator-hint">Deviation percentage must be between be 0 & 100</p>
               </div>
@@ -89,11 +91,12 @@ const SimulateRulModal = ({ setRul, rul }) => {
                   className="input validator"
                   required
                   placeholder="Type Oil Pressure in bar"
-                  min="0"
-                  step="0.001"
+                  min="0.0006"
+                  max="3.5"
+                  step="0.0001"
                   title="Oil Pressure"
                 />
-                <p className="validator-hint">Oil pressure must be numerical & greater than 0</p>
+                <p className="validator-hint">Oil pressure must be between 0.0006 & 3.5</p>
               </div>
 
               {/* Power Output */}
@@ -108,10 +111,11 @@ const SimulateRulModal = ({ setRul, rul }) => {
                   required
                   placeholder="Type Power Output in kVA"
                   min="0"
+                  max="12"
                   step="0.001"
                   title="Power Output"
                 />
-                <p className="validator-hint">Power output must be numerical & greater than 0</p>
+                <p className="validator-hint">Power output must be between 0 & 12</p>
               </div>
 
               {/* Fuel Consumption */}
@@ -125,11 +129,12 @@ const SimulateRulModal = ({ setRul, rul }) => {
                   className="input validator"
                   required
                   placeholder="Type Inverse Fuel Consumption in Hour/Litre"
-                  min="0"
+                  min="0.03"
+                  max="1"
                   step="0.001"
                   title="Inverse Fuel Consumption"
                 />
-                <p className="validator-hint">Inverse Fuel Consumption must be numerical & greater than 0</p>
+                <p className="validator-hint">Inverse Fuel Consumption must be between 0.03 & 1</p>
               </div>
               {/* Submit Button */}
               <div className="flex">
@@ -163,27 +168,20 @@ const SimulateRulModal = ({ setRul, rul }) => {
 };
 
 const RUL = () => {
+  // state
   const [count, setCount] = useState(0);
-  const [loggedInUser, setLoggedInUser] = useState("");
-  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null });
+  const [apiPoint, setApiPoint] = useState({ Remaining_Useful_Life: null, Predicted_Health_Index: null, Time_Hours: null });
   const [rul, setRul] = useState(null);
 
-  const fetchUserDetails = async () => {
-    const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/isAuthenticated`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const user = await loggedInUser.json();
-    setLoggedInUser(user);
-  };
+  // hooks
+  const { getLoggedInUser } = useAuth();
+  const loggedInUser = getLoggedInUser.data;
+  const loggedInEmail = loggedInUser?.email;
 
-  const fetchRulData = async () => {
+  const { getRulPrediction } = useRulPrediction();
+
+  const fetchRulPrediction = async () => {
     try {
-      const loggedInEmail = loggedInUser.email;
-
       // Check if user email exists and has data
       if (!loggedInEmail || !rulInputData[loggedInEmail]) {
         console.log("Waiting for user data...");
@@ -208,33 +206,27 @@ const RUL = () => {
         Inverse_Fuel_Consumption: entry.Inverse_Fuel_Consumption,
       };
 
-      const response = await fetch(`${import.meta.env.VITE_RUL_BACKEND}/predict`, {
-        method: "POST",
-        body: JSON.stringify(newEntry),
-        headers: { "Content-Type": "application/json" },
+      getRulPrediction.mutate(newEntry, {
+        onSuccess: (data) => {
+          console.log("RUL data fetched successfully:", data);
+          setApiPoint({ ...data, Time_Hours: newEntry.Time_Hours });
+          setCount((prevCount) => (prevCount + 1) % userDataArray.length);
+        },
+        onError: (error) => {
+          console.error("Error fetching RUL data:", error);
+        },
       });
-      const data = await response.json();
-      data.Time_Hours = newEntry.Time_Hours;
-      setApiPoint(data);
-      // Update count based on the user's data array length
-      setCount((prevCount) => (prevCount + 1) % userDataArray.length);
     } catch (error) {
       console.error("Error fetching RUL data:", error);
     }
   };
 
-  // Update useEffect to wait for user data
-  useEffect(() => {
-    // First fetch user details
-    fetchUserDetails();
-  }, []); // Only run once on component mount
-
-  // Add another useEffect to trigger fetchRulData when user data is available
-  useEffect(() => {
-    if (loggedInUser && loggedInUser.email) {
-      fetchRulData();
-    }
-  }, [loggedInUser]); // Run when loggedInUser changes
+  // // Add another useEffect to trigger fetchRulData when user data is available
+  // useEffect(() => {
+  //   if (loggedInUser && loggedInUser.email) {
+  //     fetchRulData();
+  //   }
+  // }, [loggedInUser]); // Run when loggedInUser changes
 
   return (
     <div className="flex flex-col h-full w-full gap-4">
@@ -246,8 +238,12 @@ const RUL = () => {
           </button>
           <SimulateRulModal setRul={setRul} rul={rul} />
 
-          <button onClick={fetchRulData} className="btn btn-primary">
+          <button
+            onClick={fetchRulPrediction}
+            className={cn("btn btn-primary flex justify-center")}
+            disabled={getRulPrediction.isPending}>
             Calculate RUL
+            {getRulPrediction.isPending && <span className="loading loading-spinner"></span>}
           </button>
         </div>
       </div>
