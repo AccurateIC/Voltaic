@@ -492,13 +492,13 @@ export const LiveData = () => {
       <div className="flex flex-wrap gap-4">
         {/* Property Filter */}
         <div className="flex items-center">
-          <div className="font-semibold tex-md">Properties: </div>
+          <div className="font-semibold tex-md text-white">Properties: </div>
           <div className="dropdown dropdown-bottom">
-            <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+            <div tabIndex={0} role="button" className="btn btn-neutral  bg-gray-700 w-56">
               <FaFilter className="mr-2" />
-              {selectedProperties.length > 0 ? `${selectedProperties.length} Property selected` : "Select properties"}
+              {selectedProperties.length > 0 ? `${selectedProperties.length}  Property(s) selected` : "Select Properties"}
             </div>
-            <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+            <div tabIndex={0} className="dropdown-content text-white bg-gray-900 z-[1] menu p-2 shadow rounded-box w-56">
               <div className="form-control">
                 <label className="label cursor-pointer">
                   <input

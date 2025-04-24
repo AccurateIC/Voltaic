@@ -83,11 +83,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-gray-700">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content text-white bg-gray-900 z-[1] menu p-2 shadow rounded-box w-56">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
