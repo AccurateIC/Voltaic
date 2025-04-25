@@ -567,6 +567,13 @@ const Anomalies = () => {
     setSelectedEntry(entry);
     setShowGraph(true);
   };
+  
+  useEffect(() => {
+    if (gensetProperties.length > 0 && selectedProperties.length === 0) {
+      setSelectedProperties(gensetProperties.map((p) => p.propertyName));
+    }
+  }, [gensetProperties, selectedProperties]);
+  
 
   const handlePropertyChange = (propertyName) => {
     setSelectedProperties((prev) =>
