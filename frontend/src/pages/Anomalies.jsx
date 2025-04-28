@@ -7,6 +7,7 @@ import { DateTime } from "luxon";
 import { PropertyBarChart } from "../components/charts/PropertyBarChart";
 import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
+import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
@@ -338,7 +339,7 @@ const Anomalies = () => {
 
     if (range === "1d") {
       const dateKey = today.toISOString().split("T")[0];
-      console.log("dateKey", dateKey);
+      // console.log("dateKey", dateKey);
       const count = anomalies.filter((item) => item.timestamp.startsWith(dateKey)).length;
       groupedData[dateKey] = count;
       labels.push(dateKey);
@@ -410,6 +411,65 @@ const Anomalies = () => {
     }
   };
 
+  const [lineEngFuleLavel, setLineEngFulLavel] = useState([]);
+  const [engSpeedDisplay, setEngSpeedDisplay] = useState([]);
+  const [engOilPress, setEngOilPress] = useState([]);
+  const [mainsL1Volts, setMainsL1Volts] = useState([]);
+
+  const fetchAnomaliesDatas = async (from, to, selectedProperties) => {
+    console.log(selectedProperties);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getPropertyDataBetween`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          from,
+          to,
+          properties: selectedProperties, // pass array properly
+        }),
+      });
+
+      const data = await response.json();
+
+      // ⚡ Always reset all graphs first
+      setLineEngFulLavel([]);
+      setEngSpeedDisplay([]);
+      setEngOilPress([]);
+      setMainsL1Volts([]);
+
+      // Filter and set the data for each property dynamically
+      selectedProperties.forEach((property) => {
+        const filteredData = data.filter((item) => item.gensetProperty.propertyName === property);
+
+        // Dynamically set the corresponding state for each property
+        switch (property) {
+          case "engFuelLevelUnits":
+            setLineEngFulLavel(filteredData);
+            break;
+          case "engSpeedDisplay":
+            setEngSpeedDisplay(filteredData);
+            break;
+          case "engOilPress":
+            setEngOilPress(filteredData);
+            break;
+          case "mainsL1Volts":
+            setMainsL1Volts(filteredData);
+            break;
+          default:
+            break;
+        }
+      });
+
+      return data; // return data to be used elsewhere
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
@@ -470,7 +530,7 @@ const Anomalies = () => {
     if (!selectedEntry) return;
     console.log("selectedEntry", selectedEntry);
     const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
-    console.log("propertyName", propertyName);
+    // console.log("propertyName", propertyName);
     const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
     const to = selectedEntry?.finishedAt
       ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
@@ -562,8 +622,8 @@ const Anomalies = () => {
       toast.error("startedAt must be present.");
       return;
     }
-    console.log(entry);
-    console.log("entry", entry);
+    // console.log(entry);
+    // console.log("entry", entry);
     setSelectedEntry(entry);
     setShowGraph(true);
   };
@@ -634,6 +694,11 @@ const Anomalies = () => {
   useEffect(() => {
     const { from, to } = getFromToDates(archiveTimeFilter);
     fetchAnomaliesData(from, to);
+  }, [archiveTimeFilter, selectedProperties]);
+
+  useEffect(() => {
+    const { from, to } = getFromToDates(archiveTimeFilter);
+    fetchAnomaliesDatas(from, to, selectedProperties);
   }, [archiveTimeFilter, selectedProperties]);
 
   useEffect(() => {
@@ -713,6 +778,23 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
+      <div className="flex flex-col mt-10">
+        {/* Row 1 */}
+        {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
+          <div className="flex gap-10">
+            {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
+            {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
+          </div>
+        )}
+
+        {/* Row 2 */}
+        {(engOilPress.length > 0 || mainsL1Volts.length > 0) && (
+          <div className="flex gap-10">
+            {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
+            {mainsL1Volts.length > 0 && <AnomaliesLineChart value={mainsL1Volts} />}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
