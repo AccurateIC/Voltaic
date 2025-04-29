@@ -226,7 +226,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="overflow-y-auto w-full max-h-[74vh] p-0 rounded-box rounded-lg shadow-lg bg-base-content">
+    <div className="overflow-y-auto w-full  p-0 rounded-box rounded-lg shadow-lg  bg-amber-10">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200">
@@ -431,7 +431,7 @@ const Anomalies = () => {
       });
 
       const data = await response.json();
-
+      console.log(data);
       // ⚡ Always reset all graphs first
       setLineEngFulLavel([]);
       setEngSpeedDisplay([]);
@@ -709,10 +709,16 @@ const Anomalies = () => {
     fetchNotifications();
     fetchProperties();
   }, []);
-
+  const allCharts = [
+    lineEngFuleLavel,
+    engSpeedDisplay,
+    engOilPress,
+    mainsL1Volts,
+  ];
+  
   return (
     <div
-      className={`bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 ${
+      className={`bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
         showGraph ? "backdrop-blur-sm" : ""
       }`}>
       {/* Stats Cards */}
@@ -766,10 +772,12 @@ const Anomalies = () => {
         </div>
 
         {/* Second Column: Table takes full height of chart column */}
-        <div className="flex w-1/2 bg-[#1d2130]">
+        <div className="flex w-1/2 h-1/2">
           {/* Optional filter */}
           <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
+    
         </div>
+        
       </div>
       {/* Graph Modal */}
       <AnomalyGraphModal
@@ -778,10 +786,13 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
-      <div className="flex flex-col mt-10">
+      <div className="flex flex-col mt-5 gap-6 ">
         {/* Row 1 */}
         {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
-          <div className="flex gap-10">
+         <div className="flex mt-5 gap-3  ">
+         {/* Row 1 */}
+        
+       
             {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
             {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
           </div>
@@ -789,12 +800,24 @@ const Anomalies = () => {
 
         {/* Row 2 */}
         {(engOilPress.length > 0 || mainsL1Volts.length > 0) && (
-          <div className="flex gap-10">
+          <div className="flex  gap-3 ">
             {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
             {mainsL1Volts.length > 0 && <AnomaliesLineChart value={mainsL1Volts} />}
           </div>
         )}
       </div>
+
+      {/*     <div className="flex flex-col mt-5 gap-6">
+  {Array.from({ length: Math.ceil(allCharts.length / 2) }, (_, i) => (
+    <div key={i} className="flex gap-4">
+      {allCharts.slice(i * 2, i * 2 + 2).map((chartData, j) => (
+        chartData.length > 0 && (
+          <AnomaliesLineChart key={j} value={chartData} />
+        )
+      ))}
+    </div>
+  ))}
+</div> */}
     </div>
   );
 };
