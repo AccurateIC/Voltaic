@@ -226,7 +226,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="overflow-y-auto w-full  p-0 rounded-box rounded-lg shadow-lg  bg-amber-10">
+    <div className="overflow-y-auto w-full  p-0 rounded-box rounded-lg shadow-lg  bg-amber-10 h-full">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-sky-950 text-base-200">
@@ -414,7 +414,8 @@ const Anomalies = () => {
   const [lineEngFuleLavel, setLineEngFulLavel] = useState([]);
   const [engSpeedDisplay, setEngSpeedDisplay] = useState([]);
   const [engOilPress, setEngOilPress] = useState([]);
-  const [mainsL1Volts, setMainsL1Volts] = useState([]);
+  const [genL1Current, setGenL1Volts] = useState([]);
+  const [genTotalVA, setGenTotalVA] = useState([]);
 
   const fetchAnomaliesDatas = async (from, to, selectedProperties) => {
     console.log(selectedProperties);
@@ -436,7 +437,8 @@ const Anomalies = () => {
       setLineEngFulLavel([]);
       setEngSpeedDisplay([]);
       setEngOilPress([]);
-      setMainsL1Volts([]);
+      setGenL1Volts([]);
+      setGenTotalVA([]);
 
       // Filter and set the data for each property dynamically
       selectedProperties.forEach((property) => {
@@ -444,6 +446,9 @@ const Anomalies = () => {
 
         // Dynamically set the corresponding state for each property
         switch (property) {
+          case "genTotalVA":
+            setGenTotalVA(filteredData);
+            break;
           case "engFuelLevelUnits":
             setLineEngFulLavel(filteredData);
             break;
@@ -453,8 +458,8 @@ const Anomalies = () => {
           case "engOilPress":
             setEngOilPress(filteredData);
             break;
-          case "mainsL1Volts":
-            setMainsL1Volts(filteredData);
+          case "genL1Current":
+            setGenL1Volts(filteredData);
             break;
           default:
             break;
@@ -709,20 +714,15 @@ const Anomalies = () => {
     fetchNotifications();
     fetchProperties();
   }, []);
-  const allCharts = [
-    lineEngFuleLavel,
-    engSpeedDisplay,
-    engOilPress,
-    mainsL1Volts,
-  ];
-  
+  const allCharts = [lineEngFuleLavel, engSpeedDisplay, engOilPress, genL1Current, genTotalVA];
+
   return (
     <div
-      className={`bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
+      className={` bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
         showGraph ? "backdrop-blur-sm" : ""
       }`}>
       {/* Stats Cards */}
-      <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
+      <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
         <AnomalyStatsCard
           icon="FaExclamationTriangle"
           title="Today's Anomaly"
@@ -744,7 +744,7 @@ const Anomalies = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center py-2">
+      <div className="flex items-center py-2 ">
         <div className="flex gap-4 ">
           <div className="font-semibold text-md">Properties: </div>
           <PropertyFilter
@@ -755,30 +755,31 @@ const Anomalies = () => {
           />
           <TimeRangeSelector value={archiveTimeFilter} onChange={setArchiveTimeFilter} />
         </div>
-
-        <div>
-          <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
-        </div>
       </div>
-      <div className="flex flex-row gap-4 h-full">
-        {/* First Column: Two stacked charts */}
-        <div className="flex flex-col gap-4 w-1/2">
-          <div className="h-1/2 bg-[#1d2130] rounded p-5">
-            <PropertyBarChart labels={labels} dataset={dataset} />
-          </div>
-          <div className="h-1/2 bg-[#1d2130] rounded p-5">
-            <AnomaliesBarChart labels={labels1} dataset={dataset1} />
-          </div>
-        </div>
+      <div className="flex flex-row gap-2 h-full">
+  {/* First Column: Two stacked charts */}
+  <div className="flex flex-col gap-4 w-1/2">
+    <div className="h-1/2 bg-[#1d2130] rounded p-5">
+      <PropertyBarChart labels={labels} dataset={dataset} />
+    </div>
+    <div className="h-1/2 bg-[#1d2130] rounded p-5">
+      <AnomaliesBarChart labels={labels1} dataset={dataset1} />
+    </div>
+  </div>
 
-        {/* Second Column: Table takes full height of chart column */}
-        <div className="flex w-1/2 h-1/2">
-          {/* Optional filter */}
-          <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
-    
-        </div>
-        
+  {/* Second Column: Match height of left column */}
+  <div className="flex flex-col gap-14 w-1/2 h-full">
+    <div className="flex-1  overflow-auto">
+      <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
+    </div>
+    {genTotalVA.length > 0 && (
+      <div className="flex-1 bg-[#1d2130] rounded p-5 h-full">
+        <AnomaliesLineChart value={genTotalVA} />
       </div>
+    )}
+  </div>
+</div>
+
       {/* Graph Modal */}
       <AnomalyGraphModal
         isOpen={showGraph}
@@ -786,23 +787,21 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
-      <div className="flex flex-col mt-5 gap-6 ">
+      <div className="flex flex-col  gap-3 ">
         {/* Row 1 */}
         {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
-         <div className="flex mt-5 gap-3  ">
-         {/* Row 1 */}
-        
-       
+          <div className="flex mt-5 gap-3  ">
+            {/* Row 1 */}
             {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
             {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
           </div>
         )}
 
         {/* Row 2 */}
-        {(engOilPress.length > 0 || mainsL1Volts.length > 0) && (
+        {(engOilPress.length > 0 || genL1Current.length > 0) && (
           <div className="flex  gap-3 ">
             {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
-            {mainsL1Volts.length > 0 && <AnomaliesLineChart value={mainsL1Volts} />}
+            {genL1Current.length > 0 && <AnomaliesLineChart value={genL1Current} />}
           </div>
         )}
       </div>

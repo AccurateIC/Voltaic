@@ -215,7 +215,7 @@ const AnomaliesLineChart = ({ value }) => {
     // <div className="p-4 w-1/2 h-[400px] bg-[#1d2130] rounded-lg">
     //   <Line data={data} options={options} />
     // </div>
-    <div className="flex-1 h-[450px] px-2  bg-[#1d2130] ">
+    <div className="flex-1 h-[395px] px-2  bg-[#1d2130] ">
   <Line data={data} options={options} className="w-full h-full" />
 </div>
 
