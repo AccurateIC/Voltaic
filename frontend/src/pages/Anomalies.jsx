@@ -269,7 +269,7 @@ const Anomalies = () => {
   const [gensetProperties, setGensetProperties] = useState([]);
   const [anomalies, setAnomalies] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1d");
+  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1m");
   const [archiveTimeFilter1, setArchiveTimeFilter1] = useState("1w");
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [filters, setFilters] = useState({
@@ -401,7 +401,9 @@ const Anomalies = () => {
       const data = await response.json();
       setNotifications(data);
       const anomalyStats = getAnomalyDataByPeriod(data);
+      console.log(anomalyStats);
       setAnomalyData(anomalyStats);
+      
       setFilteredNotifications(anomalyStats.today);
     } catch (error) {
       console.error("Fetch error:", error);
@@ -599,28 +601,28 @@ const Anomalies = () => {
     }
   };
 
-  const handleAnomalyClick = (period) => {
-    const now = DateTime.local();
-    let start;
-    if (period === "today") start = now.startOf("day");
-    else if (period === "week") start = now.startOf("week");
-    else if (period === "month") start = now.startOf("month");
-    else start = now.startOf("day");
+  // const handleAnomalyClick = (period) => {
+  //   const now = DateTime.local();
+  //   let start;
+  //   if (period === "today") start = now.startOf("day");
+  //   else if (period === "week") start = now.startOf("week");
+  //   else if (period === "month") start = now.startOf("month");
+  //   else start = now.startOf("day");
 
-    const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
-    setFilteredNotifications(filtered);
-  };
+  //   const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
+  //   setFilteredNotifications(filtered);
+  // };
 
-  const handleResetFilters = () => {
-    setFilters({
-      fromDate: "",
-      toDate: "",
-      fromTime: "",
-      toTime: "",
-      property: "Property",
-      anomalyStatus: "",
-    });
-  };
+  // const handleResetFilters = () => {
+  //   setFilters({
+  //     fromDate: "",
+  //     toDate: "",
+  //     fromTime: "",
+  //     toTime: "",
+  //     property: "Property",
+  //     anomalyStatus: "",
+  //   });
+  // };
 
   const handleViewClick = (entry) => {
     if (!entry.startedAt) {
@@ -656,6 +658,13 @@ const Anomalies = () => {
     fetchNotifications();
     fetchProperties();
   });
+
+  useEffect(() => {
+  if (gensetProperties.length > 0 && selectedProperties.length === 0) {
+    setSelectedProperties(gensetProperties.map((p) => p.propertyName));
+  }
+}, [gensetProperties]);
+
 
   useEffect(() => {
     let filtered = [...notifications];
