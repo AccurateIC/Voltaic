@@ -307,83 +307,126 @@ const Anomalies = () => {
 
     return data;
   };
-
   const getFromToDates = (timeFilter) => {
     const now = new Date();
     let fromDate;
-
+  
     if (timeFilter === "1d") {
-      fromDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+      // Start of today (12:00 AM)
+      fromDate = new Date(now);
+      fromDate.setHours(0, 0, 0, 0);
     } else if (timeFilter === "1w") {
-      fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Start of this week (Monday)
+      fromDate = new Date(now);
+      const day = fromDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const diff = (day === 0 ? 6 : day - 1); // Adjust if today is Sunday
+      fromDate.setDate(fromDate.getDate() - diff);
+      fromDate.setHours(0, 0, 0, 0);
     } else if (timeFilter === "1m") {
-      fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      // Start of this month
+      fromDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
     } else if (timeFilter === "7d") {
+      // Last 7 days from now
       fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (timeFilter === "30d") {
-      fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Last 30 days from now
+      fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     } else {
       fromDate = now;
     }
-
+  
     return {
       from: fromDate.toISOString(),
       to: now.toISOString(),
     };
   };
-
+  
   const groupAnomalies = (filteredAnomalies, range) => {
     const today = new Date();
     const groupedData = {};
     const labels = [];
-
+  
     if (range === "1d") {
+      // Today's date
       const dateKey = today.toISOString().split("T")[0];
-      // console.log("dateKey", dateKey);
-      const count = anomalies.filter((item) => item.timestamp.startsWith(dateKey)).length;
+      const count = filteredAnomalies.filter((item) =>
+        item.timestamp.startsWith(dateKey)
+      ).length;
       groupedData[dateKey] = count;
       labels.push(dateKey);
+  
     } else if (range === "1w") {
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
+      const startOfWeek = new Date(today);
+      const day = startOfWeek.getDay(); // 0 (Sun) to 6 (Sat)
+      const diff = (day === 0 ? -6 : 1 - day); // If Sunday, go back 6 days; else, go to Monday
+      startOfWeek.setDate(today.getDate() + diff);
+    
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+    
+        // ✅ Skip future dates
+        if (date > today) break;
+    
         const dateKey = date.toISOString().split("T")[0];
         groupedData[dateKey] = 0;
+        labels.push(dateKey);
       }
-
+    
       filteredAnomalies.forEach((item) => {
         const dateKey = new Date(item.timestamp).toISOString().split("T")[0];
         if (groupedData.hasOwnProperty(dateKey)) {
           groupedData[dateKey]++;
         }
       });
-
-      labels.push(...Object.keys(groupedData));
-    } else if (range === "1m") {
-      const weeks = [0, 0, 0, 0];
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 27);
-
+  
+    }  else if (range === "1m") {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      const weeks = [];
+    
+      // Create 5 week ranges
+      for (let i = 0; i < 5; i++) {
+        const weekStart = new Date(startOfMonth);
+        weekStart.setDate(1 + i * 7);
+    
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+    
+        // Ensure weekEnd does not go beyond end of month
+        if (weekEnd > endOfMonth) {
+          weekEnd.setTime(endOfMonth.getTime());
+        }
+    
+        weeks.push({
+          start: new Date(weekStart),
+          end: new Date(weekEnd),
+          count: 0,
+        });
+      }
+    
+      // Count anomalies in each week range
       filteredAnomalies.forEach((item) => {
         const timestamp = new Date(item.timestamp);
-        if (timestamp >= startDate && timestamp <= today) {
-          const daysAgo = Math.floor((today - timestamp) / (1000 * 60 * 60 * 24));
-          const weekIndex = Math.floor((27 - daysAgo) / 7);
-          if (weekIndex >= 0 && weekIndex < 4) {
-            weeks[weekIndex]++;
+        for (let i = 0; i < weeks.length; i++) {
+          if (timestamp >= weeks[i].start && timestamp <= weeks[i].end) {
+            weeks[i].count++;
+            break;
           }
         }
       });
-
-      labels.push("Week 1", "Week 2", "Week 3", "Week 4");
-      for (let i = 0; i < 4; i++) {
-        groupedData[`Week ${i + 1}`] = weeks[i];
-      }
+    
+      // Format labels and fill groupedData
+      weeks.forEach((week) => {
+        const label = `${week.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${week.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        labels.push(label);
+        groupedData[label] = week.count;
+      });
     }
-
     setLabels1(labels);
     setDataset1(Object.values(groupedData));
   };
+  
 
   const fetchNotifications = async () => {
     try {
@@ -525,6 +568,7 @@ const Anomalies = () => {
       setDataset(propertiesWithAnomalies.map((name) => anomalyCounts[name]));
 
       groupAnomalies(filteredAnomalies, archiveTimeFilter);
+      
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
@@ -601,36 +645,13 @@ const Anomalies = () => {
     }
   };
 
-  // const handleAnomalyClick = (period) => {
-  //   const now = DateTime.local();
-  //   let start;
-  //   if (period === "today") start = now.startOf("day");
-  //   else if (period === "week") start = now.startOf("week");
-  //   else if (period === "month") start = now.startOf("month");
-  //   else start = now.startOf("day");
 
-  //   const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
-  //   setFilteredNotifications(filtered);
-  // };
-
-  // const handleResetFilters = () => {
-  //   setFilters({
-  //     fromDate: "",
-  //     toDate: "",
-  //     fromTime: "",
-  //     toTime: "",
-  //     property: "Property",
-  //     anomalyStatus: "",
-  //   });
-  // };
 
   const handleViewClick = (entry) => {
     if (!entry.startedAt) {
       toast.error("startedAt must be present.");
       return;
     }
-    // console.log(entry);
-    // console.log("entry", entry);
     setSelectedEntry(entry);
     setShowGraph(true);
   };
@@ -659,11 +680,7 @@ const Anomalies = () => {
     fetchProperties();
   });
 
-  useEffect(() => {
-  if (gensetProperties.length > 0 && selectedProperties.length === 0) {
-    setSelectedProperties(gensetProperties.map((p) => p.propertyName));
-  }
-}, [gensetProperties]);
+ 
 
 
   useEffect(() => {
@@ -707,6 +724,7 @@ const Anomalies = () => {
 
   useEffect(() => {
     const { from, to } = getFromToDates(archiveTimeFilter);
+    console.log(from , to);
     fetchAnomaliesData(from, to);
   }, [archiveTimeFilter, selectedProperties]);
 
@@ -736,13 +754,13 @@ const Anomalies = () => {
           icon="FaExclamationTriangle"
           title="Today's Anomaly"
           count={anomalyData.today.length}
-          onClick={() => handleAnomalyClick("today")}
+        
         />
         <AnomalyStatsCard
           icon="FaCalendarWeek"
           title="Weekly Anomaly"
           count={anomalyData.week.length}
-          onClick={() => handleAnomalyClick("week")}
+         
         />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
