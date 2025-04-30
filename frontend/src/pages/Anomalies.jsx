@@ -84,11 +84,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-gray-800">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content bg-gray-800 z-[1] menu p-2 shadow rounded-box w-56">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -123,7 +123,7 @@ export const TimeRangeSelector = ({ value, onChange }) => {
     <div className="flex flex-row items-center gap-2">
       <label className="">Time Range:</label>
       <select
-        className="border border-black-300 rounded px-2 py-1 text-sm"
+        className="border border-black-300 rounded px-2 py-1 text-sm bg-gray-800"
         value={value}
         onChange={(e) => onChange(e.target.value)}>
         <option value="1d">1 Day</option>
