@@ -84,6 +84,7 @@ export const options = {
       },
     },
     y: {
+      reverse: true,
       title: {
         display: true,
         text: "Predicted Health Index",

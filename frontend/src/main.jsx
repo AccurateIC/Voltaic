@@ -11,6 +11,7 @@ import { Mains } from "./pages/Mains.jsx";
 import AlarmsBackup from "./pages/AlarmsBackup.jsx";
 import Alarms from "./pages/Alarms.jsx";
 import Archive from "./pages/Archive.jsx";
+import Reports from "./pages/Reports.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 
 import "./index.css";
@@ -47,6 +48,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="archive" element={<Archive />} />
           <Route path="predictive-maintenance" element={<Maintenance />} />
           <Route path="rul" element={<RUL />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<ProfilePage />} />
           {/* <Route path="vibration" element={<Vibration />} /> */}
         </Route>

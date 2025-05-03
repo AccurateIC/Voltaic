@@ -9,6 +9,7 @@ import { ImPowerCord } from "react-icons/im";
 import { RiAlertFill } from "react-icons/ri";
 import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
 import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { TbReport } from "react-icons/tb";
 
 const VERSION = "v1.0.0";
 
@@ -70,26 +71,27 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 const SideBar = () => {
   return (
     <div className="bg-[rgba(177,213,189,1)] w-58 flex flex-col h-full">
-    <ul className="px-1 py-2 overflow-y-auto flex-1">
-      <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
-        <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
-        <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
-        <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
-      </SideBarGroup>
+      <ul className="px-1 py-2 overflow-y-auto flex-1">
+        <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
+          <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
+          <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
+          <SideBarLink to="/mains" name="Mains" Icon={FaPlug} />
+        </SideBarGroup>
 
-      <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
-      <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
-      <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
-      <SideBarLink to="/predictive-maintenance" name="Predictive" Icon={GiAutoRepair} />
-      <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
-      <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
-      <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />
-    </ul>
+        <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
+        <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
+        <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
+        <SideBarLink to="/predictive-maintenance" name="Predictive" Icon={GiAutoRepair} />
+        <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
+        <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
+        <SideBarLink to="/reports" name="Reports" Icon={TbReport} />
+        <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />
+      </ul>
 
-    <div className="text-center text-lg text-gray-600 py-5 border-t border-gray-300">
-      Version <span className="font-semibold">{VERSION}</span>
+      <div className="text-center text-lg text-gray-600 py-2 border-t border-gray-300">
+        Version <span className="font-semibold">{VERSION}</span>
+      </div>
     </div>
-  </div>
   );
 };
 
