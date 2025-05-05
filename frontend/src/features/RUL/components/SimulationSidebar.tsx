@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { RulPrediction } from "../types/rul.types";
+import { cn } from "../../../lib/Utils";
 
 type SimulationProps = {
   setSimulatedRul: (rul: RulPrediction) => void;
@@ -9,7 +10,7 @@ type SimulationProps = {
 
 export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationProps) => {
   // hooks
-  const { getRulPrediction } = useRulPrediction();
+  const { getRulPrediction } = useRulPrediction(); // getRulPrediction is a `mutation`
 
   // state
   const [form, setForm] = useState({
@@ -29,12 +30,8 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
     e.preventDefault();
     const currentTime = form.Time_Hours;
     getRulPrediction.mutate(form, {
-      onSuccess: (data) => {
-        console.log("Rul data fetched successfully inside simulation:", data);
-        setSimulatedRul({ ...data, Time_Hours: currentTime });
-      },
-      onError: (err) => {
-        console.error("Error fetching RUL data", err);
+      onSuccess: () => {
+        setSimulatedRul(form);
       },
     });
   };
@@ -141,14 +138,15 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
             />
           </div>
 
-          <button type="submit" className="btn">
+          <button type="submit" className={cn("btn", getRulPrediction.isPending ? "btn-disabled" : "")}>
+            {getRulPrediction.isPending ? <span className="loading loading-spinner"></span> : null}
             Calculate
           </button>
         </form>
       </fieldset>
-      {simulatedRul.Remaining_Useful_Life !== undefined && (
+      {getRulPrediction.isSuccess && (
         <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
-          Remaining Useful Life: {parseInt(simulatedRul?.Remaining_Useful_Life, 10) || "N/A"} hours
+          Remaining Useful Life: {parseInt(getRulPrediction.data?.Remaining_Useful_Life, 10) || "N/A"} hours
         </div>
       )}
     </div>

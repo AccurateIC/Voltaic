@@ -91,7 +91,7 @@ const RUL = () => {
 
       <div className="flex flex-row gap-4 h-4/5">
         <div className={cn("flex-grow transition-all duration-300 ease-in-out", isSimulatorOpen ? "w-2/3" : "w-full")}>
-          <RulChart currentRulPoint={apiPoint} />
+          <RulChart currentRulPoint={apiPoint} simulatedRulPoint={simulatedRul} />
         </div>
 
         <div>

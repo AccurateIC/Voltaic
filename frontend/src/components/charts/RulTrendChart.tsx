@@ -100,7 +100,13 @@ const options = {
   },
 };
 
-export function RulChart({ currentRulPoint }) {
+export function RulChart({
+  currentRulPoint,
+  simulatedRulPoint,
+}: {
+  currentRulPoint: RulPrediction;
+  simulatedRulPoint: RulPrediction;
+}) {
   console.log("Current RUL Point: ", currentRulPoint);
   const data = {
     datasets: [
@@ -134,5 +140,24 @@ export function RulChart({ currentRulPoint }) {
       },
     ],
   };
+
+  if (simulatedRulPoint.Remaining_Useful_Life !== undefined) {
+    data.datasets.push({
+      label: "Simulated Health Index",
+      data: [
+        {
+          x: simulatedRulPoint.Time_Hours,
+          y: simulatedRulPoint.Predicted_Health_Index,
+          rul: simulatedRulPoint.Remaining_Useful_Life,
+        },
+      ],
+      borderColor: "rgb(162, 53, 235)",
+      backgroundColor: "rgba(162, 53, 235, 0.5)",
+      pointRadius: 8,
+      pointStyle: "circle",
+      showLine: false,
+    });
+  }
+
   return <Line options={options} data={data} />;
 }
