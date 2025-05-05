@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.ts";
+import { VoltageStatCard } from "../components/VoltageStatCard.tsx";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
@@ -91,48 +92,12 @@ export const Mains = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L1 Voltage"}
-        value={stats.mainsl1Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L2 Voltage"}
-        value={stats.mainsl2Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="V"
-        title={"Mains L3 Voltage"}
-        value={stats.mainsl3Voltage}
-        maxValue={250}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L1 Current"}
-        value={stats.mainsl1Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L2 Current"}
-        value={stats.mainsl2Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
-      <SemiCircularStatCard
-        units="A"
-        title={"Mains L3 Current"}
-        value={stats.mainsl3Current}
-        maxValue={40}
-        color="#B1D5BD"
-      />
+      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl1Voltage} />
+      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl2Voltage} />
+      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl3Voltage} />
+      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl1Current} />
+      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl2Current} />
+      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl3Current} />
     </div>
   );
 };

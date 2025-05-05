@@ -124,6 +124,8 @@ router
 
     // delete all entries in the `archive` table
     router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
+
+    router.get("/getAnomalyStatistics", "#controllers/archive_controller.getAnomalyStatistics");
   })
   .prefix("archive");
 // i dont think it is necessary to provide APIs to edit a property row in telemetry data
@@ -174,5 +176,7 @@ router
     router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved");
     router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
     router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
+
+    router.delete("delete", "#controllers/pdm_controller.delete");
   })
   .prefix("pdm");

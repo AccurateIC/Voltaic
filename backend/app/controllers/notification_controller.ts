@@ -7,7 +7,8 @@ export default class NotificationController {
   async getAll({}: HttpContext) {
     return await Notification.query()
       .preload("notificationType")
-      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")))
+      .orderBy("id", "desc");
     // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
 

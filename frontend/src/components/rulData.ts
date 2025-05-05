@@ -1,4 +1,12 @@
-export const rulInputData = {
+interface RulInput {
+  Time_Hours: number;
+  RPM_Deviation_Percentage: number;
+  Oil_Pressure: number;
+  Power_Output_kW: number;
+  Inverse_Fuel_Consumption: number;
+}
+
+export const rulInputData: Record<string, RulInput[]> = {
   "dhananjay@accurateic.in": [
     {
       Time_Hours: 210,

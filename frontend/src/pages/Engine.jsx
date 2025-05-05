@@ -6,6 +6,7 @@ import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { MdEnergySavingsLeaf } from "react-icons/md";
+import { cn } from "../lib/Utils.ts";
 
 // #fff627
 
@@ -67,9 +68,9 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
   // Get fuel status color
   const getFuelStatusColor = () => {
-    if (fuelLevel >= 40) return "#9be4b4";
-    if (fuelLevel >= 20) return "#fff627";
-    return "#ff0000"; // critical
+    if (fuelLevel >= 40) return "bg-success";
+    if (fuelLevel >= 20) return "bg-warning";
+    return "bg-error"; // critical
   };
 
   // Generate measurement marks
@@ -109,8 +110,11 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
               {/* Fuel level indicator */}
               <div
-                className={`absolute bottom-0 w-full rounded-b-full transition-all duration-300 ease-in-out`}
-                style={{ height: `${fuelLevelPercentage}%`, backgroundColor: getFuelStatusColor() }}
+                className={cn(
+                  `absolute bottom-0 w-full rounded-b-full transition-all duration-300 ease-in-out`,
+                  getFuelStatusColor()
+                )}
+                style={{ height: `${fuelLevelPercentage}%` }}
               />
 
               {/* Current fuel level text
@@ -133,7 +137,7 @@ const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit 
         <h2 className="card-title text-base-content">{propertyName}</h2>
         <div className="flex flex-col items-center justify-center h-full">
           {PropertyIcon && (
-            <div className="text-success/20 text-9xl mb-10 flex items-center justify-center">
+            <div className="text-success/75 text-9xl mb-10 flex items-center justify-center">
               <PropertyIcon className="w-full h-full" />
             </div>
           )}

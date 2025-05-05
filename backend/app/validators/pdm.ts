@@ -36,6 +36,9 @@ export const createPdmValidator = vine.compile(
       accel_y: vine.boolean().optional(),
       accel_z: vine.boolean().optional(),
     }),
+    confidence_score_percentage: vine.number().min(0).max(100).nullable(),
+    predicted_dominant_frequency: vine.number(), // normal freq: 0.1
+    predicted_dominant_amplitude: vine.number(), // normal amplitude: [-2, +2]
     maintenance_needed: vine.boolean(),
     maintenance_reason: vine
       .object({

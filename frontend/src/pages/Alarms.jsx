@@ -6,20 +6,24 @@ import { FaFileExport, FaFilter } from "react-icons/fa6";
 import { cn, formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
 import { RiResetLeftLine } from "react-icons/ri";
+import "cally";
+import { useGensetProperty } from "../features/shared/hooks/useGensetProperty.ts";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
   const [notifications, setNotifications] = useState([]); // original notifications
   const [filteredNotifications, setFilteredNotifications] = useState([]); // filtered notifications
   const [isLoading, setIsLoading] = useState(true);
-  const [gensetProperties, setGensetProperties] = useState([]);
-
   const [filters, setFilters] = useState({
     fromDate: "",
-    toDate: DateTime.now().toISODate(),
+    toDate: "",
     property: "Property",
     anomalyStatus: "",
   });
+
+  // hooks
+  const { getAllGensetProperties } = useGensetProperty();
+  const gensetProperties = getAllGensetProperties.data;
 
   const handleAnomalyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
@@ -27,16 +31,10 @@ const Alarms = () => {
   const handleGensetPropertyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
-  const handleFromDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, fromDate: event.target.value }));
-  };
-  const handleToDateFilterChange = (event) => {
-    setFilters((prevFilters) => ({ ...prevFilters, toDate: event.target.value }));
-  };
   const handleResetFilters = () => {
     setFilters({
       fromDate: "",
-      toDate: DateTime.now().toISODate(),
+      toDate: "",
       property: "Property",
       anomalyStatus: "",
     });
@@ -107,31 +105,6 @@ const Alarms = () => {
     fetchNotifications();
   }, []);
 
-  // fetch genset properties
-  // TODO: for now it is a lot cheaper to fetch all notifications and then apply filtering on them
-  //       in the future, pagination should be implemented to reduce database querying times
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch genset data");
-        }
-        const data = await response.json();
-        setGensetProperties(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        toast.error("Error fetching genset property data");
-      }
-    };
-    fetchProperties();
-  }, []);
-
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
@@ -199,101 +172,135 @@ const Alarms = () => {
     XLSX.writeFile(wb, fileName);
   };
 
+  useEffect(() => {
+    // Check if the cally changes the from and to dates
+    console.log("Cally date change event:", filters.fromDate, filters.toDate);
+  }, [filters.fromDate, filters.toDate]);
+
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="flex flex-row justify-between bg-primary text-base-200 font-semibold items-center rounded-box p-4 mb-2">
+      <div className="flex flex-row justify-between text-base-content font-semibold items-center rounded-box p-4 mb-2">
         {/* Filters */}
         <div className="flex gap-3 items-center">
-          <FaFilter size={48} />
-          <div className="flex items-center">
-            <div className="m-1">From:</div>
-            <input
-              aria-label="Date"
-              type="date"
-              className="input text-base-content"
-              value={filters.fromDate}
-              onChange={handleFromDateFilterChange}
-            />
-          </div>
-          <div className="flex items-center">
-            <div className="m-1">To:</div>
-            <input
-              aria-label="Date"
-              type="date"
-              className="input text-base-content"
-              value={filters.toDate}
-              onChange={handleToDateFilterChange}
-            />
-          </div>
-
-          {/* Genset Property */}
-          <div className="flex items-center">
-            <div className="m-1">Properties:</div>
-            <select
-              className="select select-neutral text-base-content"
-              value={filters.property}
-              onChange={handleGensetPropertyFilterChange}>
-              <option value="Property">All</option>
-              {gensetProperties.map((property, index) => (
-                <option key={index} value={property.readablePropertyName}>
-                  {property.readablePropertyName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Anomaly Status */}
-          <div className="flex items-center">
-            <div className="m-1">Anomaly Status:</div>
-            <select
-              className="select select-neutral text-base-content"
-              value={filters.anomalyStatus}
-              onChange={handleAnomalyFilterChange}>
-              <option value="">All</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Unresolved">Unresolved</option>
-            </select>
-          </div>
+          <span className="text-2xl">Alarms</span>
         </div>
 
         <div className="flex gap-2">
-          <button className="btn btn-success text-base-200 font-semibold" onClick={exportToExcel}>
-            <FaFileExport className="mr-2" /> Export
+          <button className="btn btn-primary text-base-content font-semibold" onClick={exportToExcel}>
+            {/* <FaFileExport className="mr-2" />  */}
+            Export to Excel
           </button>
-          <button className="btn btn-neutral text-base-200 font-semibold hover:bg-base-content" onClick={handleResetFilters}>
-            <RiResetLeftLine /> Reset
+          <button className="btn btn-primary text-base-content font-semibold" onClick={handleResetFilters}>
+            {/* <RiResetLeftLine /> */}
+            Reset Filters
           </button>
         </div>
       </div>
 
       {/* Notification Table */}
-      <div className="overflow-y-scroll rounded-box shadow-lg bg-base-content text-base-200">
-        <table className="table table-pin-rows">
+      <div className="h-full overflow-auto rounded-box shadow-lg bg-base-200 text-base-content">
+        <table className="table table-pin-rows table-fixed w-full">
           <thead className="">
-            <tr className="bg-sky-950 text-base-200">
-              <th></th>
-              <th>Started At</th>
+            <tr className="bg-base-100 text-base-content">
+              <th>S. No.</th>
+              <th className="flex items-center">
+                <span className="flex items-center">Started At</span>
+                <div className="dropdown">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm m-1">
+                    <FaFilter />
+                  </div>
+                  <div className="dropdown-content card bg-base-100 shadow">
+                    <calendar-range
+                      value={filters.fromDate !== "" && filters.toDate !== "" ? `${filters.fromDate}/${filters.toDate}` : ""}
+                      class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
+                      onchange={(event) => {
+                        const val = event.target.value;
+
+                        setFilters((prevFilters) => ({
+                          ...prevFilters,
+                          fromDate: val.split("/")[0],
+                          toDate: val.split("/")[1],
+                        }));
+                      }}>
+                      <calendar-month />
+                    </calendar-range>
+                  </div>
+                </div>
+              </th>
               <th>Summary</th>
               <th>Message</th>
+              <th className="flex items-center">
+                <span className="flex items-center">Property</span>
+                <div className="dropdown dropdown-end">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm m-1">
+                    <FaFilter />
+                  </div>
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256">
+                    <div className="overflow-y-auto max-h-60">
+                      <li value={"All"} onClick={() => setFilters((prev) => ({ ...prev, property: "Property" }))}>
+                        <a>All</a>
+                      </li>
+                      {gensetProperties?.map((property, index) => (
+                        <li
+                          key={index}
+                          value={property.readablePropertyName}
+                          onClick={() =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              property: property.readablePropertyName,
+                            }))
+                          }>
+                          <a>{property.readablePropertyName}</a>
+                        </li>
+                      ))}
+                    </div>
+                  </ul>
+                </div>
+              </th>
               <th>Finished At</th>
-              <th>Resolve</th>
+              <th>
+                <span>Resolve</span>
+                <div className="dropdown dropdown-end">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-sm m-1">
+                    <FaFilter />
+                  </div>
+                  <ul
+                    tabIndex={0}
+                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256">
+                    <div className="overflow-y-auto max-h-60">
+                      <li value={"All"} onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: null }))}>
+                        <a>All</a>
+                      </li>
+                      <li value="Resolved" onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Resolved" }))}>
+                        <a>Resolved</a>
+                      </li>
+                      <li
+                        value="Unresolved"
+                        onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Unresolved" }))}>
+                        <a>Unresolved</a>
+                      </li>
+                    </div>
+                  </ul>
+                </div>
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-sky-950/50">
+          {/* Table body */}
+          <tbody className="bg-base-200 text-base-content">
             {filteredNotifications.map((entry, index) => (
-              <tr key={index}>
-                <th>{index + 1}</th>
+              <tr key={index} className="hover:bg-base-300">
+                <td>{index + 1}</td>
                 <td>{formatTimestamp(entry.startedAt)}</td>
                 <td>{entry.summary}</td>
                 <td>{entry.message}</td>
+                <td>{entry.archive.gensetProperty.readablePropertyName}</td>
                 <td>{entry.finishedAt !== null ? formatTimestamp(entry.finishedAt) : "N/A"}</td>
                 <td>
                   <button
                     onClick={() => handleMarkNotificationAsRead(entry.id)}
-                    className={cn(
-                      "btn btn-outline btn-info",
-                      `${entry.shouldBeDisplayed ? "" : "btn btn-disabled text-base-300/50"}`
-                    )}>
+                    className={cn("btn btn-outline btn-info", `${entry.shouldBeDisplayed ? "" : "btn btn-disabled"}`)}>
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

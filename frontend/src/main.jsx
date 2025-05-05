@@ -3,9 +3,9 @@ import RUL from "./features/RUL/pages/RUL.jsx";
 import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";
 import Layout from "./components/Layout.jsx";
-import Anomalies from "./pages/Anomalies.jsx";
+import AnomaliesOld from "./pages/AnomaliesOld";
 import { LiveData } from "./pages/LiveData.jsx";
-import Maintenance from "./pages/Maintenance.jsx";
+import Maintenance from "./pages/Maintenance";
 import { Generator } from "./pages/Generator.jsx";
 import { Mains } from "./pages/Mains.jsx";
 import AlarmsBackup from "./pages/AlarmsBackup.jsx";
@@ -24,10 +24,11 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Anomalies } from "./features/Anomalies/pages/Anomalies.js";
 
 // react-scan: automatically detects performance issues in your React app
 // see: https://react-scan.com/
-scan({ enabled: true }); // DISABLE IN PRODUCTION
+// scan({ enabled: true }); // DISABLE IN PRODUCTION
 
 const queryClient = new QueryClient({});
 
@@ -35,7 +36,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
         <Toaster richColors={true} />
         <Routes>
           <Route index element={<Login />} />
@@ -50,7 +51,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="generator" element={<Generator />} />
             <Route path="mains" element={<Mains />} />
             <Route path="live-data" element={<LiveData />} />
-            <Route path="anomalies" element={<Anomalies />} />
+            <Route path="anomalies-old" element={<AnomaliesOld />} />
             <Route path="reports" element={<Reports />} />
             <Route path="alarms-backup" element={<AlarmsBackup />} />
             <Route path="alarms" element={<Alarms />} />
@@ -59,6 +60,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="rul" element={<RUL />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="archive" element={<Archive />} />
+            <Route path="anomalies" element={<Anomalies />} />
           </Route>
           <Route path="/login" element={<Login />} />
         </Routes>

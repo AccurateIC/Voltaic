@@ -1,6 +1,7 @@
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { filteredHealthIndexData } from "../../components/filteredHealthIndexData";
+import { filteredHealthIndexData } from "../filteredHealthIndexData";
+import { RulPrediction } from "../../features/RUL/types/rul.types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -48,7 +49,7 @@ const options = {
           if (tooltipItems.datasetIndex === 0) {
             return `Health Index: ${point.y.toFixed(3)}`;
           } else {
-            return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${(10000 - point.x).toFixed(1)} Hours`];
+            return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${point.rul.toFixed(1)} Hours`];
           }
         },
       },
@@ -100,6 +101,7 @@ const options = {
 };
 
 export function RulChart({ currentRulPoint }) {
+  console.log("Current RUL Point: ", currentRulPoint);
   const data = {
     datasets: [
       {
@@ -121,6 +123,7 @@ export function RulChart({ currentRulPoint }) {
             // x: currentRulPoint.Remaining_Useful_Life,
             x: currentRulPoint.Time_Hours,
             y: currentRulPoint.Predicted_Health_Index,
+            rul: currentRulPoint.Remaining_Useful_Life,
           },
         ],
         borderColor: "rgb(53, 162, 235)",

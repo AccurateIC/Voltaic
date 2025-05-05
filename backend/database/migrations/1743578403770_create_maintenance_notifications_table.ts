@@ -11,6 +11,9 @@ export default class extends BaseSchema {
       table.boolean("should_be_displayed").notNullable();
       table.timestamp("resolved_at");
 
+      table.decimal("predicted_dominant_frequency");
+      table.decimal("predicted_dominant_amplitude");
+
       table.timestamp("created_at");
       table.timestamp("updated_at");
     });

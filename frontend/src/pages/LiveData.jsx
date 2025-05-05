@@ -293,7 +293,7 @@ export const LiveData = () => {
       console.log("Error fetching data", error);
     }
     try {
-      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecent`, {
+      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecentActual`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -325,7 +325,7 @@ export const LiveData = () => {
       };
     });
 
-    formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    // formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
     console.log("formattedDAta0", formattedData);
     setPdmDataForGraph(formattedData);

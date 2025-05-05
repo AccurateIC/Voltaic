@@ -76,6 +76,9 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         },
         ticks: {
           color: "white",
+          maxRotation: 0,
+          minRotation: 0,
+          autoSkip: false,
           font: {
             size: 12,
           },

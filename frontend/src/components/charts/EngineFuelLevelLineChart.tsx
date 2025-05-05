@@ -19,7 +19,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       title: {
         display: true,
         text: "Engine Fuel Level Monitor",
-        color: "#000",
+        color: "#fff",
         font: {
           size: 18,
           weight: "normal",
@@ -40,7 +40,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         },
         grid: {
           display: true,
-          color: "#ccc",
+          color: "#404040",
         },
         ticks: {
           display: true,
@@ -63,7 +63,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         max: 80,
         grid: {
           display: true,
-          color: "#ccc",
+          color: "#404040",
         },
       },
     },
@@ -91,3 +91,4 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
 };
 
 export default EngineFuelLevelLineChart;
+

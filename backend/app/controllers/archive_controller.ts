@@ -11,6 +11,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
 import db from "@adonisjs/lucid/services/db";
 import PhysicalQuantity from "#models/physical_quantity";
+import { DateTime } from "luxon";
 
 export default class ArchiveController {
   async getAll({}: HttpContext) {
@@ -341,6 +342,124 @@ export default class ArchiveController {
     return trxResult;
   }
 
+  async getAnomalyStatistics({ request, response }: HttpContext) {
+    // Get timezone from request (fallback to 'UTC')
+    const timezone = request.header("timezone");
+    if (!timezone) {
+      return response.status(400).json({
+        error: "Timezone header is required",
+        message: "Please provide a valid IANA timezone identifier in the request headers",
+      });
+    }
+
+    // Validate timezone using Luxon
+    try {
+      const now = DateTime.now().setZone(timezone);
+      if (!now.isValid) {
+        return response.status(400).json({
+          error: "Invalid timezone",
+          message: `'${timezone}' is not a valid IANA timezone identifier`,
+          details: now.invalidReason,
+        });
+      }
+    } catch (error) {
+      return response.status(400).json({
+        error: "Invalid timezone",
+        message: `'${timezone}' is not a valid IANA timezone identifier`,
+        details: error.message,
+      });
+    }
+
+    // Get current time in user's timezone
+    const now = DateTime.now().setZone(timezone);
+
+    // Get start of today in user's timezone, then convert to UTC for database query
+    const todayStart = now.startOf("day").toUTC();
+
+    // Get start of current week in user's timezone, then convert to UTC
+    const currentWeekStart = now.startOf("week").toUTC();
+
+    // Get start of current month in user's timezone, then convert to UTC
+    const currentMonthStart = now.startOf("month").toUTC();
+
+    // Get property-based stats with preloaded relationships
+    const propertyStats = await Archive.query()
+      .where("isAnomaly", 1)
+      .preload("gensetProperty")
+      .select("gensetPropertyId")
+      .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
+      .groupBy("gensetPropertyId");
+
+    // Get counts for each time period by property
+    const propertyStatsByTime = await Promise.all(
+      propertyStats.map(async (stat) => {
+        const totalCount = await Archive.query()
+          .where("isAnomaly", true)
+          .where("gensetPropertyId", stat.gensetPropertyId)
+          .count("* as count");
+
+        const todayCount = await Archive.query()
+          .where("isAnomaly", true)
+          .where("gensetPropertyId", stat.gensetPropertyId)
+          .where("timestamp", ">=", todayStart.toSQL({ includeOffset: true }))
+          .count("* as count");
+
+        const weekCount = await Archive.query()
+          .where("isAnomaly", 1)
+          .where("gensetPropertyId", stat.gensetPropertyId)
+          .where("timestamp", ">=", currentWeekStart.toSQL({ includeOffset: true }))
+          .count("* as count");
+
+        const monthCount = await Archive.query()
+          .where("isAnomaly", 1)
+          .where("gensetPropertyId", stat.gensetPropertyId)
+          .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
+          .count("* as count");
+
+        return {
+          propertyName: stat.gensetProperty.propertyName,
+          readablePropertyName: stat.gensetProperty.readablePropertyName,
+          counts: {
+            today: Number(todayCount[0]?.$extras.count) || 0,
+            week: Number(weekCount[0]?.$extras.count) || 0,
+            month: Number(monthCount[0]?.$extras.count) || 0,
+            total: Number(totalCount[0]?.$extras.count) || 0,
+          },
+        };
+      })
+    );
+
+    // Get overall counts
+    const totalCount = await Archive.query() //
+      .where("isAnomaly", true)
+      .count("* as count");
+
+    const todayTotal = await Archive.query()
+      .where("isAnomaly", 1)
+      .where("timestamp", ">=", todayStart.toSQL({ includeOffset: true }))
+      .count("* as count");
+
+    const weekTotal = await Archive.query()
+      .where("isAnomaly", 1)
+      .where("timestamp", ">=", currentWeekStart.toSQL({ includeOffset: true }))
+      .count("* as count");
+
+    const monthTotal = await Archive.query()
+      .where("isAnomaly", 1)
+      .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
+      .count("* as count");
+
+    return {
+      timezone, // Include timezone in response for clarity
+      overall: {
+        today: Number(todayTotal[0]?.$extras.count) || 0,
+        week: Number(weekTotal[0]?.$extras.count) || 0,
+        month: Number(monthTotal[0]?.$extras.count) || 0,
+        total: Number(totalCount[0]?.$extras.count) || 0,
+      },
+      byProperty: propertyStatsByTime,
+    };
+  }
   async delete({ response }: HttpContext) {
     response.status(400).send({ message: "Not Implemented" });
   }

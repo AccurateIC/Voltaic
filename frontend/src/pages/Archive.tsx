@@ -6,6 +6,7 @@ import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
+import "cally";
 
 const Archive = () => {
   const [archiveData, setArchiveData] = useState([]);
@@ -167,78 +168,47 @@ const Archive = () => {
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex items-center justify-between">
-        <div className="text-2xl text-base-200 font-semibold flex items-center mb-2">Historical Genset Data</div>
-        <div>
-          <button onClick={handleResetFilters} className="btn btn-sm btn-outline m-2">
-            Reset Filters
-          </button>
-          <button onClick={handleExportToExcel} className="btn btn-sm btn-outline m-2">
+        <div className="text-2xl text-base-content font-semibold flex items-center mb-2">Historical Genset Data</div>
+        <div className="flex gap-2 mb-2">
+          <button onClick={handleExportToExcel} className="btn btn-primary">
             Export to Excel
+          </button>
+          <button onClick={handleResetFilters} className="btn btn-primary">
+            Reset Filters
           </button>
         </div>
       </div>
       {/* Notification Table */}
-      <div className="flex-1 rounded-box shadow-lg bg-base-content text-base-200 overflow-hidden">
+      <div className="flex-1 rounded-box shadow-lg bg-base-200 text-base-200 overflow-hidden">
         <div className="overflow-y-auto h-full">
           <table className="table table-pin-rows">
             <thead className="">
-              <tr className="bg-sky-950 text-base-200">
+              <tr className="bg-base-100 text-base-content">
                 <th>ID</th>
                 {/* NEW TS BEGINS */}
                 <th className="gap-2">
                   Timestamp
                   <div className="dropdown dropdown-bottom">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-sky-950 text-base-200 border-none">
+                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
                       <FaFilter size={24} />
                     </div>
-                    <div tabIndex={0} className="dropdown-content z-10 w-72 bg-sky-950 rounded-box shadow-lg p-4">
-                      <div className="flex flex-col gap-2">
-                        <div className="form-control">
-                          <label className="label">
-                            <span className="label-text text-base-200">From: </span>
-                          </label>
-                          <input
-                            type="datetime-local"
-                            className="input input-bordered w-full text-base-content"
-                            value={filters.from || ""}
-                            onChange={(e) =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                page: 1,
-                                from: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="form-control">
-                          <label className="label">
-                            <span className="label-text text-base-200">To: </span>
-                          </label>
-                          <input
-                            type="datetime-local"
-                            className="input input-bordered w-full text-base-content"
-                            value={filters.to || ""}
-                            onChange={(e) =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                page: 1,
-                                to: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
-                        <button
-                          className="btn btn-sm btn-outline mt-2"
-                          onClick={() =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              from: null,
-                              to: null,
-                            }))
-                          }>
-                          Clear Dates
-                        </button>
-                      </div>
+                    <div className="dropdown-content card bg-base-100 shadow">
+                      <calendar-range
+                        value={
+                          filters.fromDate !== "" && filters.toDate !== "" ? `${filters.fromDate}/${filters.toDate}` : ""
+                        }
+                        class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
+                        onchange={(event) => {
+                          const val = event.target.value;
+
+                          setFilters((prevFilters) => ({
+                            ...prevFilters,
+                            from: val.split("/")[0],
+                            to: val.split("/")[1],
+                          }));
+                        }}>
+                        <calendar-month />
+                      </calendar-range>
                     </div>
                   </div>
                 </th>
@@ -247,12 +217,12 @@ const Archive = () => {
                 <th className="flex gap-2 relative">
                   Property
                   <div className="dropdown dropdown-bottom">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-sky-950 text-base-200 border-none">
+                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
                       <FaFilter size={24} />
                     </div>
                     <div
                       tabIndex={0}
-                      className="dropdown-content z-10 max-h-64 w-56 overflow-y-auto bg-sky-950 rounded-box shadow-lg">
+                      className="dropdown-content z-10 max-h-64 w-56 overflow-y-auto bg-base-100 rounded-box shadow-lg">
                       <ul className="menu menu-compact p-2">
                         <li>
                           <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: 1, propertyNames: [] }))}>
@@ -260,11 +230,11 @@ const Archive = () => {
                           </a>
                         </li>
                         {gensetProperties.map((property, index) => (
-                          <li key={index} className="flex flex-row items-center p-1 hover:bg-accent hover:rounded">
+                          <li key={index} className="flex flex-row items-center p-1">
                             <input
                               id={property?.propertyName}
                               type="checkbox"
-                              className="checkbox checkbox-sm checkbox-primary bg-sky-900 checked:bg-sky-500 checked:text-black"
+                              className="checkbox checkbox-sm checkbox-primary"
                               checked={filters.propertyNames.includes(property.propertyName)}
                               onChange={(e) => {
                                 setFilters((prevFilters) => {
@@ -303,10 +273,12 @@ const Archive = () => {
                 <th>
                   Anomaly
                   <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-sky-950 text-base-200 border-none">
+                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
                       <FaFilter size={24} />
                     </div>
-                    <ul tabIndex={0} className="dropdown-content menu bg-sky-950 rounded-box z-10 w-52 p-2 shadow-sm">
+                    <ul
+                      tabIndex={0}
+                      className="dropdown-content menu bg-base-200 text-base-content rounded-box z-10 w-52 p-2 shadow-sm">
                       <li>
                         <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: null }))}>Select all</a>
                       </li>
@@ -324,7 +296,7 @@ const Archive = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-sky-950/50">
+            <tbody className="bg-base-200 text-base-content">
               {archiveData?.map((entry, index) => (
                 <tr key={index}>
                   <th>{entry.id}</th>

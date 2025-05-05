@@ -1,10 +1,10 @@
 // src/components/Loader.jsx
 import { motion } from "motion/react";
 
-export default function Keyframes() {
+export default function Loader() {
   return (
     <motion.div
-      className="w-24 h-24 bg-base-200 rounded"
+      className="w-24 h-24 bg-base-content rounded"
       animate={{
         scale: [1, 2, 2, 1, 1],
         rotate: [0, 0, 180, 180, 0],

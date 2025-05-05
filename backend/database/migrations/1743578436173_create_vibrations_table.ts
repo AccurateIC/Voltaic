@@ -15,6 +15,7 @@ export default class extends BaseSchema {
         .inTable("sensor_properties")
         .onDelete("RESTRICT");
       table.float("value");
+      table.decimal("confidence_score_percentage");
       table
         .integer("maintenance_notification_id")
         .unsigned()

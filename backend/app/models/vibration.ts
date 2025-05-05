@@ -22,6 +22,9 @@ export default class Vibration extends BaseModel {
   declare value: number;
 
   @column()
+  declare confidenceScorePercentage: number;
+
+  @column()
   declare maintenanceNotificationId: number;
 
   @belongsTo(() => MaintenanceNotification)

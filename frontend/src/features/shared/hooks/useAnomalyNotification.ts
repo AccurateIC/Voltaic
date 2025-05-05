@@ -1,6 +1,6 @@
 // frontend/src/hooks/anomalies/useAnomalyNotification.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { anomalyNotificationsApi } from "../../api/archive";
+import { anomalyNotificationsApi } from "../api/anomalyNotification";
 import { toast } from "sonner";
 
 export const QUERY_KEYS = {
@@ -11,6 +11,11 @@ export const QUERY_KEYS = {
 
 export function useAnomalyNotification() {
   const queryClient = useQueryClient();
+
+  const getAllAnomalies = useQuery({
+    queryKey: QUERY_KEYS.anomalyNotifications,
+    queryFn: anomalyNotificationsApi.getAll,
+  });
 
   const getResolvedAnomalies = useQuery({
     queryKey: QUERY_KEYS.resolvedAnomalies,
@@ -25,7 +30,7 @@ export function useAnomalyNotification() {
   });
 
   const markAnomaliesRead = useMutation({
-    mutationFn: anomalyNotificationsApi.resolve,
+    mutationFn: anomalyNotificationsApi.read,
     onSuccess: () => {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({
@@ -41,6 +46,7 @@ export function useAnomalyNotification() {
   });
 
   return {
+    getAllAnomalies,
     getResolvedAnomalies,
     getUnresolvedAnomalies,
     markAnomaliesRead,

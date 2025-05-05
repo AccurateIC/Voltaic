@@ -3,13 +3,14 @@ import { useRef } from "react";
 import { useEffect, useState } from "react";
 import { CiBellOn } from "react-icons/ci";
 import Profile from "./Profile";
-import Logo from "../assets/accurate.svg";
+// import Logo from "../assets/accurate.svg";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
 import transmitConnection from "../lib/TransmitConnection";
 import { cn, formatTimestamp } from "../lib/Utils";
-import { useAnomalyNotification } from "../hooks/anomalies/useAnomalyNotification";
+import { useAnomalyNotification } from "../features/shared/hooks/useAnomalyNotification";
+import { LiaConnectdevelop } from "react-icons/lia";
 
 const primaryTab = {
   ANOMALIES: "Anomalies",
@@ -203,16 +204,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[rgba(177,213,189,1)] px-4 py-2 flex justify-between items-center">
-      <div>
-        <img src={Logo} alt="AccurateIC Logo" className="w-40" />
+    <nav className="bg-[rgba(177,213,189,1)] bg-base-200 px-4 py-2 flex justify-between items-center">
+      {/* navigate to engine page */}
+      <div
+        className="flex items-center justify-center space-x-2 w-50 cursor-pointer"
+        onClick={() => window.location.replace("/engine")}>
+        {/* <img src={Logo} alt="AccurateIC Logo" className="w-40" /> */}
+        <LiaConnectdevelop size={40} />
+        <span className="text-2xl">NeuroGen</span>
       </div>
 
       <div className="flex items-center space-x-3">
         {/* --- DaisyUI Dropdown Structure --- */}
         <details ref={detailsRef} className="dropdown dropdown-end">
           <summary className="btn btn-ghost btn-circle relative">
-            <CiBellOn size={38} color="black" />
+            <CiBellOn size={38} />
             {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
               <div className="badge badge-sm badge-primary absolute top-0 right-4">
                 {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length}
@@ -298,7 +304,7 @@ const Navbar = () => {
                             key={notification.id}
                             className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
                             <div className="card-body">
-                              <div className="flex justify-between items-start gap-2">
+                              <div className="flex flex-col justify-between items-start gap-2">
                                 <div>
                                   <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
                                   <p className="text-xs text-base-content/70 mt-1">
@@ -306,20 +312,21 @@ const Navbar = () => {
                                   </p>
                                   <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
                                 </div>
-                                {notification.shouldBeDisplayed && (
-                                  <button
-                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-error btn-outline">
-                                    Resolve
-                                  </button>
-                                )}
-                                {!notification.shouldBeDisplayed && (
-                                  <button
-                                    onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-disabled">
-                                    Resolved
-                                  </button>
-                                )}
+                                <div className="w-full flex">
+                                  {notification.shouldBeDisplayed ? (
+                                    <button
+                                      onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                      className="btn btn-xs w-full btn-error">
+                                      Resolve
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                      className="btn btn-xs w-full btn-disabled">
+                                      Resolved
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -339,7 +346,7 @@ const Navbar = () => {
                             key={notification.id}
                             className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
                             <div className="card-body">
-                              <div className="flex justify-between items-start gap-2">
+                              <div className="flex flex-col justify-between items-start gap-2">
                                 <div>
                                   <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
                                   <p className="text-xs text-base-content/70 mt-1">
@@ -350,14 +357,14 @@ const Navbar = () => {
                                 {notification.shouldBeDisplayed && (
                                   <button
                                     onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-error btn-outline">
+                                    className="btn btn-xs btn-error btn-outline w-full">
                                     Resolve
                                   </button>
                                 )}
                                 {!notification.shouldBeDisplayed && (
                                   <button
                                     onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-disabled">
+                                    className="btn btn-xs btn-disabled w-full">
                                     Resolved
                                   </button>
                                 )}
@@ -379,27 +386,41 @@ const Navbar = () => {
                       pdmUnresolvedNotifications.map((pdmNotif) => (
                         <div
                           key={pdmNotif.id}
-                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
-                          <div className="card-body">
-                            <div className="flex justify-between items-start gap-2">
-                              <div>
-                                <h4 className="card-title text-sm text-base-content">Maintenance Alert</h4>
+                          className="card card-compact w-full bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          <div className="card-body w-full">
+                            <div className="flex flex-col w-full gap-2">
+                              <div className="w-full">
+                                <h4 className="card-title text-sm text-base-content">Maintenance Prediction Alert</h4>
                                 <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
                                 <p className="text-sm mt-2 break-words text-base-content/90">
                                   {pdmNotif.maintenanceReason?.accel_x}
+                                </p>
+                                <p className="flex flex-row gap-2">
+                                  <span className="font-semibold">Predicted Dominant Frequency:</span>
+                                  <span>{pdmNotif.predictedDominantFrequency} Hz</span>
+                                </p>
+                                <p className="w-full">
+                                  <span className="font-semibold">Normal Frequency:</span> 0.1 Hz
+                                </p>
+                                <p>
+                                  <span className="font-semibold">Predicted Dominant Amplitude:</span>
+                                  {pdmNotif.predictedDominantAmplitude} G units
+                                </p>
+                                <p className="w-full">
+                                  <span className="font-semibold">Normal Amplitude Range:</span> -2 to +2 G units
                                 </p>
                               </div>
                               {pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-error">
+                                  className="btn btn-xs btn-error w-full">
                                   Resolve
                                 </button>
                               )}
                               {!pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-disabled">
+                                  className="btn btn-xs btn-disabled w-full">
                                   Resolved
                                 </button>
                               )}
@@ -422,25 +443,39 @@ const Navbar = () => {
                           key={pdmNotif.id}
                           className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
                           <div className="card-body">
-                            <div className="flex justify-between items-start gap-2">
+                            <div className="flex flex-col justify-between items-start gap-2">
                               <div>
                                 <h4 className="card-title text-sm text-base-content">Maintenance Alert</h4>
                                 <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
                                 <p className="text-sm mt-2 break-words text-base-content/90">
                                   {pdmNotif.maintenanceReason?.accel_x}
                                 </p>
+                                <p className="flex flex-row gap-2">
+                                  <span className="font-semibold">Predicted Dominant Frequency:</span>
+                                  <span>{pdmNotif.predictedDominantFrequency}</span>
+                                </p>
+                                <p className="w-full">
+                                  <span className="font-semibold">Normal Frequency:</span> 0.1 Hz
+                                </p>
+                                <p>
+                                  <span className="font-semibold">Predicted Dominant Amplitude:</span>
+                                  {pdmNotif.predictedDominantAmplitude}
+                                </p>
+                                <p className="w-full">
+                                  <span className="font-semibold">Normal Amplitude Range:</span> -2 to +2 G units
+                                </p>
                               </div>
                               {pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-error">
+                                  className="btn btn-xs btn-error w-full">
                                   Resolve
                                 </button>
                               )}
                               {!pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-disabled">
+                                  className="btn btn-xs btn-disabled w-full">
                                   Resolved
                                 </button>
                               )}

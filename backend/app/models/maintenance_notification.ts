@@ -18,6 +18,12 @@ export default class MaintenanceNotification extends BaseModel {
   declare maintenanceReason: MaintenanceReason;
 
   @column()
+  declare predictedDominantFrequency: number;
+
+  @column()
+  declare predictedDominantAmplitude: number;
+
+  @column()
   declare shouldBeDisplayed: boolean;
 
   @column()

@@ -7,6 +7,7 @@ import { DateTime } from "luxon";
 import { PropertyBarChart } from "../components/charts/PropertyBarChart";
 import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
+import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
@@ -41,7 +42,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             type="date"
             value={filters.fromDate}
             onChange={(e) => onFilterChange("fromDate", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="p-2 rounded bg-base-200 text-base-content border"
           />
 
           <label className="text-white">To Date:</label>
@@ -49,7 +50,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             type="date"
             value={filters.toDate}
             onChange={(e) => onFilterChange("toDate", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="p-2 rounded bg-base-200 text-base-content border"
           />
         </div>
         <div className="flex items-center gap-4">
@@ -58,7 +59,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             type="time"
             value={filters.fromTime}
             onChange={(e) => onFilterChange("fromTime", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="p-2 rounded bg-base-200 text-base-content border"
           />
 
           <label className="text-white">To Time:</label>
@@ -66,7 +67,7 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
             type="time"
             value={filters.toTime}
             onChange={(e) => onFilterChange("toTime", e.target.value)}
-            className="p-2 rounded bg-gray-700 text-white border border-gray-600"
+            className="p-2 rounded bg-base-200 text-base-content border"
           />
         </div>
       </div>
@@ -83,11 +84,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-base-200">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content bg-base-200 z-[1] menu p-2 shadow rounded-box w-56">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -122,7 +123,7 @@ export const TimeRangeSelector = ({ value, onChange }) => {
     <div className="flex flex-row items-center gap-2">
       <label className="">Time Range:</label>
       <select
-        className="border border-black-300 rounded px-2 py-1 text-sm"
+        className="border border-black-300 rounded px-2 py-1 text-sm bg-base-200"
         value={value}
         onChange={(e) => onChange(e.target.value)}>
         <option value="1d">1 Day</option>
@@ -153,8 +154,8 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
 
   return (
     <dialog id="my_modal_2" className="modal" open={isOpen}>
-      <div className="modal-box max-w-6xl bg-gray-900">
-        <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
+      <div className="modal-box max-w-6xl bg-base-200">
+        <h3 className="text-base-content text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
 
         {/* Graph Section */}
         {graphData.length > 0 ? (
@@ -203,7 +204,7 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
             />
           </LineChart>
         ) : (
-          <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+          <p className="text-error text-center mt-4">No data available for graph.</p>
         )}
 
         {/* Close Button */}
@@ -225,10 +226,10 @@ const AnomaliesTable = ({ data, onViewClick }) => {
   };
 
   return (
-    <div className="overflow-y-auto w-full max-h-[74vh] p-0 rounded-box rounded-lg shadow-lg bg-base-content">
+    <div className="overflow-y-auto w-full bg-base-100 text-base-content p-0 rounded-box rounded-lg shadow-lg h-full">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
-          <tr className="bg-sky-950 text-base-200">
+          <tr className="bg-base-100 text-base-content">
             <th></th>
             <th>Started At</th>
             <th>Summary</th>
@@ -237,7 +238,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
             <th>View</th>
           </tr>
         </thead>
-        <tbody className="bg-sky-950/50 h-full">
+        <tbody className="bg-base-200 h-full">
           {data.map((entry, index) => (
             <tr key={index}>
               <td>{index + 1}</td>
@@ -246,7 +247,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
               <td>{entry.message}</td>
               <td>{formatTimestamp(entry.finishedAt) || "N/A"}</td>
               <td>
-                <button className="bg-blue-500 px-3 py-2 rounded-md text-white" onClick={() => onViewClick(entry)}>
+                <button className="btn btn-primary" onClick={() => onViewClick(entry)}>
                   View
                 </button>
               </td>
@@ -268,7 +269,7 @@ const Anomalies = () => {
   const [gensetProperties, setGensetProperties] = useState([]);
   const [anomalies, setAnomalies] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1d");
+  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1m");
   const [archiveTimeFilter1, setArchiveTimeFilter1] = useState("1w");
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [filters, setFilters] = useState({
@@ -306,21 +307,30 @@ const Anomalies = () => {
 
     return data;
   };
-
   const getFromToDates = (timeFilter) => {
     const now = new Date();
     let fromDate;
 
     if (timeFilter === "1d") {
-      fromDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+      // Start of today (12:00 AM)
+      fromDate = new Date(now);
+      fromDate.setHours(0, 0, 0, 0);
     } else if (timeFilter === "1w") {
-      fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Start of this week (Monday)
+      fromDate = new Date(now);
+      const day = fromDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const diff = day === 0 ? 6 : day - 1; // Adjust if today is Sunday
+      fromDate.setDate(fromDate.getDate() - diff);
+      fromDate.setHours(0, 0, 0, 0);
     } else if (timeFilter === "1m") {
-      fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      // Start of this month
+      fromDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
     } else if (timeFilter === "7d") {
+      // Last 7 days from now
       fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (timeFilter === "30d") {
-      fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // Last 30 days from now
+      fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     } else {
       fromDate = now;
     }
@@ -337,17 +347,27 @@ const Anomalies = () => {
     const labels = [];
 
     if (range === "1d") {
+      // Today's date
       const dateKey = today.toISOString().split("T")[0];
-      console.log("dateKey", dateKey);
-      const count = anomalies.filter((item) => item.timestamp.startsWith(dateKey)).length;
+      const count = filteredAnomalies.filter((item) => item.timestamp.startsWith(dateKey)).length;
       groupedData[dateKey] = count;
       labels.push(dateKey);
     } else if (range === "1w") {
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
+      const startOfWeek = new Date(today);
+      const day = startOfWeek.getDay(); // 0 (Sun) to 6 (Sat)
+      const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days; else, go to Monday
+      startOfWeek.setDate(today.getDate() + diff);
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+
+        // ✅ Skip future dates
+        if (date > today) break;
+
         const dateKey = date.toISOString().split("T")[0];
         groupedData[dateKey] = 0;
+        labels.push(dateKey);
       }
 
       filteredAnomalies.forEach((item) => {
@@ -356,28 +376,51 @@ const Anomalies = () => {
           groupedData[dateKey]++;
         }
       });
-
-      labels.push(...Object.keys(groupedData));
     } else if (range === "1m") {
-      const weeks = [0, 0, 0, 0];
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 27);
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const weeks = [];
 
+      let currentStart = new Date(startOfMonth);
+
+      while (currentStart <= today) {
+        const currentEnd = new Date(currentStart);
+        currentEnd.setDate(currentStart.getDate() + 6);
+
+        // Prevent currentEnd from going beyond today
+        if (currentEnd > today) {
+          currentEnd.setTime(today.getTime());
+        }
+
+        weeks.push({
+          start: new Date(currentStart),
+          end: new Date(currentEnd),
+          count: 0,
+        });
+
+        // Move to next week
+        currentStart.setDate(currentStart.getDate() + 7);
+      }
+
+      // Count anomalies in each week range
       filteredAnomalies.forEach((item) => {
         const timestamp = new Date(item.timestamp);
-        if (timestamp >= startDate && timestamp <= today) {
-          const daysAgo = Math.floor((today - timestamp) / (1000 * 60 * 60 * 24));
-          const weekIndex = Math.floor((27 - daysAgo) / 7);
-          if (weekIndex >= 0 && weekIndex < 4) {
-            weeks[weekIndex]++;
+        for (let i = 0; i < weeks.length; i++) {
+          if (timestamp >= weeks[i].start && timestamp <= weeks[i].end) {
+            weeks[i].count++;
+            break;
           }
         }
       });
 
-      labels.push("Week 1", "Week 2", "Week 3", "Week 4");
-      for (let i = 0; i < 4; i++) {
-        groupedData[`Week ${i + 1}`] = weeks[i];
-      }
+      // Format labels and fill groupedData
+      weeks.forEach((week) => {
+        const label = `${week.start.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })} - ${week.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+        labels.push(label);
+        groupedData[label] = week.count;
+      });
     }
 
     setLabels1(labels);
@@ -400,8 +443,74 @@ const Anomalies = () => {
       const data = await response.json();
       setNotifications(data);
       const anomalyStats = getAnomalyDataByPeriod(data);
+      console.log(anomalyStats);
       setAnomalyData(anomalyStats);
+
       setFilteredNotifications(anomalyStats.today);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const [lineEngFuleLavel, setLineEngFulLavel] = useState([]);
+  const [engSpeedDisplay, setEngSpeedDisplay] = useState([]);
+  const [engOilPress, setEngOilPress] = useState([]);
+  const [genL1Current, setGenL1Volts] = useState([]);
+  const [genTotalVA, setGenTotalVA] = useState([]);
+
+  const fetchAnomaliesDatas = async (from, to, selectedProperties) => {
+    console.log(selectedProperties);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getPropertyDataBetween`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          from,
+          to,
+          properties: selectedProperties, // pass array properly
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+      // ⚡ Always reset all graphs first
+      setLineEngFulLavel([]);
+      setEngSpeedDisplay([]);
+      setEngOilPress([]);
+      setGenL1Volts([]);
+      setGenTotalVA([]);
+
+      // Filter and set the data for each property dynamically
+      selectedProperties.forEach((property) => {
+        const filteredData = data.filter((item) => item.gensetProperty.propertyName === property);
+
+        // Dynamically set the corresponding state for each property
+        switch (property) {
+          case "genTotalVA":
+            setGenTotalVA(filteredData);
+            break;
+          case "engFuelLevelUnits":
+            setLineEngFulLavel(filteredData);
+            break;
+          case "engSpeedDisplay":
+            setEngSpeedDisplay(filteredData);
+            break;
+          case "engOilPress":
+            setEngOilPress(filteredData);
+            break;
+          case "genL1Current":
+            setGenL1Volts(filteredData);
+            break;
+          default:
+            break;
+        }
+      });
+
+      return data; // return data to be used elsewhere
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
@@ -470,7 +579,7 @@ const Anomalies = () => {
     if (!selectedEntry) return;
     console.log("selectedEntry", selectedEntry);
     const propertyName = selectedEntry?.archive?.gensetProperty?.propertyName;
-    console.log("propertyName", propertyName);
+    // console.log("propertyName", propertyName);
     const from = DateTime.fromISO(selectedEntry?.startedAt).toUTC().toISO();
     const to = selectedEntry?.finishedAt
       ? DateTime.fromISO(selectedEntry?.finishedAt).toUTC().toISO()
@@ -534,36 +643,11 @@ const Anomalies = () => {
     }
   };
 
-  const handleAnomalyClick = (period) => {
-    const now = DateTime.local();
-    let start;
-    if (period === "today") start = now.startOf("day");
-    else if (period === "week") start = now.startOf("week");
-    else if (period === "month") start = now.startOf("month");
-    else start = now.startOf("day");
-
-    const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
-    setFilteredNotifications(filtered);
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      fromDate: "",
-      toDate: "",
-      fromTime: "",
-      toTime: "",
-      property: "Property",
-      anomalyStatus: "",
-    });
-  };
-
   const handleViewClick = (entry) => {
     if (!entry.startedAt) {
       toast.error("startedAt must be present.");
       return;
     }
-    console.log(entry);
-    console.log("entry", entry);
     setSelectedEntry(entry);
     setShowGraph(true);
   };
@@ -633,7 +717,13 @@ const Anomalies = () => {
 
   useEffect(() => {
     const { from, to } = getFromToDates(archiveTimeFilter);
+    console.log(from, to);
     fetchAnomaliesData(from, to);
+  }, [archiveTimeFilter, selectedProperties]);
+
+  useEffect(() => {
+    const { from, to } = getFromToDates(archiveTimeFilter);
+    fetchAnomaliesDatas(from, to, selectedProperties);
   }, [archiveTimeFilter, selectedProperties]);
 
   useEffect(() => {
@@ -644,36 +734,27 @@ const Anomalies = () => {
     fetchNotifications();
     fetchProperties();
   }, []);
+  const allCharts = [lineEngFuleLavel, engSpeedDisplay, engOilPress, genL1Current, genTotalVA];
 
   return (
     <div
-      className={`bg-base-content text-base-200 p-2 top-0 h-full w-full flex flex-col transition-all duration-300 ${
+      className={` bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
         showGraph ? "backdrop-blur-sm" : ""
       }`}>
       {/* Stats Cards */}
-      <div className="items-center grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
-        <AnomalyStatsCard
-          icon="FaExclamationTriangle"
-          title="Today's Anomaly"
-          count={anomalyData.today.length}
-          onClick={() => handleAnomalyClick("today")}
-        />
-        <AnomalyStatsCard
-          icon="FaCalendarWeek"
-          title="Weekly Anomaly"
-          count={anomalyData.week.length}
-          onClick={() => handleAnomalyClick("week")}
-        />
+      <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
+        <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomalies" count={anomalyData.today.length} />
+        <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomalies" count={anomalyData.week.length} />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
-          title="Monthly Anomaly"
+          title="Monthly Anomalies"
           count={anomalyData.month.length}
           onClick={() => handleAnomalyClick("month")}
         />
       </div>
 
       {/* Filters */}
-      <div className="flex items-center py-2">
+      <div className="flex items-center py-2 ">
         <div className="flex gap-4 ">
           <div className="font-semibold text-md">Properties: </div>
           <PropertyFilter
@@ -684,28 +765,31 @@ const Anomalies = () => {
           />
           <TimeRangeSelector value={archiveTimeFilter} onChange={setArchiveTimeFilter} />
         </div>
-
-        <div>
-          <DateRangeFilter filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
-        </div>
       </div>
-      <div className="flex flex-row gap-4 h-full">
+      <div className="flex flex-row gap-2 h-full">
         {/* First Column: Two stacked charts */}
         <div className="flex flex-col gap-4 w-1/2">
-          <div className="h-1/2 bg-[#1d2130] rounded p-5">
+          <div className="h-1/2 bg-base-200 rounded p-5">
             <PropertyBarChart labels={labels} dataset={dataset} />
           </div>
-          <div className="h-1/2 bg-[#1d2130] rounded p-5">
+          <div className="h-1/2 bg-base-200 rounded p-5">
             <AnomaliesBarChart labels={labels1} dataset={dataset1} />
           </div>
         </div>
 
-        {/* Second Column: Table takes full height of chart column */}
-        <div className="flex w-1/2 bg-[#1d2130]">
-          {/* Optional filter */}
-          <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
+        {/* Second Column: Match height of left column */}
+        <div className="flex flex-col gap-14 w-1/2 h-full">
+          <div className="flex-1  overflow-auto">
+            <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
+          </div>
+          {genTotalVA.length > 0 && (
+            <div className="flex-1 bg-base-200 rounded p-5 h-full">
+              <AnomaliesLineChart value={genTotalVA} />
+            </div>
+          )}
         </div>
       </div>
+
       {/* Graph Modal */}
       <AnomalyGraphModal
         isOpen={showGraph}
@@ -713,6 +797,36 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
+      <div className="flex flex-col  gap-3 ">
+        {/* Row 1 */}
+        {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
+          <div className="flex mt-5 gap-3  ">
+            {/* Row 1 */}
+            {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
+            {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
+          </div>
+        )}
+
+        {/* Row 2 */}
+        {(engOilPress.length > 0 || genL1Current.length > 0) && (
+          <div className="flex  gap-3 ">
+            {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
+            {genL1Current.length > 0 && <AnomaliesLineChart value={genL1Current} />}
+          </div>
+        )}
+      </div>
+
+      {/*     <div className="flex flex-col mt-5 gap-6">
+  {Array.from({ length: Math.ceil(allCharts.length / 2) }, (_, i) => (
+    <div key={i} className="flex gap-4">
+      {allCharts.slice(i * 2, i * 2 + 2).map((chartData, j) => (
+        chartData.length > 0 && (
+          <AnomaliesLineChart key={j} value={chartData} />
+        )
+      ))}
+    </div>
+  ))}
+</div> */}
     </div>
   );
 };

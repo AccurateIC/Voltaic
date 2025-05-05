@@ -1,1 +1,1 @@
-import { PDMNotification } from "../types/pdm.types";
+import { PDMNotification } from "../features/shared/types/pdm.types";
