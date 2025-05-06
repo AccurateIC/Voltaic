@@ -732,6 +732,7 @@ const Anomalies = () => {
             <AnomaliesLineChart value={lineEngFuleLavel} />
           </div>
         )}
+        
         {engSpeedDisplay.length > 0 && (
           <div className="w-full">
             <AnomaliesLineChart value={engSpeedDisplay} />
