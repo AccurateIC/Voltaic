@@ -726,26 +726,29 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
-      <div className="flex flex-col  gap-3 ">
-        {/* Row 1 */}
-        {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
-          <div className="flex mt-5 gap-3  ">
-            {/* Row 1 */}
-            {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
-            {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 mt-5">
+        {lineEngFuleLavel.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={lineEngFuleLavel} />
           </div>
         )}
-
-        {/* Row 2 */}
-        {(engOilPress.length > 0 || genL1Current.length > 0) && (
-          <div className="flex  gap-3 ">
-            {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
-            {genL1Current.length > 0 && <AnomaliesLineChart value={genL1Current} />}
+        {engSpeedDisplay.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={engSpeedDisplay} />
           </div>
         )}
-
+        {engOilPress.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={engOilPress} />
+          </div>
+        )}
+        {genL1Current.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={genL1Current} />
+          </div>
+        )}
         {genTotalVA.length > 0 && (
-          <div className="flex-1 bg-[#1d2130] rounded p-5 h-full">
+          <div className="w-full bg-[#1d2130] rounded p-5">
             <AnomaliesLineChart value={genTotalVA} />
           </div>
         )}
