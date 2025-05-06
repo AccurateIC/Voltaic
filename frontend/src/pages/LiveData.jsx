@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
-import EngineSpeedLineChart from "../components/charts/EngineSpeedLineChart";
+import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
-import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
+import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart";
@@ -57,10 +57,6 @@ export const LiveData = () => {
     "Battery Charge",
     "PDM",
   ]);
-
-  useEffect(() => {
-    console.log("voltage date 894984", voltageData);
-  }, [voltageData]);
 
   const generateEmptyDataPoints = (data, timeRange) => {
     if (data.length === 0) return [];
@@ -161,7 +157,6 @@ export const LiveData = () => {
         credentials: "include",
       });
       const data = await response.json();
-      console.log("Data graph", data);
       if (response.ok) {
         const l1Voltage = generateEmptyDataPoints(
           data
@@ -239,7 +234,6 @@ export const LiveData = () => {
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
-              isAnomaly: item.isAnomaly,
             }))
         );
 
@@ -249,7 +243,6 @@ export const LiveData = () => {
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
-              isAnomaly: item.isAnomaly,
             }))
         );
 
@@ -299,12 +292,7 @@ export const LiveData = () => {
         credentials: "include",
       });
       const data = await pdmResponse.json();
-
-      console.log("pdmResponse", data);
       setPdmData(data);
-      if (pdmResponse.ok) {
-        console.log("PDM Response", pdmResponse);
-      }
     } catch (error) {
       console.log("Error fetching data", error);
     }
@@ -324,10 +312,7 @@ export const LiveData = () => {
         unit: item.sensorProperty.unit,
       };
     });
-
     // formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    console.log("formattedDAta0", formattedData);
     setPdmDataForGraph(formattedData);
 
     setIsPdmLoading(false);
@@ -351,11 +336,9 @@ export const LiveData = () => {
         const chargeAltItem = stats.chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
         const time = new Date(batteryItem.timestamp);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: batteryItem.timestamp,
           batteryVolts: batteryItem.propertyValue,
           chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
-          batteryVoltsIsAnomaly: batteryItem.isAnomaly,
-          chargeAltVoltsIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : null,
         };
       });
 
@@ -372,15 +355,11 @@ export const LiveData = () => {
       const newDataCurrent = stats.l1Current.map((l1Item) => {
         const l2Item = stats.l2Current.find((item) => item.timestamp === l1Item.timestamp);
         const l3Item = stats.l3Current.find((item) => item.timestamp === l1Item.timestamp);
-        const time = new Date(l1Item.timestamp);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: l1Item.timestamp,
           L1: l1Item.propertyValue,
           L2: l2Item ? l2Item.propertyValue : null,
           L3: l3Item ? l3Item.propertyValue : null,
-          l1CIsAnomaly: l1Item.isAnomaly,
-          l2CIsAnomaly: l2Item ? l2Item.isAnomaly : null,
-          l3CIsAnomaly: l3Item ? l3Item.isAnomaly : null,
         };
       });
       setCurrentData(newDataCurrent);
@@ -397,49 +376,27 @@ export const LiveData = () => {
       const newDataVoltage = stats.l1Voltage.map((l1Item) => {
         const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
         const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
-        const time = new Date(l1Item.timestamp);
 
-        // console.log(l1Item, l2Item, l3Item);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: l1Item.timestamp,
           L1: l1Item.propertyValue,
           L2: l2Item ? l2Item.propertyValue : null,
           L3: l3Item ? l3Item.propertyValue : null,
-          l1IsAnomaly: l1Item.isAnomaly,
-          // l2IsAnomaly: l2Item.isAnomaly,
-          // l3IsAnomaly: l3Item.isAnomaly,
         };
       });
 
-      // console.log("6985464568", newDataVoltage);
-      console.log(stats.l1Voltage, stats.l2Voltage, stats.l3Voltage);
       setVoltageData(newDataVoltage);
     }
     if (Array.isArray(stats.engineFuelLevel) && stats.engineFuelLevel.length > 0) {
-      const newData3 = stats.engineFuelLevel.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        engineFuelLevel: item.propertyValue,
-        fuelLevelISAnomaly: item.isAnomaly,
-      }));
-      setFuelLevelData(newData3);
+      setFuelLevelData(stats.engineFuelLevel);
     }
 
     if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
-      const newData4 = stats.engineSpeed.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        engineSpeed: item.propertyValue,
-        engSpeedDisplayIsAnomaly: item.isAnomaly,
-      }));
-      setEngineSpeedData(newData4);
+      setEngineSpeedData(stats.engineSpeed);
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
-      const newData = stats.oilPress.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        oilPressure: item.propertyValue,
-        oilPressureIsAnomaly: item.isAnomaly,
-      }));
-      setOilPressureData(newData);
+      setOilPressureData(stats.oilPress);
     }
   }, [
     stats.batteryVolts,

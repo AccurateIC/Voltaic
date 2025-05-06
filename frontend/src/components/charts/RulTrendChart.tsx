@@ -1,11 +1,22 @@
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+// src/components/charts/RulTrendChart.tsx
+import {
+  Chart as ChartJS,
+  ChartOptions,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import { filteredHealthIndexData } from "../filteredHealthIndexData";
 import { RulPrediction } from "../../features/RUL/types/rul.types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const options = {
+const options: ChartOptions<"line"> = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -82,6 +93,8 @@ const options = {
       grid: {
         color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
       },
+      min: 0,
+      max: 10000,
     },
     y: {
       reverse: false,
@@ -96,6 +109,8 @@ const options = {
       grid: {
         color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
       },
+      min: 0,
+      max: 1,
     },
   },
 };
@@ -107,7 +122,6 @@ export function RulChart({
   currentRulPoint: RulPrediction;
   simulatedRulPoint: RulPrediction;
 }) {
-  console.log("Current RUL Point: ", currentRulPoint);
   const data = {
     datasets: [
       {
@@ -126,10 +140,8 @@ export function RulChart({
         label: "Current Health Index",
         data: [
           {
-            // x: currentRulPoint.Remaining_Useful_Life,
-            x: currentRulPoint.Time_Hours,
-            y: currentRulPoint.Predicted_Health_Index,
-            rul: currentRulPoint.Remaining_Useful_Life,
+            x: currentRulPoint?.Time_Hours,
+            y: currentRulPoint?.Predicted_Health_Index,
           },
         ],
         borderColor: "rgb(53, 162, 235)",
@@ -138,26 +150,17 @@ export function RulChart({
         pointStyle: "circle",
         showLine: false,
       },
+      {
+        label: "Simulated Health Index",
+        data: simulatedRulPoint?.map((entry, index) => ({
+          x: entry?.Time_Hours,
+          y: entry?.Predicted_Health_Index,
+        })),
+        borderColor: "rgb(162, 53, 235)",
+        backgroundColor: "rgba(162, 53, 235, 0.5)",
+      },
     ],
   };
-
-  if (simulatedRulPoint.Remaining_Useful_Life !== undefined) {
-    data.datasets.push({
-      label: "Simulated Health Index",
-      data: [
-        {
-          x: simulatedRulPoint.Time_Hours,
-          y: simulatedRulPoint.Predicted_Health_Index,
-          rul: simulatedRulPoint.Remaining_Useful_Life,
-        },
-      ],
-      borderColor: "rgb(162, 53, 235)",
-      backgroundColor: "rgba(162, 53, 235, 0.5)",
-      pointRadius: 8,
-      pointStyle: "circle",
-      showLine: false,
-    });
-  }
 
   return <Line options={options} data={data} />;
 }

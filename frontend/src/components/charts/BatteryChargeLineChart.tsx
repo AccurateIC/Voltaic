@@ -1,3 +1,4 @@
+// src/components/charts/GeneratorVoltageLineChart.tsx
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -18,7 +19,7 @@ import { DateTime } from "luxon";
 // Register ChartJS components
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
+export const BatteryChargeLineChart = ({ value }) => {
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -27,8 +28,8 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       tooltip: {},
       title: {
         display: true,
-        text: "Engine Fuel Level Monitor",
-        color: "#fff",
+        text: "Battery Charge Monitor",
+        color: "rgba(255, 255, 255, 0.8)",
         font: { size: 18, weight: "normal" },
       },
     },
@@ -50,27 +51,39 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Fuel Level (Liter)",
+          text: "Voltage (V)",
           font: { size: 18, weight: "normal" },
         },
         min: 0,
-        max: 80,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };
 
-  const chartData = fuelLevelData.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
+  // timestamp: batteryItem.timestamp,
+  const batteryData = value.map((item) => ({ x: item.timestamp, y: item.batteryVolts }));
+  const chargeAltData = value.map((item) => ({ x: item.timestamp, y: item.chargeAltVolts }));
 
   const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
-        label: "Fuel Level",
-        // data: fuelLevelData.map((item) => item.engineFuelLevel),
-        data: chartData,
+        label: "Battery Voltage",
+        data: batteryData,
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
+        pointStyle: "circle",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      },
+      {
+        fill: false,
+        label: "Charging Alternator Voltage",
+        data: chargeAltData,
+        borderColor: "rgba(209, 120, 82, 1)",
+        backgroundColor: "rgba(209, 120, 82, 0.5)",
         pointStyle: "circle",
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -82,5 +95,3 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
 
   return <Line options={options} data={data} />;
 };
-
-export default EngineFuelLevelLineChart;

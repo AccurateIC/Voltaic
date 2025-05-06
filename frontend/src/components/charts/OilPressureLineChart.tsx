@@ -1,3 +1,4 @@
+import "chartjs-adapter-luxon";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,26 +13,27 @@ import {
   ChartData,
   TimeSeriesScale,
 } from "chart.js";
-import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
 
-// Register ChartJS components
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
+export const OilPressureLineChart = ({ value }) => {
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top", align: "center" },
+      legend: {
+        display: true,
+      },
       tooltip: {},
       title: {
         display: true,
-        text: "Engine Fuel Level Monitor",
-        color: "#fff",
+        text: "Oil Pressure (bar)",
+        color: "rgba(255, 255, 255, 0.8)",
         font: { size: 18, weight: "normal" },
       },
     },
+
     scales: {
       x: {
         type: "timeseries",
@@ -50,24 +52,22 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Fuel Level (Liter)",
+          text: "Oil Pressure (bar)",
           font: { size: 18, weight: "normal" },
         },
         min: 0,
-        max: 80,
+        max: 8,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };
 
-  const chartData = fuelLevelData.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
-
+  const chartData = value.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
   const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
-        label: "Fuel Level",
-        // data: fuelLevelData.map((item) => item.engineFuelLevel),
+        label: "Oil Pressure (bar)",
         data: chartData,
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
@@ -79,8 +79,5 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       },
     ],
   };
-
   return <Line options={options} data={data} />;
 };
-
-export default EngineFuelLevelLineChart;

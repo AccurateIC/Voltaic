@@ -1,5 +1,6 @@
+// src/features/RUL/pages/RUL.tsx
 import { cn } from "../../../lib/Utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { RulChart } from "../../../components/charts/RulTrendChart";
 import { rulInputData } from "../../../components/rulData";
@@ -13,21 +14,29 @@ const RUL = () => {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState<boolean>(false);
   const [count, setCount] = useState(0);
   const [apiPoint, setApiPoint] = useState<RulPrediction>({
+    Time_Hours: undefined,
     Remaining_Useful_Life: undefined,
     Predicted_Health_Index: undefined,
-    Time_Hours: undefined,
   });
-  const [simulatedRul, setSimulatedRul] = useState<RulPrediction>({
-    Remaining_Useful_Life: undefined,
-    Predicted_Health_Index: undefined,
-    Time_Hours: undefined,
-  });
+  const [simulatedRul, setSimulatedRul] = useState<RulPrediction[]>([]);
 
   // hooks
   const { getLoggedInUser } = useAuth();
   const loggedInUser = getLoggedInUser.data;
   const loggedInEmail = loggedInUser?.email;
   const { getRulPrediction } = useRulPrediction();
+
+  //
+  useEffect(() => {
+    console.log("simmm", simulatedRul);
+  }, [simulatedRul]);
+
+  // fetch rul prediction on mount
+  useEffect(() => {
+    (async () => {
+      await fetchRulPrediction();
+    })();
+  }, [loggedInUser]);
 
   const fetchRulPrediction = async () => {
     try {
@@ -46,7 +55,6 @@ const RUL = () => {
         return;
       }
 
-      console.log(entry);
       const newEntry = {
         Time_Hours: entry.Time_Hours,
         RPM_Deviation_Percentage: entry.RPM_Deviation_Percentage,
@@ -58,7 +66,7 @@ const RUL = () => {
       getRulPrediction.mutate(newEntry, {
         onSuccess: (data) => {
           console.log("RUL data fetched successfully:", data);
-          setApiPoint({ ...data, Time_Hours: newEntry.Time_Hours });
+          setApiPoint(data.Future_Predictions[0]);
           setCount((prevCount) => (prevCount + 1) % userDataArray.length);
         },
         onError: (error) => {

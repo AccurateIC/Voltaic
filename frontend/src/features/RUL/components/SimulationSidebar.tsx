@@ -1,6 +1,7 @@
+// src/features/RUL/components/SimulationSidebar.tsx
 import { useState } from "react";
 import { useRulPrediction } from "../hooks/useRulPrediction";
-import { RulPrediction } from "../types/rul.types";
+import { RulInputData, RulPrediction } from "../types/rul.types";
 import { cn } from "../../../lib/Utils";
 
 type SimulationProps = {
@@ -13,7 +14,7 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
   const { getRulPrediction } = useRulPrediction(); // getRulPrediction is a `mutation`
 
   // state
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RulInputData>({
     Time_Hours: 500,
     RPM_Deviation_Percentage: 0.08,
     Oil_Pressure: 1.56,
@@ -27,11 +28,11 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
   };
 
   const fetchRulData = async (e) => {
+    console.log("curr form", form);
     e.preventDefault();
-    const currentTime = form.Time_Hours;
     getRulPrediction.mutate(form, {
-      onSuccess: () => {
-        setSimulatedRul(form);
+      onSuccess: (data) => {
+        setSimulatedRul(data?.Future_Predictions);
       },
     });
   };
@@ -146,7 +147,8 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
       </fieldset>
       {getRulPrediction.isSuccess && (
         <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
-          Remaining Useful Life: {parseInt(getRulPrediction.data?.Remaining_Useful_Life, 10) || "N/A"} hours
+          Remaining Useful Life: {parseInt(getRulPrediction.data?.Future_Predictions[0]?.Remaining_Useful_Life, 10) || "N/A"}
+          hours
         </div>
       )}
     </div>

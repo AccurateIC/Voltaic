@@ -322,15 +322,15 @@ const Archive = () => {
         <div className="join gap-3">
           <button
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page - 1 }))}
-            className={`join-item btn btn-outline rounded-r-none rounded-l-lg ${
-              paginationMetadata.firstPage === filters.page ? "btn-disabled" : "text-base-200"
+            className={`join-item btn rounded-r-none rounded-l-lg ${
+              paginationMetadata.firstPage === filters.page ? "btn-disabled" : "text-base-content"
             } `}>
             <MdKeyboardArrowLeft size={24} />
           </button>
           <button
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page + 1 }))}
-            className={`join-item btn btn-outline rounded-l-none rounded-r-lg ${
-              paginationMetadata.lastPage === filters.page ? "btn-disabled" : "text-base-200"
+            className={`join-item btn rounded-l-none rounded-r-lg ${
+              paginationMetadata.lastPage === filters.page ? "btn-disabled" : "text-base-content"
             } `}>
             <MdKeyboardArrowRight size={24} />
           </button>

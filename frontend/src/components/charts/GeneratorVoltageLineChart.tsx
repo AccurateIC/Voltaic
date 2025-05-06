@@ -1,3 +1,4 @@
+// src/components/charts/GeneratorVoltageLineChart.tsx
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -18,7 +19,7 @@ import { DateTime } from "luxon";
 // Register ChartJS components
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
+export const GeneratorVoltageLineChart = ({ value }) => {
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -27,8 +28,8 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       tooltip: {},
       title: {
         display: true,
-        text: "Engine Fuel Level Monitor",
-        color: "#fff",
+        text: "Generator Voltage Monitor",
+        color: "rgba(255, 255, 255, 0.8)",
         font: { size: 18, weight: "normal" },
       },
     },
@@ -50,27 +51,52 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Fuel Level (Liter)",
+          text: "Voltage (V)",
           font: { size: 18, weight: "normal" },
         },
         min: 0,
-        max: 80,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };
 
-  const chartData = fuelLevelData.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
+  // Create an array of { x, y } objects for each line
+  const l1Data = value.map((item) => ({ x: item.timestamp, y: item.L1 }));
+  const l2Data = value.map((item) => ({ x: item.timestamp, y: item.L2 }));
+  const l3Data = value.map((item) => ({ x: item.timestamp, y: item.L3 }));
 
   const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
-        label: "Fuel Level",
-        // data: fuelLevelData.map((item) => item.engineFuelLevel),
-        data: chartData,
+        label: "L1",
+        data: l1Data,
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
+        pointStyle: "circle",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      },
+      {
+        fill: false,
+        label: "L2",
+        data: l2Data,
+        borderColor: "rgba(209, 120, 82, 1)",
+        backgroundColor: "rgba(209, 120, 82, 0.5)",
+        pointStyle: "circle",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      },
+      {
+        fill: false,
+        label: "L3",
+        data: l3Data,
+        borderColor: "rgba(82, 209, 120, 1)",
+        backgroundColor: "rgba(82, 209, 120, 0.5)",
         pointStyle: "circle",
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -83,4 +109,4 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
   return <Line options={options} data={data} />;
 };
 
-export default EngineFuelLevelLineChart;
+export default GeneratorVoltageLineChart;
