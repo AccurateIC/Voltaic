@@ -9,7 +9,9 @@ import { ImPowerCord } from "react-icons/im";
 import { RiAlertFill } from "react-icons/ri";
 import { GiAutoRepair, GiLifeBar } from "react-icons/gi";
 import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { TbReportAnalytics } from "react-icons/tb";
+import { TbReport } from "react-icons/tb";
+
+const VERSION = "v1.0.0";
 
 const SideBarLink = ({ to, name, Icon }) => {
   return (
@@ -68,8 +70,8 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 
 const SideBar = () => {
   return (
-    <aside className="sticky top-0 h-[calc(100vh-4rem)] flex flex-col justify-between bg-[rgba(177,213,189,1)] bg-base-200 text-base-content w-15 md:w-58">
-      <ul className="flex-1 bg-[rgba(177,213,189,1)] bg-base-200 px-1 py-2">
+    <div className="bg-[rgba(177,213,189,1)] w-58 flex flex-col h-full">
+      <ul className="px-1 py-2 overflow-y-auto flex-1">
         <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
           <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
           <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
@@ -77,19 +79,19 @@ const SideBar = () => {
         </SideBarGroup>
 
         <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
-        <SideBarLink to="/anomalies-old" name="Anomalies" Icon={RiAlertFill} />
-        {/* <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} /> */}
-        <SideBarLink to="/reports" name="Reports" Icon={TbReportAnalytics} />
+        <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
         <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
-        <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
+        <SideBarLink to="/predictive-maintenance" name="Predictive" Icon={GiAutoRepair} />
         <SideBarLink to="/rul" name="RUL" Icon={GiLifeBar} />
         <SideBarLink to="/archive" name="Archive" Icon={RxArchive} />
+        <SideBarLink to="/reports" name="Reports" Icon={TbReport} />
+        <SideBarLink to="/profile" name="Profile" Icon={GoPerson} />
       </ul>
-      <div className="flex flex-col text-xs items-center justify-center p-2 md:visible">
-        <span>Neurogen v1.3.5</span>
-        <span>© NeuBodhi 2025</span>
+
+      <div className="text-center text-lg text-gray-600 py-2 border-t border-gray-300">
+        Version <span className="font-semibold">{VERSION}</span>
       </div>
-    </aside>
+    </div>
   );
 };
 

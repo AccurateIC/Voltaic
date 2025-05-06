@@ -119,14 +119,13 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
 
               {/* Current fuel level text
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-base-content font-bold text-lg">{fuelLevel}L</span>
+                {/* <span className="text-base-content font-bold text-lg">{fuelLevel}L</span> */}
               </div>
-                */}
+                
             </div>
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
