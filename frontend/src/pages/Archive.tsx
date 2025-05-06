@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
-import {FaFileExport, FaFilter } from "react-icons/fa6";
+import { FaFilter } from "react-icons/fa6";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
