@@ -9,9 +9,9 @@ import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
-import AnomalyGraphModal from "./AnomalyComponents/AnomalyGraphModal";
-import AnomaliesTable from "./AnomalyComponents/AnomalyTable";
-import PropertyFilter from "./AnomalyComponents/PropertyFilter";
+// import AnomalyGraphModal from "./AnomalyComponents/AnomalyGraphModal";
+// import AnomaliesTable from "./AnomalyComponents/AnomalyTable";
+// import PropertyFilter from "./AnomalyComponents/PropertyFilter";
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
     icon === "FaExclamationTriangle" ? FaExclamationTriangle : icon === "FaCalendarWeek" ? FaCalendarWeek : FaCalendarAlt;
@@ -46,6 +46,149 @@ export const TimeRangeSelector = ({ value, onChange }) => {
         <option value="1w">1 Week</option>
         <option value="1m">1 Month</option>
       </select>
+    </div>
+  );
+};
+
+export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
+  return (
+    <div className="dropdown dropdown-bottom">
+      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
+        <FaFilter className="mr-2" />
+        {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
+      </div>
+      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+        <div className="form-control">
+          <label className="label cursor-pointer">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-primary"
+              checked={selectedProperties.length === gensetProperties.length}
+              onChange={onToggleSelectAll}
+            />
+            <span className="label-text">Select All</span>
+          </label>
+        </div>
+        {gensetProperties.map((property) => (
+          <div key={property.id} className="form-control">
+            <label className="label cursor-pointer">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-primary"
+                checked={selectedProperties.includes(property.propertyName)}
+                onChange={() => onPropertyChange(property.propertyName)}
+              />
+              <span className="label-text">{property.propertyName}</span>
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
+  if (!isOpen) return null;
+
+  return (
+    <dialog id="my_modal_2" className="modal" open={isOpen}>
+      <div className="modal-box max-w-6xl bg-gray-900">
+        <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
+
+        {/* Graph Section */}
+        {graphData.length > 0 ? (
+          <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 10, left: 120, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="x"
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
+              label={{
+                value: "Timestamp",
+                position: "insideBottom",
+                dy: 25,
+                offset: -10,
+                style: { fill: "#fff" },
+              }}
+              stroke="#ffffff"
+            />
+            <YAxis
+              type="number"
+              domain={[0, "dataMax + 10"]}
+              label={{
+                value: `${selectedEntry?.archive?.gensetProperty?.readablePropertyName || "Property"} (${
+                  selectedEntry?.archive?.gensetProperty?.physicalQuantity?.unitSymbol || "unit"
+                })`,
+                dy: 100,
+                dx: -19,
+                angle: -90,
+                position: "insideLeft",
+                style: { fill: "#fff" },
+              }}
+              stroke="#ffffff"
+            />
+            <Tooltip
+              formatter={(value) => `Value: ${value}`}
+              labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
+            />
+            <Legend verticalAlign="top" height={36} />
+            <Line
+              type="monotone"
+              dataKey="y"
+              stroke="#ff0000"
+              name="Anomaly Event"
+              dot={{ r: 4 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        ) : (
+          <p className="text-red-500 text-center mt-4">No data available for graph.</p>
+        )}
+
+        {/* Close Button */}
+        <div className="flex justify-end mt-4">
+          <form method="dialog" onClick={onClose}>
+            <button className="btn">Close</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+  );
+};
+
+const AnomaliesTable = ({ data, onViewClick }) => {
+  const formatTimestamp = (timestamp) => {};
+
+  return (
+    <div className="overflow-y-auto w-full max-h-[74vh] p-0 rounded-box rounded-lg shadow-lg bg-base-content">
+      <table className="table table-pin-rows">
+        <thead className="sticky top-0">
+          <tr className="bg-sky-950 text-base-200">
+            <th></th>
+            <th>Started At</th>
+            <th>Summary</th>
+            <th>Message</th>
+            <th>Finished At</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody className="bg-sky-950/50 h-full">
+          {data.map((entry, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{formatTimestamp(entry.startedAt)}</td>
+              <td>{entry.summary}</td>
+              <td>{entry.message}</td>
+              <td>{formatTimestamp(entry.finishedAt) || "N/A"}</td>
+              <td>
+                <button className="bg-blue-500 px-3 py-2 rounded-md text-white" onClick={() => onViewClick(entry)}>
+                  View
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -167,31 +310,31 @@ const Anomalies = () => {
           groupedData[dateKey]++;
         }
       });
-    }  else if (range === "1m") {
+    } else if (range === "1m") {
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const weeks = [];
-    
+
       let currentStart = new Date(startOfMonth);
-    
+
       while (currentStart <= today) {
         const currentEnd = new Date(currentStart);
         currentEnd.setDate(currentStart.getDate() + 6);
-    
+
         // Prevent currentEnd from going beyond today
         if (currentEnd > today) {
           currentEnd.setTime(today.getTime());
         }
-    
+
         weeks.push({
           start: new Date(currentStart),
           end: new Date(currentEnd),
           count: 0,
         });
-    
+
         // Move to next week
         currentStart.setDate(currentStart.getDate() + 7);
       }
-    
+
       // Count anomalies in each week range
       filteredAnomalies.forEach((item) => {
         const timestamp = new Date(item.timestamp);
@@ -202,7 +345,7 @@ const Anomalies = () => {
           }
         }
       });
-    
+
       // Format labels and fill groupedData
       weeks.forEach((week) => {
         const label = `${week.start.toLocaleDateString("en-US", {
@@ -213,8 +356,7 @@ const Anomalies = () => {
         groupedData[label] = week.count;
       });
     }
-    
-  
+
     setLabels1(labels);
     setDataset1(Object.values(groupedData));
   };
@@ -574,11 +716,6 @@ const Anomalies = () => {
           <div className="flex-1  overflow-auto">
             <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
           </div>
-          {genTotalVA.length > 0 && (
-            <div className="flex-1 bg-[#1d2130] rounded p-5 h-full">
-              <AnomaliesLineChart value={genTotalVA} />
-            </div>
-          )}
         </div>
       </div>
 
@@ -604,6 +741,12 @@ const Anomalies = () => {
           <div className="flex  gap-3 ">
             {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
             {genL1Current.length > 0 && <AnomaliesLineChart value={genL1Current} />}
+          </div>
+        )}
+
+        {genTotalVA.length > 0 && (
+          <div className="flex-1 bg-[#1d2130] rounded p-5 h-full">
+            <AnomaliesLineChart value={genTotalVA} />
           </div>
         )}
       </div>
