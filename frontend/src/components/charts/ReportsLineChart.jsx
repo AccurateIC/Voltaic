@@ -40,7 +40,7 @@ const ReportsLineChart = () => {
           callback: (value) => `${value} Rpm`,
         },
         grid: {
-          color: "#333",
+          color: "#fff",
           lineWidth: 0.5,
         },
       },
@@ -49,7 +49,8 @@ const ReportsLineChart = () => {
           color: "#fff",
         },
         grid: {
-          display: false,
+          color: "#fff",
+          lineWidth: 0.5,
         },
       },
     },

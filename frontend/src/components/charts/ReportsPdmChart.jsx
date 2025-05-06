@@ -49,13 +49,13 @@ const ReportsPdmChart = () => {
     scales: {
       x: {
         ticks: { color: '#fff' },
-        grid: { color: '#444' },
+        grid: { color: '#888' },
       },
       y: {
         min: -4,
         max: 4,
         ticks: { color: '#fff' },
-        grid: { color: '#444' },
+        grid: { color: '#888' },
       },
     },
     plugins: {
@@ -69,13 +69,6 @@ const ReportsPdmChart = () => {
       <div className="h-full">
           <Line data={data} options={options} />
         </div>
-
-      {/* Chart Box */}
-      {/* <div className=" p-4 border-[#444]">
-        <div className="h-[calc(100%-5rem)]">
-          <Line data={data} options={options} />
-        </div>
-      </div> */}
     </div>
   );
 };
