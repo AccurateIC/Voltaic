@@ -40,7 +40,9 @@
     "recharts": "^2.15.3",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "html2canvas-pro": "^1.5.10",
+    "jspdf": "^3.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
