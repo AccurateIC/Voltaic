@@ -5,7 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const AnomaliesBarChart = ({ labels, dataset }) => {
-  console.log(dataset);
+  // console.log(dataset);
 
   const data = {
     labels: labels,
