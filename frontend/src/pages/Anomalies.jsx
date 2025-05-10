@@ -9,13 +9,13 @@ import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import { FaFilter } from "react-icons/fa";
 
-export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
+export const AnomalyStatsCard = ({ icon, title, count }) => {
   const IconComponent =
     icon === "FaExclamationTriangle" ? FaExclamationTriangle : icon === "FaCalendarWeek" ? FaCalendarWeek : FaCalendarAlt;
 
   return (
     <div
-      onClick={onClick}
+      
       className="flex flex-row items-center justify-center h-16 gap-5 p-6 rounded-lg shadow-md cursor-pointer"
       style={{
         backgroundColor: icon === "FaExclamationTriangle" ? "#ef4444" : icon === "FaCalendarWeek" ? "#60a5fa" : "#B1D5BD",
@@ -83,11 +83,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56">
-        <FaFilter className="mr-2" />
+      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-gray-600">
+        <FaFilter className="mr-2 " />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content bg-gray-900 z-[1] menu p-2 shadow rounded-box w-56">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -122,7 +122,7 @@ export const TimeRangeSelector = ({ value, onChange }) => {
     <div className="flex flex-row items-center gap-2">
       <label className="">Time Range:</label>
       <select
-        className="border border-black-300 rounded px-2 py-1 text-sm"
+        className=" w-26 h-9 rounded px-2 py-1 text-sm  bg-gray-600"
         value={value}
         onChange={(e) => onChange(e.target.value)}>
         <option value="1d">1 Day</option>
@@ -138,7 +138,7 @@ export const TimeRangeSelector1 = ({ value, onChange }) => {
     <div className="mb-4">
       <label className="mr-2 font-medium text-sm">Time Range:</label>
       <select
-        className="border border-gray-300 rounded px-2 py-1 text-sm"
+        className="border border-gray-300 rounded px-2 py-1 text-xl"
         value={value}
         onChange={(e) => onChange(e.target.value)}>
         <option value="7d">1 Week</option>
@@ -218,6 +218,7 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
 };
 
 const AnomaliesTable = ({ data, onViewClick }) => {
+  console.log(data);
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return;
     const dt = DateTime.fromISO(timestamp);
@@ -285,14 +286,16 @@ const Anomalies = () => {
   const [dataset1, setDataset1] = useState([]);
 
   const getAnomalyDataByPeriod = (notifications) => {
+    console.log(notifications);
     const now = DateTime.local();
     const todayStart = now.startOf("day");
+    console.log(todayStart);
     const weekStart = now.startOf("week");
     const monthStart = now.startOf("month");
     const data = { today: [], week: [], month: [] };
 
     notifications.forEach((notif) => {
-      const notifTime = DateTime.fromISO(notif.startedAt);
+      const notifTime = DateTime.fromISO(notif.timestamp);
       if (notifTime >= monthStart) {
         data.month.push(notif);
         if (notifTime >= weekStart) {
@@ -399,17 +402,51 @@ const Anomalies = () => {
       }
       const data = await response.json();
       setNotifications(data);
-      const anomalyStats = getAnomalyDataByPeriod(data);
-      setAnomalyData(anomalyStats);
-      setFilteredNotifications(anomalyStats.today);
+      console.log(data);
+
+      // const anomalyStats = getAnomalyDataByPeriod(data);
+      // setAnomalyData(anomalyStats);
+      // console.log(anomalyStats.week);
+      // setFilteredNotifications(anomalyStats.today);
     } catch (error) {
       console.error("Fetch error:", error);
       toast.error("Error fetching notification data");
     } finally {
       setIsLoading(false);
     }
+
+    
   };
 
+  const countFun  = async()=> {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAll`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notification data");
+      }
+      const data = await response.json();
+      const anomalies = data.filter((item) => item.isAnomaly);
+      setNotifications(data);
+      console.log(data);
+
+      const anomalyStats = getAnomalyDataByPeriod(anomalies);
+       setAnomalyData(anomalyStats);
+      // console.log(anomalyStats.week);
+       setFilteredNotifications(anomalyStats.today);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Error fetching notification data");
+    } finally {
+      setIsLoading(false);
+    }
+  }
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
@@ -464,7 +501,12 @@ const Anomalies = () => {
     } finally {
       setIsLoading(false);
     }
+
+    
   };
+  
+ 
+
 
   const fetchPropertyData = async () => {
     if (!selectedEntry) return;
@@ -543,7 +585,8 @@ const Anomalies = () => {
     else start = now.startOf("day");
 
     const filtered = notifications.filter((notif) => DateTime.fromMillis(parseInt(notif.startedAt)).toLocal() >= start);
-    setFilteredNotifications(filtered);
+    console.log(filtered);
+    // setFilteredNotifications(filtered);
   };
 
   const handleResetFilters = () => {
@@ -589,6 +632,7 @@ const Anomalies = () => {
   // Effects
   useMessageBus(TransmitChannels.NOTIFICATION, (msg) => {
     fetchNotifications();
+    countFun();
     fetchProperties();
   });
 
@@ -642,6 +686,7 @@ const Anomalies = () => {
 
   useEffect(() => {
     fetchNotifications();
+    countFun();
     fetchProperties();
   }, []);
 
@@ -656,26 +701,26 @@ const Anomalies = () => {
           icon="FaExclamationTriangle"
           title="Today's Anomaly"
           count={anomalyData.today.length}
-          onClick={() => handleAnomalyClick("today")}
+        
         />
         <AnomalyStatsCard
           icon="FaCalendarWeek"
           title="Weekly Anomaly"
           count={anomalyData.week.length}
-          onClick={() => handleAnomalyClick("week")}
+         
         />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
           title="Monthly Anomaly"
           count={anomalyData.month.length}
-          onClick={() => handleAnomalyClick("month")}
+          
         />
       </div>
 
       {/* Filters */}
-      <div className="flex items-center py-2">
-        <div className="flex gap-4 ">
-          <div className="font-semibold text-md">Properties: </div>
+      <div className="flex items-center gap-130 py-2 ">
+        <div className="flex gap-4 py-3">
+          <div className="font-semibold text-md ">Properties: </div>
           <PropertyFilter
             gensetProperties={gensetProperties}
             selectedProperties={selectedProperties}
