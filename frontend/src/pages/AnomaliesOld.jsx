@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
 import { TransmitChannels } from "../lib/TransmitChannels";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip, ResponsiveContainer } from "recharts";
+
 import { DateTime } from "luxon";
 import { PropertyBarChart } from "../components/charts/PropertyBarChart";
 import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
+import AnomalyGraphModal from "../components/charts/AnomalyGraphModal";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
@@ -149,74 +150,7 @@ export const TimeRangeSelector1 = ({ value, onChange }) => {
   );
 };
 
-const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
-  if (!isOpen) return null;
 
-  return (
-    <dialog id="my_modal_2" className="modal" open={isOpen}>
-      <div className="modal-box max-w-6xl bg-base-200">
-        <h3 className="text-base-content text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
-
-        {/* Graph Section */}
-        {graphData.length > 0 ? (
-          <LineChart width={900} height={400} data={graphData} margin={{ top: 20, right: 10, left: 120, bottom: 40 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="x"
-              domain={["dataMin", "dataMax"]}
-              tickFormatter={(tick) => DateTime.fromMillis(tick).toFormat("HH:mm:ss")}
-              label={{
-                value: "Timestamp",
-                position: "insideBottom",
-                dy: 25,
-                offset: -10,
-                style: { fill: "#fff" },
-              }}
-              stroke="#ffffff"
-            />
-            <YAxis
-              type="number"
-              domain={[0, "dataMax + 10"]}
-              label={{
-                value: `${selectedEntry?.archive?.gensetProperty?.readablePropertyName || "Property"} (${
-                  selectedEntry?.archive?.gensetProperty?.physicalQuantity?.unitSymbol || "unit"
-                })`,
-                dy: 100,
-                dx: -19,
-                angle: -90,
-                position: "insideLeft",
-                style: { fill: "#fff" },
-              }}
-              stroke="#ffffff"
-            />
-            <Tooltip
-              formatter={(value) => `Value: ${value}`}
-              labelFormatter={(label) => `Time: ${DateTime.fromMillis(label).toFormat("HH:mm:ss")}`}
-            />
-            <Legend verticalAlign="top" height={36} />
-            <Line
-              type="monotone"
-              dataKey="y"
-              stroke="#ff0000"
-              name="Anomaly Event"
-              dot={{ r: 4 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        ) : (
-          <p className="text-error text-center mt-4">No data available for graph.</p>
-        )}
-
-        {/* Close Button */}
-        <div className="flex justify-end mt-4">
-          <form method="dialog" onClick={onClose}>
-            <button className="btn">Close</button>
-          </form>
-        </div>
-      </div>
-    </dialog>
-  );
-};
 
 const AnomaliesTable = ({ data, onViewClick }) => {
   const formatTimestamp = (timestamp) => {
@@ -791,6 +725,7 @@ const Anomalies = () => {
       </div>
 
       {/* Graph Modal */}
+    
       <AnomalyGraphModal
         isOpen={showGraph}
         onClose={() => setShowGraph(false)}
