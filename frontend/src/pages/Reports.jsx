@@ -150,15 +150,15 @@ const ReportPage = () => {
   };
 
   return (
-    <div className="bg-[#303030] text-white flex flex-col">
-      <div className="top-0 z-10 bg-[#303030] p-6 shadow flex flex-wrap gap-6 items-center">
-        <select
-          value={timeFilter}
-          onChange={(e) => setTimeFilter(e.target.value)}
-          className="px-8 py-2 bg-[#FFFFFF] text-black font-semibold rounded-xl shadow-inner"
-          style={{ boxShadow: "4px 4px 10px 0px #00000040 inset" }}>
-          <option value="Week">Time Filter</option>
-        </select>
+    <div className="bg-[#303030] bg-base-200 text-white flex flex-col">
+      <div className="top-0 z-10 bg-[#303030] bg-base-200 p-6 shadow flex flex-wrap gap-6 items-center">
+        {/* <select */}
+        {/*   value={timeFilter} */}
+        {/*   onChange={(e) => setTimeFilter(e.target.value)} */}
+        {/*   className="px-8 py-2 bg-[#FFFFFF] text-black font-semibold rounded-xl shadow-inner" */}
+        {/*   style={{ boxShadow: "4px 4px 10px 0px #00000040 inset" }}> */}
+        {/*   <option value="Week">Time Filter</option> */}
+        {/* </select> */}
         <MultiSelectDropdown selected={propertyFilter} setSelected={setPropertyFilter} />
         <button
           className="ml-auto bg-[#B1D5BD] text-black px-4 py-2 font-semibold rounded-2xl"

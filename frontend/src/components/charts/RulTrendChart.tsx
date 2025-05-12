@@ -12,7 +12,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { filteredHealthIndexData } from "../filteredHealthIndexData";
-import { RulPrediction } from "../../features/RUL/types/rul.types";
+import { RulPrediction } from "../../types/rul.types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -25,7 +25,7 @@ const options: ChartOptions<"line"> = {
     },
     title: {
       display: true,
-      text: "Health Index Detrioration",
+      text: "Health Index Deterioration",
       color: "#fff",
       font: {
         size: 18,
@@ -48,19 +48,23 @@ const options: ChartOptions<"line"> = {
       borderColor: "rgba(255, 255, 255, 0.2)",
       borderWidth: 1,
       cornerRadius: 6,
-      // custom callback for tooltip content
       callbacks: {
         title: (tooltipItems) => {
-          return `Time: ${tooltipItems[0].raw.x} Hours`;
+          return tooltipItems[0].dataset.label;
         },
-
         label: (tooltipItems) => {
+          const dataset = tooltipItems.datasetIndex;
           const point = tooltipItems.raw;
-          // different labels based on dataset
-          if (tooltipItems.datasetIndex === 0) {
-            return `Health Index: ${point.y.toFixed(3)}`;
-          } else {
-            return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${point.rul.toFixed(1)} Hours`];
+
+          switch (dataset) {
+            case 0: // trend line dataset
+              return [`Health Index: ${point.y.toFixed(3)}`];
+            case 1: // current rul dataset
+              return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.currentRul)} Hours`];
+            case 2: // simulated rul dataset
+              return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`];
+            default:
+              console.log("unexpected dataset");
           }
         },
       },
@@ -93,8 +97,8 @@ const options: ChartOptions<"line"> = {
       grid: {
         color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
       },
-      min: 0,
-      max: 10000,
+      // min: 0,
+      // max: 10000,
     },
     y: {
       reverse: false,
@@ -109,8 +113,8 @@ const options: ChartOptions<"line"> = {
       grid: {
         color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
       },
-      min: 0,
-      max: 1,
+      // min: 0,
+      // max: 1,
     },
   },
 };
@@ -119,10 +123,10 @@ export function RulChart({
   currentRulPoint,
   simulatedRulPoint,
 }: {
-  currentRulPoint: RulPrediction;
-  simulatedRulPoint: RulPrediction;
+  currentRulPoint: RulPrediction[];
+  simulatedRulPoint: RulPrediction[];
 }) {
-  const data = {
+  const data: ChartOptions<"line"> = {
     datasets: [
       {
         label: "Health Index Trend",
@@ -133,17 +137,16 @@ export function RulChart({
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
         pointStyle: "circle",
-        pointHoverRadius: 5,
-        pointHitRadius: 10,
       },
       {
         label: "Current Health Index",
-        data: [
-          {
-            x: currentRulPoint?.Time_Hours,
-            y: currentRulPoint?.Predicted_Health_Index,
-          },
-        ],
+        data: currentRulPoint?.map((entry, index) => {
+          return {
+            x: entry?.Time_Hours,
+            y: entry?.Predicted_Health_Index,
+            currentRul: entry?.Remaining_Useful_Life,
+          };
+        }),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
         pointRadius: 8,
@@ -152,10 +155,13 @@ export function RulChart({
       },
       {
         label: "Simulated Health Index",
-        data: simulatedRulPoint?.map((entry, index) => ({
-          x: entry?.Time_Hours,
-          y: entry?.Predicted_Health_Index,
-        })),
+        data: simulatedRulPoint?.map((entry, index) => {
+          return {
+            x: entry?.Time_Hours,
+            y: entry?.Predicted_Health_Index,
+            simulatedRul: entry?.Remaining_Useful_Life,
+          };
+        }),
         borderColor: "rgb(162, 53, 235)",
         backgroundColor: "rgba(162, 53, 235, 0.5)",
       },

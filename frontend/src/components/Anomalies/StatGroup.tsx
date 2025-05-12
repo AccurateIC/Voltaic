@@ -1,4 +1,4 @@
-import { useArchive } from "../../shared/hooks/useArchive";
+import { useArchive } from "../../hooks/useArchive";
 import { StatCard } from "./StatCard";
 
 export const StatGroup = () => {

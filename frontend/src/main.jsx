@@ -1,5 +1,5 @@
 import { scan } from "react-scan"; // must be imported before React and React DOM
-import RUL from "./features/RUL/pages/RUL.jsx";
+import RUL from "./pages/RUL.js";
 import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";
 import Layout from "./components/Layout.jsx";
@@ -24,7 +24,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Anomalies } from "./features/Anomalies/pages/Anomalies.js";
+import { Anomalies } from "./pages/Anomalies.js";
 
 // react-scan: automatically detects performance issues in your React app
 // see: https://react-scan.com/

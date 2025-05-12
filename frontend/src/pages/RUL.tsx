@@ -1,23 +1,19 @@
 // src/features/RUL/pages/RUL.tsx
-import { cn } from "../../../lib/Utils";
+import { cn } from "../lib/Utils";
 import { useEffect, useState } from "react";
 
-import { RulChart } from "../../../components/charts/RulTrendChart";
-import { rulInputData } from "../../../components/rulData";
-import { useAuth } from "../../shared/hooks/useAuth";
+import { RulChart } from "../components/charts/RulTrendChart";
+import { rulInputData } from "../components/rulData";
+import { useAuth } from "../hooks/useAuth";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { RulPrediction } from "../types/rul.types";
-import { SimulationSidebar } from "../components/SimulationSidebar";
+import { SimulationSidebar } from "../components/RUL/SimulationSidebar";
 
 const RUL = () => {
   // state
   const [isSimulatorOpen, setIsSimulatorOpen] = useState<boolean>(false);
   const [count, setCount] = useState(0);
-  const [apiPoint, setApiPoint] = useState<RulPrediction>({
-    Time_Hours: undefined,
-    Remaining_Useful_Life: undefined,
-    Predicted_Health_Index: undefined,
-  });
+  const [apiPoint, setApiPoint] = useState<RulPrediction[]>([]);
   const [simulatedRul, setSimulatedRul] = useState<RulPrediction[]>([]);
 
   // hooks
@@ -66,7 +62,7 @@ const RUL = () => {
       getRulPrediction.mutate(newEntry, {
         onSuccess: (data) => {
           console.log("RUL data fetched successfully:", data);
-          setApiPoint(data.Future_Predictions[0]);
+          setApiPoint(data?.Future_Predictions);
           setCount((prevCount) => (prevCount + 1) % userDataArray.length);
         },
         onError: (error) => {

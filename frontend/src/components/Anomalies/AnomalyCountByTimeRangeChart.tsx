@@ -1,4 +1,4 @@
-import { useArchive } from "../../shared/hooks/useArchive";
+import { useArchive } from "../../hooks/useArchive";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,8 +21,10 @@ interface Props {
 }
 
 export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Props) => {
+  console.log(timeDuration, selectedProperties);
   const { getAnomalyStatistics } = useArchive();
   const { data: anomalyStatsData, isError, isLoading } = getAnomalyStatistics;
+  console.log("data", anomalyStatsData);
 
   if (isLoading)
     return (

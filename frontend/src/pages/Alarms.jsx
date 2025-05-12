@@ -7,7 +7,7 @@ import { cn, formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
 import { RiResetLeftLine } from "react-icons/ri";
 import "cally";
-import { useGensetProperty } from "../features/shared/hooks/useGensetProperty.ts";
+import { useGensetProperty } from "../hooks/useGensetProperty.ts";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {

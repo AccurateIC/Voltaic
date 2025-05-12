@@ -1,8 +1,8 @@
 // src/features/RUL/components/SimulationSidebar.tsx
 import { useState } from "react";
-import { useRulPrediction } from "../hooks/useRulPrediction";
-import { RulInputData, RulPrediction } from "../types/rul.types";
-import { cn } from "../../../lib/Utils";
+import { useRulPrediction } from "../../hooks/useRulPrediction";
+import { RulInputData, RulPrediction } from "../../types/rul.types";
+import { cn } from "../../lib/Utils";
 
 type SimulationProps = {
   setSimulatedRul: (rul: RulPrediction) => void;
@@ -20,6 +20,16 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
     Oil_Pressure: 1.56,
     Power_Output_kW: 2.5,
     Inverse_Fuel_Consumption: 0.03,
+    // Time_Hours: 4169,
+    // RPM_Deviation_Percentage: 0.401,
+    // Oil_Pressure: 0.532,
+    // Power_Output_kW: 0.324,
+    // Inverse_Fuel_Consumption: 0.5,
+    // Time_Hours: 818,
+    // RPM_Deviation_Percentage: 0.079,
+    // Oil_Pressure: 0.4,
+    // Power_Output_kW: 0.786,
+    // Inverse_Fuel_Consumption: 0.7,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

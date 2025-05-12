@@ -22,12 +22,16 @@ export default class PdmController {
   }
 
   async getUnresolved({}: HttpContext) {
-    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", true);
+    const pdmNotifications = await MaintenanceNotification.query()
+      .where("shouldBeDisplayed", true)
+      .orderBy("timestamp", "desc");
     return pdmNotifications;
   }
 
   async getResolved({}: HttpContext) {
-    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", false);
+    const pdmNotifications = await MaintenanceNotification.query()
+      .where("shouldBeDisplayed", false)
+      .orderBy("timestamp", "desc");
     return pdmNotifications;
   }
 
@@ -59,6 +63,7 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
+      .preload("maintenanceNotification")
       .orderBy("timestamp", "desc")
       .limit(60 * 20);
     return pdmVibrationData;
