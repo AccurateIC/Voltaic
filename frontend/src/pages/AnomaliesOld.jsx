@@ -110,7 +110,7 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
                 checked={selectedProperties.includes(property.propertyName)}
                 onChange={() => onPropertyChange(property.propertyName)}
               />
-              <span className="label-text">{property.propertyName}</span>
+              <span className="label-text">{property.readablePropertyName}</span>
             </label>
           </div>
         ))}
@@ -464,7 +464,6 @@ const Anomalies = () => {
 
       const data = await response.json();
       const anomalies = data.filter((item) => item.isAnomaly);
-
       // Extract unique gensetProperties from anomalies
       const uniqueProperties = Array.from(
         new Map(anomalies.map((item) => [item.gensetProperty.id, item.gensetProperty])).values()

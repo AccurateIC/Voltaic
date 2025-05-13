@@ -50,7 +50,7 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
       x: {
         type: "timeseries",
         position: "bottom",
-        min: DateTime.now().minus({ minutes: 5 }).toMillis(),
+        min: DateTime.now().minus({ minutes: 20 }).toMillis(),
         max: DateTime.now().toMillis(),
         title: {
           display: true,
@@ -67,11 +67,12 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
           tooltipFormat: "HH:mm:ss",
           displayFormats: {
             second: "HH:mm:ss",
-            minute: "HH:mm",
+            minute: "HH:mm:ss",
           },
         },
       },
       y: {
+        beginAtZero: true,
         title: {
           display: true,
           text: `${selectedEntry?.archive?.gensetProperty?.readablePropertyName || "Property"} (${
