@@ -19,7 +19,7 @@ import ReportsOilPressure from "../components/charts/ReportsOilPressure";
 import ReportsFuelLevel from "../components/charts/ReportsFuelLevel";
 import ReportsBarChart from "../components/charts/ReportsBarChart";
 import ReportsPieChart from "../components/charts/ReportsPieChart";
-import ReportsLineChart from "../components/charts/ReportsLineChart";
+import ReportsEngineSpeed from "../components/charts/ReportsEngineSpeed";
 import ReportsGenVoltage from "../components/charts/ReportsGenVoltage";
 import ReportsMainsVoltage from "../components/charts/ReportsMainsVoltage";
 import { FiRotateCcw } from "react-icons/fi";
@@ -36,23 +36,30 @@ const removeUnsupportedColors = (element) => {
       el.style.backgroundColor = "#ffffff";
     }
 
-    if (el.tagName === "P" && el.className.includes("text-sm")) {
+    if (el.classList.contains("pdf-only")) {
       el.setAttribute("data-original-style", el.getAttribute("style") || "");
-      el.style.backgroundColor = "#ffffff";
+      el.style.display = "block";
       el.style.color = "#000000";
-      el.style.padding = "4px 8px";
-      el.style.borderRadius = "8px";
+      el.style.backgroundColor = "transparent";
+      el.style.padding = "4px 0px";
+      el.style.borderRadius = "0px";
+      el.style.fontSize = "12px";
     }
   });
 };
 
 const restoreOriginalStyles = (element) => {
   const allElements = element.querySelectorAll("*");
+
   allElements.forEach((el) => {
     const originalStyle = el.getAttribute("data-original-style");
     if (originalStyle !== null) {
       el.setAttribute("style", originalStyle);
       el.removeAttribute("data-original-style");
+    }
+
+    if (el.classList.contains("pdf-only")) {
+      el.style.display = "none";
     }
   });
 };
@@ -61,9 +68,10 @@ const chartOptions = [
   { label: "Total Anomalies", value: "Bar" },
   { label: "Type of Anomaly", value: "Pie" },
   { label: "Engine Speed", value: "Line" },
-  { label: "Engine Oil pressure and Fuel level", value: "Area" },
-  { label: "GeneratorVoltage", value: "Voltage" },
-  { label: "Mains Voltage", value: "Voltage" },
+  { label: "Engine Oil Pressure", value: "OilPressure" },
+  { label: "Fuel Level", value: "FuelLevel" },
+  { label: "Generator Voltage", value: "GenVoltage" },
+  { label: "Mains Voltage", value: "MainsVoltage" },
   { label: "RUL", value: "RUL" },
   { label: "PDM", value: "PDM" },
 ];
@@ -72,8 +80,10 @@ const MultiSelectDropdown = ({ selected, setSelected }) => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const toggleOption = (value) => {
-    setSelected((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+  const toggleSelection = (value) => {
+    setSelected((prevSelected) =>
+      prevSelected.includes(value) ? prevSelected.filter((v) => v !== value) : [...prevSelected, value]
+    );
   };
 
   useEffect(() => {
@@ -92,7 +102,9 @@ const MultiSelectDropdown = ({ selected, setSelected }) => {
         onClick={() => setOpen((prev) => !prev)}
         className="px-8 py-2 bg-white text-black font-semibold rounded-xl shadow-inner min-w-[200px]"
         style={{ boxShadow: "4px 4px 10px 0px #00000040 inset" }}>
-        {selected.length > 0 ? `${selected.length} selected` : "Select Properties"}
+        {selected.length > 0
+          ? selected.map((val) => chartOptions.find((o) => o.value === val)?.label).join(", ")
+          : "Select Property"}
       </button>
 
       {open && (
@@ -102,8 +114,7 @@ const MultiSelectDropdown = ({ selected, setSelected }) => {
               <input
                 type="checkbox"
                 checked={selected.includes(option.value)}
-                onChange={() => toggleOption(option.value)}
-                className="form-checkbox accent-green-500"
+                onChange={() => toggleSelection(option.value)}
               />
               <span>{option.label}</span>
             </label>
@@ -115,8 +126,8 @@ const MultiSelectDropdown = ({ selected, setSelected }) => {
 };
 
 const ReportPage = () => {
-  const [timeFilter, setTimeFilter] = useState("Week");
-  const [propertyFilter, setPropertyFilter] = useState([]);
+  const [timeFilter, setTimeFilter] = useState("Weekly");
+  const [propertyFilter, setPropertyFilter] = useState("");
   const showAll = propertyFilter.length === 0;
 
   const chartWrapperRef = useRef(null);
@@ -135,6 +146,7 @@ const ReportPage = () => {
       backgroundColor: "#ffffff",
       windowWidth: document.body.scrollWidth,
       windowHeight: chartWrapper.scrollHeight,
+      // foreignObjectRendering: true, // not supported in html2canvas-pro
     });
 
     chartWrapper.style.height = originalStyle;
@@ -146,6 +158,10 @@ const ReportPage = () => {
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(0, 0, 0);
+
     pdf.save("charts.pdf");
   };
 
@@ -157,8 +173,11 @@ const ReportPage = () => {
           onChange={(e) => setTimeFilter(e.target.value)}
           className="px-8 py-2 bg-[#FFFFFF] text-black font-semibold rounded-xl shadow-inner"
           style={{ boxShadow: "4px 4px 10px 0px #00000040 inset" }}>
-          <option value="Week">Time Filter</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Yearly">Yearly</option>
         </select>
+
         <MultiSelectDropdown selected={propertyFilter} setSelected={setPropertyFilter} />
         <button
           className="ml-auto bg-[#B1D5BD] text-black px-4 py-2 font-semibold rounded-2xl"
@@ -182,35 +201,43 @@ const ReportPage = () => {
           {(showAll || propertyFilter.includes("Bar")) && (
             <div>
               <ReportsBarChart timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">Shows total anomalies detected during the selected period.</p>
+              <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
+                Shows total anomalies detected during the selected period.
+              </p>
             </div>
           )}
           {(showAll || propertyFilter.includes("Pie")) && (
             <div>
               <ReportsPieChart timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">Displays distribution of anomaly types detected.</p>
+              <p className="text-sm text-gray-300 mt-2 pdf-only hidden">Displays distribution of anomaly types detected.</p>
             </div>
           )}
           {(showAll || propertyFilter.includes("Line")) && (
             <div>
-              <ReportsLineChart timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">Shows variations in engine speed over time.</p>
+              <ReportsEngineSpeed timeFilter={timeFilter} />
+              <p className="text-sm text-gray-300 mt-2 pdf-only hidden">Shows variations in engine speed over time.</p>
             </div>
           )}
         </div>
 
-        {(showAll || propertyFilter.includes("Area")) && (
+        {(showAll || propertyFilter.includes("OilPressure") || propertyFilter.includes("FuelLevel")) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <ReportsOilPressure timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">
-                Displays variations in engine oil pressure to monitor lubrication system health.
-              </p>
-            </div>
-            <div>
-              <ReportsFuelLevel timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">Tracks fuel level trends for efficiency and refueling insights.</p>
-            </div>
+            {(showAll || propertyFilter.includes("OilPressure")) && (
+              <div>
+                <ReportsOilPressure timeFilter={timeFilter} />
+                <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
+                  Displays variations in engine oil pressure to monitor lubrication system health.
+                </p>
+              </div>
+            )}
+            {(showAll || propertyFilter.includes("FuelLevel")) && (
+              <div>
+                <ReportsFuelLevel timeFilter={timeFilter} />
+                <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
+                  Tracks fuel level trends for efficiency and refueling insights.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -218,13 +245,13 @@ const ReportPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <ReportsGenVoltage timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">
+              <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                 Generator voltage trends over the selected time period. Helps detect power fluctuations and generator health.
               </p>
             </div>
             <div>
               <ReportsMainsVoltage timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-2">
+              <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                 Mains voltage monitoring for identifying grid stability and potential outages.
               </p>
             </div>
@@ -235,13 +262,17 @@ const ReportPage = () => {
           {(showAll || propertyFilter.includes("RUL")) && (
             <div className="min-h-[400px]">
               <ReportsRulChart timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-6">Estimates Remaining Useful Life based on sensor analytics.</p>
+              <p className="text-sm text-gray-300 mt-6 pdf-only hidden">
+                Estimates Remaining Useful Life based on sensor analytics.
+              </p>
             </div>
           )}
           {(showAll || propertyFilter.includes("PDM")) && (
             <div className="min-h-[400px]">
               <ReportsPdmChart timeFilter={timeFilter} />
-              <p className="text-sm text-gray-300 mt-6">Displays Predictive Maintenance trends and alerts.</p>
+              <p className="text-sm text-gray-300 mt-6 pdf-only hidden">
+                Displays Predictive Maintenance trends and alerts.
+              </p>
             </div>
           )}
         </div>

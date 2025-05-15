@@ -34,11 +34,23 @@ const ReportsRulChart = () => {
     maintainAspectRatio: false,
     scales: {
       x: {
+        title: {
+          display: true,
+          text: "Time in Hours",
+          color: "#fff",
+          font: { size: 14 },
+        },
         reverse: true,
         ticks: { color: '#fff' },
         grid: { color: '#888' },
       },
       y: {
+        title: {
+          display: true,
+          text: "Time",
+          color: "#fff",
+          font: { size: 14 },
+        },        
         min: 0.1,
         max: 1,
         ticks: { color: '#fff' },
@@ -51,7 +63,7 @@ const ReportsRulChart = () => {
   };
 
   return (
-    <div className="bg-[#2f2f2f] rounded-2xl shadow-lg p-4 w-full h-[400px]">
+    <div className="bg-[#2f2f2f] rounded-2xl shadow-lg p-4 w-full h-[450px]">
       <h2 className="text-white font-semibold text-md mb-2">RUL</h2>
       <div className="h-full">
         <Line data={data} options={options} />

@@ -39,10 +39,22 @@ const ReportsPdmChart = () => {
     maintainAspectRatio: false,
     scales: {
       x: {
+        title: {
+          display: true,
+          text: "Time",
+          color: "#fff",
+          font: { size: 14 },
+        },
         ticks: { color: "#fff" },
         grid: { color: "#888" },
       },
       y: {
+        title: {
+          display: true,
+          text: "Time",
+          color: "#fff",
+          font: { size: 14 },
+        },
         min: -4,
         max: 4,
         ticks: { color: "#fff" },
@@ -55,7 +67,7 @@ const ReportsPdmChart = () => {
   };
 
   return (
-    <div className="w-full h-[400px] bg-[#2f2f2f] rounded-2xl shadow-lg p-4">
+    <div className="w-full h-[450px] bg-[#2f2f2f] rounded-2xl shadow-lg p-4">
       <h2 className="text-white font-semibold text-md mb-2">PDM</h2>
       <div className="h-full">
         <Line data={data} options={options} />

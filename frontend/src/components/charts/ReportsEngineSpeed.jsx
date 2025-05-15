@@ -1,10 +1,22 @@
 import React, { useMemo } from "react";
 import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import ChartBox from "./Chartbox";
 
-const ReportsOilPressure = ({ timeFilter }) => {
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
+
+const ReportsEngineSpeed = ({ timeFilter }) => {
   const data = useMemo(() => {
     let labels = [];
+
     if (timeFilter === "Monthly") {
       labels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
     } else if (timeFilter === "Yearly") {
@@ -13,33 +25,42 @@ const ReportsOilPressure = ({ timeFilter }) => {
       labels = Array.from({ length: 7 }, (_, i) => `Day ${i + 1}`);
     }
 
-    const oilData = labels.map(() => (Math.random() * (5 - 2) + 2).toFixed(2));
+    const rpmData = labels.map(() => Math.floor(Math.random() * (2000 - 200) + 200));
 
     return {
       labels,
       datasets: [
         {
-          label: "Oil Pressure",
-          data: oilData,
-          borderColor: "rgba(120, 199, 173, 1)",
-          backgroundColor: "#9BE4B4B2",
+          label: "RPM",
+          data: rpmData,
+          borderColor: "#00d9ff",
+          backgroundColor: "#00d9ff",
           tension: 0.1,
-          fill: true,
-          pointBackgroundColor: "rgba(173, 255, 201, 1)",
           pointRadius: 4,
-          pointHoverRadius: 6,
         },
       ],
     };
   }, [timeFilter]);
 
   const options = {
-    responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: { display: false },
     },
     scales: {
+      y: {
+        title: {
+          display: true,
+          text: "Speed in RPM",
+          color: "#fff",
+          font: { size: 14 },
+        },
+        ticks: {
+          color: "#fff",
+          callback: (value) => `${value} RPM`,
+        },
+        grid: { color: "#fff", lineWidth: 0.5 },
+      },
       x: {
         title: {
           display: true,
@@ -47,34 +68,19 @@ const ReportsOilPressure = ({ timeFilter }) => {
           color: "#fff",
           font: { size: 14 },
         },
-        ticks: { color: "#fff", font: { size: 12 } },
-        grid: { color: "#888", lineWidth: 0.3 },
-      },
-      y: {
-        title: {
-          display: true,
-          text: "Oil Pressure (Bar)",
-          color: "#fff",
-          font: { size: 14 },
-        },
-        min: 1,
-        max: 5,
-        ticks: {
-          color: "#fff",
-          font: { size: 12 },
-          stepSize: 1,
-          callback: (value) => `${value} Bar`,
-        },
-        grid: { color: "#888", lineWidth: 0.3 },
+        ticks: { color: "#fff" },
+        grid: { color: "#fff", lineWidth: 0.5 },
       },
     },
   };
 
   return (
-    <ChartBox title="ENGINE OIL PRESSURE">
-      <Line data={data} options={options} height={180} />
+    <ChartBox title="ENGINE SPEED">
+      <div className="h-[400px] w-[480px]">
+        <Line data={data} options={options} />
+      </div>
     </ChartBox>
   );
 };
 
-export default ReportsOilPressure;
+export default ReportsEngineSpeed;

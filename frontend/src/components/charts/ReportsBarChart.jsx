@@ -3,14 +3,20 @@ import { Bar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import ChartBox from "./Chartbox";
 
-const ReportsBarChart = () => {
+const ReportsBarChart = ({ timeFilter }) => {
+  const chartData = {
+    Weekly: [103, 371, 583],
+    Monthly: [300, 1150, 1620],
+    Yearly: [960, 4330, 6820],
+  };
+
   const data = {
-    labels: ["Month", "Week", "Day"],
+    labels: ["Weekly", "Monthly", "Yearly"],
     datasets: [
       {
         label: "",
-        data: [583, 371, 103],
-        backgroundColor: ["#9BE4B4", "#5EDFFB", "#FFF72D"],
+        data: chartData[timeFilter],
+        backgroundColor: ["#FFF72D", "#5EDFFB", "#9BE4B4"],
         borderRadius: 4,
         barThickness: 80,
       },
@@ -22,10 +28,10 @@ const ReportsBarChart = () => {
     plugins: {
       legend: { display: false },
       datalabels: {
-        color: "#fff",
-        anchor: "end",
-        align: "end",
-        font: { size: 14 },
+        color: "#000",
+        anchor: "center",
+        align: "center",
+        font: { size: 14, weight: "bold" },
         formatter: (value) => value,
       },
     },
@@ -46,23 +52,23 @@ const ReportsBarChart = () => {
   };
 
   return (
-    <ChartBox title="TOTAL ANOMALIES">
+    <ChartBox title={`TOTAL ANOMALIES`}>
       <div className="flex justify-center gap-6 mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-4 h-4 bg-[#9BE4B4] rounded-sm"></span>
-          <span className="text-white text-sm font-semibold">Month</span>
+          <span className="w-4 h-4 bg-[#FFF72D] rounded-sm"></span>
+          <span className="text-white text-sm font-semibold">Weekly</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-4 h-4 bg-[#5EDFFB] rounded-sm"></span>
-          <span className="text-white text-sm font-semibold">Week</span>
+          <span className="text-white text-sm font-semibold">Monthly</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-4 h-4 bg-[#FFF72D] rounded-sm"></span>
-          <span className="text-white text-sm font-semibold">Day</span>
+          <span className="w-4 h-4 bg-[#9BE4B4] rounded-sm"></span>
+          <span className="text-white text-sm font-semibold">Yearly</span>
         </div>
       </div>
 
-      <div className="h-[300px] w-full">
+      <div className="h-[350px] w-full">
         <Bar data={data} options={options} plugins={[ChartDataLabels]} />
       </div>
     </ChartBox>
