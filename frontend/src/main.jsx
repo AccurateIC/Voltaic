@@ -8,7 +8,6 @@ import { LiveData } from "./pages/LiveData.jsx";
 import Maintenance from "./pages/Maintenance";
 import { Generator } from "./pages/Generator.jsx";
 import { Mains } from "./pages/Mains.jsx";
-import AlarmsBackup from "./pages/AlarmsBackup.jsx";
 import Reports from "./pages/Reports.jsx";
 import Alarms from "./pages/Alarms.jsx";
 import Archive from "./pages/Archive.jsx";
@@ -25,6 +24,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Anomalies } from "./pages/Anomalies.js";
+import { ReportsNew } from "./pages/ReportsNew";
 
 // react-scan: automatically detects performance issues in your React app
 // see: https://react-scan.com/
@@ -53,8 +53,7 @@ createRoot(document.getElementById("root")).render(
             <Route path="live-data" element={<LiveData />} />
             <Route path="anomalies-old" element={<AnomaliesOld />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="alarms-backup" element={<AlarmsBackup />} />
-            <Route path="alarms" element={<Alarms />} />
+            <Route path="reports-new" element={<ReportsNew />} />
             <Route path="alarms" element={<Alarms />} />
             <Route path="predictive-maintenance" element={<Maintenance />} />
             <Route path="rul" element={<RUL />} />

@@ -149,9 +149,9 @@ export function RulChart({
         }),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
-        pointRadius: 8,
-        pointStyle: "circle",
-        showLine: false,
+        // pointRadius: 8,
+        // pointStyle: "circle",
+        showLine: true,
       },
       {
         label: "Simulated Health Index",

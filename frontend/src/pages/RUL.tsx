@@ -114,7 +114,7 @@ const RUL = () => {
             "rounded hover:bg-base-100 hover:text-base-content transition-all duration-200 shadow"
           )}>
           <div className="text-2xl font-semibold">Remaining Useful Life</div>
-          <div className="text-xl">{Math.round(apiPoint.Remaining_Useful_Life * 100) / 100 || 15} hours</div>
+          <div className="text-xl">{apiPoint[0]?.Remaining_Useful_Life || "N/A"} hours</div>
         </div>
       </div>
     </div>
