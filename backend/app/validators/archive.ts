@@ -1,4 +1,5 @@
 import vine from "@vinejs/vine";
+import { timezoneRule } from "#validator-rules/timezone";
 
 const archiveRowSchema = vine.object({
   property: vine //
@@ -43,5 +44,13 @@ export const getPaginatedDataValidator = vine.compile(
     to: vine.date({ formats: ["iso8601"] }).optional(),
     propertyNames: vine.array(vine.string().exists({ table: "genset_properties", column: "property_name" })).optional(),
     isAnomaly: vine.boolean().optional(),
+  })
+);
+
+export const getAnomalyStatisticsValidator = vine.compile(
+  vine.object({
+    headers: vine.object({
+      timezone: vine.string().use(timezoneRule()),
+    }),
   })
 );

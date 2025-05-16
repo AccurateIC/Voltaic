@@ -2,7 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "url";
-import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn } from "node:child_process";
 import Archive from "#models/archive";
 
 import { DateTime } from "luxon";
@@ -95,10 +95,16 @@ const compilePdf = (tmpFile: string): Promise<Buffer> => {
 };
 
 export default class ReportsController {
+  async getData(): Promise<Archive[]> {
+    const archiveData = Archive.all();
+    return archiveData as Promise<Archive[]>;
+  }
   async generateDummy({ request, response }: HttpContext) {
     // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
+      const reusableData = await this.getData();
+      console.log(reusableData);
       // add data from db to typst doc
       const query = Archive.query();
 
@@ -122,8 +128,8 @@ export default class ReportsController {
       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toMillis());
       const ys = propertyData.map((value, index) => value.propertyValue);
 
-      console.log(xs);
-      console.log(ys);
+      // console.log(xs);
+      // console.log(ys);
 
       const generateTypstBarChart = (xs: string[], ys: number[]) => {
         return `
@@ -137,7 +143,7 @@ export default class ReportsController {
       };
 
       const typstDoc = typstBase + generateTypstBarChart(xs, ys);
-      console.log(typstDoc);
+      // console.log(typstDoc);
 
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
