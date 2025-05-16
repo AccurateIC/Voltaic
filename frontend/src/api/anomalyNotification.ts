@@ -1,6 +1,6 @@
 // src/features/shared/api/anomaly.ts
 
-import { AnomalyNotification } from "../../shared/types/anomaly.types.ts";
+import { AnomalyNotification } from "../types/anomaly.types.ts";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 

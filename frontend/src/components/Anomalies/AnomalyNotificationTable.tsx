@@ -1,4 +1,4 @@
-import { useAnomalyNotification } from "../../shared/hooks/useAnomalyNotification";
+import { useAnomalyNotification } from "../../hooks/useAnomalyNotification";
 
 export const AnomalyNotificationTable = () => {
   const { getAllAnomalies } = useAnomalyNotification();

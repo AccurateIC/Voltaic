@@ -1,13 +1,6 @@
-import React from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-} from 'chart.js';
+import React from "react";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip } from "chart.js";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip);
 
@@ -16,11 +9,9 @@ const ReportsRulChart = () => {
     labels: Array.from({ length: 100 }, (_, i) => (i + 1) * 100),
     datasets: [
       {
-        label: 'Health Index Trend',
-        data: Array.from({ length: 100 }, (_, i) =>
-          1 / Math.log(i + 2) + Math.random() * 0.01
-        ).reverse(),
-        borderColor: 'yellow',
+        label: "Health Index Trend",
+        data: Array.from({ length: 100 }, (_, i) => 1 / Math.log(i + 2) + Math.random() * 0.01).reverse(),
+        borderColor: "yellow",
         borderWidth: 2,
         pointRadius: 0,
         fill: false,
@@ -41,8 +32,8 @@ const ReportsRulChart = () => {
           font: { size: 14 },
         },
         reverse: true,
-        ticks: { color: '#fff' },
-        grid: { color: '#888' },
+        ticks: { color: "#fff" },
+        grid: { color: "#888" },
       },
       y: {
         title: {
@@ -53,8 +44,8 @@ const ReportsRulChart = () => {
         },        
         min: 0.1,
         max: 1,
-        ticks: { color: '#fff' },
-        grid: { color: '#888' },
+        ticks: { color: "#fff" },
+        grid: { color: "#888" },
       },
     },
     plugins: {

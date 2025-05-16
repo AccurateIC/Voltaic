@@ -9,7 +9,10 @@ import { AnomaliesBarChart } from "../components/charts/AnomaliesBarChart";
 import { FaExclamationTriangle, FaCalendarWeek, FaCalendarAlt } from "react-icons/fa";
 import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
-
+import { formatTimestamp } from "../lib/Utils";
+// import AnomalyGraphModal from "./AnomalyComponents/AnomalyGraphModal";
+// import AnomaliesTable from "./AnomalyComponents/AnomalyTable";
+// import PropertyFilter from "./AnomalyComponents/PropertyFilter";
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
     icon === "FaExclamationTriangle" ? FaExclamationTriangle : icon === "FaCalendarWeek" ? FaCalendarWeek : FaCalendarAlt;
@@ -32,51 +35,15 @@ export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   );
 };
 
-export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
+export const TimeRangeSelector = ({ value, onChange }) => {
   return (
-    <div className=" flex justify-between items-center gap-4 p-2 rounded-lg">
-      <div className="flex flex-row">
-        <div className="flex items-center gap-4">
-          <label className="text-white">From Date:</label>
-          <input
-            type="date"
-            value={filters.fromDate}
-            onChange={(e) => onFilterChange("fromDate", e.target.value)}
-            className="p-2 rounded bg-base-200 text-base-content border"
-          />
-
-          <label className="text-white">To Date:</label>
-          <input
-            type="date"
-            value={filters.toDate}
-            onChange={(e) => onFilterChange("toDate", e.target.value)}
-            className="p-2 rounded bg-base-200 text-base-content border"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="text-white">From Time:</label>
-          <input
-            type="time"
-            value={filters.fromTime}
-            onChange={(e) => onFilterChange("fromTime", e.target.value)}
-            className="p-2 rounded bg-base-200 text-base-content border"
-          />
-
-          <label className="text-white">To Time:</label>
-          <input
-            type="time"
-            value={filters.toTime}
-            onChange={(e) => onFilterChange("toTime", e.target.value)}
-            className="p-2 rounded bg-base-200 text-base-content border"
-          />
-        </div>
-      </div>
-
-      <div>
-        <button onClick={onReset} className="btn btn-neutral">
-          Reset
-        </button>
-      </div>
+    <div className="flex flex-row items-center gap-2">
+      <label className="">Time Range:</label>
+      <select className="rounded px-2 py-1 text-sm bg-base-100" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="1d">1 Day</option>
+        <option value="1w">1 Week</option>
+        <option value="1m">1 Month</option>
+      </select>
     </div>
   );
 };
@@ -84,11 +51,11 @@ export const DateRangeFilter = ({ filters, onFilterChange, onReset }) => {
 export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropertyChange, onToggleSelectAll }) => {
   return (
     <div className="dropdown dropdown-bottom">
-      <div tabIndex={0} role="button" className="btn btn-neutral w-56 bg-base-200">
+      <div tabIndex={0} role="button" className="btn w-56">
         <FaFilter className="mr-2" />
         {selectedProperties.length > 0 ? `${selectedProperties.length} Property(s) selected` : "Select Properties"}
       </div>
-      <div tabIndex={0} className="dropdown-content bg-base-200 z-[1] menu p-2 shadow rounded-box w-56">
+      <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
         <div className="form-control">
           <label className="label cursor-pointer">
             <input
@@ -118,44 +85,13 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
   );
 };
 
-export const TimeRangeSelector = ({ value, onChange }) => {
-  return (
-    <div className="flex flex-row items-center gap-2">
-      <label className="">Time Range:</label>
-      <select
-        className="border border-black-300 rounded px-2 py-1 text-sm bg-base-200"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}>
-        <option value="1d">1 Day</option>
-        <option value="1w">1 Week</option>
-        <option value="1m">1 Month</option>
-      </select>
-    </div>
-  );
-};
-
-export const TimeRangeSelector1 = ({ value, onChange }) => {
-  return (
-    <div className="mb-4">
-      <label className="mr-2 font-medium text-sm">Time Range:</label>
-      <select
-        className="border border-gray-300 rounded px-2 py-1 text-sm"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}>
-        <option value="7d">1 Week</option>
-        <option value="30d">1 Month</option>
-      </select>
-    </div>
-  );
-};
-
 const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
   if (!isOpen) return null;
 
   return (
     <dialog id="my_modal_2" className="modal" open={isOpen}>
       <div className="modal-box max-w-6xl bg-base-200">
-        <h3 className="text-base-content text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
+        <h3 className="text-white text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
 
         {/* Graph Section */}
         {graphData.length > 0 ? (
@@ -204,7 +140,7 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
             />
           </LineChart>
         ) : (
-          <p className="text-error text-center mt-4">No data available for graph.</p>
+          <p className="text-red-500 text-center mt-4">No data available for graph.</p>
         )}
 
         {/* Close Button */}
@@ -219,14 +155,8 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData, selectedEntry }) => {
 };
 
 const AnomaliesTable = ({ data, onViewClick }) => {
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return;
-    const dt = DateTime.fromISO(timestamp);
-    return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
-  };
-
   return (
-    <div className="overflow-y-auto w-full bg-base-100 text-base-content p-0 rounded-box rounded-lg shadow-lg h-full">
+    <div className="overflow-y-auto w-full h-[77vh] p-0 rounded-box rounded-lg shadow-lg bg-base-200">
       <table className="table table-pin-rows">
         <thead className="sticky top-0">
           <tr className="bg-base-100 text-base-content">
@@ -247,7 +177,7 @@ const AnomaliesTable = ({ data, onViewClick }) => {
               <td>{entry.message}</td>
               <td>{formatTimestamp(entry.finishedAt) || "N/A"}</td>
               <td>
-                <button className="btn btn-primary" onClick={() => onViewClick(entry)}>
+                <button className="btn btn-outline" onClick={() => onViewClick(entry)}>
                   View
                 </button>
               </td>
@@ -353,23 +283,25 @@ const Anomalies = () => {
       groupedData[dateKey] = count;
       labels.push(dateKey);
     } else if (range === "1w") {
+      // Calculate the Monday of the current week.
+      // In JavaScript, getDay() returns 0 for Sunday, 1 for Monday, etc.
       const startOfWeek = new Date(today);
-      const day = startOfWeek.getDay(); // 0 (Sun) to 6 (Sat)
-      const diff = day === 0 ? -6 : 1 - day; // If Sunday, go back 6 days; else, go to Monday
+      const day = startOfWeek.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
       startOfWeek.setDate(today.getDate() + diff);
 
+      // Create an entry for each day of the week (Monday to Sunday)
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-
-        // ✅ Skip future dates
-        if (date > today) break;
 
         const dateKey = date.toISOString().split("T")[0];
         groupedData[dateKey] = 0;
         labels.push(dateKey);
       }
 
+      // Count anomalies for the days of the current week.
+      // Even if anomalies fall on a future day within this week, they are counted.
       filteredAnomalies.forEach((item) => {
         const dateKey = new Date(item.timestamp).toISOString().split("T")[0];
         if (groupedData.hasOwnProperty(dateKey)) {
@@ -377,33 +309,50 @@ const Anomalies = () => {
         }
       });
     } else if (range === "1m") {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      // Group by calendar week within the current month (Monday - Sunday)
+      // 1. Determine the first and last day of the current month.
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+      const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
       const weeks = [];
+      let current = new Date(firstDayOfMonth);
 
-      let currentStart = new Date(startOfMonth);
+      // Adjust current to the Monday of its week.
+      // In JavaScript, getDay() returns 0 for Sunday. We want weeks starting Monday.
+      const dayOfWeek = current.getDay();
+      const offsetToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      current.setDate(current.getDate() + offsetToMonday);
 
-      while (currentStart <= today) {
-        const currentEnd = new Date(currentStart);
-        currentEnd.setDate(currentStart.getDate() + 6);
+      // Loop until we pass the last day of the month.
+      while (current <= lastDayOfMonth) {
+        // Define week boundaries
+        const weekStart = new Date(current);
+        const weekEnd = new Date(current);
+        weekEnd.setDate(weekEnd.getDate() + 6);
 
-        // Prevent currentEnd from going beyond today
-        if (currentEnd > today) {
-          currentEnd.setTime(today.getTime());
-        }
+        // Clip the boundaries to lie within the current month
+        const clippedStart = weekStart < firstDayOfMonth ? new Date(firstDayOfMonth) : weekStart;
+        const clippedEnd = weekEnd > lastDayOfMonth ? new Date(lastDayOfMonth) : weekEnd;
 
         weeks.push({
-          start: new Date(currentStart),
-          end: new Date(currentEnd),
+          start: clippedStart,
+          end: clippedEnd,
           count: 0,
         });
 
         // Move to next week
-        currentStart.setDate(currentStart.getDate() + 7);
+        current.setDate(current.getDate() + 7);
       }
 
       // Count anomalies in each week range
       filteredAnomalies.forEach((item) => {
         const timestamp = new Date(item.timestamp);
+
+        // Only consider anomalies within the current month.
+        if (timestamp < firstDayOfMonth || timestamp > lastDayOfMonth) return;
+
         for (let i = 0; i < weeks.length; i++) {
           if (timestamp >= weeks[i].start && timestamp <= weeks[i].end) {
             weeks[i].count++;
@@ -412,12 +361,15 @@ const Anomalies = () => {
         }
       });
 
-      // Format labels and fill groupedData
+      // Format labels and populate groupedData
       weeks.forEach((week) => {
         const label = `${week.start.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
-        })} - ${week.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+        })} - ${week.end.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })}`;
         labels.push(label);
         groupedData[label] = week.count;
       });
@@ -738,16 +690,16 @@ const Anomalies = () => {
 
   return (
     <div
-      className={` bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
+      className={`bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
         showGraph ? "backdrop-blur-sm" : ""
       }`}>
       {/* Stats Cards */}
       <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
-        <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomalies" count={anomalyData.today.length} />
-        <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomalies" count={anomalyData.week.length} />
+        <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />
+        <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomaly" count={anomalyData.week.length} />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
-          title="Monthly Anomalies"
+          title="Monthly Anomaly"
           count={anomalyData.month.length}
           onClick={() => handleAnomalyClick("month")}
         />
@@ -782,11 +734,6 @@ const Anomalies = () => {
           <div className="flex-1  overflow-auto">
             <AnomaliesTable data={filteredNotifications} onViewClick={handleViewClick} />
           </div>
-          {genTotalVA.length > 0 && (
-            <div className="flex-1 bg-base-200 rounded p-5 h-full">
-              <AnomaliesLineChart value={genTotalVA} />
-            </div>
-          )}
         </div>
       </div>
 
@@ -797,21 +744,31 @@ const Anomalies = () => {
         graphData={graphData}
         selectedEntry={selectedEntry}
       />
-      <div className="flex flex-col  gap-3 ">
-        {/* Row 1 */}
-        {(lineEngFuleLavel.length > 0 || engSpeedDisplay.length > 0) && (
-          <div className="flex mt-5 gap-3  ">
-            {/* Row 1 */}
-            {lineEngFuleLavel.length > 0 && <AnomaliesLineChart value={lineEngFuleLavel} />}
-            {engSpeedDisplay.length > 0 && <AnomaliesLineChart value={engSpeedDisplay} />}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 mt-5">
+        {lineEngFuleLavel.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={lineEngFuleLavel} />
           </div>
         )}
 
-        {/* Row 2 */}
-        {(engOilPress.length > 0 || genL1Current.length > 0) && (
-          <div className="flex  gap-3 ">
-            {engOilPress.length > 0 && <AnomaliesLineChart value={engOilPress} />}
-            {genL1Current.length > 0 && <AnomaliesLineChart value={genL1Current} />}
+        {engSpeedDisplay.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={engSpeedDisplay} />
+          </div>
+        )}
+        {engOilPress.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={engOilPress} />
+          </div>
+        )}
+        {genL1Current.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={genL1Current} />
+          </div>
+        )}
+        {genTotalVA.length > 0 && (
+          <div className="w-full">
+            <AnomaliesLineChart value={genTotalVA} />
           </div>
         )}
       </div>

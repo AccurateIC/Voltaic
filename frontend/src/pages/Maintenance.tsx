@@ -100,12 +100,40 @@ const StatusCard = ({ maintenanceNotification, show }) => {
 };
 
 const PdmGraph = ({ actualPdmData, forecastedPdmData, maintenanceNotificationTimestamps }) => {
+  console.log("forecastedPdmData", forecastedPdmData);
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { position: "top" },
-      tooltip: {},
+      tooltip: {
+        titleFont: { size: 14 },
+        bodyFont: { size: 14 },
+        callbacks: {
+          title(tooltipItems) {
+            return tooltipItems[0].dataset.label;
+          },
+
+          label: (tooltipItem) => {
+            const dataPoint = tooltipItem.raw;
+            const pointTime = DateTime.fromISO(dataPoint.x).toUTC().toISO();
+            const isMaintenance = maintenanceNotificationTimestamps.includes(pointTime);
+
+            const defaultLabel = `Value ${dataPoint.y} g units`;
+
+            const label = [
+              `Value: ${dataPoint.y} g units`,
+              `Predicted Dominant Frequency: ${dataPoint.predictedDominantFrequency} (Normal Frequency: 0.1Hz ± 0.005Hz)`,
+              `Predicted Dominant Amplitude: ${dataPoint.predictedDominantAmplitude} (Normal Amplitude: -2 to +2 g units)`,
+            ];
+
+            if (isMaintenance) {
+              return label;
+            }
+            return defaultLabel;
+          },
+        },
+      },
       title: {
         display: true,
         text: "Vibration Sensor Data",
@@ -120,15 +148,6 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData, maintenanceNotificationTim
       x: {
         type: "time",
         position: "bottom",
-        // time: {
-        //   unit: "minute", // or "hour", "day", etc.
-        //   tooltipFormat: "yyyy-MM-dd HH:mm:ss",
-        //   displayFormats: {
-        //     minute: "HH:mm",
-        //     hour: "MMM d, HH:mm",
-        //     day: "MMM d",
-        //   },
-        // },
         title: {
           display: true,
           text: "Timestamp",
@@ -178,7 +197,9 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData, maintenanceNotificationTim
           // x: new Date(item.timestamp).getTime(),
           x: DateTime.fromISO(item.timestamp),
           y: item.value,
-          maintenanceId: item.maintenanceNotificationId,
+          maintenanceId: item?.maintenanceNotificationId,
+          predictedDominantFrequency: item?.maintenanceNotification?.predictedDominantFrequency,
+          predictedDominantAmplitude: item?.maintenanceNotification?.predictedDominantAmplitude,
         })),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
@@ -343,6 +364,7 @@ const Maintenance = () => {
       }
 
       const forecastedData = await forecastedResponse.json();
+      // alert(JSON.stringify(forecastedData, null, 2));
       setForecastedPdmData(forecastedData);
     } catch (err) {
       console.error(err);

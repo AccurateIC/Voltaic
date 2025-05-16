@@ -1,6 +1,6 @@
 // src/features/shared/api/auth.ts
 
-import { User } from "../../shared/types/auth.types";
+import { User } from "../types/auth.types";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 

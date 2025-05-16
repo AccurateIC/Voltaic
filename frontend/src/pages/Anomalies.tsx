@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useArchive } from "../../shared/hooks/useArchive";
-import { AnomalyCountByPropertyChart } from "../components/AnomalyCountByPropertyChart";
-import { AnomalyNotificationTable } from "../components/AnomalyNotificationTable";
-import { StatGroup } from "../components/StatGroup";
+import { useArchive } from "../hooks/useArchive";
+import { AnomalyCountByPropertyChart } from "../components/Anomalies/AnomalyCountByPropertyChart";
+import { AnomalyNotificationTable } from "../components/Anomalies/AnomalyNotificationTable";
+import { StatGroup } from "../components/Anomalies/StatGroup";
 import { FaFilter } from "react-icons/fa6";
-import { useGensetProperty } from "../../shared/hooks/useGensetProperty";
-import { AnomalyCountByTimeChart } from "../components/AnomalyCountByTimeRangeChart";
+import { useGensetProperty } from "../hooks/useGensetProperty";
+import { AnomalyCountByTimeChart } from "../components/Anomalies/AnomalyCountByTimeRangeChart";
 
 // types
 type TimeRange = "*" | "1d" | "1w" | "1m";

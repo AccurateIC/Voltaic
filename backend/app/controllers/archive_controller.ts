@@ -1,5 +1,6 @@
 import {
   createArchiveValidator,
+  getAnomalyStatisticsValidator,
   getArchiveDataBetweenValidator,
   getArchiveDataPropertyBetweenValidator,
   getPaginatedDataValidator,
@@ -12,6 +13,7 @@ import transmit from "@adonisjs/transmit/services/main";
 import db from "@adonisjs/lucid/services/db";
 import PhysicalQuantity from "#models/physical_quantity";
 import { DateTime } from "luxon";
+import { ArchiveService } from "#services/archive_service";
 
 export default class ArchiveController {
   async getAll({}: HttpContext) {
@@ -108,118 +110,10 @@ export default class ArchiveController {
     return propertyData;
   }
 
-  async getLatest({ response }: HttpContext) {
-    const latestArchiveEntry = await Archive.query().orderBy("timestamp", "desc").limit(1);
-
-    // when no entries exist, return a 404 with a clear message
-    if (!latestArchiveEntry.length) {
-      return response.status(404).json({
-        message: "No archive entries found",
-        data: [],
-      });
-    }
-    const latestTimestamp = latestArchiveEntry[0].timestamp;
-    const latestArchiveData = await Archive.query()
-      .where("timestamp", latestTimestamp)
-      .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
-
-    return latestArchiveData;
+  // TODO: maybe handle case when no entries are present in the database
+  async getLatest({}: HttpContext) {
+    return ArchiveService.getLatestEntries();
   }
-
-  // async create({ request }: HttpContext) {
-  //   const payload = await request.validateUsing(createArchiveValidator);
-  //   // const timestamp = DateTime.fromISO(payload.timestamp.toISOString()).toUTC().set({ millisecond: 0 });
-  //   const timestamp = payload.timestamp;
-  //   const data = payload.data;
-  //   const archiveData = [];
-  //   const notificationData = [];
-
-  //   // apparently normal for loop is considered "bug-prone" xD
-  //   // see: https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/docs/rules/no-for-loop.md
-  //   for (const [index, element] of data.entries()) {
-  //     console.log(index, element);
-  //     const gensetProperty = await GensetProperty.findByOrFail("propertyName", `${element.property}`);
-  //     archiveData.push({
-  //       timestamp: timestamp,
-  //       gensetPropertyId: gensetProperty.id,
-  //       propertyValue: element.value,
-  //       isAnomaly: element.is_anomaly,
-  //     });
-  //     // TODO: create notification here based on the `is_anomaly` field & save them to notifications table
-  //   }
-  //   await Archive.createMany(archiveData);
-
-  //   // const insertedArchiveData = await Archive.findManyBy("timestamp", timestamp);
-  //   const insertedArchiveData = await Archive.query().where("timestamp", timestamp).preload("gensetProperty");
-
-  //   for (const [index, element] of insertedArchiveData.entries()) {
-  //     if (element.isAnomaly) {
-  //       console.log(element.isAnomaly);
-  //       // fetch existing notification data
-  //       const notificationDataFromDb = await Notification.findManyBy("finished_at", null);
-  //       // current property being considered
-  //       const currentProperty = element.gensetProperty.propertyName;
-
-  //       // loop over all notifications where finished_at is null
-  //       // and find if any notification co-relates to the current genset property being evaluated
-  //       for (const [index, notification] of notificationDataFromDb.entries()) {
-  //         // related archive id:
-  //         console.log(notification.archiveId);
-  //         // fetch details about that archive entry
-  //         const relatedArchiveData = await Archive.query().where("id", notification.archiveId).preload("gensetProperty"); // TODO: see if we can fetch just one element instead of an array
-  //         // check if current property being considered matches any existing notification
-  //         if (relatedArchiveData[0].gensetProperty.propertyName === currentProperty) {
-  //           // if an ongoing notification exists for the give propertyName
-  //           // then do nothing
-  //           continue;
-  //         } else {
-  //           // this means that no such notification exists in the notification table where property being considered matches
-  //           // && finished at is null
-  //           // this means that new notification has started for propertyName
-  //           // hence a new entry has to be created in the notifications table
-  //           Notification.create({
-  //             summary: `Anomaly detected for ${element.gensetProperty.propertyName}`,
-  //             message: `Property value ${element.propertyValue} is anomalous`,
-  //             archiveId: element.id,
-  //             shouldBeDisplayed: true,
-  //             notificationTypeId: 3, // 1 = info, 2 = warning, 3 = alert
-  //             startedAt: timestamp,
-  //             finishedAt: null,
-  //           });
-  //         }
-  //       }
-  //       // check if prev element related to the archive_id exists
-  //     } else {
-  //       // if the current archive entry is not an anomaly, check if the it has any history in the notification table
-  //       const notificationDataFromDb = await Notification.findManyBy("finished_at", null);
-  //       const currentProperty = element.gensetProperty.propertyName;
-  //       for (const [index, notification] of notificationDataFromDb.entries()) {
-  //         console.log(notification.archiveId);
-  //         const relatedArchiveData = await Archive.query().where("id", notification.archiveId).preload("gensetProperty"); // TODO: see if we can fetch just one element instead of an array
-  //         if (relatedArchiveData[0].gensetProperty.propertyName === currentProperty) {
-  //           // up until this entry, the property was anomalous
-  //           // but now the anomaly has ended and property is now normal
-  //           // thus notification has ended => `finished_at` should be updated
-  //           const notif = await Notification.findOrFail(notification.id);
-  //           notif.finishedAt = timestamp;
-  //           await notif.save();
-  //         } else {
-  //           // if no notification for the property exists where finished at is null,
-  //           // it means that either all prev notifications for this property have been completed
-  //           // or it means that the property was never anomalous up until this point in time
-  //           //
-  //           // in any case, we do not have to do any thing?
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   // create a server sent event to notify frontend that new telemetry data has been inserted into the database
-  //   // the event is broadcasted to the `channel` denoted by the first parameter
-  //   transmit.broadcast("archive", { message: "new entry created" });
-
-  //   return data;
-  // }
 
   async create({ request }: HttpContext) {
     const payload = await request.validateUsing(createArchiveValidator);
@@ -342,8 +236,52 @@ export default class ArchiveController {
     return trxResult;
   }
 
-  async getAnomalyStatistics({ request, response }: HttpContext) {
-    // Get timezone from request (fallback to 'UTC')
+  /*
+   * in input i need the time range for which i need to return counts
+   *
+   * so input may be like: {
+   *  timeDuration: "" // options: "*" | "1d" | "1w" | "1m";
+   *  selectedProperties: [] // array of properties to be included in count
+   * }
+   *
+   * case *:
+   * i need to return counts grouped by month
+   * so count in Dec 2024, Jan 2025, Feb 2025
+   *
+   * case 1d:
+   * this is simple
+   * i need to count anomalies today for selected properties
+   *
+   * case 1w:
+   * i need to find all the dates in current week
+   * for instance may 7 2025 is a wednesday
+   * so days in current week are:
+   * mon: 5/5/2025
+   * tue: 6/5/2025
+   * wed: 7/5/2025
+   * thu: 8/5/2025
+   * fri: 9/5/2025
+   * sat: 10/5/2025
+   * sun: 11/5/2025
+   *
+   * so we need to return counts grouped by these dates in the user's timezone
+   * and also filtered by selected properties
+   *
+   *
+   * case 1m:
+   * i need to find all weeks in the month
+   * so
+   * week 1: thu 1 may to sun 11 may
+   * week 2: mon 12 may to sun 18 may
+   * week 3: mon 19 may to sun 25 may
+   * week 4: mon 26 may to sat 31 may
+   *
+   * and i need to return counts for these dates in the user's timezone
+   * and also filter by properties
+   *
+   * */
+  async getAnomalyCountsByTimeRange({ request, response }: HttpContext) {
+    // Get timezone from request
     const timezone = request.header("timezone");
     if (!timezone) {
       return response.status(400).json({
@@ -370,96 +308,90 @@ export default class ArchiveController {
       });
     }
 
-    // Get current time in user's timezone
-    const now = DateTime.now().setZone(timezone);
+    const requestBody = request.body();
+    const timeDuration = requestBody?.timeDuration;
+    const selectedProperties = requestBody?.selectedProperties;
+  }
 
-    // Get start of today in user's timezone, then convert to UTC for database query
-    const todayStart = now.startOf("day").toUTC();
+  async getAnomalyStatistics({ request, response }: HttpContext) {
+    const data = request.validateUsing(getAnomalyStatisticsValidator);
+    // Get timezone from request
+    const timezone = request.header("timezone");
+    if (!timezone) {
+      return response.status(400).json({
+        error: "Timezone header is required",
+        message: "Please provide a valid IANA timezone identifier in the request headers",
+      });
+    }
 
-    // Get start of current week in user's timezone, then convert to UTC
-    const currentWeekStart = now.startOf("week").toUTC();
-
-    // Get start of current month in user's timezone, then convert to UTC
-    const currentMonthStart = now.startOf("month").toUTC();
+    // Validate timezone using Luxon
+    try {
+      const now = DateTime.now().setZone(timezone);
+      if (!now.isValid) {
+        return response.status(400).json({
+          error: "Invalid timezone",
+          message: `'${timezone}' is not a valid IANA timezone identifier`,
+          details: now.invalidReason,
+        });
+      }
+    } catch (error) {
+      return response.status(400).json({
+        error: "Invalid timezone",
+        message: `'${timezone}' is not a valid IANA timezone identifier`,
+        details: error.message,
+      });
+    }
 
     // Get property-based stats with preloaded relationships
-    const propertyStats = await Archive.query()
-      .where("isAnomaly", 1)
-      .preload("gensetProperty")
-      .select("gensetPropertyId")
-      .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
-      .groupBy("gensetPropertyId");
+    const propertyStats = (
+      await Archive.query()
+        .where("isAnomaly", 1)
+        .preload("gensetProperty")
+        .select("gensetPropertyId")
+        .groupBy("gensetPropertyId")
+    ).map((value) => ({
+      readablePropertyName: value.gensetProperty.readablePropertyName,
+      gensetPropertyId: value.gensetPropertyId,
+      propertyName: value.gensetProperty.propertyName,
+    }));
+
+    console.log(propertyStats);
 
     // Get counts for each time period by property
     const propertyStatsByTime = await Promise.all(
-      propertyStats.map(async (stat) => {
-        const totalCount = await Archive.query()
-          .where("isAnomaly", true)
-          .where("gensetPropertyId", stat.gensetPropertyId)
-          .count("* as count");
-
-        const todayCount = await Archive.query()
-          .where("isAnomaly", true)
-          .where("gensetPropertyId", stat.gensetPropertyId)
-          .where("timestamp", ">=", todayStart.toSQL({ includeOffset: true }))
-          .count("* as count");
-
-        const weekCount = await Archive.query()
-          .where("isAnomaly", 1)
-          .where("gensetPropertyId", stat.gensetPropertyId)
-          .where("timestamp", ">=", currentWeekStart.toSQL({ includeOffset: true }))
-          .count("* as count");
-
-        const monthCount = await Archive.query()
-          .where("isAnomaly", 1)
-          .where("gensetPropertyId", stat.gensetPropertyId)
-          .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
-          .count("* as count");
+      propertyStats.map(async (entry) => {
+        const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day", [entry.propertyName]);
+        const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week", [entry.propertyName]);
+        const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month", [entry.propertyName]);
+        const totalCount = await ArchiveService.getAnomalyCount(undefined, undefined, [entry.propertyName]);
 
         return {
-          propertyName: stat.gensetProperty.propertyName,
-          readablePropertyName: stat.gensetProperty.readablePropertyName,
-          counts: {
-            today: Number(todayCount[0]?.$extras.count) || 0,
-            week: Number(weekCount[0]?.$extras.count) || 0,
-            month: Number(monthCount[0]?.$extras.count) || 0,
-            total: Number(totalCount[0]?.$extras.count) || 0,
-          },
+          ...entry,
+          today: todaysTotal,
+          week: weekTotal,
+          month: monthTotal,
+          total: totalCount,
         };
       })
     );
 
-    // Get overall counts
-    const totalCount = await Archive.query() //
-      .where("isAnomaly", true)
-      .count("* as count");
-
-    const todayTotal = await Archive.query()
-      .where("isAnomaly", 1)
-      .where("timestamp", ">=", todayStart.toSQL({ includeOffset: true }))
-      .count("* as count");
-
-    const weekTotal = await Archive.query()
-      .where("isAnomaly", 1)
-      .where("timestamp", ">=", currentWeekStart.toSQL({ includeOffset: true }))
-      .count("* as count");
-
-    const monthTotal = await Archive.query()
-      .where("isAnomaly", 1)
-      .where("timestamp", ">=", currentMonthStart.toSQL({ includeOffset: true }))
-      .count("* as count");
+    const totalCount = await ArchiveService.getAnomalyCount();
+    const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day");
+    const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week");
+    const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
 
     return {
       timezone, // Include timezone in response for clarity
       overall: {
-        today: Number(todayTotal[0]?.$extras.count) || 0,
-        week: Number(weekTotal[0]?.$extras.count) || 0,
-        month: Number(monthTotal[0]?.$extras.count) || 0,
-        total: Number(totalCount[0]?.$extras.count) || 0,
+        today: todaysTotal,
+        week: weekTotal,
+        month: monthTotal,
+        total: totalCount,
       },
       byProperty: propertyStatsByTime,
     };
   }
+
   async delete({ response }: HttpContext) {
     response.status(400).send({ message: "Not Implemented" });
   }

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
 import transmitConnection from "../lib/TransmitConnection";
 import { cn, formatTimestamp } from "../lib/Utils";
-import { useAnomalyNotification } from "../features/shared/hooks/useAnomalyNotification";
+import { useAnomalyNotification } from "../hooks/useAnomalyNotification";
 import { LiaConnectdevelop } from "react-icons/lia";
 
 const primaryTab = {
@@ -400,7 +400,7 @@ const Navbar = () => {
                                   <span>{pdmNotif.predictedDominantFrequency} Hz</span>
                                 </p>
                                 <p className="w-full">
-                                  <span className="font-semibold">Normal Frequency:</span> 0.1 Hz
+                                  <span className="font-semibold">Normal Frequency:</span> 0.1 ± 0.005 Hz
                                 </p>
                                 <p>
                                   <span className="font-semibold">Predicted Dominant Amplitude:</span>

@@ -180,3 +180,10 @@ router
     router.delete("delete", "#controllers/pdm_controller.delete");
   })
   .prefix("pdm");
+
+// Reports
+router
+  .group(() => {
+    router.get("generateDummy", "#controllers/reports_controller.generateDummy");
+  })
+  .prefix("reports");
