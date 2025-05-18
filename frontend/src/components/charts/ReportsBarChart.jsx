@@ -1,21 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import ChartBox from "./Chartbox";
 
-const ReportsBarChart = ({ timeFilter }) => {
-  const chartData = {
-    Weekly: [103, 371, 583],
-    Monthly: [300, 1150, 1620],
-    Yearly: [960, 4330, 6820],
+const ReportsBarChart = () => {
+  const [chartDataFromAPI, setChartDataFromAPI] = useState({
+    week: 0,
+    month: 0,
+    total: 0,
+  });
+
+  const fetchAnomalyStatistics = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAnomalyStatistics`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch data");
+      const data = await res.json();
+  
+      setChartDataFromAPI({
+        week: data.overall.week,
+        month: data.overall.month,
+        total: data.overall.total,
+      });
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
   };
+  
+
+  useEffect(() => {
+    fetchAnomalyStatistics();
+  }, []);
 
   const data = {
     labels: ["Weekly", "Monthly", "Yearly"],
     datasets: [
       {
-        label: "",
-        data: chartData[timeFilter],
+        label: "Anomalies",
+        data: [chartDataFromAPI.week, chartDataFromAPI.month, chartDataFromAPI.total],
         backgroundColor: ["#FFF72D", "#5EDFFB", "#9BE4B4"],
         borderRadius: 4,
         barThickness: 80,

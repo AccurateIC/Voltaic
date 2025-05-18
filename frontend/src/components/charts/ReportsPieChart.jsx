@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,10 +10,11 @@ import ChartBox from "./Chartbox";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Generate a color palette for each segment
 const generateColors = (count) => {
   const baseColors = [
     "#4DD0E1", "#FFEB3B", "#A5D6A7", "#F48FB1", "#CE93D8",
-    "#FFAB91", "#81D4FA", "#FFD54F", "#C5E1A5", "#90CAF9"
+    "#FFAB91", "#81D4FA", "#FFD54F", "#C5E1A5", "#90CAF9",
   ];
   if (count <= baseColors.length) return baseColors.slice(0, count);
   while (baseColors.length < count) {
@@ -24,21 +25,42 @@ const generateColors = (count) => {
 };
 
 const ReportsPieChart = () => {
-  const anomalyData = {
-    "Oil Pressure": 483,
-    "Fuel": 1823,
-    "Engine Speed": 670,
-    "Tempreture": 315,
-    "Generator Voltage": 725,
-    "Mains Voltage": 1000,
-    "Generator Current": 600,
+  const [anomalyData, setAnomalyData] = useState({});
 
+  const fetchAnomalyData = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getAnomalyStatistics`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch anomaly data");
+
+      const result = await res.json();
+      const dataFromBackend = result.byProperty || [];
+
+      const formattedData = {};
+      dataFromBackend.forEach((item) => {
+        formattedData[item.readablePropertyName] = item.week || 0;
+      });
+
+      setAnomalyData(formattedData);
+    } catch (error) {
+      console.error("Error fetching pie chart data:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchAnomalyData();
+  }, []);
 
   const labels = Object.keys(anomalyData);
   const dataValues = Object.values(anomalyData);
   const backgroundColors = generateColors(labels.length);
-  const borderColors = backgroundColors.map(() => "rgba(0, 0, 0, 0.2)");
 
   const pieData = {
     labels,
@@ -47,7 +69,7 @@ const ReportsPieChart = () => {
         label: "Anomaly Type",
         data: dataValues,
         backgroundColor: backgroundColors,
-        borderColor: borderColors,
+        borderColor: backgroundColors.map(() => "rgba(0, 0, 0, 0.2)"),
         borderWidth: 6,
         hoverOffset: 10,
       },
