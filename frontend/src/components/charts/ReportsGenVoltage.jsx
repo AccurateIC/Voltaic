@@ -1,122 +1,231 @@
-import React, { useMemo } from "react";
+// import React from "react";
+// import { Line } from "react-chartjs-2";
+// import {
+//   Chart as ChartJS,
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+//   TimeSeriesScale,
+// } from "chart.js";
+// import "chartjs-adapter-luxon";
+// import { DateTime } from "luxon";
+
+// ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+// export const ReportsGenVoltage = ({ voltageData }) => {
+//   const options = {
+//     responsive: true,
+//     maintainAspectRatio: false,
+//     plugins: {
+//       legend: { position: "top", align: "center" },
+//       tooltip: {},
+//       title: {
+//         display: true,
+//         text: "Generator Voltage Monitor",
+//         color: "rgba(255, 255, 255, 0.8)",
+//         font: { size: 18, weight: "normal" },
+//       },
+//     },
+//     scales: {
+//       x: {
+//         type: "timeseries",
+//         position: "bottom",
+//         title: {
+//           display: true,
+//           text: "Time",
+//           color: "#fff",
+//           font: { size: 18, weight: "normal" },
+//         },
+//         min: DateTime.now().minus({ hours: 1 }).toISO(),
+//         max: DateTime.now().toISO(),
+//         ticks: { color: "#fff", maxRotation: 0, minRotation: 0 },
+//       grid: { color: "#888", lineWidth: 0.5 },
+//       },
+//       y: {
+//         type: "linear",
+//         title: {
+//           display: true,
+//           text: "Voltage (Volts)",
+//           color: "#fff",
+//           font: { size: 18, weight: "normal" },
+//         },
+//         min: 0,
+//         max: 300,
+//        ticks: { color: "#fff", maxRotation: 0, minRotation: 0 },
+//       grid: { color: "#888", lineWidth: 0.5 },
+//       },
+//     },
+//   };
+
+//   const l1Data = voltageData.map((item) => ({ x: item.timestamp, y: item.L1 }));
+//   const l2Data = voltageData.map((item) => ({ x: item.timestamp, y: item.L2 }));
+//   const l3Data = voltageData.map((item) => ({ x: item.timestamp, y: item.L3 }));
+
+//   const data = {
+//     datasets: [
+//       {
+//         fill: false,
+//         label: "L1",
+//         data: l1Data,
+//         borderColor: "rgba(82, 120, 209, 1)",
+//         backgroundColor: "rgba(82, 120, 209, 0.5)",
+//         pointStyle: "circle",
+//         pointRadius: 3,
+//         pointHoverRadius: 5,
+//         pointHitRadius: 10,
+//         borderWidth: 2,
+//       },
+//       {
+//         fill: false,
+//         label: "L2",
+//         data: l2Data,
+//         borderColor: "rgba(209, 120, 82, 1)",
+//         backgroundColor: "rgba(209, 120, 82, 0.5)",
+//         pointStyle: "circle",
+//         pointRadius: 3,
+//         pointHoverRadius: 5,
+//         pointHitRadius: 10,
+//         borderWidth: 2,
+//       },
+//       {
+//         fill: false,
+//         label: "L3",
+//         data: l3Data,
+//         borderColor: "rgba(82, 209, 120, 1)",
+//         backgroundColor: "rgba(82, 209, 120, 0.5)",
+//         pointStyle: "circle",
+//         pointRadius: 3,
+//         pointHoverRadius: 5,
+//         pointHitRadius: 10,
+//         borderWidth: 2,
+//       },
+//     ],
+//   };
+
+//   return <Line options={options} data={data} />;
+// };
+
+// export default ReportsGenVoltage;
+
+import React from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
   CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
+  TimeSeriesScale,
 } from "chart.js";
+import "chartjs-adapter-luxon";
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend);
+ChartJS.register(
+  TimeSeriesScale,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-const backgroundPlugin = {
-  id: "customBackground",
-  beforeDraw: (chart) => {
-    const ctx = chart.ctx;
-    ctx.save();
-    ctx.globalCompositeOperation = "destination-over";
-    ctx.fillStyle = "#303030";
-    ctx.fillRect(0, 0, chart.width, chart.height);
-    ctx.restore();
-  },
-};
+const ReportsGenVoltage = ({ voltageData = [] }) => {
+  const sortedData = [...voltageData].sort(
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+  );
 
-const chartOptions = {
-  maintainAspectRatio: false,
-  responsive: true,
-  plugins: {
-    title: {
-      display: true,
-      color: "#fff",
-      font: { size: 14, weight: "bold" },
-    },
-    legend: {
-      labels: { color: "#fff", font: { size: 12 } },
-    },
-    customBackground: backgroundPlugin,
-  },
-  scales: {
-    x: {
+  const l1Data = sortedData.map((item) => ({ x: item.timestamp, y: item.L1 }));
+  const l2Data = sortedData.map((item) => ({ x: item.timestamp, y: item.L2 }));
+  const l3Data = sortedData.map((item) => ({ x: item.timestamp, y: item.L3 }));
+
+  const data = {
+    datasets: [
+      {
+        label: "L1",
+        data: l1Data,
+        borderColor: "rgba(82, 120, 209, 1)",
+        backgroundColor: "rgba(82, 120, 209, 0.5)",
+        fill: false,
+        pointRadius: 3,
+        borderWidth: 2,
+      },
+      {
+        label: "L2",
+        data: l2Data,
+        borderColor: "rgba(209, 120, 82, 1)",
+        backgroundColor: "rgba(209, 120, 82, 0.5)",
+        fill: false,
+        pointRadius: 3,
+        borderWidth: 2,
+      },
+      {
+        label: "L3",
+        data: l3Data,
+        borderColor: "rgba(82, 209, 120, 1)",
+        backgroundColor: "rgba(82, 209, 120, 0.5)",
+        fill: false,
+        pointRadius: 3,
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: { color: "#fff" },
+      },
       title: {
         display: true,
-        text: "Time",
-        color: "#fff",
-        font: { size: 14 },
+        text: "Generator Voltage Monitor",
+        color: "rgba(255, 255, 255, 0.8)",
+        font: { size: 18 },
       },
-      ticks: { color: "#fff", maxRotation: 0, minRotation: 0 },
-      grid: { color: "#888", lineWidth: 0.5 },
     },
-    y: {
-      title: {
-        display: true,
-        text: "Voltage (V)",
-        color: "#fff",
-        font: { size: 14 },
+    scales: {
+      x: {
+        type: "timeseries",
+        title: {
+          display: true,
+          text: "Time",
+          color: "#fff",
+          font: { size: 14 },
+        },
+        ticks: { color: "#fff", maxRotation: 0, minRotation: 0 },
+        grid: { color: "#888", lineWidth: 0.5 },
       },
-      min: 240,
-      max: 244,
-      ticks: {
-        color: "#fff",
-        stepSize: 1,
-        callback: (value) => `${value} V`,
+      y: {
+        type: "linear",
+        min: 0,
+        max: 300,
+        title: {
+          display: true,
+          text: "Voltage (Volts)",
+          color: "#fff",
+          font: { size: 14 },
+        },
+        ticks: { color: "#fff" },
+        grid: { color: "#888", lineWidth: 0.5 },
       },
-      grid: { color: "#888", lineWidth: 0.5 },
     },
-  },
-  plugins: [backgroundPlugin],
-};
-
-const ReportsGenVoltage = ({ timeFilter }) => {
-  const voltage = useMemo(() => {
-    const getLabels = (count) => Array.from({ length: count }, (_, i) => `Day ${i + 1}`);
-    const getDataSlice = (data, count) => data.slice(-count);
-
-    const dayCount =
-      timeFilter === "Weekly" ? 7 :
-      timeFilter === "Monthly" ? 30 :
-      timeFilter === "Yearly" ? 365 : 7;
-
-    return {
-      labels: getLabels(dayCount),
-      datasets: [
-        {
-          label: "L1",
-          data: getDataSlice(new Array(365).fill(0).map(() => +(241.5 + Math.random() * 1.5).toFixed(2)), dayCount),
-          borderColor: "#9BE4B4",
-          tension: 0.3,
-          pointRadius: 0,
-        },
-        {
-          label: "L2",
-          data: getDataSlice(new Array(365).fill(0).map(() => +(241.6 + Math.random() * 1.5).toFixed(2)), dayCount),
-          borderColor: "#5EDFFB",
-          tension: 0.3,
-          pointRadius: 0,
-        },
-        {
-          label: "L3",
-          data: getDataSlice(new Array(365).fill(0).map(() => +(241.7 + Math.random() * 1.5).toFixed(2)), dayCount),
-          borderColor: "#FFF627",
-          tension: 0.3,
-          pointRadius: 0,
-        },
-      ],
-    };
-  }, [timeFilter]);
+  };
 
   return (
-    <div className="col-span-1">
-      <span className="text-white text-sm font-semibold mb-2">GENERATOR VOLTAGE ({timeFilter})</span>
-      <div className="aspect-video bg-[#303030] rounded-xl p-2">
-        <Line data={voltage} options={chartOptions} />
-      </div>
-      <p className="text-sm text-gray-300 mt-2 hidden pdf-only">Generator voltage trends across L1, L2, and L3 phases.</p>
+    <div style={{ height: "450px" }}>
+      <Line options={options} data={data} />
     </div>
   );
-};            
+};
 
 export default ReportsGenVoltage;

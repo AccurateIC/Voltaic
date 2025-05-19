@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
@@ -129,8 +130,181 @@ const ReportPage = () => {
   const [timeFilter, setTimeFilter] = useState("Weekly");
   const [propertyFilter, setPropertyFilter] = useState("");
   const showAll = propertyFilter.length === 0;
-
   const chartWrapperRef = useRef(null);
+
+  const [fuelLevelData, setFuelLevelData] = useState([]);
+  const [oilPressureData, setOilPressureData] = useState([]);
+  const [engineSpeedData, setEngineSpeedData] = useState([]);
+  const [voltageData, setVoltageData] = useState([]);
+  const [mainVoltageData, setMainVoltageData] = useState([]);
+  const [stats, setStats] = useState({
+    l1Voltage: [],
+    l2Voltage: [],
+    l3Voltage: [],
+    L1mainsVolts: [],
+    L2mainsVolts: [],
+    L3mainsVolts: [],
+  });
+
+  const propertyFetch = async () => {
+  
+
+    const from = "2025-05-19T04:42:27.233Z";
+    const to = "2025-05-19T12:59:58.685Z";
+    try {
+      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch filtered data");
+      }
+
+      const data = await response.json();
+
+      const engineFuelLevel = data
+        .filter((item) => item.gensetProperty.propertyName === "engFuelLevelUnits")
+        .map((item) => ({
+          timestamp: item.timestamp,
+          propertyValue: item.propertyValue,
+        }));
+
+      const engOilPress = data
+        .filter((item) => item.gensetProperty.propertyName === "engOilPress")
+        .map((item) => ({
+          timestamp: item.timestamp,
+          propertyValue: item.propertyValue,
+        }));
+
+      const engineSpeed = data
+        .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
+        .map((item) => ({
+          timestamp: item.timestamp,
+          propertyValue: item.propertyValue,
+        }));
+
+      const l1Voltage = data
+        .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      const l2Voltage = data
+        .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      const l3Voltage = data
+        .filter((item) => item.gensetProperty.propertyName === "genL3Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      const L1mainsVolts = data
+        .filter((item) => item.gensetProperty.propertyName === "mainsL1Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      const L2mainsVolts = data
+        .filter((item) => item.gensetProperty.propertyName === "mainsL2Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      const L3mainsVolts = data
+        .filter((item) => item.gensetProperty.propertyName === "mainsL3Volts")
+        .map((item) => ({
+          propertyValue: item.propertyValue,
+          timestamp: item.timestamp,
+          isAnomaly: item.isAnomaly,
+        }));
+
+      setStats({
+        l1Voltage,
+        l2Voltage,
+        l3Voltage,
+        L1mainsVolts,
+        L2mainsVolts,
+        L3mainsVolts,
+      });
+      setEngineSpeedData(engineSpeed);
+      setFuelLevelData(engineFuelLevel);
+      setOilPressureData(engOilPress);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    console.log(stats.l1Voltage);
+    if (
+      Array.isArray(stats.l1Voltage) &&
+      stats.l1Voltage.length > 0 &&
+      Array.isArray(stats.l2Voltage) &&
+      stats.l2Voltage.length > 0 &&
+      Array.isArray(stats.l3Voltage) &&
+      stats.l3Voltage.length > 0
+    ) {
+      const newDataVoltage = stats.l1Voltage.map((l1Item) => {
+        const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
+        const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
+
+        return {
+          timestamp: l1Item.timestamp,
+          L1: l1Item.propertyValue,
+          L2: l2Item ? l2Item.propertyValue : null,
+          L3: l3Item ? l3Item.propertyValue : null,
+        };
+      });
+      setVoltageData(newDataVoltage);
+      console.log(newDataVoltage);
+    }
+
+    console.log(stats.l1VoltL1mainsVoltsage);
+    if (
+      Array.isArray(stats.L1mainsVolts) &&
+      stats.L1mainsVolts.length > 0 &&
+      Array.isArray(stats.l2Voltage) &&
+      stats.l2Voltage.length > 0 &&
+      Array.isArray(stats.l3Voltage) &&
+      stats.l3Voltage.length > 0
+    ) {
+      const newMainsDataVoltage = stats.L1mainsVolts.map((l1Item) => {
+        const l2Item = stats.L2mainsVolts.find((item) => item.timestamp === l1Item.timestamp);
+        const l3Item = stats.L3mainsVolts.find((item) => item.timestamp === l1Item.timestamp);
+
+        return {
+          timestamp: l1Item.timestamp,
+          L1: l1Item.propertyValue,
+          L2: l2Item ? l2Item.propertyValue : null,
+          L3: l3Item ? l3Item.propertyValue : null,
+        };
+      });
+      setMainVoltageData(newMainsDataVoltage);
+      console.log(newMainsDataVoltage);
+    }
+
+
+  }, [stats.l1Voltage, stats.l2Voltage, stats.l3Voltage, stats.L1mainsVolts, stats.L2mainsVolts, stats.L3mainsVolts ]);
+
+  useEffect(() => {
+    console.log(voltageData);
+    propertyFetch();
+  }, []);
 
   const exportChartsToPDF = async () => {
     const chartWrapper = chartWrapperRef.current;
@@ -184,7 +358,8 @@ const ReportPage = () => {
           style={{
             boxShadow: "-1px -4px 4px 0px #00000080 inset, 1px 4px 4px 0px #FFFFFFBF inset",
           }}
-          onClick={exportChartsToPDF}>
+          onClick={exportChartsToPDF}
+        >
           Export to PDF
         </button>
         <button
@@ -214,7 +389,7 @@ const ReportPage = () => {
           )}
           {(showAll || propertyFilter.includes("Line")) && (
             <div>
-              <ReportsEngineSpeed timeFilter={timeFilter} />
+              <ReportsEngineSpeed engineSpeedData={engineSpeedData} />
               <p className="text-sm text-gray-300 mt-2 pdf-only hidden">Shows variations in engine speed over time.</p>
             </div>
           )}
@@ -224,7 +399,7 @@ const ReportPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(showAll || propertyFilter.includes("OilPressure")) && (
               <div>
-                <ReportsOilPressure timeFilter={timeFilter} />
+                <ReportsOilPressure oilPressureData={oilPressureData} />
                 <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                   Displays variations in engine oil pressure to monitor lubrication system health.
                 </p>
@@ -232,7 +407,7 @@ const ReportPage = () => {
             )}
             {(showAll || propertyFilter.includes("FuelLevel")) && (
               <div>
-                <ReportsFuelLevel timeFilter={timeFilter} />
+                <ReportsFuelLevel fuelLevelData={fuelLevelData} />
                 <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                   Tracks fuel level trends for efficiency and refueling insights.
                 </p>
@@ -244,13 +419,13 @@ const ReportPage = () => {
         {(showAll || propertyFilter.includes("Voltage")) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <ReportsGenVoltage timeFilter={timeFilter} />
+              <ReportsGenVoltage voltageData={voltageData} />
               <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                 Generator voltage trends over the selected time period. Helps detect power fluctuations and generator health.
               </p>
             </div>
             <div>
-              <ReportsMainsVoltage timeFilter={timeFilter} />
+              <ReportsMainsVoltage mainVoltageData={mainVoltageData} />
               <p className="text-sm text-gray-300 mt-2 pdf-only hidden">
                 Mains voltage monitoring for identifying grid stability and potential outages.
               </p>

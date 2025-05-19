@@ -1,80 +1,114 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
-import ChartBox from "./Chartbox";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TimeSeriesScale,
+} from "chart.js";
+import "chartjs-adapter-luxon";
 
-const ReportsOilPressure = ({ timeFilter }) => {
-  const data = useMemo(() => {
-    let labels = [];
-    if (timeFilter === "Monthly") {
-      labels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
-    } else if (timeFilter === "Yearly") {
-      labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    } else {
-      labels = Array.from({ length: 7 }, (_, i) => `Day ${i + 1}`);
-    }
+// Register ChartJS components
+ChartJS.register(
+  TimeSeriesScale,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-    const oilData = labels.map(() => (Math.random() * (5 - 2) + 2).toFixed(2));
+const EngineFuelLevelLineChart = ({ oilPressureData }) => {
+  const chartData = (oilPressureData || [])
+    .map((item) => ({
+      x: item.timestamp,
+      y: item.propertyValue,
+    }))
+    .sort((a, b) => new Date(a.x) - new Date(b.x));
 
-    return {
-      labels,
-      datasets: [
-        {
-          label: "Oil Pressure",
-          data: oilData,
-          borderColor: "rgba(120, 199, 173, 1)",
-          backgroundColor: "#9BE4B4B2",
-          tension: 0.1,
-          fill: true,
-          pointBackgroundColor: "rgba(173, 255, 201, 1)",
-          pointRadius: 4,
-          pointHoverRadius: 6,
-        },
-      ],
-    };
-  }, [timeFilter]);
+  const data = {
+    datasets: [
+      {
+        label: "Fuel Level",
+        data: chartData,
+        fill: true,
+        borderColor: "rgba(82, 120, 209, 1)",
+        backgroundColor: "rgba(82, 120, 209, 0.3)",
+        pointStyle: "circle",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      },
+    ],
+  };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: {
+        position: "top",
+        labels: {
+          color: "#fff", // for dark background
+        },
+      },
+      tooltip: {},
+      title: {
+        display: true,
+        text: "Engine Fuel Level Monitor",
+        color: "#fff",
+        font: { size: 18, weight: "normal" },
+      },
     },
     scales: {
       x: {
+        type: "timeseries",
         title: {
           display: true,
           text: "Time",
           color: "#fff",
           font: { size: 14 },
         },
-        ticks: { color: "#fff", font: { size: 12 } },
-        grid: { color: "#888", lineWidth: 0.3 },
+        ticks: {
+          color: "#fff",
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
+        },
       },
       y: {
+        type: "linear",
+        min: 0,
+        max: 80,
         title: {
           display: true,
-          text: "Oil Pressure (Bar)",
+          text: "Fuel Level (Liter)",
           color: "#fff",
           font: { size: 14 },
         },
-        min: 1,
-        max: 5,
         ticks: {
           color: "#fff",
-          font: { size: 12 },
-          stepSize: 1,
-          callback: (value) => `${value} Bar`,
         },
-        grid: { color: "#888", lineWidth: 0.3 },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)",
+        },
       },
     },
   };
 
   return (
-    <ChartBox title="ENGINE OIL PRESSURE">
-      <Line data={data} options={options} height={180} />
-    </ChartBox>
+    <div style={{ height: "450px" }}>
+      <Line options={options} data={data} />
+    </div>
   );
 };
 
-export default ReportsOilPressure;
+export default EngineFuelLevelLineChart;

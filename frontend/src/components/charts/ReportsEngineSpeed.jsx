@@ -1,86 +1,203 @@
-import React, { useMemo } from "react";
+// import React from "react";
+// import { Line } from "react-chartjs-2";
+// import {
+//   Chart as ChartJS,
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend,
+//   TimeSeriesScale,
+// } from "chart.js";
+// import "chartjs-adapter-luxon";
+// import { DateTime } from "luxon";
+
+// // Register ChartJS components
+// ChartJS.register(
+//   TimeSeriesScale,
+//   CategoryScale,
+//   LinearScale,
+//   PointElement,
+//   LineElement,
+//   Title,
+//   Tooltip,
+//   Legend
+// );
+
+// const EngineFuelLevelLineChart = ({ engineSpeedData }) => {
+//   const options = {
+//     responsive: true,
+//     maintainAspectRatio: false,
+//     plugins: {
+//       legend: { position: "top", align: "center" },
+//       tooltip: {},
+//       title: {
+//         display: true,
+//         text: "Engine Fuel Level Monitor",
+//         color: "#fff",
+//         font: { size: 18, weight: "normal" },
+//       },
+//     },
+//     scales: {
+//       x: {
+//         type: "timeseries",
+//         position: "bottom",
+//         title: {
+//           display: true,
+//           text: "Time",
+//           font: { size: 18, weight: "normal" },
+//         },
+//         min: DateTime.now().minus({ hours: 1 }).toISO(),
+//         max: DateTime.now().toISO(),
+//         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
+//         ticks: { display: true },
+//       },
+//       y: {
+//         type: "linear",
+//         title: {
+//           display: true,
+//           text: "Engine Speed (RPM)",
+//           font: { size: 18, weight: "normal" },
+//         },
+//         min: 0,
+//         max: 80,
+//         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
+//       },
+//     },
+//   };
+
+//   const chartData = engineSpeedData.map((item) => ({
+//     x: item.timestamp,
+//     y: item.propertyValue,
+//   }));
+
+//   const data = {
+//     datasets: [
+//       {
+//         fill: true,
+//         label: "Engine Speed",
+//         data: chartData,
+//         borderColor: "rgba(82, 120, 209, 1)",
+//         backgroundColor: "rgba(82, 120, 209, 0.5)",
+//         pointStyle: "circle",
+//         pointRadius: 3,
+//         pointHoverRadius: 5,
+//         pointHitRadius: 10,
+//         borderWidth: 2,
+//       },
+//     ],
+//   };
+
+//   return (
+//     <div style={{ height: "450px" }}>
+//       <Line options={options} data={data} />
+//     </div>
+//   );
+// };
+
+// export default EngineFuelLevelLineChart;
+
+
+import React from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
   CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
   Tooltip,
   Legend,
+  TimeSeriesScale,
 } from "chart.js";
-import ChartBox from "./Chartbox";
+import "chartjs-adapter-luxon";
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
+// Register ChartJS components
+ChartJS.register(
+  TimeSeriesScale,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-const ReportsEngineSpeed = ({ timeFilter }) => {
-  const data = useMemo(() => {
-    let labels = [];
-
-    if (timeFilter === "Monthly") {
-      labels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
-    } else if (timeFilter === "Yearly") {
-      labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    } else {
-      labels = Array.from({ length: 7 }, (_, i) => `Day ${i + 1}`);
-    }
-
-    const rpmData = labels.map(() => Math.floor(Math.random() * (2000 - 200) + 200));
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: "RPM",
-          data: rpmData,
-          borderColor: "#00d9ff",
-          backgroundColor: "#00d9ff",
-          tension: 0.1,
-          pointRadius: 4,
-        },
-      ],
-    };
-  }, [timeFilter]);
-
+const EngineSpeedLineChart = ({ engineSpeedData }) => {
   const options = {
+    responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
+      legend: { position: "top", align: "center" },
+      tooltip: {},
+      title: {
+        display: true,
+        text: "Engine Speed Monitor",
+        color: "#fff",
+        font: { size: 18, weight: "normal" },
+      },
     },
     scales: {
-      y: {
-        title: {
-          display: true,
-          text: "Speed in RPM",
-          color: "#fff",
-          font: { size: 14 },
-        },
-        ticks: {
-          color: "#fff",
-          callback: (value) => `${value} RPM`,
-        },
-        grid: { color: "#fff", lineWidth: 0.5 },
-      },
       x: {
+        type: "timeseries",
         title: {
           display: true,
           text: "Time",
           color: "#fff",
-          font: { size: 14 },
+          font: { size: 18, weight: "normal" },
         },
+        grid: { color: "#888", lineWidth: 0.5 },
         ticks: { color: "#fff" },
-        grid: { color: "#fff", lineWidth: 0.5 },
+      },
+      y: {
+        type: "linear",
+        title: {
+          display: true,
+          text: "Engine Speed (RPM)",
+          color: "#fff",
+          font: { size: 18, weight: "normal" },
+        },
+        min: 0,
+        max: 2000, // increased based on real-world RPM values
+        grid: { color: "#888", lineWidth: 0.5 },
+        ticks: { color: "#fff" },
       },
     },
   };
 
+  const chartData = engineSpeedData
+    .map((item) => ({
+      x: item.timestamp,
+      y: item.propertyValue,
+    }))
+    .sort((a, b) => new Date(a.x) - new Date(b.x)); // ensure sorted by time
+
+  const data = {
+    datasets: [
+      {
+        label: "Engine Speed",
+        data: chartData,
+        fill: true,
+        borderColor: "rgba(82, 120, 209, 1)",
+        backgroundColor: "rgba(82, 120, 209, 0.3)",
+        pointStyle: "circle",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      },
+    ],
+  };
+
   return (
-    <ChartBox title="ENGINE SPEED">
-      <div className="h-[400px] w-[480px]">
-        <Line data={data} options={options} />
-      </div>
-    </ChartBox>
+    <div style={{ height: "450px" }}>
+      <Line options={options} data={data} />
+    </div>
   );
 };
 
-export default ReportsEngineSpeed;
+export default EngineSpeedLineChart;
