@@ -13,7 +13,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 
-// Register ChartJS components
+
 ChartJS.register(
   TimeSeriesScale,
   CategoryScale,
@@ -57,7 +57,7 @@ const EngineFuelLevelLineChart = ({ oilPressureData }) => {
       legend: {
         position: "top",
         labels: {
-          color: "#fff", // for dark background
+          color: "#fff", 
         },
       },
       tooltip: {},
@@ -87,7 +87,7 @@ const EngineFuelLevelLineChart = ({ oilPressureData }) => {
       y: {
         type: "linear",
         min: 0,
-        max: 80,
+        max: 5,
         title: {
           display: true,
           text: "Fuel Level (Liter)",

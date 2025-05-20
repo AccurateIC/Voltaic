@@ -149,8 +149,8 @@ const ReportPage = () => {
   const propertyFetch = async () => {
   
 
-    const from = "2025-05-19T04:42:27.233Z";
-    const to = "2025-05-19T12:59:58.685Z";
+    const from = "2025-05-19T09:42:27.233Z";
+    const to = "2025-05-19T12:53:54.476Z";
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
         method: "GET",

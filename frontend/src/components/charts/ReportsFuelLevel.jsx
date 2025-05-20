@@ -13,7 +13,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 
-// Register ChartJS components
+
 ChartJS.register(
   TimeSeriesScale,
   CategoryScale,
@@ -87,7 +87,7 @@ const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       y: {
         type: "linear",
         min: 0,
-        max: 80,
+        max: 100,
         title: {
           display: true,
           text: "Fuel Level (Liter)",
