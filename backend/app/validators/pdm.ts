@@ -1,21 +1,5 @@
+import { timezoneRule } from "#validator-rules/timezone";
 import vine from "@vinejs/vine";
-
-// const data = {
-//   last_values: {
-//     accel_x: [1.08984375, 0.72998046875],
-//     accel_y: [-0.5576171875, 0.24658203125],
-//   },
-//   forecasted_values: {
-//     accel_x: [2.271426526058037, 1.4600747330822037],
-//     accel_y: [-0.2526654336337322, -1.136376176444832],
-//   },
-//   PDM: {
-//     accel_x: false,
-//     accel_y: false,
-//   },
-//   maintenance_needed: false,
-//   Time: "12:53:22",
-// };
 
 export const createPdmValidator = vine.compile(
   vine.object({
@@ -47,5 +31,16 @@ export const createPdmValidator = vine.compile(
         accel_z: vine.string().optional(),
       })
       .optional(),
+  })
+);
+
+const DateTimeUnits = ["year", "quarter", "month", "week", "day", "hour", "minute", "second", "millisecond"];
+
+export const getPdmStatisticsValidator = vine.compile(
+  vine.object({
+    timeDuration: vine.string().in(DateTimeUnits),
+    headers: vine.object({
+      timezone: vine.string().use(timezoneRule()),
+    }),
   })
 );

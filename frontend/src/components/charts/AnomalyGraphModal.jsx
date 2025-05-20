@@ -16,13 +16,15 @@ import { useMemo } from "react";
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale);
 
 const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) => {
+  console.log("graph data", graphData);
   if (!isOpen || graphData.length === 0) return null;
 
   const sortedData = useMemo(() => {
     return [...graphData].sort((a, b) => a.x - b.x);
   }, [graphData]);
 
-  const labels = sortedData.map((point) => DateTime.fromMillis(point.x).toFormat("HH:mm:ss"));
+  // const labels = sortedData.map((point) => DateTime.fromMillis(point.x).toFormat("HH:mm:ss"));
+  const labels = sortedData.map((point) => point.x.toFormat("HH:mm:ss"));
 
   const chartData = {
     labels,
@@ -50,8 +52,8 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
       x: {
         type: "timeseries",
         position: "bottom",
-        min: DateTime.now().minus({ minutes: 20 }).toMillis(),
-        max: DateTime.now().toMillis(),
+        // min: DateTime.now().minus({ minutes: 20 }).toMillis(),
+        // max: DateTime.now().toMillis(),
         title: {
           display: true,
           text: "Timestamp",

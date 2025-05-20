@@ -64,3 +64,7 @@ export interface VibrationData {
   pdmDataKindId: number;
   pdmDataKind: PdmDataKind;
 }
+
+export interface PDMNotificationCount {
+  [date: string]: number;
+}

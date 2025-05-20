@@ -19,7 +19,10 @@ export interface TimerangeStatistics {
 export interface PropertyStatistics {
   propertyName: string;
   readablePropertyName: string;
-  counts: TimerangeStatistics;
+  today: number;
+  week: number;
+  month: number;
+  total: number;
 }
 
 export interface AnomalyStatistics {

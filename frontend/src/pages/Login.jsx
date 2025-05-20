@@ -96,19 +96,19 @@ const Login = () => {
       // ##################################################################
 
       // TEMPORARY: delete data from archive and notification table on login
-      const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reset archive table`);
-      }
-
-      toast.success("Data Reset");
+      // const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   credentials: "include",
+      // });
+      //
+      // if (!response.ok) {
+      //   throw new Error(`Failed to reset archive table`);
+      // }
+      //
+      // toast.success("Data Reset");
 
       // TEMPORARY: send request to ML models to notify which user has logged in
       // fetch logged in user details

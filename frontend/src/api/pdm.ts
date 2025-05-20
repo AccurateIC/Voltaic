@@ -1,4 +1,4 @@
-import { PDMCreationResponse, PDMNotification, VibrationData } from "../types/pdm.types";
+import { PDMCreationResponse, PDMNotification, PDMNotificationCount, VibrationData } from "../types/pdm.types";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 
@@ -101,6 +101,23 @@ export const pdmApi = {
       throw new Error(`Failed to mark notification as read. Notification ID: ${notificationId}`, { cause: response.json() });
 
     return response.json() as Promise<PDMNotification>;
+  },
+
+  // TODO: get timezone from user's browser instead of hardcoding
+  getPDMStatistics: async (timeDuration: string): Promise<PDMNotificationCount> => {
+    const response = await fetch(`${BASE_URL}/pdm/notification/getPDMStatistics`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        timezone: "Asia/Kolkata",
+      },
+      credentials: "include",
+      body: JSON.stringify({ timeDuration: timeDuration }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to fetch PDM statistics`, { cause: response.json });
+
+    return response.json() as Promise<PDMNotificationCount>;
   },
 
   deleteAllPdmData: async (): Promise<VibrationData> => {

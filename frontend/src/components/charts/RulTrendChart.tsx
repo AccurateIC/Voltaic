@@ -165,6 +165,18 @@ export function RulChart({
         borderColor: "rgb(162, 53, 235)",
         backgroundColor: "rgba(162, 53, 235, 0.5)",
       },
+
+      {
+        label: "Failure Threshold",
+        data: [
+          { x: 0, y: 0.2 },
+          { x: 10000, y: 0.2 },
+        ],
+        borderColor: "rgb(200, 53, 23)",
+        backgroundColor: "rgba(200, 53, 23, 0.5)",
+        pointRadius: 0,
+        borderDash: [10, 5],
+      },
     ],
   };
 

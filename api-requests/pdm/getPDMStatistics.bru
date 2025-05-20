@@ -1,0 +1,21 @@
+meta {
+  name: getPDMStatistics
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URL}}/pdm/notification/getPDMStatistics
+  body: json
+  auth: inherit
+}
+
+headers {
+  timezone: Asia/Kolkata
+}
+
+body:json {
+  {
+    "timeDuration": "week"
+  }
+}

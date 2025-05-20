@@ -1,11 +1,12 @@
 import type { HttpContext } from "@adonisjs/core/http";
-import { createPdmValidator } from "#validators/pdm";
+import { createPdmValidator, getPdmStatisticsValidator } from "#validators/pdm";
 import transmit from "@adonisjs/transmit/services/main";
 import MaintenanceNotification from "#models/maintenance_notification";
 import Vibration from "#models/vibration";
 import PdmDataKind from "#models/pdm_data_kind";
 import SensorProperty from "#models/sensor_property";
-import { DateTime } from "luxon";
+import { DateTime, DateTimeUnit } from "luxon";
+import { PdmService } from "#services/pdm_service";
 
 export default class PdmController {
   async markNotificationRead({ params }: HttpContext) {
@@ -91,7 +92,6 @@ export default class PdmController {
 
     // 1: if maintenance is needed, add to maintenance_notifications table
     let maintenance_notif_id = undefined;
-    console.log(data.predicted_dominant_frequency, data.predicted_dominant_amplitude);
     if (data.maintenance_needed === true) {
       const maintenance_notif = new MaintenanceNotification();
       maintenance_notif.predictedDominantFrequency = data.predicted_dominant_frequency;
@@ -192,6 +192,17 @@ export default class PdmController {
     await Vibration.createMany(vibrationRecords);
 
     return { success: true, recordsCreated: vibrationRecords.length };
+  }
+
+  async getPDMStatistics({ request }: HttpContext) {
+    const reqBody = await request.validateUsing(getPdmStatisticsValidator);
+    // (await reqBody).headers.timezone
+
+    const notificationsPerDay = PdmService.maintenanceNotificationStatistics(
+      reqBody.headers.timezone,
+      reqBody.timeDuration as DateTimeUnit
+    );
+    return notificationsPerDay;
   }
 
   async delete({}: HttpContext) {

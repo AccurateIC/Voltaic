@@ -86,8 +86,6 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
   );
 };
 
-
-
 const AnomaliesTable = ({ data, onViewClick }) => {
   return (
     <div className="overflow-y-auto w-full h-[77vh] p-0 rounded-box rounded-lg shadow-lg bg-base-200">
@@ -499,7 +497,8 @@ const Anomalies = () => {
 
       const data = await response.json();
       const formattedData = data.map((item) => ({
-        x: new Date(item.timestamp).getTime(),
+        // x: new Date(item.timestamp).getTime(),
+        x: DateTime.fromISO(item.timestamp),
         y: item.propertyValue,
         label: "Anomaly Event",
       }));
@@ -671,7 +670,7 @@ const Anomalies = () => {
       </div>
 
       {/* Graph Modal */}
-    
+
       <AnomalyGraphModal
         isOpen={showGraph}
         onClose={() => setShowGraph(false)}
