@@ -66,6 +66,7 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
           color: "#444",
         },
         time: {
+          unit: "second",
           tooltipFormat: "HH:mm:ss",
           displayFormats: {
             second: "HH:mm:ss",

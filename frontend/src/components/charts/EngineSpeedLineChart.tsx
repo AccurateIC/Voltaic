@@ -47,6 +47,14 @@ export const EngineSpeedLineChart = ({ value }) => {
         max: DateTime.now().toISO(),
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
         ticks: { display: true },
+          time: {
+          unit: "second",
+          tooltipFormat: "HH:mm:ss",
+          displayFormats: {
+            second: "HH:mm:ss",
+            minute: "HH:mm:ss",
+          },
+        },
       },
       y: {
         type: "linear",
