@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
@@ -131,12 +130,13 @@ const ReportPage = () => {
   const [propertyFilter, setPropertyFilter] = useState("");
   const showAll = propertyFilter.length === 0;
   const chartWrapperRef = useRef(null);
-
   const [fuelLevelData, setFuelLevelData] = useState([]);
   const [oilPressureData, setOilPressureData] = useState([]);
   const [engineSpeedData, setEngineSpeedData] = useState([]);
   const [voltageData, setVoltageData] = useState([]);
   const [mainVoltageData, setMainVoltageData] = useState([]);
+  // const [from , setFrom]= useState([]);
+  // const [to, setTo]= useState([]);
   const [stats, setStats] = useState({
     l1Voltage: [],
     l2Voltage: [],
@@ -147,17 +147,28 @@ const ReportPage = () => {
   });
 
   const propertyFetch = async () => {
-  
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday   tuesday
+    const daysSinceMonday = (currentDay + 6) % 7; // monday +1= tuesday=1
 
-    const from = "2025-05-19T09:42:27.233Z";
-    const to = "2025-05-19T12:53:54.476Z";
+    const fromDate = new Date(now); //todays
+
+    fromDate.setDate(now.getDate() - daysSinceMonday); // today - from monday day
+
+    fromDate.setHours(0, 0, 0, 0);
+
+    const from = fromDate.toISOString(); // Monday 00:00:00
+    const to = now.toISOString();
+
     try {
       const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
+      console.log(response);
       if (!response.ok) {
+        console.log("no response ");
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch filtered data");
       }
@@ -297,9 +308,7 @@ const ReportPage = () => {
       setMainVoltageData(newMainsDataVoltage);
       console.log(newMainsDataVoltage);
     }
-
-
-  }, [stats.l1Voltage, stats.l2Voltage, stats.l3Voltage, stats.L1mainsVolts, stats.L2mainsVolts, stats.L3mainsVolts ]);
+  }, [stats.l1Voltage, stats.l2Voltage, stats.l3Voltage, stats.L1mainsVolts, stats.L2mainsVolts, stats.L3mainsVolts]);
 
   useEffect(() => {
     console.log(voltageData);
@@ -358,8 +367,7 @@ const ReportPage = () => {
           style={{
             boxShadow: "-1px -4px 4px 0px #00000080 inset, 1px 4px 4px 0px #FFFFFFBF inset",
           }}
-          onClick={exportChartsToPDF}
-        >
+          onClick={exportChartsToPDF}>
           Export to PDF
         </button>
         <button
