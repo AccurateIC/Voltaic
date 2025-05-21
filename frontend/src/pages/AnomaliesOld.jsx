@@ -622,9 +622,8 @@ const Anomalies = () => {
 
   return (
     <div
-      className={`bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
-        showGraph ? "backdrop-blur-sm" : ""
-      }`}>
+      className="bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto "
+      >
       {/* Stats Cards */}
       <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
         <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />
