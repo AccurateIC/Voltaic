@@ -88,36 +88,41 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
 
 const AnomaliesTable = ({ data, onViewClick }) => {
   return (
-    <div className="overflow-y-auto w-full h-[77vh] p-0 rounded-box rounded-lg shadow-lg bg-base-200">
-      <table className="table table-pin-rows">
-        <thead className="sticky top-0">
-          <tr className="bg-base-100 text-base-content">
-            <th></th>
-            <th>Started At</th>
-            <th>Summary</th>
-            <th>Message</th>
-            <th>Finished At</th>
-            <th>View</th>
-          </tr>
-        </thead>
-        <tbody className="bg-base-200 h-full">
-          {data.map((entry, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td>
-              <td>{formatTimestamp(entry.startedAt)}</td>
-              <td>{entry.summary}</td>
-              <td>{entry.message}</td>
-              <td>{formatTimestamp(entry.finishedAt) || "N/A"}</td>
-              <td>
-                <button className="btn btn-outline" onClick={() => onViewClick(entry)}>
-                  View
-                </button>
-              </td>
+    <>
+      <div className="flex items-center justify-center">
+        <h2 className="text-xl font-bold p-2">Anomalies</h2>
+      </div>
+      <div className="overflow-y-auto w-full h-[77vh] p-0 rounded-box rounded-lg shadow-lg bg-base-200">
+        <table className="table table-pin-rows">
+          <thead className="sticky top-0">
+            <tr className="bg-base-100 text-base-content">
+              <th></th>
+              <th>Started At</th>
+              <th>Summary</th>
+              <th>Message</th>
+              <th>Finished At</th>
+              <th>View</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="bg-base-200 h-full">
+            {data.map((entry, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{formatTimestamp(entry.startedAt)}</td>
+                <td>{entry.summary}</td>
+                <td>{entry.message}</td>
+                <td>{formatTimestamp(entry.finishedAt) || "N/A"}</td>
+                <td>
+                  <button className="btn btn-outline" onClick={() => onViewClick(entry)}>
+                    View
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
@@ -622,9 +627,9 @@ const Anomalies = () => {
 
   return (
     <div
-      className={`bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto ${
-        showGraph ? "backdrop-blur-sm" : ""
-      }`}>
+      className={
+        "bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto"
+      }>
       {/* Stats Cards */}
       <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
         <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />

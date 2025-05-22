@@ -47,7 +47,7 @@ export const PDMLineChart = ({ value }) => {
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
+          text: "Time ⟶",
           font: { size: 18, weight: "normal" },
         },
         // min: DateTime.now().minus({ hours: 1 }).toISO(),
@@ -57,7 +57,7 @@ export const PDMLineChart = ({ value }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Vibration Acceleration (G-Units)",
+          text: "Vibration Acceleration (G-Units) ⟶",
           font: { size: 18, weight: "normal" },
         },
       },

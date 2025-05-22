@@ -114,7 +114,7 @@ const MultiSelectDropdown = ({ selected, setSelected }) => {
   );
 };
 
-const ReportPage = () => {
+const ReportsOld = () => {
   const [timeFilter, setTimeFilter] = useState("Week");
   const [propertyFilter, setPropertyFilter] = useState([]);
   const showAll = propertyFilter.length === 0;
@@ -250,4 +250,4 @@ const ReportPage = () => {
   );
 };
 
-export default ReportPage;
+export default ReportsOld;

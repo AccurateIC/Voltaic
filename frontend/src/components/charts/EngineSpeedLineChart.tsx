@@ -40,7 +40,7 @@ export const EngineSpeedLineChart = ({ value }) => {
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
+          text: "Time ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
@@ -52,7 +52,7 @@ export const EngineSpeedLineChart = ({ value }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Engine Speed (RPM)",
+          text: "Engine Speed (RPM) ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: 0,

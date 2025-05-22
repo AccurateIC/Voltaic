@@ -16,109 +16,6 @@ import { RulPrediction } from "../../types/rul.types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const options: ChartOptions<"line"> = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: "top",
-    },
-    title: {
-      display: true,
-      text: "Health Index Deterioration",
-      color: "#fff",
-      font: {
-        size: 18,
-        weight: "bold",
-      },
-    },
-    tooltip: {
-      backgroundColor: "rgba(0, 0, 0, 0.8)",
-      titleColor: "#ffffff",
-      titleFont: {
-        size: 14,
-        weight: "bold",
-      },
-      bodyColor: "#ffffff",
-      bodyFont: {
-        size: 13,
-      },
-      padding: 12,
-      displayColors: true,
-      borderColor: "rgba(255, 255, 255, 0.2)",
-      borderWidth: 1,
-      cornerRadius: 6,
-      callbacks: {
-        title: (tooltipItems) => {
-          return tooltipItems[0].dataset.label;
-        },
-        label: (tooltipItems) => {
-          const dataset = tooltipItems.datasetIndex;
-          const point = tooltipItems.raw;
-
-          switch (dataset) {
-            case 0: // trend line dataset
-              return [`Health Index: ${point.y.toFixed(3)}`];
-            case 1: // current rul dataset
-              return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.currentRul)} Hours`];
-            case 2: // simulated rul dataset
-              return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`];
-            default:
-              console.log("unexpected dataset");
-          }
-        },
-      },
-
-      yAlign: "top",
-      xAlign: "center",
-
-      position: "nearest",
-
-      animation: {
-        duration: 200,
-      },
-
-      mode: "nearest",
-      intersect: false,
-    },
-  },
-  scales: {
-    x: {
-      type: "linear",
-      position: "bottom",
-      title: {
-        display: true,
-        text: "Time (Hours)",
-        color: "#ffffff", // Change X-axis title color
-      },
-      ticks: {
-        color: "#ffffff", // Change X-axis tick labels color
-      },
-      grid: {
-        color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
-      },
-      // min: 0,
-      // max: 10000,
-    },
-    y: {
-      reverse: false,
-      title: {
-        display: true,
-        text: "Predicted Health Index",
-        color: "#ffffff", // Change X-axis title color
-      },
-      ticks: {
-        color: "#ffffff", // Change X-axis tick labels color
-      },
-      grid: {
-        color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
-      },
-      // min: 0,
-      // max: 1,
-    },
-  },
-};
-
 export function RulChart({
   currentRulPoint,
   simulatedRulPoint,
@@ -126,6 +23,112 @@ export function RulChart({
   currentRulPoint: RulPrediction[];
   simulatedRulPoint: RulPrediction[];
 }) {
+  console.log("RUL", currentRulPoint);
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: "Health Index Deterioration",
+        color: "#fff",
+        font: {
+          size: 18,
+          weight: "bold",
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#ffffff",
+        titleFont: {
+          size: 14,
+          weight: "bold",
+        },
+        bodyColor: "#ffffff",
+        bodyFont: {
+          size: 13,
+        },
+        padding: 12,
+        displayColors: true,
+        borderColor: "rgba(255, 255, 255, 0.2)",
+        borderWidth: 1,
+        cornerRadius: 6,
+        callbacks: {
+          title: (tooltipItems) => {
+            return tooltipItems[0].dataset.label;
+          },
+          label: (tooltipItems) => {
+            const dataset = tooltipItems.datasetIndex;
+            const point = tooltipItems.raw;
+
+            switch (dataset) {
+              case 0: // trend line dataset
+                return [`Health Index: ${point.y.toFixed(3)}`];
+              case 1: // current rul dataset
+                return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.currentRul)} Hours`];
+              case 2: // simulated rul dataset
+                return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`];
+              default:
+                console.log("unexpected dataset");
+            }
+          },
+        },
+
+        yAlign: "top",
+        xAlign: "center",
+
+        position: "nearest",
+
+        animation: {
+          duration: 200,
+        },
+
+        mode: "nearest",
+        intersect: false,
+      },
+    },
+    scales: {
+      x: {
+        type: "linear",
+        position: "bottom",
+        title: {
+          display: true,
+          text: "Time Hours ⟶",
+          font: { size: 18, weight: "normal" },
+          color: "rgba(255, 255, 255, 0.5)", // Change X-axis title color
+        },
+        ticks: {
+          color: "#ffffff", // Change X-axis tick labels color
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
+        },
+        // min: 0,
+        // max: 10000,
+      },
+      y: {
+        reverse: false,
+        title: {
+          display: true,
+          text: "Predicted Health Index ⟶",
+          font: { size: 18, weight: "normal" },
+          color: "rgba(255, 255, 255, 0.5)", // Change X-axis title color
+        },
+        ticks: {
+          color: "#ffffff", // Change X-axis tick labels color
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.1)", // Optional: Change grid line color
+        },
+        // min: 0,
+        // max: 1,
+      },
+    },
+  };
+
   const data: ChartOptions<"line"> = {
     datasets: [
       {
@@ -153,32 +156,35 @@ export function RulChart({
         // pointStyle: "circle",
         showLine: true,
       },
-      {
-        label: "Simulated Health Index",
-        data: simulatedRulPoint?.map((entry, index) => {
-          return {
-            x: entry?.Time_Hours,
-            y: entry?.Predicted_Health_Index,
-            simulatedRul: entry?.Remaining_Useful_Life,
-          };
-        }),
-        borderColor: "rgb(162, 53, 235)",
-        backgroundColor: "rgba(162, 53, 235, 0.5)",
-      },
-
-      {
-        label: "Failure Threshold",
-        data: [
-          { x: 0, y: 0.2 },
-          { x: 10000, y: 0.2 },
-        ],
-        borderColor: "rgb(200, 53, 23)",
-        backgroundColor: "rgba(200, 53, 23, 0.5)",
-        pointRadius: 0,
-        borderDash: [10, 5],
-      },
     ],
   };
+
+  if (simulatedRulPoint) {
+    data.datasets.push({
+      label: "Simulated Health Index",
+      data: simulatedRulPoint?.map((entry, index) => {
+        return {
+          x: entry?.Time_Hours,
+          y: entry?.Predicted_Health_Index,
+          simulatedRul: entry?.Remaining_Useful_Life,
+        };
+      }),
+      borderColor: "rgb(162, 53, 235)",
+      backgroundColor: "rgba(162, 53, 235, 0.5)",
+    });
+  }
+
+  data.datasets.push({
+    label: "Failure Threshold",
+    data: [
+      { x: 0, y: 0.2 },
+      { x: 10000, y: 0.2 },
+    ],
+    borderColor: "rgb(200, 53, 23)",
+    backgroundColor: "rgba(200, 53, 23, 0.5)",
+    pointRadius: 0,
+    borderDash: [10, 5],
+  });
 
   return <Line options={options} data={data} />;
 }

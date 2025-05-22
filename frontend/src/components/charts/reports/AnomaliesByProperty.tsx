@@ -25,7 +25,7 @@ export const AnomaliesByProperty = () => {
   const options: ChartOptions<"pie"> = {
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: { display: true, position: "bottom" },
       title: {
         display: true,
         text: "Anomalies By Property",

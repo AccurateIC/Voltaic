@@ -19,6 +19,7 @@ import {
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";
+import { FaRegQuestionCircle } from "react-icons/fa";
 
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -393,7 +394,15 @@ const Maintenance = () => {
           <div className="bg-base-100 w-1/2">
             <div className="card h-full">
               <div className="card-body">
-                <h2 className="card-title">Confidence Score</h2>
+                <div className="flex gap-2 items-center">
+                  <h2 className="card-title">Confidence Score</h2>
+                  <span className="tooltip tooltip-bottom">
+                    <div className="tooltip-content text-base">
+                      A confidence score represents a measure of how certain a model is about its prediction.
+                    </div>
+                    <FaRegQuestionCircle size={18} />
+                  </span>
+                </div>
                 <>
                   <p className="text-sm text-base-content/70">{actualPdmData[0]?.timestamp}</p>
                   <p

@@ -34,7 +34,7 @@ const Navbar = () => {
   const [pdmUnresolvedNotifications, setPdmUnresolvedNotifications] = useState([]);
 
   const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
-  const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.RESOLVED);
+  const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.UNRESOLVED);
 
   const archiveMessageBus = useMessageBus(TransmitChannels.ARCHIVE);
   const notificationMessageBus = useMessageBus(TransmitChannels.NOTIFICATION);
@@ -251,7 +251,10 @@ const Navbar = () => {
                 </button>
                 <button
                   className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
-                  onClick={() => setActiveTab(primaryTab.MAINTENANCE)}>
+                  onClick={() => {
+                    setActiveTab(primaryTab.MAINTENANCE);
+                    setActiveSecondaryTab(secondaryTab.UNRESOLVED);
+                  }}>
                   <p
                     className={` ${
                       activeTab === primaryTab.MAINTENANCE

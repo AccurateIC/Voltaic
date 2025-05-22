@@ -66,10 +66,10 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
           color: "#444",
         },
         time: {
+          unit: "second",
           tooltipFormat: "HH:mm:ss",
           displayFormats: {
-            second: "HH:mm:ss",
-            minute: "HH:mm:ss",
+            second: "yyyy-mm-dd HH:mm:ss",
           },
         },
       },
@@ -107,15 +107,14 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
   return (
     <dialog id="my_modal_2" className="modal backdrop-blur-sm" open={isOpen}>
       <div className="modal-box max-w-6xl bg-base-200">
+        <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+          ✕
+        </button>
         <h3 className="text-base-content text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
         <div className="h-[400px]">
           <Line data={chartData} options={chartOptions} />
         </div>
-        <div className="flex justify-end mt-4">
-          <form method="dialog" onClick={onClose}>
-            <button className="btn">Close</button>
-          </form>
-        </div>
+        <div className="flex justify-end mt-4"></div>
       </div>
     </dialog>
   );

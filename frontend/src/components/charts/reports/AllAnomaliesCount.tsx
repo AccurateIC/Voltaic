@@ -34,6 +34,9 @@ export const AllAnomaliesCount = () => {
       {
         label: "Anomalies",
         data: ys,
+        borderWidth: 1,
+        borderColor: "rgba(54, 162, 235, 1)",
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
       },
     ],
   };
@@ -53,10 +56,21 @@ export const AllAnomaliesCount = () => {
       x: {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
+        // title: {
+        //   display: true,
+        //   text: "Time ⟶",
+        //   font: { size: 18, weight: "normal" },
+        // },
       },
       y: {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
+        title: {
+          display: true,
+          text: "Anomaly Count ⟶",
+          font: { size: 18, weight: "normal" },
+          color: "rgba(255, 255, 255, 0.5)",
+        },
       },
     },
   };

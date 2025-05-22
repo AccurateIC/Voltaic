@@ -40,7 +40,7 @@ export const OilPressureLineChart = ({ value }) => {
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
+          text: "Time ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
@@ -52,7 +52,7 @@ export const OilPressureLineChart = ({ value }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Oil Pressure (bar)",
+          text: "Oil Pressure (bar) ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: 0,

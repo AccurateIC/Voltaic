@@ -1,3 +1,4 @@
+// frontend/src/api/archive.ts
 import { AnomalyStatistics, Archive } from "../types/archive.types";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
@@ -17,10 +18,11 @@ export const archiveApi = {
     return response.json() as Promise<AnomalyStatistics>;
   },
 
-  getPropertyDataBetween: async (filters: GetPropertyDataBetween): Promise<Archive> => {
-    const response = await fetch(`${BASE_URL}/property/getBetween`, {
+  getPropertyDataBetween: async (filters: GetPropertyDataBetween): Promise<Archive[]> => {
+    const response = await fetch(`${BASE_URL}/archive/getPropertyDataBetween`, {
       method: "POST",
       credentials: "include",
+      headers: { "Content-Type": "application/json", timezone: "Asia/Kolkata" },
       body: JSON.stringify(filters),
     });
 

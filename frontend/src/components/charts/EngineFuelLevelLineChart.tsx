@@ -38,7 +38,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
+          text: "Time ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
@@ -50,7 +50,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Fuel Level (Liter)",
+          text: "Fuel Level (Liter) ⟶ ",
           font: { size: 18, weight: "normal" },
         },
         min: 0,

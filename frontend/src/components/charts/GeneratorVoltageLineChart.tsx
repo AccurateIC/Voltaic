@@ -39,7 +39,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
+          text: "Time ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
@@ -51,7 +51,7 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         type: "linear",
         title: {
           display: true,
-          text: "Voltage (V)",
+          text: "Voltage (V) ⟶",
           font: { size: 18, weight: "normal" },
         },
         min: 0,
