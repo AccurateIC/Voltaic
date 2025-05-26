@@ -8,6 +8,10 @@ export default class extends BaseSchema {
       table.increments("id").primary();
 
       table.timestamp("timestamp").notNullable();
+      table.integer("day").notNullable();
+      table.integer("week").notNullable();
+      table.integer("month").notNullable();
+      table.integer("year").notNullable();
 
       table
         .integer("genset_property_id")

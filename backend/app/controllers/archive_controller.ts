@@ -16,6 +16,21 @@ import { DateTime } from "luxon";
 import { ArchiveService } from "#services/archive_service";
 
 export default class ArchiveController {
+  async testAgg({}: HttpContext) {
+    const data = Archive.query()
+      .select("day")
+      .select("genset_property_id")
+      .avg("property_value")
+      .groupBy("day")
+      .groupBy("month")
+      .groupBy("year")
+      .groupBy("genset_property_id")
+      .orderBy("genset_property_id", "asc")
+      .pojo();
+
+    return data;
+  }
+
   async getAll({}: HttpContext) {
     const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
     return archiveData;
@@ -117,7 +132,7 @@ export default class ArchiveController {
 
   async create({ request }: HttpContext) {
     const payload = await request.validateUsing(createArchiveValidator);
-    const timestamp = payload.timestamp;
+    const timestamp = DateTime.fromJSDate(payload.timestamp);
     const data = payload.data;
 
     // begin db transaction
@@ -133,6 +148,10 @@ export default class ArchiveController {
         // prepare archive data
         const archiveData = data.map((element) => ({
           timestamp,
+          // day: timestamp.day,
+          // week: timestamp.weekNumber,
+          // month: timestamp.month,
+          // year: timestamp.year,
           gensetPropertyId: propertyMap.get(element.property)!.id,
           propertyValue: element.value,
           isAnomaly: element.is_anomaly,
