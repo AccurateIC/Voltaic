@@ -148,6 +148,8 @@ const ReportsOld = () => {
     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save("charts.pdf");
   };
+  
+  
 
   return (
     <div className="bg-[#303030] bg-base-200 text-white flex flex-col">
