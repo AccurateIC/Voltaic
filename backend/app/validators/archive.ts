@@ -54,3 +54,10 @@ export const getAnomalyStatisticsValidator = vine.compile(
     }),
   })
 );
+
+export const getAvgPropertyValueValidator = vine.compile(
+  vine.object({
+    timeDuration: vine.enum(["week", "month", "year"]), //enum : must match one of them
+    property: vine.string().exists({ table: "genset_properties", column: "property_name" }).optional(),
+  })
+);

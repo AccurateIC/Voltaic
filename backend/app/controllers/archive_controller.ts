@@ -4,6 +4,7 @@ import {
   getArchiveDataBetweenValidator,
   getArchiveDataPropertyBetweenValidator,
   getPaginatedDataValidator,
+  getAvgPropertyValueValidator,
 } from "#validators/archive";
 import Archive from "#models/archive";
 import Notification from "#models/notification";
@@ -16,21 +17,6 @@ import { DateTime } from "luxon";
 import { ArchiveService } from "#services/archive_service";
 
 export default class ArchiveController {
-  async testAgg({}: HttpContext) {
-    const data = Archive.query()
-      .select("day")
-      .select("genset_property_id")
-      .avg("property_value")
-      .groupBy("day")
-      .groupBy("month")
-      .groupBy("year")
-      .groupBy("genset_property_id")
-      .orderBy("genset_property_id", "asc")
-      .pojo();
-
-    return data;
-  }
-
   async getAll({}: HttpContext) {
     const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
     return archiveData;
@@ -42,9 +28,7 @@ export default class ArchiveController {
 
     // start building the select query
     const archiveQuery = Archive.query();
-
     // FILTERING
-
     // filter by timestamp range
     if (requestData.from && requestData.to) {
       archiveQuery.whereBetween("timestamp", [requestData.from, requestData.to]);
@@ -83,14 +67,87 @@ export default class ArchiveController {
   async getBetween({ request }: HttpContext) {
     // console.log(request.qs());
     const queryParams = request.qs();
-    // console.log(queryParams);
+    console.log("qp", queryParams);
     const data = await getArchiveDataBetweenValidator.validate(queryParams);
-    // console.log("Data", data);
+    console.log("Datafgg", data);
     // const data = await request.qs().validateUsing(getArchiveDataBetweenValidator);
     const archiveData = await Archive.query()
       .whereBetween("timestamp", [data.from, data.to])
       .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
     return archiveData;
+  }
+
+  async testAgg({ request }: HttpContext) {
+    const queryParams = request.qs();
+    const data = await getAvgPropertyValueValidator.validate(queryParams);
+    console.log("data validate", data);
+
+    const now = DateTime.now().setZone("Asia/Kolkata").toUTC(); // user's timezone
+    const startOfDuration: DateTime = now.startOf(data.timeDuration).toUTC();
+    const endOfDuration: DateTime = now.endOf(data.timeDuration).toUTC();
+
+    console.log("startOfDuration,", startOfDuration);
+    console.log("endOfDuration", endOfDuration);
+
+    switch (data.timeDuration) {
+      case "week":
+        const testAggdata = Archive.query()
+          .select("day")
+          .select("month")
+          .select("year")
+          .select("genset_property_id")
+          .avg("property_value")
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .groupBy("day")
+          .groupBy("month")
+          .groupBy("year")
+          .groupBy("genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.property);
+          })
+          .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+        return testAggdata.pojo();
+
+        break;
+      case "month":
+        const testAggdata1 = Archive.query()
+          .select("week")
+          .select("month")
+          .select("year")
+          .select("genset_property_id")
+          .avg("property_value")
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .groupBy("week")
+          .groupBy("month")
+          .groupBy("year")
+          .groupBy("genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.property);
+          })
+          .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+        return testAggdata1.pojo();
+        break;
+
+      case "year":
+        const testAggdata3 = Archive.query()
+          .select("month")
+          .select("year")
+          .select("genset_property_id")
+          .avg("property_value")
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .groupBy("month")
+          .groupBy("year")
+          .groupBy("genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.property);
+          })
+          .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
+        return testAggdata3.pojo();
+        break;
+    }
   }
 
   async getPropertyDataBetween({ request }: HttpContext) {
@@ -398,6 +455,7 @@ export default class ArchiveController {
     const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day");
     const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week");
     const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
+    console.log("weekTotal", weekTotal);
 
     return {
       timezone, // Include timezone in response for clarity
