@@ -30,3 +30,13 @@ export interface AnomalyStatistics {
   overall: TimerangeStatistics;
   byProperty: PropertyStatistics[];
 }
+
+export interface AvgStatisstics {
+  day?: number;
+  week?: number;
+  month?: number;
+  avg?: number;
+  genset_property_id?: number;
+}
+
+type PropertyAveragedStatistics = AvgStatistics[] 

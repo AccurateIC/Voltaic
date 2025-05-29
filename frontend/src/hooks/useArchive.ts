@@ -5,6 +5,7 @@ import { archiveApi } from "../api/archive";
 export const QUERY_KEYS = {
   anomalyStatistics: ["anomaly-statistics"] as const,
   propertyDataBetween: ["property-data-between"] as const,
+  testAvg: ["proprty_value-average"] as const,
 };
 
 export function useArchive() {
@@ -19,8 +20,16 @@ export function useArchive() {
     onSuccess: (data) => {},
   });
 
+  const testAgg= useMutation({
+     mutationFn: archiveApi.testAgg,
+     mutationKey: QUERY_KEYS.testAvg,
+       onSuccess: (data) => {},
+
+  })
+  
   return {
     getAnomalyStatistics,
     getPropertyDataBetween,
+    testAgg,
   };
 }

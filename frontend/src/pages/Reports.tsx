@@ -5,8 +5,8 @@ import { EngineSpeedStatistics } from "../components/charts/reports/EngineSpeedS
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
 import { useArchive } from "../hooks/useArchive";
 import { DateTime, DateTimeUnit } from "luxon";
-import { Archive } from "../types/archive.types";
-import { GetPropertyDataBetween } from "../api/archive";
+import { Archive, AvgStatisstics } from "../types/archive.types";
+import { GetPropertyDataBetween, GetTestAgg } from "../api/archive";
 import { EngineOilPressureStatistics } from "../components/charts/reports/EngineOilPressureStatistics";
 import { EngineFuelLevelStatistics } from "../components/charts/reports/EngineFuelLevelStatistics";
 import { GeneratorVoltageStatistics } from "../components/charts/reports/GeneratorVoltageStatistics";
@@ -20,6 +20,7 @@ import { useAuth } from "../hooks/useAuth";
 export const Reports = (props: {}) => {
   // hooks
   const { getPropertyDataBetween } = useArchive();
+  const { testAgg } = useArchive();
   const { getRulPrediction } = useRulPrediction();
   const { getLoggedInUser } = useAuth();
   const loggedInUser = getLoggedInUser?.data;
@@ -29,7 +30,44 @@ export const Reports = (props: {}) => {
   const [count, setCount] = useState(0);
   const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
   const [data, setData] = useState<Archive[]>();
+  const [dataavg, setDataavg] = useState<AvgStatisstics[]>();
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
+
+  // const fetchNotifications = async () => {
+  //   try {
+  //     const propertyName = "engSpeedDisplay";
+  //     const Tduration = "month";
+  //     const response = await fetch(
+  //       `${import.meta.env.VITE_ADONIS_BACKEND}/archive/testAgg?property=${propertyName}&timeDuration=${Tduration}`,
+  //       {
+  //         method: "GET",
+  //         headers: { "Content-Type": "application/json" },
+  //         credentials: "include",
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     console.log("data", data);
+  //     console.log("data spee", data[0].avg);
+
+  //     const engSpeedData = data
+  //       .filter((item) => item.genset_property_id === 7)
+  //       .map((item) =>
+  //       ({
+  //            avg: item.avg,   //time duration , propertywise
+  //            week: item?.week || null,
+  //           }))
+
+  //     console.log(engSpeedData);
+
+  //   } catch (error) {
+  //     console.error("Fetch error:", error);
+  //     toast.error("Error fetching notification data");
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchNotifications();
+  // }, []);
 
   // fetch rul prediction data
   const fetchRulPrediction = async () => {
@@ -94,6 +132,22 @@ export const Reports = (props: {}) => {
         "mainsL3Volts",
       ],
     };
+
+    const inputAvg: GetTestAgg = {
+      property: "engSpeedDisplay",
+      timeDuration: "month",
+    };
+
+    testAgg.mutate(inputAvg, {
+      onSuccess: (data1) => {
+        console.log("data1", data1);
+        setDataavg(data1);
+      },
+      onError: (error) => {
+        console.error("get property data between error", error);
+      },
+    });
+
     getPropertyDataBetween.mutate(inputData, {
       onSuccess: (data) => {
         // console.log("prop data", data);
