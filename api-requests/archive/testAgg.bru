@@ -5,7 +5,20 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/archive/testAgg
-  body: none
+  url: {{BASE_URL}}/archive/testAgg?property=engFuelLevelUnits&timeDuration=week
+  body: json
   auth: inherit
+}
+
+params:query {
+  property: engFuelLevelUnits
+  timeDuration: week
+}
+
+body:json {
+  {
+    "property": "engSpeedDisplay",
+    "timeDuration": "month"
+  }
+  
 }

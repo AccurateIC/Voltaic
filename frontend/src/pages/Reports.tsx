@@ -134,20 +134,23 @@ export const Reports = (props: {}) => {
     };
 
     const inputAvg: GetTestAgg = {
-      property: "engSpeedDisplay",
-      timeDuration: "month",
+      property: "engFuelLevelUnits",
+      timeDuration: "week",
     };
 
     testAgg.mutate(inputAvg, {
       onSuccess: (data1) => {
-        console.log("data1", data1);
+        // 1970-29-01- 5:29:59
         setDataavg(data1);
+        console.log("data1", data1);
       },
       onError: (error) => {
         console.error("get property data between error", error);
       },
     });
 
+
+    
     getPropertyDataBetween.mutate(inputData, {
       onSuccess: (data) => {
         // console.log("prop data", data);
@@ -166,9 +169,10 @@ export const Reports = (props: {}) => {
   /* way to filter data */
   useEffect(() => {
     console.log("data", data);
+    console.log("dataavg", dataavg);
     const filtData = data?.filter((value) => value.gensetProperty.propertyName === "mainsL1Volts");
     console.log("filtData", filtData);
-  }, [data]);
+  }, [data, dataavg]);
 
   return (
     <div>
@@ -198,8 +202,9 @@ export const Reports = (props: {}) => {
         </div>
         <div className="aspect-4/3 bg-base-200">
           <EngineFuelLevelStatistics
-            chartData={data?.filter((value) => value.gensetProperty.propertyName === "engFuelLevelUnits")}
-          />
+             chartData={data?.filter((value) => value.gensetProperty.propertyName === "engFuelLevelUnits")}
+            // chartData={dataavg?.filter((value) => value.genset_property_id === 9)}
+           />
         </div>
         <div className="aspect-4/3 bg-base-200">
           <GeneratorVoltageStatistics
