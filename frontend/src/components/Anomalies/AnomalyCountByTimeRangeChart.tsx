@@ -21,10 +21,8 @@ interface Props {
 }
 
 export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Props) => {
-  console.log(timeDuration, selectedProperties);
   const { getAnomalyStatistics } = useArchive();
   const { data: anomalyStatsData, isError, isLoading } = getAnomalyStatistics;
-  console.log("data", anomalyStatsData);
 
   if (isLoading)
     return (
@@ -135,10 +133,10 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
           timeDuration === "*"
             ? "All Time"
             : timeDuration === "1m"
-            ? "This Month"
-            : timeDuration === "1w"
-            ? "This Week"
-            : timeDuration
+              ? "This Month"
+              : timeDuration === "1w"
+                ? "This Week"
+                : timeDuration
         })`,
       },
       tooltip: {
