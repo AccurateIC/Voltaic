@@ -1,0 +1,20 @@
+meta {
+  name: getPropertyStatistics
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/archive/getPropertyStatistics?propertyName=engSpeedDisplay&timeDuration=week
+  body: none
+  auth: inherit
+}
+
+params:query {
+  propertyName: engSpeedDisplay
+  timeDuration: week
+}
+
+headers {
+  timezone: Asia/Kolkata
+}

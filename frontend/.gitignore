@@ -1,14 +1,9 @@
 node_modules
+build
 tmp
-out-tsc
-
-
+.env
 npm-debug.log
-yarn-debug.log
 yarn-error.log
-.pnp
-.pnp.js
-
 .fleet
 .idea
 .vscode
