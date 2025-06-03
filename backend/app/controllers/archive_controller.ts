@@ -4,6 +4,7 @@ import {
   getArchiveDataBetweenValidator,
   getArchiveDataPropertyBetweenValidator,
   getPaginatedDataValidator,
+  getPropertyStatisticsValidator,
 } from "#validators/archive";
 import Archive from "#models/archive";
 import Notification from "#models/notification";
@@ -12,10 +13,94 @@ import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
 import db from "@adonisjs/lucid/services/db";
 import PhysicalQuantity from "#models/physical_quantity";
-import { DateTime } from "luxon";
+import { DateTime, DateTimeUnit } from "luxon";
 import { ArchiveService } from "#services/archive_service";
 
 export default class ArchiveController {
+  async getPropertyStatistics({ request }: HttpContext) {
+    const data = await request.validateUsing(getPropertyStatisticsValidator);
+    const timezone: string = data.headers.timezone;
+    const timeDuration: DateTimeUnit = data.timeDuration;
+    const now = DateTime.now().setZone(timezone).toUTC();
+    const startOfDuration = now.startOf(timeDuration);
+    const endOfDuration = now.endOf(timeDuration);
+
+    let responseData;
+
+    switch (timeDuration) {
+      case "day": // show data averaged hourly
+        // not implemented
+        break;
+      case "week": // show data averaged daily
+        responseData = await Archive.query() //
+          .select("day", "month", "year", "genset_property_id")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.propertyName);
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("day", "month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      case "month": // show data averaged weekly
+        responseData = await Archive.query() //
+          .select("week", "month", "year", "genset_property_id")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.propertyName);
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("week", "month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      case "year": // show data averaged monthly
+        responseData = await Archive.query() //
+          .select("month", "year", "genset_property_id")
+          .whereHas("gensetProperty", (propertyQuery) => {
+            propertyQuery.where("propertyName", data.propertyName);
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      default:
+        break;
+    }
+
+    return responseData;
+  }
+
   async getAll({}: HttpContext) {
     const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
     return archiveData;
@@ -117,7 +202,7 @@ export default class ArchiveController {
 
   async create({ request }: HttpContext) {
     const payload = await request.validateUsing(createArchiveValidator);
-    const timestamp = payload.timestamp;
+    const timestamp = DateTime.fromJSDate(payload.timestamp);
     const data = payload.data;
 
     // begin db transaction
@@ -133,6 +218,10 @@ export default class ArchiveController {
         // prepare archive data
         const archiveData = data.map((element) => ({
           timestamp,
+          // day: timestamp.day,
+          // week: timestamp.weekNumber,
+          // month: timestamp.month,
+          // year: timestamp.year,
           gensetPropertyId: propertyMap.get(element.property)!.id,
           propertyValue: element.value,
           isAnomaly: element.is_anomaly,

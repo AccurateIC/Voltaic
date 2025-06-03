@@ -21,7 +21,7 @@ export const AllAnomaliesCount = () => {
   const { getAnomalyStatistics } = useArchive();
   const { data, isPending, isError } = getAnomalyStatistics;
 
-  if (isPending) return isPending && <div className="skeleton h-full w-full"></div>;
+  if (isPending) return <div className="skeleton h-full w-full"></div>;
   if (isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
   console.log(data.overall);
