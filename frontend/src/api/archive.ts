@@ -1,5 +1,5 @@
 // frontend/src/api/archive.ts
-import { AnomalyStatistics, Archive } from "../types/archive.types";
+import { AnomalyStatistics, Archive, GensetPropertyStatistics, GetPropertyStatisticsFilters } from "../types/archive.types";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 export interface GetPropertyDataBetween {
@@ -8,10 +8,23 @@ export interface GetPropertyDataBetween {
   properties: string[];
 }
 export const archiveApi = {
+  getPropertyStatistics: async (filters: GetPropertyStatisticsFilters): Promise<GensetPropertyStatistics> => {
+    const response = await fetch(
+      `${BASE_URL}/archive/getPropertyStatistics?propertyName=${filters.propertyName}&timeDuration=${filters.timeDuration}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        credentials: "include",
+      }
+    );
+    if (!response.ok) throw new Error(`Failed to get property statistics for ${filters.propertyName}`);
+    return response.json() as Promise<GensetPropertyStatistics>;
+  },
+
   getAnomalyStatistics: async (): Promise<AnomalyStatistics> => {
     const response = await fetch(`${BASE_URL}/archive/getAnomalyStatistics`, {
       method: "GET",
-      headers: { "Content-Type": "application/json", timezone: "Asia/Kolkata" },
+      headers: { "Content-Type": "application/json", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
       credentials: "include",
     });
     if (!response.ok) throw new Error("Failed to get anomaly statistics");

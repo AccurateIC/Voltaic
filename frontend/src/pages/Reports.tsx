@@ -1,35 +1,40 @@
-import { useEffect, useState } from "react";
+// src/pages/Reports.tsx
+import { useState } from "react";
 import { AllAnomaliesCount } from "../components/charts/reports/AllAnomaliesCount";
 import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByProperty";
-import { EngineSpeedStatistics } from "../components/charts/reports/EngineSpeedStatistics";
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
-import { useArchive } from "../hooks/useArchive";
-import { DateTime, DateTimeUnit } from "luxon";
-import { Archive } from "../types/archive.types";
-import { GetPropertyDataBetween } from "../api/archive";
-import { EngineOilPressureStatistics } from "../components/charts/reports/EngineOilPressureStatistics";
-import { EngineFuelLevelStatistics } from "../components/charts/reports/EngineFuelLevelStatistics";
-import { GeneratorVoltageStatistics } from "../components/charts/reports/GeneratorVoltageStatistics";
-import { MainsVoltageStatistics } from "../components/charts/reports/MainsVoltageStatistics";
+import { DateTimeUnit } from "luxon";
 import { RulChart } from "../components/charts/RulTrendChart";
 import { RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
+import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 
-export const Reports = (props: {}) => {
+export const Reports = () => {
   // hooks
-  const { getPropertyDataBetween } = useArchive();
   const { getRulPrediction } = useRulPrediction();
   const { getLoggedInUser } = useAuth();
+
   const loggedInUser = getLoggedInUser?.data;
   const loggedInEmail = loggedInUser?.email;
 
   //state
   const [count, setCount] = useState(0);
   const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
-  const [data, setData] = useState<Archive[]>();
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
+
+  const properties = [
+    { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
+    { propertyName: "engOilPress", chartTitle: "Engine Oil Pressure (bar)" },
+    { propertyName: "engFuelLevelUnits", chartTitle: "Engine Fuel Level (L)" },
+    { propertyName: "genL1Volts", chartTitle: "Generator Phase 1 Voltage (volts)" },
+    { propertyName: "genL2Volts", chartTitle: "Generator Phase 2 Voltage (volts)" },
+    { propertyName: "genL3Volts", chartTitle: "Generator Phase 3 Voltage (volts)" },
+    { propertyName: "mainsL1Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
+    { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
+    { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
+  ];
 
   // fetch rul prediction data
   const fetchRulPrediction = async () => {
@@ -72,50 +77,6 @@ export const Reports = (props: {}) => {
     }
   };
 
-  // fetch data on mount
-  useEffect(() => {
-    fetchRulPrediction();
-    const now: DateTime = DateTime.now().toUTC();
-    const startOfDuration: DateTime = now.startOf(timeDuration);
-    const endOfDuration: DateTime = now.endOf(timeDuration);
-
-    const inputData: GetPropertyDataBetween = {
-      from: startOfDuration.toISO(),
-      to: endOfDuration.toISO(),
-      properties: [
-        "engSpeedDisplay",
-        "engOilPress",
-        "engFuelLevelUnits",
-        "genL1Volts",
-        "genL2Volts",
-        "genL3Volts",
-        "mainsL1Volts",
-        "mainsL2Volts",
-        "mainsL3Volts",
-      ],
-    };
-    getPropertyDataBetween.mutate(inputData, {
-      onSuccess: (data) => {
-        // console.log("prop data", data);
-        setData(data);
-        // const cd = data.map((value) => ({
-        //   x: value.timestamp,
-        //   y: value.propertyValue,
-        // }));
-      },
-      onError: (error) => {
-        console.error("get property data between error", error);
-      },
-    });
-  }, [timeDuration]);
-
-  /* way to filter data */
-  useEffect(() => {
-    console.log("data", data);
-    const filtData = data?.filter((value) => value.gensetProperty.propertyName === "mainsL1Volts");
-    console.log("filtData", filtData);
-  }, [data]);
-
   return (
     <div>
       <div className="flex items-center justify-between p-2">
@@ -132,44 +93,23 @@ export const Reports = (props: {}) => {
         <div className="aspect-4/3 bg-base-200">
           <PDMNotificationStatistics />
         </div>
-        <div className="aspect-4/3 bg-base-200">
-          <EngineSpeedStatistics
-            chartData={data?.filter((value) => value.gensetProperty.propertyName === "engSpeedDisplay")}
-          />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <EngineOilPressureStatistics
-            chartData={data?.filter((value) => value.gensetProperty.propertyName === "engOilPress")}
-          />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <EngineFuelLevelStatistics
-            chartData={data?.filter((value) => value.gensetProperty.propertyName === "engFuelLevelUnits")}
-          />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <GeneratorVoltageStatistics
-            chartData={data?.filter(
-              (value) =>
-                value.gensetProperty.propertyName === "genL1Volts" ||
-                value.gensetProperty.propertyName === "genL2Volts" ||
-                value.gensetProperty.propertyName === "genL3Volts"
-            )}
-          />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <MainsVoltageStatistics
-            chartData={data?.filter(
-              (value) =>
-                value.gensetProperty.propertyName === "mainsL1Volts" ||
-                value.gensetProperty.propertyName === "mainsL2Volts" ||
-                value.gensetProperty.propertyName === "mainsL3Volts"
-            )}
-          />
-        </div>
+        {/* RUL */}
         <div className="aspect-4/3 bg-base-200">
           <RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />
         </div>
+
+        {/* All Properties Statistics */}
+        {properties.map((property) => {
+          return (
+            <div className="aspect-4/3 bg-base-200">
+              <GenericPropertyStatisticsBarChart
+                timeDuration={timeDuration}
+                propertyName={property.propertyName}
+                chartTitle={property.chartTitle}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import { GensetProperty } from "./gensetProperty.types";
+import { GensetProperty, GensetPropertyName } from "./gensetProperty.types";
+import { DateTimeUnit, DayNumbers, WeekNumbers, MonthNumbers } from "luxon";
 
 export interface Archive {
   id: number;
@@ -29,4 +30,28 @@ export interface AnomalyStatistics {
   timezone: string;
   overall: TimerangeStatistics;
   byProperty: PropertyStatistics[];
+}
+
+export interface GetPropertyStatisticsFilters {
+  propertyName: GensetPropertyName;
+  timeDuration: DateTimeUnit;
+}
+
+export interface PropertyStatisticsAverage {
+  day: DayNumbers;
+  week: WeekNumbers;
+  month: MonthNumbers;
+  year: number;
+  genset_property_id: number;
+  avg: number;
+}
+
+export interface GensetPropertyStatisticsMetadata {
+  timeDuration: DateTimeUnit;
+  averaged: "hourly" | "daily" | "weekly" | "monthly" | "yearly";
+}
+
+export interface GensetPropertyStatistics {
+  meta: GensetPropertyStatisticsMetadata;
+  data: PropertyStatisticsAverage[];
 }
