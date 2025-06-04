@@ -1,3 +1,4 @@
+
 // frontend/src/components/charts/reports/AllAnomaliesCount.tsx
 import {
   Chart as ChartJS,
@@ -19,13 +20,15 @@ import { useEffect, useState } from "react";
 import { PDMNotificationCount } from "../../../types/pdm.types";
 import { DateTimeUnit } from "luxon";
 
-export const PDMNotificationStatistics = () => {
+export const PDMNotificationStatistics = ({timeDuration}) => {
   //hooks
   const { getPDMStatistics } = usePDM();
-
+console.log("timeDuration", timeDuration);
   // state
   const [chartData, setChartData] = useState<PDMNotificationCount>();
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+  // const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+  console.log("timeDuration", timeDuration);
+
 
   useEffect(() => {
     getPDMStatistics.mutate(timeDuration, {
