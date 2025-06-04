@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
   if (isLoading) {
     // loading spinner
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-base-200">
+      <div className="h-screen opacity-90 w-full flex items-center justify-center bg-base-200">
         <Loader />
       </div>
     );

@@ -1,3 +1,4 @@
+// src/components/charts/AnomalyGraphModal.jsx
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,6 +13,7 @@ import {
 import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
 import { useMemo } from "react";
+import { GenericAnimatedModal } from "../GenericAnimatedModal";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale);
 
@@ -105,18 +107,14 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
   };
 
   return (
-    <dialog id="my_modal_2" className="modal backdrop-blur-sm" open={isOpen}>
-      <div className="modal-box max-w-6xl bg-base-200">
-        <button onClick={onClose} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-          ✕
-        </button>
+    <GenericAnimatedModal isOpen={isOpen} onClose={onClose}>
+      <div className="h-full flex flex-col">
         <h3 className="text-base-content text-xl font-semibold mb-4 text-center">Anomaly Detection Timeline</h3>
-        <div className="h-[400px]">
+        <div className="flex-1">
           <Line data={chartData} options={chartOptions} />
         </div>
-        <div className="flex justify-end mt-4"></div>
       </div>
-    </dialog>
+    </GenericAnimatedModal>
   );
 };
 

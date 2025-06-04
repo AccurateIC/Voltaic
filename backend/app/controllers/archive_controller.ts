@@ -469,8 +469,9 @@ export default class ArchiveController {
     const totalCount = await ArchiveService.getAnomalyCount();
     const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day");
     const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week");
+    const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year");
     const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
-     const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year");
+    
 
     return {
       timezone, // Include timezone in response for clarity

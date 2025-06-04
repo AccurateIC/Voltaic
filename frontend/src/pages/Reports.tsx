@@ -10,6 +10,7 @@ import { useRulPrediction } from "../hooks/useRulPrediction";
 import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 
 export const Reports = () => {
   // hooks
@@ -24,6 +25,20 @@ export const Reports = () => {
   const [timeFilter, setTimeFilter] = useState<DateTimeUnit>("month");
 
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
+  const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
+
+  const openInModal = (component: React.ReactNode) => {
+    setModalContent({ component });
+  };
+
+  const renderGraphCard = (content: React.ReactNode, key?: string | number) => (
+    <div
+      key={key}
+      className="aspect-4/3 bg-base-200 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => openInModal(content)}>
+      {content}
+    </div>
+  );
 
   const properties = [
     { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
@@ -124,22 +139,10 @@ export const Reports = () => {
         <button className="btn">Export</button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
-        <div className="aspect-4/3 bg-base-200">
-          <AllAnomaliesCount />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          {/* <AnomaliesByProperty  /> */}
-          <AnomaliesByProperty timeDuration1={timeFilter} />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          {/* <PDMNotificationStatistics /> */}
-
-          <PDMNotificationStatistics   timeDuration1={timeFilter}/>
-        </div>
-        {/* RUL */}
-        <div className="aspect-4/3 bg-base-200">
-          <RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />
-        </div>
+        {renderGraphCard(<AllAnomaliesCount />)}
+        {renderGraphCard(<AnomaliesByProperty />)}
+        {renderGraphCard(<PDMNotificationStatistics />)}
+        {renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />)}
 
         {/* All Properties Statistics */}
         {properties.map((property) => {
@@ -154,6 +157,10 @@ export const Reports = () => {
           );
         })}
       </div>
+      {/* Modal */}
+      <GenericAnimatedModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
+        {modalContent?.component}
+      </GenericAnimatedModal>
     </div>
   );
 };
