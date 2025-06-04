@@ -22,7 +22,7 @@ export const Reports = () => {
 
   //state
   const [count, setCount] = useState(0);
-  const [timeFilter, setTimeFilter] = useState<DateTimeUnit>("month");
+  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("month");
 
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
   const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
@@ -126,14 +126,14 @@ export const Reports = () => {
     );
   };
 
-  console.log("timeFilter", timeFilter);
+  console.log("timeDuration", timeDuration);
   return (
     <div>
       <div className="flex items-center justify-between p-2">
         <div className="items-start flex gap-10 ">
           <h1 className="text-2xl">Reports</h1>
           <div className="  text-xl">
-            <TimeRangeSelector value={timeFilter} onChange={setTimeFilter} />
+            <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
           </div>
         </div>
         <button className="btn">Export</button>
@@ -149,7 +149,7 @@ export const Reports = () => {
           return (
             <div className="aspect-4/3 bg-base-200">
               <GenericPropertyStatisticsBarChart
-                timeDuration={timeFilter}
+                timeDuration={timeDuration}
                 propertyName={property.propertyName}
                 chartTitle={property.chartTitle}
               />
