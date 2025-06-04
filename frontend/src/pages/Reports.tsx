@@ -81,17 +81,30 @@ export const Reports = () => {
     <div>
       <div className="flex items-center justify-between p-2">
         <h1 className="text-2xl">Reports</h1>
+        <div className="form-control w-full max-w-xs">
+        <label className="label font-bold">Select Time Range</label>
+        <select
+          className="select select-sm select-bordered"
+          value={timeDuration}
+          onChange={(e) => setTimeDuration(e.target.value as DateTimeUnit)}
+        >
+          <option value="week">Weekly</option>
+          <option value="month">Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
         <button className="btn">Export</button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
         <div className="aspect-4/3 bg-base-200">
-          <AllAnomaliesCount />
+        <AllAnomaliesCount/>
         </div>
         <div className="aspect-4/3 bg-base-200">
-          <AnomaliesByProperty />
+        <AnomaliesByProperty timeDuration={timeDuration} />
         </div>
         <div className="aspect-4/3 bg-base-200">
-          <PDMNotificationStatistics />
+        <PDMNotificationStatistics timeDuration={timeDuration} />
         </div>
         {/* RUL */}
         <div className="aspect-4/3 bg-base-200">

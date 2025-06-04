@@ -13,19 +13,20 @@ import {
   Colors,
 } from "chart.js";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Colors);
+
 import { Bar } from "react-chartjs-2";
-import { usePDM } from "../../../hooks/usePdmHook";
 import { useEffect, useState } from "react";
+import { usePDM } from "../../../hooks/usePdmHook";
 import { PDMNotificationCount } from "../../../types/pdm.types";
 import { DateTimeUnit } from "luxon";
 
-export const PDMNotificationStatistics = () => {
-  //hooks
-  const { getPDMStatistics } = usePDM();
+interface Props {
+  timeDuration: DateTimeUnit; 
+}
 
-  // state
+export const PDMNotificationStatistics = ({ timeDuration }: Props) => {
+  const { getPDMStatistics } = usePDM();
   const [chartData, setChartData] = useState<PDMNotificationCount>();
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
 
   useEffect(() => {
     getPDMStatistics.mutate(timeDuration, {
@@ -37,7 +38,7 @@ export const PDMNotificationStatistics = () => {
         console.error("Error fetching PDM Statistics", error);
       },
     });
-  }, [timeDuration]); // you might include getPDMStatistics if needed
+  }, [timeDuration]);
 
   if (getPDMStatistics.isPending || !chartData) return <div className="skeleton h-full w-full"></div>;
   if (getPDMStatistics.isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
@@ -95,3 +96,4 @@ export const PDMNotificationStatistics = () => {
 
   return <Bar data={data} options={options} />;
 };
+   

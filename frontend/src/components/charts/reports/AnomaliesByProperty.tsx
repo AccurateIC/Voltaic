@@ -8,19 +8,19 @@ import { useState } from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const AnomaliesByProperty = () => {
+interface Props {
+  timeDuration: "today" | "week" | "month" | "total";
+}
+export const AnomaliesByProperty = ({ timeDuration }: Props) => {
   // hooks
   const { getAnomalyStatistics } = useArchive();
   const { data, isPending, isError } = getAnomalyStatistics;
-
-  // state
-  const [chartTimeRange, setChartTimeRange] = useState<"today" | "week" | "month" | "total">("total");
 
   if (isPending) return isPending && <div className="skeleton h-full w-full"></div>;
   if (isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
   const labels = data.byProperty.map((value) => value.readablePropertyName);
-  const pieData = data.byProperty.map((value) => value[chartTimeRange]);
+  const pieData = data.byProperty.map((value) => value[timeDuration]);
 
   const options: ChartOptions<"pie"> = {
     maintainAspectRatio: false,
