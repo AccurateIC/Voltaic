@@ -9,7 +9,45 @@ import { RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
+import { motion, AnimatePresence } from "motion/react";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
+
+interface GraphModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+export const GraphModal = ({ isOpen, onClose, children }: GraphModalProps) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            className="fixed inset-4 z-50 bg-base-200 rounded-lg overflow-hidden m-20">
+            <button onClick={onClose} className="absolute top-4 right-4 btn btn-circle btn-ghost">
+              ✕
+            </button>
+            <div className="w-full h-full p-6">{children}</div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
 
 export const Reports = () => {
   // hooks
@@ -23,6 +61,20 @@ export const Reports = () => {
   const [count, setCount] = useState(0);
   const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
+  const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
+
+  const openInModal = (component: React.ReactNode) => {
+    setModalContent({ component });
+  };
+
+  const renderGraphCard = (content: React.ReactNode, key?: string | number) => (
+    <div
+      key={key}
+      className="aspect-4/3 bg-base-200 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => openInModal(content)}>
+      {content}
+    </div>
+  );
 
   const properties = [
     { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
@@ -84,33 +136,27 @@ export const Reports = () => {
         <button className="btn">Export</button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
-        <div className="aspect-4/3 bg-base-200">
-          <AllAnomaliesCount />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <AnomaliesByProperty />
-        </div>
-        <div className="aspect-4/3 bg-base-200">
-          <PDMNotificationStatistics />
-        </div>
-        {/* RUL */}
-        <div className="aspect-4/3 bg-base-200">
-          <RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />
-        </div>
+        {renderGraphCard(<AllAnomaliesCount />)}
+        {renderGraphCard(<AnomaliesByProperty />)}
+        {renderGraphCard(<PDMNotificationStatistics />)}
+        {renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />)}
 
         {/* All Properties Statistics */}
-        {properties.map((property) => {
-          return (
-            <div className="aspect-4/3 bg-base-200">
-              <GenericPropertyStatisticsBarChart
-                timeDuration={timeDuration}
-                propertyName={property.propertyName}
-                chartTitle={property.chartTitle}
-              />
-            </div>
-          );
-        })}
+        {properties.map((property) =>
+          renderGraphCard(
+            <GenericPropertyStatisticsBarChart
+              timeDuration={timeDuration}
+              propertyName={property.propertyName}
+              chartTitle={property.chartTitle}
+            />,
+            property.propertyName
+          )
+        )}
       </div>
+      {/* Modal */}
+      <GraphModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
+        {modalContent?.component}
+      </GraphModal>
     </div>
   );
 };
