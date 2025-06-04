@@ -9,45 +9,8 @@ import { RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
-import { motion, AnimatePresence } from "motion/react";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
-
-interface GraphModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-export const GraphModal = ({ isOpen, onClose, children }: GraphModalProps) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            className="fixed inset-4 z-50 bg-base-200 rounded-lg overflow-hidden m-20">
-            <button onClick={onClose} className="absolute top-4 right-4 btn btn-circle btn-ghost">
-              ✕
-            </button>
-            <div className="w-full h-full p-6">{children}</div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-};
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 
 export const Reports = () => {
   // hooks
@@ -154,9 +117,9 @@ export const Reports = () => {
         )}
       </div>
       {/* Modal */}
-      <GraphModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
+      <GenericAnimatedModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
         {modalContent?.component}
-      </GraphModal>
+      </GenericAnimatedModal>
     </div>
   );
 };

@@ -452,6 +452,7 @@ export default class ArchiveController {
         const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day", [entry.propertyName]);
         const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week", [entry.propertyName]);
         const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month", [entry.propertyName]);
+        const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year", [entry.propertyName]);
         const totalCount = await ArchiveService.getAnomalyCount(undefined, undefined, [entry.propertyName]);
 
         return {
@@ -459,6 +460,7 @@ export default class ArchiveController {
           today: todaysTotal,
           week: weekTotal,
           month: monthTotal,
+          year: yearTotal,
           total: totalCount,
         };
       })
@@ -467,6 +469,7 @@ export default class ArchiveController {
     const totalCount = await ArchiveService.getAnomalyCount();
     const todaysTotal = await ArchiveService.getAnomalyCount(timezone, "day");
     const weekTotal = await ArchiveService.getAnomalyCount(timezone, "week");
+    const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year");
     const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
 
     return {
@@ -475,6 +478,7 @@ export default class ArchiveController {
         today: todaysTotal,
         week: weekTotal,
         month: monthTotal,
+        year: yearTotal,
         total: totalCount,
       },
       byProperty: propertyStatsByTime,
