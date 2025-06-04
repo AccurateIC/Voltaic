@@ -115,7 +115,7 @@ export const pdmApi = {
       body: JSON.stringify({ timeDuration: timeDuration }),
     });
 
-    if (!response.ok) throw new Error(`Failed to fetch PDM statistics`, { cause: response.json });
+    if (!response.ok) throw new Error(`Failed to fetch PDM statistics`, { cause: response.json() });
 
     return response.json() as Promise<PDMNotificationCount>;
   },
@@ -130,3 +130,5 @@ export const pdmApi = {
     return response.json() as Promise<VibrationData>;
   },
 };
+
+// 1384

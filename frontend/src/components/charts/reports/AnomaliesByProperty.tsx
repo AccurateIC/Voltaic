@@ -4,17 +4,24 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions, ChartData 
 import { Pie } from "react-chartjs-2";
 import { useArchive } from "../../../hooks/useArchive";
 
-import { useState } from "react";
+import { useState,useEffect} from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const AnomaliesByProperty = () => {
+export const AnomaliesByProperty = ({timeDuration1}) => {
   // hooks
   const { getAnomalyStatistics } = useArchive();
   const { data, isPending, isError } = getAnomalyStatistics;
 
   // state
-  const [chartTimeRange, setChartTimeRange] = useState<"today" | "week" | "month" | "total">("total");
+  console.log("timeDuration1", timeDuration1);
+  // const [chartTimeRange, setChartTimeRange] = useState<"today" | "week" | "month" | "total">("total");
+    const [chartTimeRange, setChartTimeRange] = useState(timeDuration1);
+
+      console.log("chartTimeRange", chartTimeRange);
+    useEffect(() => {
+  setChartTimeRange(timeDuration1);
+}, [timeDuration1]);
 
   if (isPending) return isPending && <div className="skeleton h-full w-full"></div>;
   if (isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;

@@ -1,5 +1,5 @@
 // src/pages/Reports.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AllAnomaliesCount } from "../components/charts/reports/AllAnomaliesCount";
 import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByProperty";
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
@@ -21,7 +21,8 @@ export const Reports = () => {
 
   //state
   const [count, setCount] = useState(0);
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+  const [timeFilter, setTimeFilter] = useState<DateTimeUnit>("month");
+
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
 
   const properties = [
@@ -77,10 +78,49 @@ export const Reports = () => {
     }
   };
 
+  const TimeRangeSelector = ({ value, onChange }) => {
+    const options = ["year", "month", "week"];
+
+    return (
+      <div className="flex flex-row items-center gap-2">
+        <label className="text-m">Time Range:</label>
+
+        <div className="dropdown dropdown-start">
+          <div tabIndex={0} role="button" className="btn btn-m bg-base-100">
+            {value.charAt(0).toUpperCase() + value.slice(1)} ⬇️
+          </div>
+
+          <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+            {/* <li>
+              <a onClick={() => onChange("year")}>Year</a>
+            </li>
+            <li>
+              <a onClick={() => onChange("month")}>Month</a>
+            </li>
+            <li>
+              <a onClick={() => onChange("week")}>Week</a>
+            </li> */}
+            {options.map((option) => (
+              <li key={option}>
+                <a onClick={() => onChange(option)}>{option.charAt(0).toUpperCase() + option.slice(1)}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  };
+
+  console.log("timeFilter", timeFilter);
   return (
     <div>
       <div className="flex items-center justify-between p-2">
-        <h1 className="text-2xl">Reports</h1>
+        <div className="items-start flex gap-10 ">
+          <h1 className="text-2xl">Reports</h1>
+          <div className="  text-xl">
+            <TimeRangeSelector value={timeFilter} onChange={setTimeFilter} />
+          </div>
+        </div>
         <button className="btn">Export</button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
@@ -88,10 +128,13 @@ export const Reports = () => {
           <AllAnomaliesCount />
         </div>
         <div className="aspect-4/3 bg-base-200">
-          <AnomaliesByProperty />
+          {/* <AnomaliesByProperty  /> */}
+          <AnomaliesByProperty timeDuration1={timeFilter} />
         </div>
         <div className="aspect-4/3 bg-base-200">
-          <PDMNotificationStatistics />
+          {/* <PDMNotificationStatistics /> */}
+
+          <PDMNotificationStatistics   timeDuration1={timeFilter}/>
         </div>
         {/* RUL */}
         <div className="aspect-4/3 bg-base-200">
@@ -103,7 +146,7 @@ export const Reports = () => {
           return (
             <div className="aspect-4/3 bg-base-200">
               <GenericPropertyStatisticsBarChart
-                timeDuration={timeDuration}
+                timeDuration={timeFilter}
                 propertyName={property.propertyName}
                 chartTitle={property.chartTitle}
               />

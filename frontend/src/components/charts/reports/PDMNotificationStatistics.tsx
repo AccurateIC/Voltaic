@@ -1,3 +1,4 @@
+
 // frontend/src/components/charts/reports/AllAnomaliesCount.tsx
 import {
   Chart as ChartJS,
@@ -19,16 +20,18 @@ import { useEffect, useState } from "react";
 import { PDMNotificationCount } from "../../../types/pdm.types";
 import { DateTimeUnit } from "luxon";
 
-export const PDMNotificationStatistics = () => {
+export const PDMNotificationStatistics = ({timeDuration1}) => {
   //hooks
   const { getPDMStatistics } = usePDM();
-
+console.log("timeDuration1", timeDuration1);
   // state
   const [chartData, setChartData] = useState<PDMNotificationCount>();
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+  // const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+  console.log("timeDuration", timeDuration1);
+
 
   useEffect(() => {
-    getPDMStatistics.mutate(timeDuration, {
+    getPDMStatistics.mutate(timeDuration1, {
       onSuccess: (data) => {
         console.log("pdm stats", data);
         setChartData(data);
@@ -37,7 +40,7 @@ export const PDMNotificationStatistics = () => {
         console.error("Error fetching PDM Statistics", error);
       },
     });
-  }, [timeDuration]); // you might include getPDMStatistics if needed
+  }, [timeDuration1]); // you might include getPDMStatistics if needed
 
   if (getPDMStatistics.isPending || !chartData) return <div className="skeleton h-full w-full"></div>;
   if (getPDMStatistics.isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
