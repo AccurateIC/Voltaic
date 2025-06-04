@@ -8,20 +8,20 @@ import { useState,useEffect} from "react";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const AnomaliesByProperty = ({timeDuration1}) => {
+export const AnomaliesByProperty = ({timeDuration}) => {
   // hooks
   const { getAnomalyStatistics } = useArchive();
   const { data, isPending, isError } = getAnomalyStatistics;
 
   // state
-  console.log("timeDuration1", timeDuration1);
+  console.log("timeDuration", timeDuration);
   // const [chartTimeRange, setChartTimeRange] = useState<"today" | "week" | "month" | "total">("total");
-    const [chartTimeRange, setChartTimeRange] = useState(timeDuration1);
+    const [chartTimeRange, setChartTimeRange] = useState(timeDuration);
 
       console.log("chartTimeRange", chartTimeRange);
     useEffect(() => {
-  setChartTimeRange(timeDuration1);
-}, [timeDuration1]);
+  setChartTimeRange(timeDuration);
+}, [timeDuration]);
 
   if (isPending) return isPending && <div className="skeleton h-full w-full"></div>;
   if (isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;

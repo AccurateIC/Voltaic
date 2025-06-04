@@ -140,8 +140,8 @@ export const Reports = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
         {renderGraphCard(<AllAnomaliesCount />)}
-        {renderGraphCard(<AnomaliesByProperty />)}
-        {renderGraphCard(<PDMNotificationStatistics />)}
+        {renderGraphCard(<AnomaliesByProperty  timeDuration={timeDuration}/>)}
+        {renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />)}
         {renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />)}
 
         {/* All Properties Statistics */}

@@ -20,18 +20,18 @@ import { useEffect, useState } from "react";
 import { PDMNotificationCount } from "../../../types/pdm.types";
 import { DateTimeUnit } from "luxon";
 
-export const PDMNotificationStatistics = ({timeDuration1}) => {
+export const PDMNotificationStatistics = ({timeDuration}) => {
   //hooks
   const { getPDMStatistics } = usePDM();
-console.log("timeDuration1", timeDuration1);
+console.log("timeDuration", timeDuration);
   // state
   const [chartData, setChartData] = useState<PDMNotificationCount>();
   // const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
-  console.log("timeDuration", timeDuration1);
+  console.log("timeDuration", timeDuration);
 
 
   useEffect(() => {
-    getPDMStatistics.mutate(timeDuration1, {
+    getPDMStatistics.mutate(timeDuration, {
       onSuccess: (data) => {
         console.log("pdm stats", data);
         setChartData(data);
@@ -40,7 +40,7 @@ console.log("timeDuration1", timeDuration1);
         console.error("Error fetching PDM Statistics", error);
       },
     });
-  }, [timeDuration1]); // you might include getPDMStatistics if needed
+  }, [timeDuration]); // you might include getPDMStatistics if needed
 
   if (getPDMStatistics.isPending || !chartData) return <div className="skeleton h-full w-full"></div>;
   if (getPDMStatistics.isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
