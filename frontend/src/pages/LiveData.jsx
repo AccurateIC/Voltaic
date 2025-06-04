@@ -8,6 +8,7 @@ import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCh
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -48,6 +49,11 @@ export const LiveData = () => {
   const [engineSpeedData, setEngineSpeedData] = useState([]);
   const [oilPressureData, setOilPressureData] = useState([]);
 
+  const [showGraph, setShowGraph] = useState(false);
+
+  const [selectedChart, setSelectedChart] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [selectedProperties, setSelectedProperties] = useState([
     "Engine Fuel Level",
     "Engine Speed",
@@ -57,6 +63,16 @@ export const LiveData = () => {
     "Battery Charge",
     "PDM",
   ]);
+
+  const handleChartClick = (chartType) => {
+    setSelectedChart(chartType);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedChart(null);
+    setIsModalOpen(false);
+  };
 
   const generateEmptyDataPoints = (data, timeRange) => {
     if (data.length === 0) return [];
@@ -501,42 +517,54 @@ export const LiveData = () => {
       <div className="py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
           {selectedProperties.includes("Engine Fuel Level") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("fuelLevel")}>
               <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
             </div>
           )}
           {selectedProperties.includes("Engine Speed") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("engineSpeed")}>
               <EngineSpeedLineChart value={engineSpeedData} />
             </div>
           )}
           {selectedProperties.includes("Generator Current") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("generatorCurrent")}>
               <GeneratorCurrentLineChart value={currentData} />
             </div>
           )}
           {selectedProperties.includes("Generator Voltage") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("generatorVoltage")}>
               <GeneratorVoltageLineChart value={voltageData} />
             </div>
           )}
           {selectedProperties.includes("Oil Pressure") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("oilPressure")}>
               <OilPressureLineChart value={oilPressureData} />
             </div>
           )}
           {selectedProperties.includes("Battery Charge") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("batteryCharge")}>
               <BatteryChargeLineChart value={batteryData} />
             </div>
           )}
           {selectedProperties.includes("PDM") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("pdm")}>
               <PDMLineChart value={pdmDataForGraph} />
             </div>
           )}
         </div>
       </div>
+
+      <GenericAnimatedModal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <div className="h-full w-full">
+          {selectedChart === "fuelLevel" && <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />}
+          {selectedChart === "engineSpeed" && <EngineSpeedLineChart value={engineSpeedData} />}
+          {selectedChart === "generatorCurrent" && <GeneratorCurrentLineChart value={currentData} />}
+          {selectedChart === "generatorVoltage" && <GeneratorVoltageLineChart value={voltageData} />}
+          {selectedChart === "oilPressure" && <OilPressureLineChart value={oilPressureData} />}
+          {selectedChart === "batteryCharge" && <BatteryChargeLineChart value={batteryData} />}
+          {selectedChart === "pdm" && <PDMLineChart value={pdmDataForGraph} />}
+        </div>
+      </GenericAnimatedModal>
     </div>
   );
 };

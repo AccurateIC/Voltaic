@@ -1,3 +1,4 @@
+// frontend/src/pages/AnomaliesOld.jsx
 import { useState, useEffect } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";
