@@ -140,22 +140,20 @@ export const Reports = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
         {renderGraphCard(<AllAnomaliesCount />)}
-        {renderGraphCard(<AnomaliesByProperty  timeDuration={timeDuration}/>)}
+        {renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />)}
         {renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />)}
         {renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />)}
 
         {/* All Properties Statistics */}
-        {properties.map((property) => {
-          return (
-            <div className="aspect-4/3 bg-base-200">
-              <GenericPropertyStatisticsBarChart
-                timeDuration={timeDuration}
-                propertyName={property.propertyName}
-                chartTitle={property.chartTitle}
-              />
-            </div>
-          );
-        })}
+        {properties.map((property) =>
+          renderGraphCard(
+            <GenericPropertyStatisticsBarChart
+              timeDuration={timeDuration}
+              propertyName={property.propertyName}
+              chartTitle={property.chartTitle}
+            />
+          )
+        )}
       </div>
       {/* Modal */}
       <GenericAnimatedModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
