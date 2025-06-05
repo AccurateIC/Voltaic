@@ -12,9 +12,7 @@ import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
 import AnomalyGraphModal from "../components/charts/AnomalyGraphModal";
 import { formatTimestamp } from "../lib/Utils";
-// import AnomalyGraphModal from "./AnomalyComponents/AnomalyGraphModal";
-// import AnomaliesTable from "./AnomalyComponents/AnomalyTable";
-// import PropertyFilter from "./AnomalyComponents/PropertyFilter";
+
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
     icon === "FaExclamationTriangle" ? FaExclamationTriangle : icon === "FaCalendarWeek" ? FaCalendarWeek : FaCalendarAlt;
