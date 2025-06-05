@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
+import { useEffect, KeyboardEvent } from "react";
 
 interface GraphModalProps {
   isOpen: boolean;
@@ -7,6 +8,18 @@ interface GraphModalProps {
 }
 
 export const GenericAnimatedModal = ({ isOpen, onClose, children }: GraphModalProps) => {
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) onClose();
+    };
+
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isOpen, onClose]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -17,7 +30,7 @@ export const GenericAnimatedModal = ({ isOpen, onClose, children }: GraphModalPr
             animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 cursor-pointer"
           />
 
           {/* Modal */}
