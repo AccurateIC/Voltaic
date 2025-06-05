@@ -16,23 +16,20 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 import { Bar } from "react-chartjs-2";
 import { usePDM } from "../../../hooks/usePdmHook";
 import { useEffect, useState } from "react";
-import { NotificationCount, PDMNotificationCount, PDMStatistics } from "../../../types/pdm.types";
+import { NotificationCount } from "../../../types/pdm.types";
 import { DateTime, DateTimeUnit } from "luxon";
 import { getWeekRange } from "../../../lib/DateTimeUtils";
 
-export const PDMNotificationStatistics = ({ timeDuration }) => {
+export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: DateTimeUnit }) => {
   //hooks
   const { getPDMStatistics } = usePDM();
-  console.log("timeDuration", timeDuration);
+
   // state
   const [chartData, setChartData] = useState<NotificationCount[]>();
-  // const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
-  console.log("timeDuration", timeDuration);
 
   useEffect(() => {
     getPDMStatistics.mutate(timeDuration, {
       onSuccess: (data) => {
-        console.log("pdm stats", data);
         setChartData(data.data);
       },
       onError: (error) => {
@@ -51,12 +48,12 @@ export const PDMNotificationStatistics = ({ timeDuration }) => {
       xs = chartData.map((point) => {
         if (point.day)
           return DateTime.fromObject({ year: point.year, month: point.month, day: point.day }).toFormat("ccc, MMM d");
+        else throw new Error(`day not defined`);
       });
       ys = chartData.map((point) => point.count);
       break;
     case "month":
       const weekRanges = chartData.map((point) => {
-        console.log("WEEK", point);
         if (!point.week || !point.month) return;
         const range = getWeekRange(point.week, point.month, point.year);
         return {
@@ -64,12 +61,8 @@ export const PDMNotificationStatistics = ({ timeDuration }) => {
           rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}`,
         };
       });
-
       xs = weekRanges.map((point) => point?.rangeStr);
       ys = weekRanges.map((point) => parseInt(point?.count));
-
-      console.log("MONTHHHHH", xs, ys);
-
       break;
     case "year":
       xs = chartData.map((point) => DateTime.fromObject({ year: point.year, month: point.month }).toFormat("MMM"));
@@ -109,7 +102,7 @@ export const PDMNotificationStatistics = ({ timeDuration }) => {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
         title: {
-          display: true,
+          display: false,
           text: "Dates ⟶",
           font: { size: 18, weight: "normal" },
           color: "rgba(255, 255, 255, 0.5)",
