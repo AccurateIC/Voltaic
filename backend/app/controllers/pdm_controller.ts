@@ -93,14 +93,14 @@ export default class PdmController {
     // 1: if maintenance is needed, add to maintenance_notifications table
     let maintenance_notif_id = undefined;
     if (data.maintenance_needed === true) {
-      const maintenance_notif = new MaintenanceNotification();
-      maintenance_notif.predictedDominantFrequency = data.predicted_dominant_frequency;
-      maintenance_notif.predictedDominantAmplitude = data.predicted_dominant_amplitude;
-      maintenance_notif.timestamp = data.actual_values_timestamp[0];
-      maintenance_notif.maintenanceReason = data.maintenance_reason;
-      maintenance_notif.shouldBeDisplayed = true;
-      await maintenance_notif.save();
-      maintenance_notif_id = maintenance_notif.id;
+      const maintenance_notification = await MaintenanceNotification.create({
+        predictedDominantFrequency: data.predicted_dominant_frequency,
+        predictedDominantAmplitude: data.predicted_dominant_amplitude,
+        timestamp: DateTime.fromJSDate(data.actual_values_timestamp[0]),
+        maintenanceReason: data.maintenance_reason,
+        shouldBeDisplayed: true,
+      });
+      maintenance_notif_id = maintenance_notification.id;
     }
 
     // 2: Get references for pdm_data_kinds

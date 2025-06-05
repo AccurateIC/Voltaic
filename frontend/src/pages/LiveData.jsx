@@ -517,37 +517,43 @@ export const LiveData = () => {
       <div className="py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
           {selectedProperties.includes("Engine Fuel Level") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("fuelLevel")}>
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("fuelLevel")}>
               <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
             </div>
           )}
           {selectedProperties.includes("Engine Speed") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("engineSpeed")}>
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("engineSpeed")}>
               <EngineSpeedLineChart value={engineSpeedData} />
             </div>
           )}
           {selectedProperties.includes("Generator Current") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("generatorCurrent")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("generatorCurrent")}>
               <GeneratorCurrentLineChart value={currentData} />
             </div>
           )}
           {selectedProperties.includes("Generator Voltage") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("generatorVoltage")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("generatorVoltage")}>
               <GeneratorVoltageLineChart value={voltageData} />
             </div>
           )}
           {selectedProperties.includes("Oil Pressure") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("oilPressure")}>
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("oilPressure")}>
               <OilPressureLineChart value={oilPressureData} />
             </div>
           )}
           {selectedProperties.includes("Battery Charge") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("batteryCharge")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("batteryCharge")}>
               <BatteryChargeLineChart value={batteryData} />
             </div>
           )}
           {selectedProperties.includes("PDM") && (
-            <div className="h-[410px] bg-base-200 rounded-lg" onClick={() => handleChartClick("pdm")}>
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("pdm")}>
               <PDMLineChart value={pdmDataForGraph} />
             </div>
           )}

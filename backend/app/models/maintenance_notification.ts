@@ -1,5 +1,5 @@
-import { DateTime } from "luxon";
-import { BaseModel, column } from "@adonisjs/lucid/orm";
+import { DateTime, type WeekNumbers, type DayNumbers, type MonthNumbers } from "luxon";
+import { BaseModel, beforeSave, column } from "@adonisjs/lucid/orm";
 
 interface MaintenanceReason {
   accel_x?: string;
@@ -13,6 +13,18 @@ export default class MaintenanceNotification extends BaseModel {
 
   @column()
   declare timestamp: DateTime;
+
+  @column()
+  declare day: DayNumbers;
+
+  @column()
+  declare week: WeekNumbers;
+
+  @column()
+  declare month: MonthNumbers;
+
+  @column()
+  declare year: number;
 
   @column()
   declare maintenanceReason: MaintenanceReason;
@@ -34,4 +46,19 @@ export default class MaintenanceNotification extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Automatically set day, week, month, and year from timestamp
+   */
+  @beforeSave()
+  static setTimeComponents(maintenanceNotification: MaintenanceNotification) {
+    console.log("TSSS", maintenanceNotification);
+    if (maintenanceNotification.timestamp) {
+      const ts = maintenanceNotification.timestamp;
+      maintenanceNotification.day = ts.day as DayNumbers;
+      maintenanceNotification.week = ts.weekNumber as WeekNumbers;
+      maintenanceNotification.month = ts.month as MonthNumbers;
+      maintenanceNotification.year = ts.year;
+    }
+  }
 }

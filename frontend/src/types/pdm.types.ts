@@ -1,3 +1,5 @@
+import { DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
+
 export interface MaintenanceReason {
   accel_x?: string;
   accel_y?: string;
@@ -16,31 +18,6 @@ export interface PDMCreationResponse {
   success: boolean;
   recordsCreated: number;
 }
-
-// {
-//   "id": 27900,
-//   "timestamp": "2025-04-18T13:40:36.000Z",
-//   "sensorPropertyId": 1,
-//   "value": -2.622061,
-//   "confidenceScorePercentage": "99.69",
-//   "maintenanceNotificationId": 108,
-//   "pdmDataKindId": 1,
-//   "createdAt": "2025-05-07T10:57:52.725+00:00",
-//   "updatedAt": "2025-05-07T10:57:52.725+00:00",
-//   "sensorProperty": {
-//     "id": 1,
-//     "propertyName": "vibration_acceleration_x",
-//     "unit": "g",
-//     "createdAt": "2025-05-07T10:27:34.360+00:00",
-//     "updatedAt": "2025-05-07T10:27:34.360+00:00"
-//   },
-//   "pdmDataKind": {
-//     "id": 1,
-//     "kind": "actual",
-//     "createdAt": "2025-05-07T10:27:34.351+00:00",
-//     "updatedAt": "2025-05-07T10:27:34.351+00:00"
-//   }
-// },
 
 export interface SensorProperty {
   id: number;
@@ -65,6 +42,16 @@ export interface VibrationData {
   pdmDataKind: PdmDataKind;
 }
 
-export interface PDMNotificationCount {
-  [date: string]: number;
+export interface NotificationCount {
+  id: number;
+  day?: DayNumbers;
+  week?: WeekNumbers;
+  month?: MonthNumbers;
+  year: number;
+  count: number;
+}
+
+export interface PDMStatistics {
+  meta: { timeDuration: DateTimeUnit };
+  data: NotificationCount[];
 }

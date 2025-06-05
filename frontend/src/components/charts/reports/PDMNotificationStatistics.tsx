@@ -1,4 +1,3 @@
-
 // frontend/src/components/charts/reports/AllAnomaliesCount.tsx
 import {
   Chart as ChartJS,
@@ -17,24 +16,24 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 import { Bar } from "react-chartjs-2";
 import { usePDM } from "../../../hooks/usePdmHook";
 import { useEffect, useState } from "react";
-import { PDMNotificationCount } from "../../../types/pdm.types";
-import { DateTimeUnit } from "luxon";
+import { NotificationCount, PDMNotificationCount, PDMStatistics } from "../../../types/pdm.types";
+import { DateTime, DateTimeUnit } from "luxon";
+import { getWeekRange } from "../../../lib/DateTimeUtils";
 
-export const PDMNotificationStatistics = ({timeDuration}) => {
+export const PDMNotificationStatistics = ({ timeDuration }) => {
   //hooks
   const { getPDMStatistics } = usePDM();
-console.log("timeDuration", timeDuration);
+  console.log("timeDuration", timeDuration);
   // state
-  const [chartData, setChartData] = useState<PDMNotificationCount>();
+  const [chartData, setChartData] = useState<NotificationCount[]>();
   // const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
   console.log("timeDuration", timeDuration);
-
 
   useEffect(() => {
     getPDMStatistics.mutate(timeDuration, {
       onSuccess: (data) => {
         console.log("pdm stats", data);
-        setChartData(data);
+        setChartData(data.data);
       },
       onError: (error) => {
         console.error("Error fetching PDM Statistics", error);
@@ -45,8 +44,40 @@ console.log("timeDuration", timeDuration);
   if (getPDMStatistics.isPending || !chartData) return <div className="skeleton h-full w-full"></div>;
   if (getPDMStatistics.isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
-  const xs = Object.keys(chartData);
-  const ys = Object.values(chartData);
+  let xs = [];
+  let ys = [];
+  switch (timeDuration) {
+    case "week":
+      xs = chartData.map((point) => {
+        if (point.day)
+          return DateTime.fromObject({ year: point.year, month: point.month, day: point.day }).toFormat("ccc, MMM d");
+      });
+      ys = chartData.map((point) => point.count);
+      break;
+    case "month":
+      const weekRanges = chartData.map((point) => {
+        console.log("WEEK", point);
+        if (!point.week || !point.month) return;
+        const range = getWeekRange(point.week, point.month, point.year);
+        return {
+          ...point,
+          rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}`,
+        };
+      });
+
+      xs = weekRanges.map((point) => point?.rangeStr);
+      ys = weekRanges.map((point) => parseInt(point?.count));
+
+      console.log("MONTHHHHH", xs, ys);
+
+      break;
+    case "year":
+      xs = chartData.map((point) => DateTime.fromObject({ year: point.year, month: point.month }).toFormat("MMM"));
+      ys = chartData.map((point) => point.count);
+      break;
+    default:
+      throw new Error(`unhandled time duration`);
+  }
 
   const data: ChartData<"bar"> = {
     labels: xs,
@@ -57,6 +88,7 @@ console.log("timeDuration", timeDuration);
         borderWidth: 1,
         borderColor: "rgba(54, 162, 235, 1)",
         backgroundColor: "rgba(54, 162, 235, 0.2)",
+        maxBarThickness: 100,
       },
     ],
   };

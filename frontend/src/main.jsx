@@ -1,4 +1,4 @@
-import { scan } from "react-scan"; // must be imported before React and React DOM
+// src/main.jsx
 import RUL from "./pages/RUL.js";
 import Login from "./pages/Login.jsx";
 import Engine from "./pages/Engine.jsx";

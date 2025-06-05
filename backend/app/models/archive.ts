@@ -1,5 +1,5 @@
 // backend/app/models/archive.ts
-import { DateTime } from "luxon";
+import { DateTime, type DayNumbers, type MonthNumbers, type WeekNumbers } from "luxon";
 import { BaseModel, belongsTo, column, beforeSave } from "@adonisjs/lucid/orm";
 import GensetProperty from "#models/genset_property";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
@@ -12,13 +12,13 @@ export default class Archive extends BaseModel {
   declare timestamp: DateTime; // day, month, week, year => grpBy day, month, year
 
   @column()
-  declare day: number;
+  declare day: DayNumbers;
 
   @column()
-  declare week: number;
+  declare week: WeekNumbers;
 
   @column()
-  declare month: number;
+  declare month: MonthNumbers;
 
   @column()
   declare year: number;
@@ -48,9 +48,9 @@ export default class Archive extends BaseModel {
   static setTimeComponents(archive: Archive) {
     if (archive.timestamp) {
       const ts = archive.timestamp;
-      archive.day = ts.day;
-      archive.week = ts.weekNumber;
-      archive.month = ts.month;
+      archive.day = ts.day as DayNumbers;
+      archive.week = ts.weekNumber as WeekNumbers;
+      archive.month = ts.month as MonthNumbers;
       archive.year = ts.year;
     }
   }

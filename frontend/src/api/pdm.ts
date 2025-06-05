@@ -1,4 +1,10 @@
-import { PDMCreationResponse, PDMNotification, PDMNotificationCount, VibrationData } from "../types/pdm.types";
+import {
+  PDMCreationResponse,
+  PDMNotification,
+  PDMNotificationCount,
+  PDMStatistics,
+  VibrationData,
+} from "../types/pdm.types";
 
 const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 
@@ -104,7 +110,7 @@ export const pdmApi = {
   },
 
   // TODO: get timezone from user's browser instead of hardcoding
-  getPDMStatistics: async (timeDuration: string): Promise<PDMNotificationCount> => {
+  getPDMStatistics: async (timeDuration: string): Promise<PDMStatistics> => {
     const response = await fetch(`${BASE_URL}/pdm/notification/getPDMStatistics`, {
       method: "POST",
       headers: {
@@ -117,7 +123,7 @@ export const pdmApi = {
 
     if (!response.ok) throw new Error(`Failed to fetch PDM statistics`, { cause: response.json() });
 
-    return response.json() as Promise<PDMNotificationCount>;
+    return response.json() as Promise<PDMStatistics>;
   },
 
   deleteAllPdmData: async (): Promise<VibrationData> => {

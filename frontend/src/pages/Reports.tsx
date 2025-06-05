@@ -1,5 +1,5 @@
 // src/pages/Reports.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AllAnomaliesCount } from "../components/charts/reports/AllAnomaliesCount";
 import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByProperty";
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
