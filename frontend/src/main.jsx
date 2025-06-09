@@ -1,17 +1,17 @@
 // src/main.jsx
 import RUL from "./pages/RUL.js";
 import Login from "./pages/Login";
-import Engine from "./pages/Engine.jsx";
-import Layout from "./components/Layout.jsx";
+import Engine from "./pages/Engine";
+import Layout from "./components/Layout";
 import AnomaliesOld from "./pages/AnomaliesOld";
-import { LiveData } from "./pages/LiveData.jsx";
+import { LiveData } from "./pages/LiveData";
 import Maintenance from "./pages/Maintenance";
-import { Generator } from "./pages/Generator.jsx";
-import { Mains } from "./pages/Mains.jsx";
-import ReportsOld from "./pages/ReportsOld.jsx";
-import Alarms from "./pages/Alarms.jsx";
-import Archive from "./pages/Archive.jsx";
-import ProfilePage from "./pages/ProfilePage.jsx";
+import { Generator } from "./pages/Generator";
+import { Mains } from "./pages/Mains";
+import ReportsOld from "./pages/ReportsOld";
+import Alarms from "./pages/Alarms";
+import Archive from "./pages/Archive";
+import ProfilePage from "./pages/ProfilePage";
 
 import "./index.css";
 import { Toaster } from "sonner";
@@ -20,7 +20,7 @@ import { createRoot } from "react-dom/client";
 import "/node_modules/react-resizable/css/styles.css";
 import "/node_modules/react-grid-layout/css/styles.css";
 import { BrowserRouter, Route, Routes } from "react-router";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Anomalies } from "./pages/Anomalies.js";

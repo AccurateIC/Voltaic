@@ -1,3 +1,4 @@
+import { ROUTES } from "../config/backend";
 import {
   PDMCreationResponse,
   PDMNotification,
@@ -111,7 +112,7 @@ export const pdmApi = {
 
   // TODO: get timezone from user's browser instead of hardcoding
   getPDMStatistics: async (timeDuration: string): Promise<PDMStatistics> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getPDMStatistics`, {
+    const response = await fetch(ROUTES.PDM_GET_STATISTICS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

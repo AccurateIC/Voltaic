@@ -194,7 +194,7 @@ export default class PdmController {
     return { success: true, recordsCreated: vibrationRecords.length };
   }
 
-  async getPDMStatistics({ request }: HttpContext) {
+  async getStatistics({ request }: HttpContext) {
     const reqBody = await request.validateUsing(getPdmStatisticsValidator);
     // (await reqBody).headers.timezone
 

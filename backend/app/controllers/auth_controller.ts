@@ -43,6 +43,7 @@ export default class AuthController {
     const user = await User.query().where("email", email).where("is_active", true).firstOrFail();
     await User.verifyCredentials(email, password);
     await auth.use("web").login(user);
+    return user.serialize();
   }
 
   async googleRedirect({ ally }: HttpContext) {

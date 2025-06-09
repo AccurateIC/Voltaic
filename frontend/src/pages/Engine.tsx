@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 import { cn } from "../lib/Utils.ts";
+import { Modules } from "../config/extern.ts";
+import { User } from "../types/auth.types.ts";
+import { catchErrTyped, ExternalServerError, Result } from "../lib/Err.js";
 
 // #fff627
 
@@ -150,9 +153,40 @@ const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit 
   );
 };
 
+const sendLoggedInUser = async (user: User, url: string): Promise<Result<void, ExternalServerError>> => {
+  return catchErrTyped(
+    fetch(`${url}/user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...user, logged_in: true }),
+    }).then(async (response) => {
+      toast.success(url);
+      if (!response.ok) {
+        toast.error(url);
+        const errorData = await response.json();
+        throw new ExternalServerError(`Failed to send user details: ${JSON.stringify(errorData)}`);
+      }
+      // implicit void return
+    }),
+    [ExternalServerError]
+  );
+};
+
 const Engine = () => {
   const [archiveData, setArchiveData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const user = sessionStorage.getItem("user");
+
+  // notify ML modules about the login event
+  useEffect(() => {
+    if (!sessionStorage.getItem("mlNotified") && user) {
+      sendLoggedInUser(JSON.parse(user), Modules.RUL);
+      sendLoggedInUser(JSON.parse(user), Modules.PDM);
+      sendLoggedInUser(JSON.parse(user), Modules.ANOMALY);
+      sessionStorage.setItem("mlNotified", "1");
+    }
+  }, [user]);
 
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
