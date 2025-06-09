@@ -177,7 +177,7 @@ router
     router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved");
     router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
     router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
-    router.post("notification/getPDMStatistics", "#controllers/pdm_controller.getPDMStatistics");
+    router.post("notification/getStatistics", "#controllers/pdm_controller.getStatistics");
 
     router.delete("delete", "#controllers/pdm_controller.delete");
   })

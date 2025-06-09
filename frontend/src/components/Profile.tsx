@@ -7,6 +7,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {
+      sessionStorage.removeItem("mlNotified");
       //   throw new Error();
       // TEMPORARY
       // ####################################
