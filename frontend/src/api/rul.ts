@@ -12,8 +12,14 @@ export const rulApi = {
       body: JSON.stringify(inputData),
       headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error("Failed to fetch RUL prediction");
-    return response.json() as Promise<RulPrediction>;
+    if (!response.ok) {
+      const errData = await response.json();
+      console.error("RUL", errData);
+      throw new Error("Failed to fetch RUL prediction");
+    }
+    const rulData = await response.json();
+    console.log("RUL", rulData);
+    return rulData as Promise<RulPrediction>;
   },
 
   sendLoggedInUser: async (user: User): Promise<void> => {

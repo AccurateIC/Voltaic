@@ -46,9 +46,11 @@ export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: Date
   switch (timeDuration) {
     case "week":
       xs = chartData.map((point) => {
-        if (point.day)
+        if (point?.day)
           return DateTime.fromObject({ year: point.year, month: point.month, day: point.day }).toFormat("ccc, MMM d");
-        else throw new Error(`day not defined`);
+        else {
+          return null;
+        }
       });
       ys = chartData.map((point) => point.count);
       break;
