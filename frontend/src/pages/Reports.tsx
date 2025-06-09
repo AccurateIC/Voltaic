@@ -133,7 +133,7 @@ export const Reports = () => {
           <div className="text-xl">
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
           </div>
-          <button className="btn">Export</button>
+          {/* <button className="btn">Export</button> */}
         </div>
       </div>
 

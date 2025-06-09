@@ -112,7 +112,7 @@ export const pdmApi = {
 
   // TODO: get timezone from user's browser instead of hardcoding
   getPDMStatistics: async (timeDuration: string): Promise<PDMStatistics> => {
-    const response = await fetch(ROUTES.PDM_GET_STATISTICS, {
+    const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getStatistics`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -122,7 +122,10 @@ export const pdmApi = {
       body: JSON.stringify({ timeDuration: timeDuration }),
     });
 
-    if (!response.ok) throw new Error(`Failed to fetch PDM statistics`, { cause: response.json() });
+    if (!response.ok) {
+      console.log(await response.json());
+      throw new Error(`Failed to fetch PDM statistics`);
+    }
 
     return response.json() as Promise<PDMStatistics>;
   },
@@ -133,7 +136,7 @@ export const pdmApi = {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
     });
-    if (!response.ok) throw new Error(`Failed to delete pdm data`, { cause: response.json() });
+    if (!response.ok) throw new Error(`Failed to delete pdm data`, { cause: await response.json() });
     return response.json() as Promise<VibrationData>;
   },
 };

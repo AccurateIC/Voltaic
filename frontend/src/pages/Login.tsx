@@ -8,6 +8,7 @@ import { User } from "../types/auth.types";
 import { Result, ExternalServerError, catchErrTyped } from "../lib/Err";
 import { Modules } from "../config/extern";
 import { ROUTES } from "../config/backend";
+import { SessionStore } from "../lib/SessionStore";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
   <div className="form-control w-full">
@@ -95,6 +96,7 @@ const Login = () => {
 
       const user: User = (await response.json()) as User;
       sessionStorage.setItem("user", JSON.stringify(user));
+      // SessionStore.set("user", user);
 
       console.log(isSignUp ? "User registered:" : "User logged in:", response);
       toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");

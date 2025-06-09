@@ -2,12 +2,13 @@
 
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { SessionStore } from "../lib/SessionStore";
 
 const Profile = () => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {
-      sessionStorage.removeItem("mlNotified");
+      SessionStore.clear();
       //   throw new Error();
       // TEMPORARY
       // ####################################

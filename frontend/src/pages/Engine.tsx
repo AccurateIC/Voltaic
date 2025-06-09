@@ -10,6 +10,7 @@ import { cn } from "../lib/Utils.ts";
 import { Modules } from "../config/extern.ts";
 import { User } from "../types/auth.types.ts";
 import { catchErrTyped, ExternalServerError, Result } from "../lib/Err.js";
+import { SessionStore } from "../lib/SessionStore.js";
 
 // #fff627
 
@@ -176,15 +177,15 @@ const Engine = () => {
   const [archiveData, setArchiveData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const user = sessionStorage.getItem("user");
+  const user = SessionStore.get("user");
 
   // notify ML modules about the login event
   useEffect(() => {
-    if (!sessionStorage.getItem("mlNotified") && user) {
-      sendLoggedInUser(JSON.parse(user), Modules.RUL);
-      sendLoggedInUser(JSON.parse(user), Modules.PDM);
-      sendLoggedInUser(JSON.parse(user), Modules.ANOMALY);
-      sessionStorage.setItem("mlNotified", "1");
+    if (!SessionStore.get("mlNotified") && user) {
+      sendLoggedInUser(user, Modules.RUL);
+      sendLoggedInUser(user, Modules.PDM);
+      sendLoggedInUser(user, Modules.ANOMALY);
+      SessionStore.set("mlNotified", "1");
     }
   }, [user]);
 
