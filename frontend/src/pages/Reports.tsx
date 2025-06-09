@@ -110,9 +110,6 @@ export const Reports = () => {
 
     return (
       <div className="flex flex-row items-center gap-2">
-        <div>
-          <FaFilter size={22} className="ml-2" />
-        </div>
         <label className="text-md text-base-content">Time Range:</label>
         <div className="dropdown dropdown-start">
           <div tabIndex={0} role="button" className="btn btn-m bg-base-100 px-10 w-full items-center justify-between">
@@ -153,7 +150,7 @@ export const Reports = () => {
         <label className="label text-md text-base-content">Select Charts</label>
         <div className="form-control">
           <div className="dropdown dropdown-start">
-            <label tabIndex={0} className="btn btn-sm w-full justify-between">
+            <label tabIndex={0} className="btn btn-sm w-full justify-between p-5 px-10">
               {label}
               <svg className="ml-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M5.25 7.25L10 12.25L14.75 7.25H5.25Z" />
@@ -220,6 +217,7 @@ export const Reports = () => {
 
         <div className="flex items-center justify-between mt-2">
           <div className="text-xl flex items-center gap-4">
+            <FaFilter size={22} className="ml-2" />
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
             <SelectChartsDropdown />
           </div>
