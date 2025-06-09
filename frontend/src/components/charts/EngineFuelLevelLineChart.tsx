@@ -1,83 +1,76 @@
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+  ChartData,
+  TimeSeriesScale,
+} from "chart.js";
+import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
 
 // Register ChartJS components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
-  const options = {
+  const options: ChartOptions<"line"> = {
     responsive: true,
-    animation: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "top",
-        align: "center",
-      },
+      legend: { position: "top", align: "center" },
       tooltip: {},
       title: {
         display: true,
         text: "Engine Fuel Level Monitor",
-        color: "#000",
-        font: {
-          size: 18,
-          weight: "normal",
-        },
+        color: "#fff",
+        font: { size: 18, weight: "normal" },
       },
     },
     scales: {
       x: {
-        type: "category",
+        type: "timeseries",
         position: "bottom",
         title: {
           display: true,
-          text: "Time",
-          font: {
-            size: 18,
-            weight: "normal",
-          },
+          text: "Time ⟶",
+          font: { size: 18, weight: "normal" },
         },
-        grid: {
-          display: true,
-          color: "#ccc",
-        },
-        ticks: {
-          display: true,
-        },
-        // This ensures axis is displayed even with no data
-        min: 0,
-        max: 75,
+        min: DateTime.now().minus({ hours: 1 }).toISO(),
+        max: DateTime.now().toISO(),
+        grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
+        ticks: { display: true },
       },
       y: {
         type: "linear",
         title: {
           display: true,
-          text: "Fuel Level (Liter)",
-          font: {
-            size: 18,
-            weight: "normal",
-          },
+          text: "Fuel Level (Liter) ⟶ ",
+          font: { size: 18, weight: "normal" },
         },
         min: 0,
         max: 80,
-        grid: {
-          display: true,
-          color: "#ccc",
-        },
+        grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };
 
-  const data = {
-    labels: fuelLevelData.map((item) => item.time),
+  const chartData = fuelLevelData.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
+
+  const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
         label: "Fuel Level",
-        data: fuelLevelData.map((item) => item.engineFuelLevel),
-        borderColor: "#5278d1",
-        backgroundColor: "#5278d1",
+        // data: fuelLevelData.map((item) => item.engineFuelLevel),
+        data: chartData,
+        borderColor: "rgba(82, 120, 209, 1)",
+        backgroundColor: "rgba(82, 120, 209, 0.5)",
         pointStyle: "circle",
         pointRadius: 3,
         pointHoverRadius: 5,

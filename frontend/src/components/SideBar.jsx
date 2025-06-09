@@ -18,9 +18,9 @@ const SideBarLink = ({ to, name, Icon }) => {
         to={to}
         className={({ isActive }) =>
           cn(
-            "flex items-center duration-200 transition-all hover:bg-base-content/50 hover:text-base-200",
+            "flex items-center duration-200 transition-all hover:bg-base-content/20 text-base-content",
             "rounded p-4 m-2 font-semibold text-lg",
-            `${isActive ? "bg-base-content text-base-100 rounded-md" : "text-gray-700"}`
+            `${isActive ? "bg-base-content text-base-100 rounded-md hover:text-base-content" : "text-base-content"}`
           )
         }
         end>
@@ -52,7 +52,7 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
       <div
         className={cn(
           "flex items-center justify-between cursor-pointer duration-200 transition-all ",
-          "hover:bg-base-content/50 hover:text-base-200 rounded p-4 m-2 font-semibold text-lg text-gray-700"
+          "hover:bg-base-content/20 rounded p-4 m-2 font-semibold text-lg text-base-content"
         )}
         onClick={() => setIsOpen(!isOpen)}>
         <div className="flex items-center">
@@ -68,8 +68,8 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 
 const SideBar = () => {
   return (
-    <div className="h-full flex flex-col justify-between bg-[rgba(177,213,189,1)] text-base-content w-15 md:w-58">
-      <ul className="bg-[rgba(177,213,189,1)] h-full px-1 py-2overflow-y-auto">
+    <aside className="sticky top-0 h-[calc(100vh-4rem)] flex flex-col justify-between bg-[rgba(177,213,189,1)] bg-base-200 text-base-content w-15 md:w-58">
+      <ul className="flex-1 bg-[rgba(177,213,189,1)] bg-base-200 px-1 py-2">
         <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
           <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
           <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
@@ -77,7 +77,8 @@ const SideBar = () => {
         </SideBarGroup>
 
         <SideBarLink to="/live-data" name="Live Data" Icon={FaFileAlt} />
-        <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} />
+        <SideBarLink to="/anomalies-old" name="Anomalies" Icon={RiAlertFill} />
+        {/* <SideBarLink to="/anomalies" name="Anomalies" Icon={RiAlertFill} /> */}
         <SideBarLink to="/reports" name="Reports" Icon={TbReportAnalytics} />
         <SideBarLink to="/alarms" name="Alarms" Icon={FaBell} />
         <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} />
@@ -88,7 +89,7 @@ const SideBar = () => {
         <span>Neurogen v1.3.5</span>
         <span>© NeuBodhi 2025</span>
       </div>
-    </div>
+    </aside>
   );
 };
 

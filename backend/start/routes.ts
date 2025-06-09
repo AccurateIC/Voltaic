@@ -101,6 +101,7 @@ router
 // this is the table where timestamped telemetry data from the genset will be stored
 router
   .group(() => {
+    router.get("getPropertyStatistics", "#controllers/archive_controller.getPropertyStatistics");
     router.get("getAll", "#controllers/archive_controller.getAll").use(middleware.auth());
 
     // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
@@ -124,6 +125,8 @@ router
 
     // delete all entries in the `archive` table
     router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
+
+    router.get("/getAnomalyStatistics", "#controllers/archive_controller.getAnomalyStatistics");
   })
   .prefix("archive");
 // i dont think it is necessary to provide APIs to edit a property row in telemetry data
@@ -174,5 +177,15 @@ router
     router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved");
     router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
     router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
+    router.post("notification/getPDMStatistics", "#controllers/pdm_controller.getPDMStatistics");
+
+    router.delete("delete", "#controllers/pdm_controller.delete");
   })
   .prefix("pdm");
+
+// Reports
+router
+  .group(() => {
+    router.get("generateDummy", "#controllers/reports_controller.generateDummy");
+  })
+  .prefix("reports");

@@ -13,7 +13,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
   const handleDeleteAccount = () => {};
 
   return (
-    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+    <fieldset className="fieldset flex flex-col h-full bg-base-200 text-base-200 p-4 rounded-box w-full gap-6">
       <div>
         <label htmlFor="firstName" className="fieldset-label text-base-200 block mb-2">
           First Name
@@ -24,7 +24,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
           value={userDetails.firstName}
           onChange={handleChange}
           type="text"
-          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-1/2 bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
           placeholder="John"
         />
       </div>
@@ -38,7 +38,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
           value={userDetails.lastName}
           onChange={handleChange}
           type="text"
-          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-1/2 bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
           placeholder="Doe"
         />
       </div>
@@ -52,7 +52,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
           value={userDetails.email}
           onChange={handleChange}
           type="email"
-          className="input w-1/2 bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-1/2 bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
           placeholder="john.doe@example.com"
         />
       </div>
@@ -66,7 +66,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
           value={userDetails.role}
           disabled
           type="text"
-          className="input w-1/2 bg-base-content border border-accent/50 opacity-70 cursor-not-allowed"
+          className="input w-1/2 bg-base-200 text-base-content border border-primary/50 opacity-70 cursor-not-allowed"
           placeholder="USER"
         />
         <p className="text-xs text-accent/70 mt-1">Role cannot be changed from profile settings</p>
@@ -233,39 +233,45 @@ const Profile = () => {
 
   // Password change component (placeholder for now)
   const ChangePassword = () => (
-    <fieldset className="fieldset flex flex-col h-full bg-base-content text-base-200 p-4 rounded-box w-full gap-6">
+    <fieldset className="fieldset flex flex-col h-full bg-base-200 text-base-content p-4 rounded-box w-full gap-6">
       <div>
-        <label htmlFor="currentPassword" className="fieldset-label text-base-200 block mb-2">
+        <label htmlFor="currentPassword" className="fieldset-label text-base-content block mb-2">
           Current Password
         </label>
         <input
           id="currentPassword"
           type="password"
-          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
         />
       </div>
       <div>
-        <label htmlFor="newPassword" className="fieldset-label text-base-200 block mb-2">
+        <label htmlFor="newPassword" className="fieldset-label text-base-content block mb-2">
           New Password
         </label>
         <input
           id="newPassword"
           type="password"
-          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-full bg-base-200 border border-primary/50 focus:border-primary focus:outline-none"
         />
       </div>
       <div>
-        <label htmlFor="confirmPassword" className="fieldset-label text-base-200 block mb-2">
+        <label htmlFor="confirmPassword" className="fieldset-label text-base-content block mb-2">
           Confirm New Password
         </label>
         <input
           id="confirmPassword"
           type="password"
-          className="input w-full bg-base-content border border-accent/50 focus:border-accent focus:outline-none"
+          className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
         />
       </div>
       <div className="mt-4">
-        <button className="btn btn-soft btn-primary w-full sm:w-auto">Update Password</button>
+        <button
+          className="btn btn-soft btn-primary w-full sm:w-auto"
+          onClick={() => {
+            toast.info("Not implemented yet");
+          }}>
+          Update Password
+        </button>
       </div>
     </fieldset>
   );
@@ -277,7 +283,7 @@ const Profile = () => {
   return (
     <div className="flex h-full flex-col">
       {/* HEADER */}
-      <div className="text-3xl p-2 mt-2 font-semibold text-base-200">Profile Settings</div>
+      <div className="text-3xl p-2 mt-2 font-semibold text-base-content">Profile Settings</div>
       {/* DIVIDER */}
       <div className="divider m-2 w-3/4 before:bg-base-200/50 after:bg-base-200/50"></div>
 
@@ -285,7 +291,7 @@ const Profile = () => {
       <div className="flex flex-col md:flex-row h-full">
         {/* SIDEBAR */}
         <div className="md:h-full mb-4 md:mb-0">
-          <ul className="menu bg-base-content w-full md:w-56 rounded-lg md:rounded-box h-full gap-2">
+          <ul className="menu bg-base-200 w-full md:w-56 rounded-lg md:rounded-box h-full gap-2">
             <li>
               <a className={activeTab === "basic" ? "menu-active" : ""} onClick={() => setActiveTab("basic")}>
                 Basic Details

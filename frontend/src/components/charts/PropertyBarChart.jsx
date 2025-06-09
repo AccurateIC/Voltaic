@@ -76,6 +76,7 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         },
         ticks: {
           color: "white",
+          autoSkip: false,
           font: {
             size: 12,
           },
@@ -88,7 +89,8 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         title: {
           display: true,
           text: "No. of Anomalies ⟶",
-          color: "white",
+          color: "rgba(255, 255, 255, 0.7)",
+          // color: "white",
           font: {
             weight: "bold",
             size: 14,

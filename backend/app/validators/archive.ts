@@ -1,4 +1,6 @@
 import vine from "@vinejs/vine";
+import { timezoneRule } from "#validator-rules/timezone";
+import { DateTimeUnit } from "luxon";
 
 const archiveRowSchema = vine.object({
   property: vine //
@@ -43,5 +45,26 @@ export const getPaginatedDataValidator = vine.compile(
     to: vine.date({ formats: ["iso8601"] }).optional(),
     propertyNames: vine.array(vine.string().exists({ table: "genset_properties", column: "property_name" })).optional(),
     isAnomaly: vine.boolean().optional(),
+  })
+);
+
+export const getPropertyStatisticsValidator = vine.compile(
+  vine.object({
+    propertyName: vine.string().exists({ table: "genset_properties", column: "property_name" }),
+    timeDuration: vine
+      .string()
+      .in(["day", "week", "month", "year"]) // subset of DateTimeUnit
+      .transform((value) => value as DateTimeUnit),
+    headers: vine.object({
+      timezone: vine.string().use(timezoneRule()),
+    }),
+  })
+);
+
+export const getAnomalyStatisticsValidator = vine.compile(
+  vine.object({
+    headers: vine.object({
+      timezone: vine.string().use(timezoneRule()),
+    }),
   })
 );

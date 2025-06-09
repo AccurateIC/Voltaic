@@ -1,0 +1,15 @@
+meta {
+  name: getAnomalyStatistics
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{BASE_URL}}/archive/getAnomalyStatistics
+  body: json
+  auth: inherit
+}
+
+headers {
+  timezone: Asia/Kolkata
+}

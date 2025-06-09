@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
-import EngineSpeedLineChart from "../components/charts/EngineSpeedLineChart";
+import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
 import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
 import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
-import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineCart";
+import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -48,6 +49,11 @@ export const LiveData = () => {
   const [engineSpeedData, setEngineSpeedData] = useState([]);
   const [oilPressureData, setOilPressureData] = useState([]);
 
+  const [showGraph, setShowGraph] = useState(false);
+
+  const [selectedChart, setSelectedChart] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [selectedProperties, setSelectedProperties] = useState([
     "Engine Fuel Level",
     "Engine Speed",
@@ -58,9 +64,15 @@ export const LiveData = () => {
     "PDM",
   ]);
 
-  useEffect(() => {
-    console.log("voltage date 894984", voltageData);
-  }, [voltageData]);
+  const handleChartClick = (chartType) => {
+    setSelectedChart(chartType);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedChart(null);
+    setIsModalOpen(false);
+  };
 
   const generateEmptyDataPoints = (data, timeRange) => {
     if (data.length === 0) return [];
@@ -161,7 +173,6 @@ export const LiveData = () => {
         credentials: "include",
       });
       const data = await response.json();
-      console.log("Data graph", data);
       if (response.ok) {
         const l1Voltage = generateEmptyDataPoints(
           data
@@ -239,7 +250,6 @@ export const LiveData = () => {
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
-              isAnomaly: item.isAnomaly,
             }))
         );
 
@@ -249,7 +259,6 @@ export const LiveData = () => {
             .map((item) => ({
               timestamp: item.timestamp,
               propertyValue: item.propertyValue,
-              isAnomaly: item.isAnomaly,
             }))
         );
 
@@ -293,18 +302,13 @@ export const LiveData = () => {
       console.log("Error fetching data", error);
     }
     try {
-      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecent`, {
+      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecentActual`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       const data = await pdmResponse.json();
-
-      console.log("pdmResponse", data);
       setPdmData(data);
-      if (pdmResponse.ok) {
-        console.log("PDM Response", pdmResponse);
-      }
     } catch (error) {
       console.log("Error fetching data", error);
     }
@@ -324,10 +328,7 @@ export const LiveData = () => {
         unit: item.sensorProperty.unit,
       };
     });
-
-    formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    console.log("formattedDAta0", formattedData);
+    // formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     setPdmDataForGraph(formattedData);
 
     setIsPdmLoading(false);
@@ -351,11 +352,9 @@ export const LiveData = () => {
         const chargeAltItem = stats.chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
         const time = new Date(batteryItem.timestamp);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: batteryItem.timestamp,
           batteryVolts: batteryItem.propertyValue,
           chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
-          batteryVoltsIsAnomaly: batteryItem.isAnomaly,
-          chargeAltVoltsIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : null,
         };
       });
 
@@ -372,15 +371,11 @@ export const LiveData = () => {
       const newDataCurrent = stats.l1Current.map((l1Item) => {
         const l2Item = stats.l2Current.find((item) => item.timestamp === l1Item.timestamp);
         const l3Item = stats.l3Current.find((item) => item.timestamp === l1Item.timestamp);
-        const time = new Date(l1Item.timestamp);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: l1Item.timestamp,
           L1: l1Item.propertyValue,
           L2: l2Item ? l2Item.propertyValue : null,
           L3: l3Item ? l3Item.propertyValue : null,
-          l1CIsAnomaly: l1Item.isAnomaly,
-          l2CIsAnomaly: l2Item ? l2Item.isAnomaly : null,
-          l3CIsAnomaly: l3Item ? l3Item.isAnomaly : null,
         };
       });
       setCurrentData(newDataCurrent);
@@ -397,49 +392,27 @@ export const LiveData = () => {
       const newDataVoltage = stats.l1Voltage.map((l1Item) => {
         const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
         const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
-        const time = new Date(l1Item.timestamp);
 
-        // console.log(l1Item, l2Item, l3Item);
         return {
-          time: time.toLocaleTimeString(),
+          timestamp: l1Item.timestamp,
           L1: l1Item.propertyValue,
           L2: l2Item ? l2Item.propertyValue : null,
           L3: l3Item ? l3Item.propertyValue : null,
-          l1IsAnomaly: l1Item.isAnomaly,
-          // l2IsAnomaly: l2Item.isAnomaly,
-          // l3IsAnomaly: l3Item.isAnomaly,
         };
       });
 
-      // console.log("6985464568", newDataVoltage);
-      console.log(stats.l1Voltage, stats.l2Voltage, stats.l3Voltage);
       setVoltageData(newDataVoltage);
     }
     if (Array.isArray(stats.engineFuelLevel) && stats.engineFuelLevel.length > 0) {
-      const newData3 = stats.engineFuelLevel.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        engineFuelLevel: item.propertyValue,
-        fuelLevelISAnomaly: item.isAnomaly,
-      }));
-      setFuelLevelData(newData3);
+      setFuelLevelData(stats.engineFuelLevel);
     }
 
     if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
-      const newData4 = stats.engineSpeed.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        engineSpeed: item.propertyValue,
-        engSpeedDisplayIsAnomaly: item.isAnomaly,
-      }));
-      setEngineSpeedData(newData4);
+      setEngineSpeedData(stats.engineSpeed);
     }
 
     if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
-      const newData = stats.oilPress.map((item) => ({
-        time: new Date(item.timestamp).toLocaleTimeString(),
-        oilPressure: item.propertyValue,
-        oilPressureIsAnomaly: item.isAnomaly,
-      }));
-      setOilPressureData(newData);
+      setOilPressureData(stats.oilPress);
     }
   }, [
     stats.batteryVolts,
@@ -544,42 +517,60 @@ export const LiveData = () => {
       <div className="py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
           {selectedProperties.includes("Engine Fuel Level") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("fuelLevel")}>
               <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
             </div>
           )}
           {selectedProperties.includes("Engine Speed") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("engineSpeed")}>
               <EngineSpeedLineChart value={engineSpeedData} />
             </div>
           )}
           {selectedProperties.includes("Generator Current") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("generatorCurrent")}>
               <GeneratorCurrentLineChart value={currentData} />
             </div>
           )}
           {selectedProperties.includes("Generator Voltage") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("generatorVoltage")}>
               <GeneratorVoltageLineChart value={voltageData} />
             </div>
           )}
           {selectedProperties.includes("Oil Pressure") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("oilPressure")}>
               <OilPressureLineChart value={oilPressureData} />
             </div>
           )}
           {selectedProperties.includes("Battery Charge") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("batteryCharge")}>
               <BatteryChargeLineChart value={batteryData} />
             </div>
           )}
           {selectedProperties.includes("PDM") && (
-            <div className="h-[410px] bg-base-200 rounded-lg">
+            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("pdm")}>
               <PDMLineChart value={pdmDataForGraph} />
             </div>
           )}
         </div>
       </div>
+
+      <GenericAnimatedModal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <div className="h-full w-full">
+          {selectedChart === "fuelLevel" && <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />}
+          {selectedChart === "engineSpeed" && <EngineSpeedLineChart value={engineSpeedData} />}
+          {selectedChart === "generatorCurrent" && <GeneratorCurrentLineChart value={currentData} />}
+          {selectedChart === "generatorVoltage" && <GeneratorVoltageLineChart value={voltageData} />}
+          {selectedChart === "oilPressure" && <OilPressureLineChart value={oilPressureData} />}
+          {selectedChart === "batteryCharge" && <BatteryChargeLineChart value={batteryData} />}
+          {selectedChart === "pdm" && <PDMLineChart value={pdmDataForGraph} />}
+        </div>
+      </GenericAnimatedModal>
     </div>
   );
 };

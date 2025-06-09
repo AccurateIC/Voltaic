@@ -1,3 +1,5 @@
+import { Archive } from "./archive.types";
+
 export interface AnomalyNotification {
   id: number;
   summary: string;
@@ -5,6 +7,7 @@ export interface AnomalyNotification {
   archiveId: number;
   shouldBeDisplayed: boolean;
   notificationTypeId: number;
+  archive: Archive;
   startedAt: string; // ISO 8601 date string
   finishedAt: string; // ISO 8601 date string
 }

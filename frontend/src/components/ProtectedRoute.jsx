@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import Keyframes from "./Loader";
+import Loader from "./Loader";
 import { toast } from "sonner";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -31,10 +31,10 @@ const ProtectedRoute = ({ children }) => {
   }, []);
 
   if (isLoading) {
-    // replace this with a loading spinner component
+    // loading spinner
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-base-content">
-        <Keyframes />
+      <div className="h-screen opacity-90 w-full flex items-center justify-center bg-base-200">
+        <Loader />
       </div>
     );
   }

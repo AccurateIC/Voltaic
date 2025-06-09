@@ -1,11 +1,12 @@
 import type { HttpContext } from "@adonisjs/core/http";
-import { createPdmValidator } from "#validators/pdm";
+import { createPdmValidator, getPdmStatisticsValidator } from "#validators/pdm";
 import transmit from "@adonisjs/transmit/services/main";
 import MaintenanceNotification from "#models/maintenance_notification";
 import Vibration from "#models/vibration";
 import PdmDataKind from "#models/pdm_data_kind";
 import SensorProperty from "#models/sensor_property";
-import { DateTime } from "luxon";
+import { DateTime, DateTimeUnit } from "luxon";
+import { PdmService } from "#services/pdm_service";
 
 export default class PdmController {
   async markNotificationRead({ params }: HttpContext) {
@@ -22,12 +23,16 @@ export default class PdmController {
   }
 
   async getUnresolved({}: HttpContext) {
-    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", true);
+    const pdmNotifications = await MaintenanceNotification.query()
+      .where("shouldBeDisplayed", true)
+      .orderBy("timestamp", "desc");
     return pdmNotifications;
   }
 
   async getResolved({}: HttpContext) {
-    const pdmNotifications = await MaintenanceNotification.query().where("shouldBeDisplayed", false);
+    const pdmNotifications = await MaintenanceNotification.query()
+      .where("shouldBeDisplayed", false)
+      .orderBy("timestamp", "desc");
     return pdmNotifications;
   }
 
@@ -46,8 +51,8 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "actual");
       })
-      .orderBy("timestamp", "desc");
-    // .limit(60 * 25);
+      .orderBy("timestamp", "desc")
+      .limit(60 * 20);
 
     return pdmVibrationData;
   }
@@ -59,8 +64,9 @@ export default class PdmController {
       .whereHas("pdmDataKind", (kindQuery) => {
         kindQuery.where("kind", "forecasted");
       })
-      .orderBy("timestamp", "desc");
-    // .limit(60 * 25);
+      .preload("maintenanceNotification")
+      .orderBy("timestamp", "desc")
+      .limit(60 * 20);
     return pdmVibrationData;
   }
 
@@ -87,12 +93,14 @@ export default class PdmController {
     // 1: if maintenance is needed, add to maintenance_notifications table
     let maintenance_notif_id = undefined;
     if (data.maintenance_needed === true) {
-      const maintenance_notif = new MaintenanceNotification();
-      maintenance_notif.timestamp = data.actual_values_timestamp[0];
-      maintenance_notif.maintenanceReason = data.maintenance_reason;
-      maintenance_notif.shouldBeDisplayed = true;
-      await maintenance_notif.save();
-      maintenance_notif_id = maintenance_notif.id;
+      const maintenance_notification = await MaintenanceNotification.create({
+        predictedDominantFrequency: data.predicted_dominant_frequency,
+        predictedDominantAmplitude: data.predicted_dominant_amplitude,
+        timestamp: DateTime.fromJSDate(data.actual_values_timestamp[0]),
+        maintenanceReason: data.maintenance_reason,
+        shouldBeDisplayed: true,
+      });
+      maintenance_notif_id = maintenance_notification.id;
     }
 
     // 2: Get references for pdm_data_kinds
@@ -115,6 +123,7 @@ export default class PdmController {
         value: data.actual_values.accel_x[i],
         maintenance_notification_id: maintenance_notif_id || null,
         pdm_data_kind_id: actualKind!.id,
+        confidence_score_percentage: data.confidence_score_percentage,
       });
 
       // Y axis (optional)
@@ -125,6 +134,7 @@ export default class PdmController {
           value: data.actual_values.accel_y[i],
           maintenance_notification_id: maintenance_notif_id || null,
           pdm_data_kind_id: actualKind!.id,
+          confidence_score_percentage: data.confidence_score_percentage,
         });
       }
 
@@ -136,6 +146,7 @@ export default class PdmController {
           value: data.actual_values.accel_z[i],
           maintenance_notification_id: maintenance_notif_id || null,
           pdm_data_kind_id: actualKind!.id,
+          confidence_score_percentage: data.confidence_score_percentage,
         });
       }
     }
@@ -149,6 +160,7 @@ export default class PdmController {
         value: data.forecasted_values.accel_x[i],
         maintenance_notification_id: maintenance_notif_id || null,
         pdm_data_kind_id: forecastedKind!.id,
+        confidence_score_percentage: null,
       });
 
       // Y axis (optional)
@@ -159,6 +171,7 @@ export default class PdmController {
           value: data.forecasted_values.accel_y[i],
           maintenance_notification_id: maintenance_notif_id || null,
           pdm_data_kind_id: forecastedKind!.id,
+          confidence_score_percentage: null,
         });
       }
 
@@ -170,6 +183,7 @@ export default class PdmController {
           value: data.forecasted_values.accel_z[i],
           maintenance_notification_id: maintenance_notif_id || null,
           pdm_data_kind_id: forecastedKind!.id,
+          confidence_score_percentage: null,
         });
       }
     }
@@ -178,5 +192,22 @@ export default class PdmController {
     await Vibration.createMany(vibrationRecords);
 
     return { success: true, recordsCreated: vibrationRecords.length };
+  }
+
+  async getPDMStatistics({ request }: HttpContext) {
+    const reqBody = await request.validateUsing(getPdmStatisticsValidator);
+    // (await reqBody).headers.timezone
+
+    const notificationsPerDay = PdmService.maintenanceNotificationStatistics(
+      reqBody.headers.timezone,
+      reqBody.timeDuration as DateTimeUnit
+    );
+    return notificationsPerDay;
+  }
+
+  async delete({}: HttpContext) {
+    const vibrationData = await Vibration.query().delete();
+    const pdmNotifications = await MaintenanceNotification.query().delete();
+    return vibrationData;
   }
 }

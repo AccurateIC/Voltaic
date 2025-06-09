@@ -4,6 +4,7 @@ import Logo from "../assets/accurate.svg";
 import { useNavigate } from "react-router";
 import BackImage from "../assets/back.svg";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
+import { LiaConnectdevelop } from "react-icons/lia";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
   <div className="form-control w-full">
@@ -95,19 +96,19 @@ const Login = () => {
       // ##################################################################
 
       // TEMPORARY: delete data from archive and notification table on login
-      const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to reset archive table`);
-      }
-
-      toast.success("Data Reset");
+      // const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   credentials: "include",
+      // });
+      //
+      // if (!response.ok) {
+      //   throw new Error(`Failed to reset archive table`);
+      // }
+      //
+      // toast.success("Data Reset");
 
       // TEMPORARY: send request to ML models to notify which user has logged in
       // fetch logged in user details
@@ -188,7 +189,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex relative bg-base-200">
+    <div className="min-h-screen w-full flex relative bg-base-300">
       {/* Left Panel */}
       <div className="hidden md:flex w-full bg-primary/10 relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url(${BackImage})` }} />
@@ -198,16 +199,18 @@ const Login = () => {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="w-full md:w-1/2 bg-success/5 flex items-center justify-center p-4">
-        <div className="card w-full max-w-md bg-base-100 shadow-xl">
-          <div className="card-body">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-4">
+        <div className="card w-full max-w-md bg-base-200 shadow-xl">
+          <div className="card-body gap-4">
             {/* Logo */}
-            <div className="flex justify-center mb-8">
-              <img src={Logo} alt="AccurateIC Logo" className="w-48 h-auto" />
+            <div className="flex items-center gap-2 justify-center">
+              <LiaConnectdevelop size={56} />
+              <span className="text-3xl">NeuroGen</span>
+              {/* <img src={Logo} alt="AccurateIC Logo" className="w-48 h-auto" /> */}
             </div>
 
             {/* Title */}
-            <h2 className="card-title text-2xl text-base-content font-bold text-center mb-6 justify-center">
+            <h2 className="card-title text-2xl text-base-content font-bold text-center justify-center">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </h2>
 
@@ -251,7 +254,8 @@ const Login = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content">
+                //  className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content"
+                className="btn btn-success w-full mt-6">
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
             </form>
@@ -270,11 +274,11 @@ const Login = () => {
               </button>
               */}
 
-              <button
-                onClick={handleGoogleSignIn}
-                className="btn btn-neutral hover:bg-black/90 gap-2 transition-all duration-100">
-                <FaGoogle className="h-5 w-5" />
-                Login with Google
+              <button onClick={handleGoogleSignIn} className="btn btn-soft">
+                <div className="flex flex-row gap-2 items-center justify-center">
+                  <FaGoogle size={22} />
+                  <span>Login with Google</span>
+                </div>
               </button>
             </div>
 

@@ -22,6 +22,9 @@ export default class Vibration extends BaseModel {
   declare value: number;
 
   @column()
+  declare confidenceScorePercentage: number;
+
+  @column()
   declare maintenanceNotificationId: number;
 
   @belongsTo(() => MaintenanceNotification)
@@ -33,9 +36,9 @@ export default class Vibration extends BaseModel {
   @belongsTo(() => PdmDataKind)
   declare pdmDataKind: BelongsTo<typeof PdmDataKind>;
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   declare createdAt: DateTime;
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
 }

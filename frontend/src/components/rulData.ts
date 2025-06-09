@@ -1,0 +1,297 @@
+interface RulInput {
+  Time_Hours: number;
+  RPM_Deviation_Percentage: number;
+  Oil_Pressure: number;
+  Power_Output_kW: number;
+  Inverse_Fuel_Consumption: number;
+}
+
+export const rulInputData: Record<string, RulInput[]> = {
+  "dhananjay@accurateic.in": [
+    {
+      Time_Hours: 210,
+      RPM_Deviation_Percentage: 0.067,
+      Oil_Pressure: 0.88,
+      Power_Output_kW: 0.924,
+      Inverse_Fuel_Consumption: 0.825,
+    },
+    {
+      Time_Hours: 818,
+      RPM_Deviation_Percentage: 0.079,
+      Oil_Pressure: 0.4,
+      Power_Output_kW: 0.786,
+      Inverse_Fuel_Consumption: 0.7,
+    },
+    {
+      Time_Hours: 4169,
+      RPM_Deviation_Percentage: 0.401,
+      Oil_Pressure: 0.532,
+      Power_Output_kW: 0.324,
+      Inverse_Fuel_Consumption: 0.5,
+    },
+    {
+      Time_Hours: 323,
+      RPM_Deviation_Percentage: 0.078,
+      Oil_Pressure: 0.61,
+      Power_Output_kW: 0.899,
+      Inverse_Fuel_Consumption: 0.715,
+    },
+    {
+      Time_Hours: 835,
+      RPM_Deviation_Percentage: 0.081,
+      Oil_Pressure: 0.4,
+      Power_Output_kW: 0.795,
+      Inverse_Fuel_Consumption: 0.6,
+    },
+    {
+      Time_Hours: 3570,
+      RPM_Deviation_Percentage: 0.345,
+      Oil_Pressure: 0.553,
+      Power_Output_kW: 0.3,
+      Inverse_Fuel_Consumption: 0.5,
+    },
+    {
+      Time_Hours: 186,
+      RPM_Deviation_Percentage: 0.08,
+      Oil_Pressure: 0.759,
+      Power_Output_kW: 0.97,
+      Inverse_Fuel_Consumption: 0.8,
+    },
+    {
+      Time_Hours: 514,
+      RPM_Deviation_Percentage: 0.072,
+      Oil_Pressure: 0.5,
+      Power_Output_kW: 0.877,
+      Inverse_Fuel_Consumption: 0.632,
+    },
+  ],
+
+  "yash@accurateic.in": [
+    {
+      Time_Hours: 0,
+      RPM_Deviation_Percentage: 0.071,
+      Oil_Pressure: 0.998,
+      Power_Output_kW: 0.991,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 58,
+      RPM_Deviation_Percentage: 0.071,
+      Oil_Pressure: 1,
+      Power_Output_kW: 0.987,
+      Inverse_Fuel_Consumption: 0.948,
+    },
+    {
+      Time_Hours: 240,
+      RPM_Deviation_Percentage: 0.068,
+      Oil_Pressure: 1.007,
+      Power_Output_kW: 0.837,
+      Inverse_Fuel_Consumption: 0.742,
+    },
+    {
+      Time_Hours: 343,
+      RPM_Deviation_Percentage: 0.071,
+      Oil_Pressure: 1.001,
+      Power_Output_kW: 0.99,
+      Inverse_Fuel_Consumption: 0.659,
+    },
+    {
+      Time_Hours: 491,
+      RPM_Deviation_Percentage: 0.073,
+      Oil_Pressure: 1.0,
+      Power_Output_kW: 0.879,
+      Inverse_Fuel_Consumption: 0.512,
+    },
+    {
+      Time_Hours: 585,
+      RPM_Deviation_Percentage: 0.079,
+      Oil_Pressure: 0.979,
+      Power_Output_kW: 0.967,
+      Inverse_Fuel_Consumption: 0.499,
+    },
+    {
+      Time_Hours: 679,
+      RPM_Deviation_Percentage: 0.088,
+      Oil_Pressure: 0.981,
+      Power_Output_kW: 0.912,
+      Inverse_Fuel_Consumption: 0.429,
+    },
+    {
+      Time_Hours: 14,
+      RPM_Deviation_Percentage: 0.069,
+      Oil_Pressure: 1.0,
+      Power_Output_kW: 0.989,
+      Inverse_Fuel_Consumption: 0.98,
+    },
+  ],
+
+  "swarnim@accurateic.in": [
+    {
+      Time_Hours: 0,
+      RPM_Deviation_Percentage: 0.071,
+      Oil_Pressure: 1,
+      Power_Output_kW: 0.991,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 32,
+      RPM_Deviation_Percentage: 0.068,
+      Oil_Pressure: 1,
+      Power_Output_kW: 0.994,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 106,
+      RPM_Deviation_Percentage: 0.065,
+      Oil_Pressure: 0.878,
+      Power_Output_kW: 0.861,
+      Inverse_Fuel_Consumption: 0.6,
+    },
+    {
+      Time_Hours: 985,
+      RPM_Deviation_Percentage: 0.088,
+      Oil_Pressure: 0.877,
+      Power_Output_kW: 0.652,
+      Inverse_Fuel_Consumption: 0.621,
+    },
+    {
+      Time_Hours: 1005, // problematic data
+      RPM_Deviation_Percentage: 0.083,
+      Oil_Pressure: 0.9,
+      Power_Output_kW: 0.75,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 1050,
+      RPM_Deviation_Percentage: 0.08,
+      Oil_Pressure: 1,
+      Power_Output_kW: 0.765,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 9485,
+      RPM_Deviation_Percentage: 0.991,
+      Oil_Pressure: 0.234,
+      Power_Output_kW: 0.05,
+      Inverse_Fuel_Consumption: 0.2,
+    },
+  ],
+
+  "yashodeep@accurateic.in": [
+    {
+      Time_Hours: 0,
+      RPM_Deviation_Percentage: 0.068,
+      Oil_Pressure: 1.9,
+      Power_Output_kW: 0.987,
+      Inverse_Fuel_Consumption: 0.999,
+    },
+    {
+      Time_Hours: 20,
+      RPM_Deviation_Percentage: 0.068,
+      Oil_Pressure: 1.9,
+      Power_Output_kW: 0.969,
+      Inverse_Fuel_Consumption: 0.979,
+    },
+    {
+      Time_Hours: 44,
+      RPM_Deviation_Percentage: 0.068,
+      Oil_Pressure: 2.07,
+      Power_Output_kW: 0.94,
+      Inverse_Fuel_Consumption: 0.8,
+    },
+    {
+      Time_Hours: 424,
+      RPM_Deviation_Percentage: 0.07,
+      Oil_Pressure: 1.59,
+      Power_Output_kW: 0.95,
+      Inverse_Fuel_Consumption: 0.614,
+    },
+    {
+      Time_Hours: 856,
+      RPM_Deviation_Percentage: 0.083,
+      Oil_Pressure: 1.5,
+      Power_Output_kW: 0.96,
+      Inverse_Fuel_Consumption: 0.56,
+    },
+    {
+      Time_Hours: 1089,
+      RPM_Deviation_Percentage: 0.093,
+      Oil_Pressure: 2.275,
+      Power_Output_kW: 0.96,
+      Inverse_Fuel_Consumption: 0.359,
+    },
+    {
+      Time_Hours: 5091,
+      RPM_Deviation_Percentage: 0.598,
+      Oil_Pressure: 2.06,
+      Power_Output_kW: 0.581,
+      Inverse_Fuel_Consumption: 0.079,
+    },
+    {
+      Time_Hours: 347,
+      RPM_Deviation_Percentage: 0.078,
+      Oil_Pressure: 1.5,
+      Power_Output_kW: 0.991,
+      Inverse_Fuel_Consumption: 0.699,
+    },
+  ],
+
+  "priyanshu@accurateic.in": [
+    {
+      Time_Hours: 0,
+      RPM_Deviation_Percentage: 0.11,
+      Oil_Pressure: 2.89,
+      Power_Output_kW: 9.0,
+      Inverse_Fuel_Consumption: 1,
+    },
+    {
+      Time_Hours: 130,
+      RPM_Deviation_Percentage: 0.19,
+      Oil_Pressure: 2.699,
+      Power_Output_kW: 9.179,
+      Inverse_Fuel_Consumption: 0.888,
+    },
+    {
+      Time_Hours: 520,
+      RPM_Deviation_Percentage: 0.129,
+      Oil_Pressure: 2.56,
+      Power_Output_kW: 9.156,
+      Inverse_Fuel_Consumption: 0.601,
+    },
+    {
+      Time_Hours: 18,
+      RPM_Deviation_Percentage: 0.12,
+      Oil_Pressure: 2.869,
+      Power_Output_kW: 9.168,
+      Inverse_Fuel_Consumption: 0.988,
+    },
+    {
+      Time_Hours: 2947,
+      RPM_Deviation_Percentage: 0.42,
+      Oil_Pressure: 2.597,
+      Power_Output_kW: 8.98,
+      Inverse_Fuel_Consumption: 0.15,
+    },
+    {
+      Time_Hours: 786,
+      RPM_Deviation_Percentage: 0.147,
+      Oil_Pressure: 2.37,
+      Power_Output_kW: 9.141,
+      Inverse_Fuel_Consumption: 0.459,
+    },
+    {
+      Time_Hours: 210,
+      RPM_Deviation_Percentage: 0.129,
+      Oil_Pressure: 2.747,
+      Power_Output_kW: 9.148,
+      Inverse_Fuel_Consumption: 0.805,
+    },
+    {
+      Time_Hours: 215,
+      RPM_Deviation_Percentage: 0.129,
+      Oil_Pressure: 2.742,
+      Power_Output_kW: 9.101,
+      Inverse_Fuel_Consumption: 0.798,
+    },
+  ],
+};
