@@ -139,7 +139,7 @@ export const GenericPropertyStatisticsBarChart = ({
             ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
             title: {
               display: true,
-              text: "Engine Speed (RPM) ⟶",
+              text: chartTitle,
               font: { size: 18, weight: "normal" },
               color: "rgba(255, 255, 255, 0.5)",
             },
@@ -206,7 +206,7 @@ export const GenericPropertyStatisticsBarChart = ({
             ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
             title: {
               display: true,
-              text: "Engine Speed (RPM) ⟶",
+              text: chartTitle,
               font: { size: 18, weight: "normal" },
               color: "rgba(255, 255, 255, 0.5)",
             },

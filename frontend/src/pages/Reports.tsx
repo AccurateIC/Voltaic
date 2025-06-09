@@ -48,8 +48,8 @@ export const Reports = () => {
     { propertyName: "genL2Volts", chartTitle: "Generator Phase 2 Voltage (volts)" },
     { propertyName: "genL3Volts", chartTitle: "Generator Phase 3 Voltage (volts)" },
     { propertyName: "mainsL1Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
-    { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
-    { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
+    { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 2 Voltage (volts)" },
+    { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 3 Voltage (volts)" },
   ];
 
   // fetch rul prediction data

@@ -4,25 +4,28 @@ import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import reactCompiler from "eslint-plugin-react-compiler";
+import typescriptParser from "@typescript-eslint/parser";
 
 export default [
-  { ignores: ["dist"] },
+  { ignores: ["dist", "node_modules"] },
   {
-    files: ["**/*.{js,jsx}"],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
+      parser: typescriptParser,
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
         ecmaVersion: "latest",
         ecmaFeatures: { jsx: true },
         sourceType: "module",
+        project: "./tsconfig.json",
       },
     },
     settings: { react: { version: "19" } },
     plugins: {
       react,
+      "@typescript-eslint": typescriptPlugin,
       "react-compiler": reactCompiler,
-
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
     },
