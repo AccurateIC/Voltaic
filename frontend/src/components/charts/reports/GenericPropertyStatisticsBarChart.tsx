@@ -52,6 +52,14 @@ const getChartOptions = (chartTitle: string): ChartOptions<"bar"> => {
     },
     scales: {
       x: {
+        title: {
+          display: true,
+          text: "Months ⟶",
+          font: {
+            weight: "bold",
+            size: 16,
+          },
+        },
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { autoSkip: false, color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
       },
@@ -61,7 +69,7 @@ const getChartOptions = (chartTitle: string): ChartOptions<"bar"> => {
         ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
         title: {
           display: true,
-          text: chartTitle,
+          text: chartTitle + " ⟶",
           font: { size: 18, weight: "normal" },
           color: "rgba(255, 255, 255, 0.5)",
         },
@@ -130,6 +138,14 @@ export const GenericPropertyStatisticsBarChart = ({
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: "Weeks ⟶",
+              font: {
+                weight: "bold",
+                size: 16,
+              },
+            },
             grid: { color: "rgba(255, 255, 255, 0.1)" },
             ticks: { autoSkip: false, color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
           },
@@ -139,8 +155,8 @@ export const GenericPropertyStatisticsBarChart = ({
             ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
             title: {
               display: true,
-              text: chartTitle,
-              font: { size: 18, weight: "normal" },
+              text: chartTitle + " ⟶",
+              font: { size: 20, weight: "normal" },
               color: "rgba(255, 255, 255, 0.5)",
             },
           },
@@ -189,6 +205,15 @@ export const GenericPropertyStatisticsBarChart = ({
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: "Days ⟶",
+              font: {
+                weight: "bold",
+                size: 16,
+              },
+            },
+
             type: "time",
             time: {
               unit: "day", // or "hour", "minute", "week", etc., depending on your use case
@@ -206,7 +231,7 @@ export const GenericPropertyStatisticsBarChart = ({
             ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
             title: {
               display: true,
-              text: chartTitle,
+              text: chartTitle + " ⟶",
               font: { size: 18, weight: "normal" },
               color: "rgba(255, 255, 255, 0.5)",
             },
