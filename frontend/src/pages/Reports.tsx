@@ -11,6 +11,7 @@ import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
+import { FaFilter } from "react-icons/fa6";
 
 export const Reports = () => {
   // hooks
@@ -98,26 +99,22 @@ export const Reports = () => {
 
     return (
       <div className="flex flex-row items-center gap-2">
+        <div>
+          {" "}
+          <FaFilter size={22} className="ml-2" />
+        </div>
         <label className="text-m">Time Range:</label>
-
         <div className="dropdown dropdown-start">
-          <div tabIndex={0} role="button" className="btn btn-m bg-base-100">
-            {value.charAt(0).toUpperCase() + value.slice(1)} ⬇️
+          <div tabIndex={0} role="button" className="btn btn-m bg-base-100 px-10 flex items-center justify-between">
+            {value.charAt(0).toUpperCase() + value.slice(1)}
           </div>
 
-          <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow">
-            {/* <li>
-              <a onClick={() => onChange("year")}>Year</a>
-            </li>
-            <li>
-              <a onClick={() => onChange("month")}>Month</a>
-            </li>
-            <li>
-              <a onClick={() => onChange("week")}>Week</a>
-            </li> */}
+          <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-30 z-10">
             {options.map((option) => (
-              <li key={option}>
-                <a onClick={() => onChange(option)}>{option.charAt(0).toUpperCase() + option.slice(1)}</a>
+              <li key={option} className="hover:bg-base-200 rounded">
+                <a onClick={() => onChange(option)} className="block px-4 py-2 cursor-pointer text-m">
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </a>
               </li>
             ))}
           </ul>
@@ -129,15 +126,17 @@ export const Reports = () => {
   console.log("timeDuration", timeDuration);
   return (
     <div>
-      <div className="flex items-center justify-between p-2">
-        <div className="items-start flex gap-10 ">
-          <h1 className="text-2xl">Reports</h1>
-          <div className="  text-xl">
+      <div className="p-2">
+        <h1 className="text-2xl">Reports</h1>
+
+        <div className="flex items-center justify-between mt-2">
+          <div className="text-xl">
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
           </div>
+          <button className="btn">Export</button>
         </div>
-        <button className="btn">Export</button>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
         {renderGraphCard(<AllAnomaliesCount />)}
         {renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />)}
