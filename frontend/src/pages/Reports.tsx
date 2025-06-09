@@ -111,18 +111,17 @@ export const Reports = () => {
     return (
       <div className="flex flex-row items-center gap-2">
         <div>
-          {" "}
           <FaFilter size={22} className="ml-2" />
         </div>
-        <label className="text-m">Time Range:</label>
+        <label className="text-md text-base-content">Time Range:</label>
         <div className="dropdown dropdown-start">
-          <div tabIndex={0} role="button" className="btn btn-m bg-base-100 px-10 flex items-center justify-between">
+          <div tabIndex={0} role="button" className="btn btn-m bg-base-100 px-10 w-full items-center justify-between">
             {value.charAt(0).toUpperCase() + value.slice(1)}
           </div>
 
-          <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-30 z-10">
+          <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 w-full rounded-box z-10">
             {options.map((option) => (
-              <li key={option} className="hover:bg-base-200 rounded">
+              <li key={option} className="hover:bg-base-200 rounded w-full">
                 <a onClick={() => onChange(option)} className="block px-4 py-2 cursor-pointer text-m">
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </a>
@@ -141,73 +140,75 @@ export const Reports = () => {
     const label = allSelected
       ? "All Charts Selected"
       : noneSelected
-      ? "Select Charts"
-      : selectedCharts.length <= 2
-      ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
-          .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
-          .map((c) => ("title" in c ? c.title : c.chartTitle))
-          .join(", ")
-      : `${selectedCharts.length} Selected`;
+        ? "Select Charts"
+        : selectedCharts.length <= 2
+          ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
+              .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
+              .map((c) => ("title" in c ? c.title : c.chartTitle))
+              .join(", ")
+          : `${selectedCharts.length} Selected`;
 
     return (
-      <div className="form-control">
-        <label className="label font-bold">Select Charts</label>
-        <div className="dropdown dropdown-start w-64">
-          <label tabIndex={0} className="btn btn-sm w-full justify-between">
-            {label}
-            <svg className="ml-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M5.25 7.25L10 12.25L14.75 7.25H5.25Z" />
-            </svg>
-          </label>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu bg-base-100 shadow rounded-box w-64 max-h-80 overflow-y-auto p-2 z-10">
-            <li>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm"
-                  checked={allSelected}
-                  onChange={() => setSelectedCharts(allSelected ? [] : allChartKeys)}
-                />
-                <span className="font-semibold">Select All</span>
-              </label>
-            </li>
-            {staticCharts.map((c) => (
-              <li key={c.key}>
-                <label className="flex items-center gap-2 cursor-pointer">
+      <>
+        <label className="label text-md text-base-content">Select Charts</label>
+        <div className="form-control">
+          <div className="dropdown dropdown-start">
+            <label tabIndex={0} className="btn btn-sm w-full justify-between">
+              {label}
+              <svg className="ml-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5.25 7.25L10 12.25L14.75 7.25H5.25Z" />
+              </svg>
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu flex flex-row w-80 bg-base-100 shadow rounded-box h-80 overflow-y-scroll p-2 z-10">
+              <li className="flex flex-row w-full items-center gap-2 cursor-pointer">
+                <label className="w-full">
                   <input
                     type="checkbox"
                     className="checkbox checkbox-sm"
-                    checked={selectedCharts.includes(c.key)}
-                    onChange={(e) =>
-                      setSelectedCharts((prev) => (e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)))
-                    }
+                    checked={allSelected}
+                    onChange={() => setSelectedCharts(allSelected ? [] : allChartKeys)}
                   />
-                  <span>{c.title}</span>
+                  <span className="font-semibold w-full">Select All</span>
                 </label>
               </li>
-            ))}
-            {properties.map((p) => (
-              <li key={p.propertyName}>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm"
-                    checked={selectedCharts.includes(p.propertyName)}
-                    onChange={(e) =>
-                      setSelectedCharts((prev) =>
-                        e.target.checked ? [...prev, p.propertyName] : prev.filter((k) => k !== p.propertyName)
-                      )
-                    }
-                  />
-                  <span>{p.chartTitle}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
+              {staticCharts.map((c) => (
+                <li key={c.key} className="w-full">
+                  <label className="flex flex-row w-full items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-sm"
+                      checked={selectedCharts.includes(c.key)}
+                      onChange={(e) =>
+                        setSelectedCharts((prev) => (e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)))
+                      }
+                    />
+                    <span className="w-full">{c.title}</span>
+                  </label>
+                </li>
+              ))}
+              {properties.map((p) => (
+                <li key={p.propertyName} className="w-full">
+                  <label className="flex flex-row w-full items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-sm"
+                      checked={selectedCharts.includes(p.propertyName)}
+                      onChange={(e) =>
+                        setSelectedCharts((prev) =>
+                          e.target.checked ? [...prev, p.propertyName] : prev.filter((k) => k !== p.propertyName)
+                        )
+                      }
+                    />
+                    <span>{p.chartTitle}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      </>
     );
   };
 
@@ -218,11 +219,10 @@ export const Reports = () => {
         <h1 className="text-2xl">Reports</h1>
 
         <div className="flex items-center justify-between mt-2">
-          <div className="text-xl">
+          <div className="text-xl flex items-center gap-4">
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
+            <SelectChartsDropdown />
           </div>
-          <SelectChartsDropdown />
-          <button className="btn">Export</button>
           {/* <button className="btn">Export</button> */}
         </div>
       </div>
