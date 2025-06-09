@@ -11,6 +11,7 @@ import { rulInputData } from "../components/rulData";
 import { useAuth } from "../hooks/useAuth";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
+import React from "react";
 
 export const Reports = () => {
   // hooks
@@ -51,6 +52,16 @@ export const Reports = () => {
     { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 2 Voltage (volts)" },
     { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 3 Voltage (volts)" },
   ];
+  const staticCharts = [
+    { key: "anomaliesCount", title: "Anomalies Count" },
+    { key: "anomaliesByProperty", title: "Anomalies by Property" },
+    { key: "pdm", title: "PDM Notifications" },
+    { key: "rul", title: "Health Index Deterioration" },
+  ] as const;
+
+  const allChartKeys = [...staticCharts.map((c) => c.key), ...properties.map((p) => p.propertyName)];
+
+  const [selectedCharts, setSelectedCharts] = useState<string[]>(allChartKeys);
 
   // fetch rul prediction data
   const fetchRulPrediction = async () => {
@@ -126,6 +137,83 @@ export const Reports = () => {
     );
   };
 
+  const SelectChartsDropdown = () => {
+    const allSelected = selectedCharts.length === allChartKeys.length;
+    const noneSelected = selectedCharts.length === 0;
+
+    const label = allSelected
+      ? "All Charts Selected"
+      : noneSelected
+      ? "Select Charts"
+      : selectedCharts.length <= 2
+      ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
+          .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
+          .map((c) => ("title" in c ? c.title : c.chartTitle))
+          .join(", ")
+      : `${selectedCharts.length} Selected`;
+
+    return (
+      <div className="form-control">
+        <label className="label font-bold">Select Charts</label>
+        <div className="dropdown dropdown-start w-64">
+          <label tabIndex={0} className="btn btn-sm w-full justify-between">
+            {label}
+            <svg className="ml-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5.25 7.25L10 12.25L14.75 7.25H5.25Z" />
+            </svg>
+          </label>
+          <ul
+            tabIndex={0}
+            className="dropdown-content menu bg-base-100 shadow rounded-box w-64 max-h-80 overflow-y-auto p-2 z-10">
+            <li>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-sm"
+                  checked={allSelected}
+                  onChange={() => setSelectedCharts(allSelected ? [] : allChartKeys)}
+                />
+                <span className="font-semibold">Select All</span>
+              </label>
+            </li>
+            {staticCharts.map((c) => (
+              <li key={c.key}>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={selectedCharts.includes(c.key)}
+                    onChange={(e) =>
+                      setSelectedCharts((prev) => (e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)))
+                    }
+                  />
+                  <span>{c.title}</span>
+                </label>
+              </li>
+            ))}
+            {properties.map((p) => (
+              <li key={p.propertyName}>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={selectedCharts.includes(p.propertyName)}
+                    onChange={(e) =>
+                      setSelectedCharts((prev) =>
+                        e.target.checked ? [...prev, p.propertyName] : prev.filter((k) => k !== p.propertyName)
+                      )
+                    }
+                  />
+                  <span>{p.chartTitle}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  };
+
   console.log("timeDuration", timeDuration);
   return (
     <div>
@@ -135,24 +223,30 @@ export const Reports = () => {
           <div className="  text-xl">
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
           </div>
+          <SelectChartsDropdown />
         </div>
         <button className="btn">Export</button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
-        {renderGraphCard(<AllAnomaliesCount />)}
-        {renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />)}
-        {renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />)}
-        {renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />)}
+        {/* Static Charts */}
+        {selectedCharts.includes("anomaliesCount") && renderGraphCard(<AllAnomaliesCount />, "anomaliesCount")}
+        {selectedCharts.includes("anomaliesByProperty") &&
+          renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />, "anomaliesByProperty")}
+        {selectedCharts.includes("pdm") && renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />, "pdm")}
+        {selectedCharts.includes("rul") &&
+          renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />, "rul")}
 
         {/* All Properties Statistics */}
-        {properties.map((property) =>
-          renderGraphCard(
-            <GenericPropertyStatisticsBarChart
-              timeDuration={timeDuration}
-              propertyName={property.propertyName}
-              chartTitle={property.chartTitle}
-            />
-          )
+        {properties.map(
+          (property) =>
+            selectedCharts.includes(property.propertyName) &&
+            renderGraphCard(
+              <GenericPropertyStatisticsBarChart
+                timeDuration={timeDuration}
+                propertyName={property.propertyName}
+                chartTitle={property.chartTitle}
+              />
+            )
         )}
       </div>
       {/* Modal */}
