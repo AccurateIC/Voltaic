@@ -1,6 +1,6 @@
 // src/main.jsx
 import RUL from "./pages/RUL.js";
-import Login from "./pages/Login.jsx";
+import Login from "./pages/Login";
 import Engine from "./pages/Engine.jsx";
 import Layout from "./components/Layout.jsx";
 import AnomaliesOld from "./pages/AnomaliesOld";

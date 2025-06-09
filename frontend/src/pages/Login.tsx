@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Logo from "../assets/accurate.svg";
 import { useNavigate } from "react-router";
 import BackImage from "../assets/back.svg";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
+import { User } from "../types/auth.types";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
   <div className="form-control w-full">
@@ -21,6 +22,49 @@ const InputField = ({ label, type, placeholder, value, onChange }) => (
     />
   </div>
 );
+
+type Result<T, E> = { success: true; data: T; error: undefined } | { success: false; data: undefined; error: E };
+
+const catchErrTyped = <T, E extends new (message?: string) => Error>(
+  promise: Promise<T>,
+  errorsToCatch?: E[]
+): Promise<Result<T, InstanceType<E>>> => {
+  return promise
+    .then((data) => ({ success: true as const, data, error: undefined }))
+    .catch((error) => {
+      if (!errorsToCatch) {
+        return { success: false, data: undefined, error: error as InstanceType<E> };
+      }
+      if (errorsToCatch.some((e) => error instanceof e)) {
+        return { success: false, data: undefined, error: error as InstanceType<E> };
+      }
+      throw error;
+    });
+};
+
+class ExternalServerError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "ExternalServerError";
+  }
+}
+
+const sendLoggedInUser = async (user: User, url: string): Promise<Result<void, ExternalServerError>> => {
+  return catchErrTyped(
+    fetch(`${url}/user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...user, logged_in: true }),
+    }).then(async (response) => {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new ExternalServerError(`Failed to send user details: ${JSON.stringify(errorData)}`);
+      }
+      // implicit void return
+    }),
+    [ExternalServerError]
+  );
+};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -119,59 +163,57 @@ const Login = () => {
         },
         credentials: "include",
       });
-      const user = await loggedInUser.json();
+      const user = (await loggedInUser.json()) as User;
 
       // send to anomaly detection server
-      try {
-        console.log("sending to anomaly server");
-        console.log(import.meta.env.VITE_ANOMALY_BACKEND);
-        const sendUserToAnomalyServerResponse = fetch(`${import.meta.env.VITE_ANOMALY_BACKEND}/user`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user),
-        });
-        console.log(":::");
-        if (!sendUserToAnomalyServerResponse.ok) {
-          // toast.error("Failed to send user details to Anomaly server");
-        }
-      } catch (anomalyErr) {
-        console.error(anomalyErr);
-      }
+
+      // console.log("ANOMALY REQ START", { ...user, logged_in: true });
+      // sendLoggedInUser(user, import.meta.env.VITE_ANOMALY_BACKEND).then((result) =>
+      //   result.match(
+      //     (data) => console.log("Successfully sent user to ANOMALY server:", data),
+      //     (error) => console.error("Failed to send user to ANOMALY Server", error)
+      //   )
+      // );
+      // console.log("ANOMALY REQ END");
 
       // send to pdm server
-      try {
-        console.log("sending to pdm");
-        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...user, logged_in: true }),
-        });
-        if (!sendUserToPdmServerResponse.ok) {
-          // toast.error("Failed to send user details to PDM server");
-        }
-        console.log("sent to pdm");
-      } catch (pdmErr) {
-        console.error(pdmErr);
-      }
 
-      // send to rul server
-      try {
-        console.log("rul req start");
-        const sendUserToRulServerResponse = fetch(`${import.meta.env.VITE_RUL_BACKEND}/user`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...user, logged_in: true }),
-        });
-        if (!sendUserToRulServerResponse.ok) {
-          // toast.error("Failed to send user details to RUL server");
-        }
-        console.log("rul req end");
-        // console.log(await sendUserToRulServerResponse.json());
-      } catch (rulErr) {
-        console.error(rulErr);
-      }
+      // console.log("PDM REQ START", { ...user, logged_in: true });
+      // sendLoggedInUser(user, import.meta.env.VITE_PDM_BACKEND).then((result) =>
+      //   result.match(
+      //     (data) => console.log("Successfully sent user to PDM server:", data),
+      //     (error) => console.error("Failed to send user to PDM Server", error)
+      //   )
+      // );
+      // console.log("PDM REQ END");
+      // // send to rul server
+
+      // console.log("RUL REQ START", { ...user, logged_in: true });
+      // sendLoggedInUser(user, import.meta.env.VITE_RUL_BACKEND).then((result) =>
+      //   result.match(
+      //     (data) => console.log("Successfully sent user to RUL server:", data),
+      //     (error) => console.error("Failed to send user to RUL Server", error)
+      //   )
+      // );
+      // console.log("RUL REQ END");
 
       // ##################################################################
+
+      const rulResult = sendLoggedInUser(user, import.meta.env.VITE_RUL_BACKEND)
+        .then()
+        .catch((error) => console.error("souhwohsoqhso", error));
+
+      // Effect.runPromise(sendLoggedInUser(user, import.meta.env.VITE_RUL_BACKEND))
+      //   .then((result) => console.log("Successfully sent user to RUL server", result))
+      //   .catch((error) => console.error("Failed to send user to RUL server", error));
+
+      // Effect.runPromise(sendLoggedInUser(user, import.meta.env.VITE_PDM_BACKEND))
+      //   .then((result) => console.log("Successfully sent user to PDM server", result))
+      //   .catch((error) => console.error("Failed to send user to PDM server", error));
+
+      // Effect.runPromise(sendLoggedInUser(user, import.meta.env.VITE_ANOMALY_BACKEND))
+      //   .then((result) => console.log("Successfully sent user to ANOMALY server", result))
+      //   .catch((error) => console.error("Failed to send user to ANOMALY server", error));
 
       navigate("/engine");
     } catch (error) {
