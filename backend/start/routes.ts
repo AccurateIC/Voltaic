@@ -186,6 +186,6 @@ router
 // Reports
 router
   .group(() => {
-    router.get("generateDummy", "#controllers/reports_controller.generateDummy");
+    router.post("generateDummy", "#controllers/reports_controller.generateDummy");
   })
   .prefix("reports");

@@ -68,3 +68,8 @@ export const getAnomalyStatisticsValidator = vine.compile(
     }),
   })
 );
+export const getPdfPropertyBetweenValidator = vine.compile(
+  vine.object({
+    properties: vine.array(vine.string()).optional(),  // ✅ optional applied to the array
+  })
+);
