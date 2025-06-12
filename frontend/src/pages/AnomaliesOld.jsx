@@ -135,7 +135,7 @@ const Anomalies = () => {
   const [gensetProperties, setGensetProperties] = useState([]);
   const [anomalies, setAnomalies] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1m");
+  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1d");
   const [archiveTimeFilter1, setArchiveTimeFilter1] = useState("1w");
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [filters, setFilters] = useState({

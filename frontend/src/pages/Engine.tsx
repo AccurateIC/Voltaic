@@ -37,7 +37,8 @@ const EngineRPM = ({ engineRpmDetails }) => {
                 { limit: 500, color: "#5BE12C", showTick: true },
                 { limit: 1000, color: "#F5CD19", showTick: true },
                 { limit: 1500, color: "#F58B19", showTick: true },
-                { limit: 2000, color: "#EA4228", showTick: true },
+                 { limit: 2000, color: "#EA4228", showTick: true },
+                  //  { limit: 2000, color: "#2EEE30", showTick: true },
                 { limit: 2500, color: "#EA4228", showTick: true },
               ],
             }}
