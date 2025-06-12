@@ -4,12 +4,12 @@ import path from "node:path";
 import { fileURLToPath } from "url";
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
-import { getPdfPropertyBetweenValidator, getAnomalyStatisticsValidator } from "../validators/archive.js";
+import { getPdfPropertyBetweenValidator } from "../validators/archive.js";
 import { DateTime } from "luxon";
-import { ArchiveService } from "#services/archive_service";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const typstBase = `
 // packages
 #import "@preview/lilaq:0.2.0" as lq
@@ -82,6 +82,7 @@ const typstBase = `
 // (5,4,2,1)
 // )
 // )
+
 `;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
@@ -115,8 +116,13 @@ export default class ReportsController {
     const tmpFile = path.join(__dirname, "report.typ");
     try {
       const reusableData = await request.validateUsing(getPdfPropertyBetweenValidator);
-      // console.log("reusableData, ", reusableData);
+      console.log("reusableData, ", reusableData);
+      console.log("HTTP method:", request.method());
+
       const propertyNames = reusableData.properties || [];
+      console.log("propertyNames from request:", propertyNames);
+
+      // console.log("Fetched propertyData length:", propertyData.length);
 
       // add data from db to typst doc
       const query = Archive.query();
@@ -134,23 +140,24 @@ export default class ReportsController {
       query.orderBy("timestamp", "desc");
 
       const propertyData = await query.exec();
+
+      propertyData.forEach((data) => {
+        console.log({
+          timestamp: data.timestamp,
+          value: data.propertyValue,
+          property: data.gensetProperty?.propertyName,
+        });
+      });
+
       
-      // propertyData.forEach((data) => {
-      //   console.log({
-      //     timestamp: data.timestamp,
-      //     value: data.propertyValue,
-      //     property: data.gensetProperty?.propertyName,
-      //   });
-      // });
 
       if (!propertyData.length) {
         return response.status(404).send({ message: "No data found for given properties" });
       }
-
       const label = propertyData[0].gensetProperty?.readablePropertyName || "?";
       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toFormat("dd-MM"));
       const ys = propertyData.map((value) => value.propertyValue);
-      // console.log("ys array:", ys);
+      console.log("ys array:", ys);
 
       const generateTypstBarChart = (xs: string[], ys: number[], label: string) => {
         return `
@@ -184,29 +191,4 @@ export default class ReportsController {
       return response.status(500).send(err);
     }
   }
-
-  async getAnomalyStatistics({ request, response }: HttpContext) {
-    const data = await request.validateUsing(getAnomalyStatisticsValidator);
-    const timezone = request.header("timezone");
-
-    if (!timezone) {
-      return response.status(400).json({
-        error: "Timezone header is required",
-        message: "Please provide a valid IANA timezone identifier in the request headers",
-      });
-    }
-
-    try {
-      const result = await ArchiveService.getAnomalyStatistics(timezone);
-      return response.ok(result);
-    } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
-      });
-    }
-  }
-
 }
-

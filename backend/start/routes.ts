@@ -187,5 +187,7 @@ router
 router
   .group(() => {
     router.post("generateDummy", "#controllers/reports_controller.generateDummy");
+    router.get("getPropertyStatistic", "#controllers/reports_controller.getPropertyStatistic");
+    
   })
   .prefix("reports");
