@@ -28,7 +28,7 @@ export const OilPressureLineChart = ({ value }) => {
       tooltip: {},
       title: {
         display: true,
-        text: "Oil Pressure (bar)",
+        text: "Oil Pressure Monitor",
         color: "rgba(255, 255, 255, 0.8)",
         font: { size: 18, weight: "normal" },
       },

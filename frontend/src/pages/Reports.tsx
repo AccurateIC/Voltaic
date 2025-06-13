@@ -24,7 +24,7 @@ export const Reports = () => {
 
   //state
   const [count, setCount] = useState(0);
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("month");
+  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
 
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
   const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);

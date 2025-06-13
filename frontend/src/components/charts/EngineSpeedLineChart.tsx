@@ -28,7 +28,7 @@ export const EngineSpeedLineChart = ({ value }) => {
       tooltip: {},
       title: {
         display: true,
-        text: "Engine Speed (RPM)",
+        text: "Engine Speed Monitor",
         color: "rgba(255, 255, 255, 0.8)",
         font: { size: 18, weight: "normal" },
       },

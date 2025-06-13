@@ -36,7 +36,7 @@ export const PDMLineChart = ({ value }) => {
       },
       title: {
         display: true,
-        text: "Vibration Data",
+        text: "Vibration Data Monitor",
         color: "#fff",
         font: { size: 18, weight: "normal" },
       },
