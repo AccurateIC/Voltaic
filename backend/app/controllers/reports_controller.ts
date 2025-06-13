@@ -13,6 +13,20 @@ const __dirname = path.dirname(__filename);
 const typstBase = `
 // packages
 #import "@preview/lilaq:0.2.0" as lq
+#import "@preview/plotst:0.2.0":*
+
+#let data = (
+  ("Male", 10),
+  ("Female", 20),
+  ("Divers", 15),
+  ("Other", 2),
+)
+
+#pie_chart(
+  data,
+  radius: 4,
+  size: 3
+)
 
 // set doc metadata
 #set document(author: "NeuroGen", title: "NeuroGen Report")
@@ -82,6 +96,7 @@ const typstBase = `
 // (5,4,2,1)
 // )
 // )
+
 `;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
@@ -152,6 +167,7 @@ export default class ReportsController {
       const ys = propertyData.map((value) => value.propertyValue);
       // console.log("ys array:", ys);
 
+      
       const generateTypstBarChart = (xs: string[], ys: number[], label: string) => {
         return `
     #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
@@ -168,7 +184,27 @@ export default class ReportsController {
   `;
       };
 
-      const typstDoc = typstBase + generateTypstBarChart(xs, ys, label);
+//    const labl = ["gfdg", "dfg"];       // ✅ Correct: an array of strings
+// const values = [30, 70];             // ✅ Correct: an array of numbers
+
+// const generatePieChart = (labels: string[], values: number[]) => `
+// #let data = (
+//   ${labels.map((lbl, i) => `("${lbl}", ${values[i]})`).join(",\n  ")}
+// )
+
+// #pie_chart(
+//   data,
+//   size: 6,
+//   radius: 4,
+//   legend: true
+// )
+// `;
+
+
+// const pieChart = generatePieChart(labl,values );
+
+      const typstDoc = typstBase + generateTypstBarChart(xs, ys, label)
+      //  + pieChart;
       // console.log(typstDoc);
 
       await fs.writeFile(tmpFile, typstDoc);
@@ -188,7 +224,7 @@ export default class ReportsController {
   async getAnomalyStatistics({ request, response }: HttpContext) {
     const data = await request.validateUsing(getAnomalyStatisticsValidator);
     const timezone = request.header("timezone");
-
+console.log(timezone);
     if (!timezone) {
       return response.status(400).json({
         error: "Timezone header is required",
