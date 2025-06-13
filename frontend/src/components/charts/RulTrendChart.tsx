@@ -151,13 +151,13 @@ export function RulChart({
           };
         }),
         borderColor: "rgb(53, 162, 235)",
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
+        backgroundColor: "rgb(0, 255, 0)",
         // pointRadius: 8,
         // pointStyle: "circle",
         showLine: true,
         borderDash: [8, 9],
         pointRadius: 4,
-        pointBackgroundColor: "rgb(0, 255, 0)",
+         pointBackgroundColor: "rgb(0, 255, 0)",
       },
     ],
   };
@@ -173,10 +173,10 @@ export function RulChart({
         };
       }),
       borderColor: "rgb(162, 190, 0)",
-      backgroundColor: "rgba(162, 53, 235, 0.5)",
+        backgroundColor:"rgb(255, 25,0)",
       borderDash: [8, 9],
       pointRadius: 4,
-      pointBackgroundColor: "rgb(255, 25,0)",
+       pointBackgroundColor: "rgb(255, 25,0)",
     });
   }
 
