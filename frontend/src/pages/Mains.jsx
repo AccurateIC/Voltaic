@@ -93,11 +93,11 @@ export const Mains = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
       <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl1Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl2Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl3Voltage} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl1Current} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl2Current} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl3Current} />
+      <VoltageStatCard kind="voltage" name={"Mains L2 Voltage"} value={stats.mainsl2Voltage} />
+      <VoltageStatCard kind="voltage" name={"Mains L3 Voltage"} value={stats.mainsl3Voltage} />
+      <VoltageStatCard kind="current" name={"Mains L1 Current"} value={stats.mainsl1Current} />
+      <VoltageStatCard kind="current" name={"Mains L2 Current"} value={stats.mainsl2Current} />
+      <VoltageStatCard kind="current" name={"Mains L3 Current"} value={stats.mainsl3Current} />
     </div>
   );
 };
