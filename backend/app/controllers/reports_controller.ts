@@ -115,7 +115,7 @@ export default class ReportsController {
     const tmpFile = path.join(__dirname, "report.typ");
     try {
       const reusableData = await request.validateUsing(getPdfPropertyBetweenValidator);
-      // console.log("reusableData, ", reusableData);
+       console.log("reusableData, ", reusableData);
       const propertyNames = reusableData.properties || [];
 
       // add data from db to typst doc
@@ -134,7 +134,7 @@ export default class ReportsController {
       query.orderBy("timestamp", "desc");
 
       const propertyData = await query.exec();
-      
+      console.log("propertyData,propertyData", propertyData);
       // propertyData.forEach((data) => {
       //   console.log({
       //     timestamp: data.timestamp,
@@ -199,6 +199,56 @@ export default class ReportsController {
     try {
       const result = await ArchiveService.getAnomalyStatistics(timezone);
       return response.ok(result);
+    } catch (error) {
+      return response.status(400).json({
+        error: "Invalid timezone",
+        message: `'${timezone}' is not a valid IANA timezone identifier`,
+        details: error.message,
+      });
+    }
+  }
+
+
+ async getPropertyStatistic({ request, response }: HttpContext) {
+    const data = await request.validateUsing(getAnomalyStatisticsValidator);
+    const timezone = request.header("timezone");
+    const tmpFile = path.join(__dirname, "report.typ");
+    try {
+      const result = await ArchiveService.getAnomalyStatistics(timezone);
+      const overallAnomaly = result.overall;
+      console.log(overallAnomaly);
+
+      const xs = Object.entries(result.overall).map(([key, _]) => key);
+      const ys = Object.entries(result.overall).map(([_, value]) => value);
+
+      const generateAnomalyBarChart = (xs: object[], ys: object[]) => {
+        console.log(xs);
+        console.log("ys", ys); // [0, 0, 0, 144]
+        return `
+        
+    #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
+    #let ys = (${ys.join(", ")})
+    
+    #lq.diagram(
+      xaxis: (
+        ticks: xs .map(rotate.with(-45deg, reflow: true))
+      .map(align.with(right)).enumerate(),
+      ),
+  
+      lq.bar(range(${ys.length}), ys)
+    )
+  `;
+      };
+
+      const typstDoc = typstBase + generateAnomalyBarChart(xs, ys);
+      await fs.writeFile(tmpFile, typstDoc);
+      const pdfBuffer = await compilePdf(tmpFile);
+      response.header("Content-Type", "application/pdf");
+      response.header("Content-Disposition", "attachment; filename=report.pdf");
+      // serve the compiled pdf
+      return response.send(pdfBuffer);
+
+      return response.ok(result.overall);
     } catch (error) {
       return response.status(400).json({
         error: "Invalid timezone",
