@@ -25,10 +25,10 @@ export const loginValidator = vine.compile(
   })
 );
 
-export const updateUserProfile = vine.compile(
+export const updateUserProfileValidator = vine.compile(
   vine.object({
-    email: vine.string().email(),
-    firstName: vine.string().minLength(2),
+    email: vine.string().email().optional(),
+    firstName: vine.string().minLength(2).optional(),
     lastName: vine.string().optional(),
   })
 );

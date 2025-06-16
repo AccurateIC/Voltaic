@@ -83,7 +83,6 @@ const chartOptions = {
       grid: { color: "#888", lineWidth: 0.5 },
     },
   },
-  plugins: [backgroundPlugin],
 };
 
 const ReportsGenVoltage = () => (

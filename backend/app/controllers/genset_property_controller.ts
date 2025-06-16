@@ -17,12 +17,8 @@ export default class GensetPropertyController {
   async update({ params, request }: HttpContext) {
     const data = await request.validateUsing(updateGensetPropertyValidator);
     const property = await GensetProperty.findOrFail(params.id);
-    if (data.propertyName !== undefined) {
-      property.propertyName = data.propertyName;
-    }
-    if (data.quantityId !== undefined) {
-      property.quantityId = data.quantityId;
-    }
+    if (data.propertyName) property.propertyName = data.propertyName;
+    if (data.physicalQuantityId) property.physicalQuantityId = data.physicalQuantityId;
     await property.save();
     return GensetProperty.findOrFail(params.id);
   }

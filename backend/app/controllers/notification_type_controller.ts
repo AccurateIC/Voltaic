@@ -3,13 +3,13 @@ import NotificationType from "#models/notification_type";
 import { createNotificationTypeValidator } from "#validators/notification_type";
 
 export default class NotificationTypeController {
-  async getAll({ request, response }: HttpContext) {
+  async getAll({}: HttpContext) {
     const allNotificationTypes = await NotificationType.all();
     console.log(allNotificationTypes);
     return allNotificationTypes;
   }
 
-  async create({ request, response }: HttpContext) {
+  async create({ request }: HttpContext) {
     const data = await request.validateUsing(createNotificationTypeValidator);
     const newNotificationType = await NotificationType.create(data);
     console.log(newNotificationType.$isPersisted);

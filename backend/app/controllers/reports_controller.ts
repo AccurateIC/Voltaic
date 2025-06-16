@@ -99,7 +99,7 @@ export default class ReportsController {
     const archiveData = Archive.all();
     return archiveData as Promise<Archive[]>;
   }
-  async generateDummy({ request, response }: HttpContext) {
+  async generateDummy({ response }: HttpContext) {
     // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
@@ -125,17 +125,17 @@ export default class ReportsController {
 
       // const xs = propertyData.map((value, index) => DateTime.fromJSDate(value.timestamp));
 
-      const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toMillis());
-      const ys = propertyData.map((value, index) => value.propertyValue);
+      const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp.toJSDate()).toMillis());
+      const ys = propertyData.map((value) => value.propertyValue);
 
       // console.log(xs);
       // console.log(ys);
 
-      const generateTypstBarChart = (xs: string[], ys: number[]) => {
+      const generateTypstBarChart = (xs: string[] | number[], ys: number[]) => {
         return `
         #let xs = ( ${xs.map((value) => value).join(", ")} )
         #let ys = ( ${ys.map((value) => `${value}`).join(", ")} )
-        
+
         #lq.diagram(
           lq.bar(xs, ys, label: [Engine Oil Pressure])
         )

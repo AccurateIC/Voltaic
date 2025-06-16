@@ -41,7 +41,11 @@ export default class NotificationController {
 
   async create({ request }: HttpContext) {
     const data = await request.validateUsing(createNotificationValidator);
-    const createdNotification = await Notification.create(data);
+    const createdNotification = await Notification.create({
+      ...data,
+      startedAt: DateTime.fromJSDate(data.startedAt),
+      finishedAt: data.finishedAt ? DateTime.fromJSDate(data.finishedAt) : null,
+    });
     return createdNotification;
   }
 

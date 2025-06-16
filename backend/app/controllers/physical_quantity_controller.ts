@@ -21,9 +21,9 @@ export default class PhysicalQuantityController {
   async update({ params, request }: HttpContext) {
     const physicalQty: PhysicalQuantity = await PhysicalQuantity.findOrFail(params.id);
     const data = await request.validateUsing(updatePhysicalQuantityValidator);
-    physicalQty.quantityName = data.quantityName;
-    physicalQty.unitName = data.unitName;
-    physicalQty.unitSymbol = data.unitSymbol;
+    if (data.quantityName) physicalQty.quantityName = data.quantityName;
+    if (data.unitName) physicalQty.unitName = data.unitName;
+    if (data.unitSymbol) physicalQty.unitSymbol = data.unitSymbol;
     await physicalQty.save();
     return physicalQty;
   }

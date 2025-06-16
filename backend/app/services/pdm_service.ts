@@ -10,8 +10,8 @@ export class PdmService {
     if (!timeDuration) throw new Error("no time duration provided");
 
     const now = DateTime.now().setZone(timezone);
-    const startOfDuration: DateTime = now.startOf(timeDuration).toUTC();
-    const endOfDuration: DateTime = now.endOf(timeDuration).toUTC();
+    const startOfDuration: Date = now.startOf(timeDuration).toUTC().toJSDate();
+    const endOfDuration: Date = now.endOf(timeDuration).toUTC().toJSDate();
     query.whereBetween("timestamp", [startOfDuration, endOfDuration]);
 
     switch (timeDuration) {

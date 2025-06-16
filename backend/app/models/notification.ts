@@ -33,7 +33,7 @@ export default class Notification extends BaseModel {
   declare startedAt: DateTime;
 
   @column()
-  declare finishedAt: DateTime;
+  declare finishedAt: DateTime | null;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   declare createdAt: DateTime;

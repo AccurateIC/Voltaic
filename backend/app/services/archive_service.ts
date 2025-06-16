@@ -17,8 +17,8 @@ export class ArchiveService {
 
     if (timeDuration) {
       const now = DateTime.now().setZone(timezone); // user's timezone
-      const startOfDuration: DateTime = now.startOf(timeDuration).toUTC();
-      const endOfDuration: DateTime = now.endOf(timeDuration).toUTC();
+      const startOfDuration: Date = now.startOf(timeDuration).toUTC().toJSDate();
+      const endOfDuration: Date = now.endOf(timeDuration).toUTC().toJSDate();
       query.whereBetween("timestamp", [startOfDuration, endOfDuration]);
     }
 
@@ -29,7 +29,8 @@ export class ArchiveService {
           (builder) => builder.whereIn("propertyName", properties)
         );
     }
-    const res = await query.count("*").pojo();
-    return parseInt(res[0].count);
+    const res = await query.count("*");
+    const count: string = res[0].$extras.count;
+    return parseInt(count);
   }
 }

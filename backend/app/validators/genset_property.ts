@@ -19,7 +19,7 @@ export const updateGensetPropertyValidator = vine.compile(
       .minLength(1)
       .unique({ table: "genset_properties", column: "property_name" })
       .optional(),
-    quantityId: vine //
+    physicalQuantityId: vine //
       .number()
       .exists({ table: "physical_quantities", column: "id" })
       .optional(),

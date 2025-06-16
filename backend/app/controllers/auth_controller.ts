@@ -1,6 +1,6 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User from "#models/user";
-import { createUserValidator, loginValidator, updateUserProfile } from "#validators/auth";
+import { createUserValidator, loginValidator, updateUserProfileValidator } from "#validators/auth";
 
 export default class AuthController {
   async getLoggedInUser({ auth }: HttpContext) {
@@ -122,16 +122,17 @@ export default class AuthController {
   }
 
   async update({ request, auth }: HttpContext) {
-    const data = await request.validateUsing(updateUserProfile);
+    const data = await request.validateUsing(updateUserProfileValidator);
     // console.log("Original User Data:", params);
     const loggedInUser = await auth.authenticate();
     // const user = await User.query().where("email", params.email).where("is_active", true).firstOrFail();
     // const user = await User.findByOrFail(params.id);
     const user = await User.findOrFail(loggedInUser.id);
 
-    user.email = data.email;
-    user.firstName = data.firstName;
-    user.lastName = data.lastName;
+    if (data.email) user.email = data.email;
+    if (data.firstName) user.firstName = data.firstName;
+    if (data.lastName) user.lastName = data.lastName;
+
     await user.save();
     return user.serialize();
   }

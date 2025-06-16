@@ -86,9 +86,7 @@ export default class PdmController {
   async create({ request }: HttpContext) {
     const data = await request.validateUsing(createPdmValidator);
     console.log(data);
-    if (data) {
-      transmit.broadcast("pdm", data);
-    }
+    transmit.broadcast("pdm", "new pdm data");
 
     // 1: if maintenance is needed, add to maintenance_notifications table
     let maintenance_notif_id = undefined;
@@ -118,7 +116,7 @@ export default class PdmController {
     for (let i = 0; i < data.actual_values_timestamp.length; i++) {
       // X axis (required)
       vibrationRecords.push({
-        timestamp: data.actual_values_timestamp[i],
+        timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.actual_values.accel_x[i],
         maintenance_notification_id: maintenance_notif_id || null,
@@ -129,7 +127,7 @@ export default class PdmController {
       // Y axis (optional)
       if (data.actual_values.accel_y && data.actual_values.accel_y[i] !== undefined) {
         vibrationRecords.push({
-          timestamp: data.actual_values_timestamp[i],
+          timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.actual_values.accel_y[i],
           maintenance_notification_id: maintenance_notif_id || null,
@@ -141,7 +139,7 @@ export default class PdmController {
       // Z axis (optional)
       if (data.actual_values.accel_z && data.actual_values.accel_z[i] !== undefined) {
         vibrationRecords.push({
-          timestamp: data.actual_values_timestamp[i],
+          timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.actual_values.accel_z[i],
           maintenance_notification_id: maintenance_notif_id || null,
@@ -155,7 +153,7 @@ export default class PdmController {
     for (let i = 0; i < data.forecasted_values_timestamp.length; i++) {
       // X axis (required)
       vibrationRecords.push({
-        timestamp: data.forecasted_values_timestamp[i],
+        timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.forecasted_values.accel_x[i],
         maintenance_notification_id: maintenance_notif_id || null,
@@ -166,7 +164,7 @@ export default class PdmController {
       // Y axis (optional)
       if (data.forecasted_values.accel_y && data.forecasted_values.accel_y[i] !== undefined) {
         vibrationRecords.push({
-          timestamp: data.forecasted_values_timestamp[i],
+          timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.forecasted_values.accel_y[i],
           maintenance_notification_id: maintenance_notif_id || null,
@@ -178,7 +176,7 @@ export default class PdmController {
       // Z axis (optional)
       if (data.forecasted_values.accel_z && data.forecasted_values.accel_z[i] !== undefined) {
         vibrationRecords.push({
-          timestamp: data.forecasted_values_timestamp[i],
+          timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.forecasted_values.accel_z[i],
           maintenance_notification_id: maintenance_notif_id || null,
@@ -207,7 +205,7 @@ export default class PdmController {
 
   async delete({}: HttpContext) {
     const vibrationData = await Vibration.query().delete();
-    const pdmNotifications = await MaintenanceNotification.query().delete();
+    await MaintenanceNotification.query().delete();
     return vibrationData;
   }
 }
