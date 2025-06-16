@@ -155,6 +155,9 @@ export function RulChart({
         // pointRadius: 8,
         // pointStyle: "circle",
         showLine: true,
+        borderDash: [8, 9],
+        pointRadius: 4,
+        pointBackgroundColor: "rgb(0, 255, 0)",
       },
     ],
   };
@@ -169,8 +172,11 @@ export function RulChart({
           simulatedRul: entry?.Remaining_Useful_Life,
         };
       }),
-      borderColor: "rgb(162, 53, 235)",
+      borderColor: "rgb(162, 190, 0)",
       backgroundColor: "rgba(162, 53, 235, 0.5)",
+      borderDash: [8, 9],
+      pointRadius: 4,
+      pointBackgroundColor: "rgb(255, 25,0)",
     });
   }
 
