@@ -13,20 +13,8 @@ const __dirname = path.dirname(__filename);
 const typstBase = `
 // packages
 #import "@preview/lilaq:0.2.0" as lq
-#import "@preview/plotst:0.2.0":*
-
-#let data = (
-  ("Male", 10),
-  ("Female", 20),
-  ("Divers", 15),
-  ("Other", 2),
-)
-
-#pie_chart(
-  data,
-  radius: 4,
-  size: 3
-)
+#import "@preview/cetz:0.4.0"
+#import "@preview/cetz-plot:0.1.2": chart
 
 // set doc metadata
 #set document(author: "NeuroGen", title: "NeuroGen Report")
@@ -37,81 +25,29 @@ const typstBase = `
 // page properties
 #set page(margin: 0.5in, paper: "a4")
 
-
 // Small caps for section titles
 #show heading.where(level: 2): it => [
   #pad(top: 0pt, bottom: -10pt, [#smallcaps(it.body)])
   #line(length: 100%, stroke: 0.1pt)
 ]
-
 // Name will be aligned left, bold and big
 #show heading.where(level: 1): it => [
   #set align(center)
   #set text(weight: 500, size: 24pt)
   #pad([#smallcaps(it.body)])
 ]
-
-// = Swarnim Barapatre
-
-// // personal info
-// #pad(top: 0.25em, align(center)[
-//   +91 8149 833 469 |
-//   Pune |
-//   #link("mailto:swarnim335@gmail.com") |
-//   #link("https://github.com/swarnimcodes/")[github/swarnimcodes] |
-//   #link(
-//     "https://www.linkedin.com/in/swarnimbarapatre/",
-//   )[linkedin/swarnimbarapatre]
-// ])
-
-
-// #lq.diagram(
-//   lq.plot(
-//   (0, 1, 2, 3, 4),
-//   (5, 4, 2, 1, 2)
-// ))
-
-
-// #lq.diagram(
-//   xaxis: (
-//     ticks: ("Apples", "Bananas", "Kiwis", "Mangos", "Papayas")
-//       .map(rotate.with(-45deg, reflow: true))
-//       .map(align.with(right))
-//       .enumerate(),
-//     subticks: none,
-//   ),
-//   lq.bar(
-//     range(5),
-//     (5, 3, 4, 2, 1),
-//   )
-// )
-//   #lq.diagram(
-//   xaxis: (
-//     ticks: ("Oil ", "Speed", "Voltage", "Current")
-    
-//     .enumerate(),
-//   subticks: none,
-// ),
-// lq.bar(range(4),
-// (5,4,2,1)
-// )
-// )
-
 `;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const compileProc = spawn("typst", ["compile", tmpFile, "-"]);
     const pdfBuffers: Buffer[] = [];
-
     compileProc.stdout.on("data", (chunk) => {
       pdfBuffers.push(chunk);
     });
-
     compileProc.stderr.on("data", (data) => {
       reject(data.toString());
     });
-
     compileProc.on("close", async (code) => {
       // await fs.unlink(tmpFile).catch(console.error);
       if (code !== 0) reject(`Compiler exited with code ${code}`);
@@ -130,7 +66,7 @@ export default class ReportsController {
     const tmpFile = path.join(__dirname, "report.typ");
     try {
       const reusableData = await request.validateUsing(getPdfPropertyBetweenValidator);
-       console.log("reusableData, ", reusableData);
+      //  console.log("reusableData, ", reusableData);
       const propertyNames = reusableData.properties || [];
 
       // add data from db to typst doc
@@ -147,27 +83,25 @@ export default class ReportsController {
       });
       // latest first
       query.orderBy("timestamp", "desc");
-
       const propertyData = await query.exec();
-      console.log("propertyData,propertyData", propertyData);
-      // propertyData.forEach((data) => {
-      //   console.log({
-      //     timestamp: data.timestamp,
-      //     value: data.propertyValue,
-      //     property: data.gensetProperty?.propertyName,
-      //   });
-      // });
+  
+       console.log("propertyData", propertyData);
 
       if (!propertyData.length) {
         return response.status(404).send({ message: "No data found for given properties" });
       }
+      
+       const properties = propertyData.map((value)=> {
+        const temp =value.gensetPropertyId;
+        console.log(temp);
+       });
+       console.log("properties, ", properties);
 
       const label = propertyData[0].gensetProperty?.readablePropertyName || "?";
       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toFormat("dd-MM"));
       const ys = propertyData.map((value) => value.propertyValue);
       // console.log("ys array:", ys);
 
-      
       const generateTypstBarChart = (xs: string[], ys: number[], label: string) => {
         return `
     #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
@@ -183,27 +117,69 @@ export default class ReportsController {
     )
   `;
       };
+      const data = await request.validateUsing(getAnomalyStatisticsValidator);
+      const timezone = request.header("timezone");
+      const result = await ArchiveService.getAnomalyStatistics(timezone);
+      //  console.log("result result", result);
+      const overallAnomaly = result.overall;
+      // console.log(typeof result);
 
-//    const labl = ["gfdg", "dfg"];       // ✅ Correct: an array of strings
-// const values = [30, 70];             // ✅ Correct: an array of numbers
+      const xsl = Object.entries(result.overall).map(([key, _]) => key);
+      const ysl = Object.entries(result.overall).map(([_, value]) => value);
 
-// const generatePieChart = (labels: string[], values: number[]) => `
-// #let data = (
-//   ${labels.map((lbl, i) => `("${lbl}", ${values[i]})`).join(",\n  ")}
-// )
+      const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
+        // console.log("xs", xsl);
+        // console.log("ys", ysl); // [0, 0, 0, 144]
+        return `
+        
+    #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
+    #let ysl = (${ysl.join(", ")})
+    
+    #lq.diagram(
+      xaxis: (
+        ticks: xsl .map(rotate.with(-45deg, reflow: true))
+      .map(align.with(right)).enumerate(),
+      ),
+      lq.bar(range(${ysl.length}), ysl)
+    )
+  `;
+      };
 
-// #pie_chart(
-//   data,
-//   size: 6,
-//   radius: 4,
-//   legend: true
-// )
-// `;
+      const dataTuple = result.byProperty.map((prop) => `("${prop.readablePropertyName}", ${prop.total})`).join(",\n  ");
+      // console.log("dataTuple", dataTuple);
+      // console.log(typeof dataTuple);
+      const generatePieChart = (dataTuple) => {
+        // console.log("dataTuplr", dataTuple);
 
+        return `
+         Anomaly By Peoperty   
+#let data = (
+  ${dataTuple}
+)
 
-// const pieChart = generatePieChart(labl,values );
+#cetz.canvas({
+  let colors = gradient.linear(red, blue, green, yellow)
 
-      const typstDoc = typstBase + generateTypstBarChart(xs, ys, label)
+  chart.piechart(
+    data,
+    value-key: 1,
+     label-key: 0,
+    radius: 3,
+    outset-key: none,
+    slice-style: colors,
+    inner-radius: 0.1,
+    outset: 4,
+    //outer-label.content: "LABEL",
+      outer-label: (content: (value, label) => [#text(white, str(value))], radius: 110%, layout: "vertical",),
+     
+     inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
+  )
+})
+`;
+      };
+
+      const typstDoc =
+        typstBase + generateTypstBarChart(xs, ys, label) + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple);
       //  + pieChart;
       // console.log(typstDoc);
 
@@ -221,78 +197,4 @@ export default class ReportsController {
     }
   }
 
-  async getAnomalyStatistics({ request, response }: HttpContext) {
-    const data = await request.validateUsing(getAnomalyStatisticsValidator);
-    const timezone = request.header("timezone");
-console.log(timezone);
-    if (!timezone) {
-      return response.status(400).json({
-        error: "Timezone header is required",
-        message: "Please provide a valid IANA timezone identifier in the request headers",
-      });
-    }
-
-    try {
-      const result = await ArchiveService.getAnomalyStatistics(timezone);
-      return response.ok(result);
-    } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
-      });
-    }
-  }
-
-
- async getPropertyStatistic({ request, response }: HttpContext) {
-    const data = await request.validateUsing(getAnomalyStatisticsValidator);
-    const timezone = request.header("timezone");
-    const tmpFile = path.join(__dirname, "report.typ");
-    try {
-      const result = await ArchiveService.getAnomalyStatistics(timezone);
-      const overallAnomaly = result.overall;
-      console.log(overallAnomaly);
-
-      const xs = Object.entries(result.overall).map(([key, _]) => key);
-      const ys = Object.entries(result.overall).map(([_, value]) => value);
-
-      const generateAnomalyBarChart = (xs: object[], ys: object[]) => {
-        console.log(xs);
-        console.log("ys", ys); // [0, 0, 0, 144]
-        return `
-        
-    #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-    #let ys = (${ys.join(", ")})
-    
-    #lq.diagram(
-      xaxis: (
-        ticks: xs .map(rotate.with(-45deg, reflow: true))
-      .map(align.with(right)).enumerate(),
-      ),
-  
-      lq.bar(range(${ys.length}), ys)
-    )
-  `;
-      };
-
-      const typstDoc = typstBase + generateAnomalyBarChart(xs, ys);
-      await fs.writeFile(tmpFile, typstDoc);
-      const pdfBuffer = await compilePdf(tmpFile);
-      response.header("Content-Type", "application/pdf");
-      response.header("Content-Disposition", "attachment; filename=report.pdf");
-      // serve the compiled pdf
-      return response.send(pdfBuffer);
-
-      return response.ok(result.overall);
-    } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
-      });
-    }
-  }
-
 }
-
