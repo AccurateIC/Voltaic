@@ -1,5 +1,24 @@
 import Archive from "#models/archive";
-import { DateTime, DateTimeUnit } from "luxon";
+import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
+
+export interface PropertyStatisticsData {
+  day?: DayNumbers;
+  week?: WeekNumbers;
+  month: MonthNumbers;
+  year: number;
+  genset_property_id: number;
+  avg: number;
+}
+
+export interface PropertyStatisticsMetadata {
+  timeDuration: "year" | "month" | "week";
+  averaged: string;
+}
+
+export interface PropertyStatisticsResponse {
+  meta: PropertyStatisticsMetadata;
+  data: PropertyStatisticsData[];
+}
 
 export class ArchiveService {
   static async getLatestEntries() {
@@ -8,6 +27,81 @@ export class ArchiveService {
       .preload("gensetProperty", (query) => {
         query.preload("physicalQuantity");
       });
+  }
+
+  static async getPropertyStatisticsForWeek(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+    const now = DateTime.now().setZone(timezone).toUTC();
+    const startOfWeek = now.startOf("week").toJSDate();
+    const endOfWeek = now.endOf("week").toJSDate();
+
+    const statistics = (await Archive.query() //
+      .select("day", "month", "year", "genset_property_id")
+      .whereHas("gensetProperty", (propertyQuery) => {
+        propertyQuery.where("propertyName", propertyName);
+      })
+      .whereBetween("timestamp", [startOfWeek, endOfWeek])
+      .avg("property_value")
+      .groupBy("day", "month", "year", "genset_property_id")
+      .orderBy("genset_property_id", "asc")
+      .pojo()) as PropertyStatisticsData[];
+
+    return {
+      meta: {
+        timeDuration: "week",
+        averaged: "daily",
+      },
+      data: statistics,
+    };
+  }
+
+  static async getPropertyStatisticsForMonth(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+    const now = DateTime.now().setZone(timezone).toUTC();
+    const startOfMonth = now.startOf("month").toJSDate();
+    const endOfMonth = now.endOf("month").toJSDate();
+
+    const statistics = await Archive.query() //
+      .select("week", "month", "year", "genset_property_id")
+      .whereHas("gensetProperty", (propertyQuery) => {
+        propertyQuery.where("propertyName", propertyName);
+      })
+      .whereBetween("timestamp", [startOfMonth, endOfMonth])
+      .avg("property_value")
+      .groupBy("week", "month", "year", "genset_property_id")
+      .orderBy("genset_property_id", "asc")
+      .pojo();
+
+    return {
+      meta: {
+        timeDuration: "month",
+        averaged: "weekly",
+      },
+      data: statistics as PropertyStatisticsData[],
+    };
+  }
+
+  static async getPropertyStatisticsForYear(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+    const now = DateTime.now().setZone(timezone).toUTC();
+    const startOfYear = now.startOf("year").toJSDate();
+    const endOfYear = now.endOf("year").toJSDate();
+
+    const statistics = await Archive.query() //
+      .select("month", "year", "genset_property_id")
+      .whereHas("gensetProperty", (propertyQuery) => {
+        propertyQuery.where("propertyName", propertyName);
+      })
+      .whereBetween("timestamp", [startOfYear, endOfYear])
+      .avg("property_value")
+      .groupBy("month", "year", "genset_property_id")
+      .orderBy("genset_property_id", "asc")
+      .pojo();
+
+    return {
+      meta: {
+        timeDuration: "year",
+        averaged: "monthly",
+      },
+      data: statistics as PropertyStatisticsData[],
+    };
   }
 
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {

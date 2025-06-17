@@ -2,7 +2,7 @@ import { PhysicalQuantity } from "./physicalQuantity.types";
 
 export interface GensetProperty {
   id: number;
-  propertyName: string;
+  propertyName: GensetPropertyName;
   readablePropertyName: string;
   physicalQuantityId: number;
   physicalQuantity: PhysicalQuantity;

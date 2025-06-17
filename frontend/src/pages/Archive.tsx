@@ -6,10 +6,10 @@ import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
 import "cally";
-import { ROUTES } from "../config/backend";
 import { useArchive } from "../hooks/useArchive";
 import { type Archive } from "../types/archive.types";
 import { GetDataPaginatedFilters, Metadata, PaginatedArchiveData } from "../api/archive";
+import { useGensetProperty } from "../hooks/useGensetProperty";
 
 const excelify = (data: Archive[]) => {
   const excelData = data.map((entry, index) => ({
@@ -45,12 +45,16 @@ const excelify = (data: Archive[]) => {
 const Archive = () => {
   //hooks
   const { getDataPaginated, getPropertyDataBetween } = useArchive();
+  const { getAllGensetProperties } = useGensetProperty();
 
   // state
+  const {
+    data: allGensetProperties,
+    isError: getAllGensetPropertiesIsError,
+    isPending: getAllGensetPropertiesIsPending,
+  } = getAllGensetProperties;
   const [archiveData, setArchiveData] = useState<Archive[]>([]);
   const [paginationMetadata, setPaginationMetadata] = useState<Metadata>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [gensetProperties, setGensetProperties] = useState([]);
   const [filters, setFilters] = useState<GetDataPaginatedFilters>({
     page: 1,
     propertyNames: [],
@@ -63,6 +67,7 @@ const Archive = () => {
     getDataPaginated.mutate(filters, {
       onSuccess: (data: PaginatedArchiveData) => {
         setArchiveData(data.data);
+        setPaginationMetadata(data.meta);
       },
       onError: (error) => {
         toast.error(`Failed to fetch archive data: ${error}`);
@@ -71,39 +76,18 @@ const Archive = () => {
   }, [filters]);
 
   // we receive message on this bus if archive table updates
-  useMessageBus("archive", (msg) => {
+  useMessageBus("archive", () => {
     // console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     getDataPaginated.mutate(filters, {
       onSuccess: (data: PaginatedArchiveData) => {
         setArchiveData(data.data);
+        setPaginationMetadata(data.meta);
       },
       onError: (error) => {
         toast.error(`Failed to fetch archive data: ${error}`);
       },
     });
   });
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const response = await fetch(ROUTES.GENSET_PROPERTY_GET_ALL, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch genset data");
-        }
-        const data = await response.json();
-        setGensetProperties(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        toast.error("Error fetching genset property data");
-      }
-    };
-    fetchProperties();
-  }, []);
 
   const handleResetFilters = () => {
     setFilters({
@@ -114,6 +98,10 @@ const Archive = () => {
       to: null,
     });
   };
+
+  /* TODO: handle error and pending states differently */
+  if (getAllGensetPropertiesIsError) return <div className="h-full w-full">N/A</div>;
+  if (getAllGensetPropertiesIsPending) return <div className="h-full w-full">N/A</div>;
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -198,14 +186,14 @@ const Archive = () => {
                             Select All
                           </a>
                         </li>
-                        {gensetProperties.map((property, index) => (
+                        {allGensetProperties.map((property, index) => (
                           <li key={index} className="flex flex-row items-center p-1">
                             <input
                               id={property?.propertyName}
                               type="checkbox"
                               className="checkbox checkbox-sm checkbox-primary"
                               checked={filters.propertyNames.includes(property.propertyName)}
-                              onChange={(e) => {
+                              onChange={() => {
                                 setFilters((prevFilters) => {
                                   const currentProperties = prevFilters.propertyNames;
                                   const propertyIndex = currentProperties.indexOf(property.propertyName);
@@ -285,7 +273,7 @@ const Archive = () => {
       {/* Pagination */}
       <div className="join flex justify-between items-center m-2">
         <div></div>
-        <div className="join-item text-base-200">
+        <div className="join-item text-base-content">
           Page {filters.page} / {paginationMetadata?.lastPage}
         </div>
         <div className="join gap-3">
