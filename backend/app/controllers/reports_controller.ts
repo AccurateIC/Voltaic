@@ -2,6 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "url";
+
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
 import { getPdfPropertyBetweenValidator, getAnomalyStatisticsValidator } from "../validators/archive.js";
@@ -65,6 +66,10 @@ export default class ReportsController {
     // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
+
+      const resultData = await ArchiveService.getPropertyStatistics({ request });
+     console.log("resultData", resultData);
+
       const reusableData = await request.validateUsing(getPdfPropertyBetweenValidator);
       //  console.log("reusableData, ", reusableData);
       const propertyNames = reusableData.properties || [];
@@ -84,18 +89,18 @@ export default class ReportsController {
       // latest first
       query.orderBy("timestamp", "desc");
       const propertyData = await query.exec();
-  
-       console.log("propertyData", propertyData);
+
+      // console.log("propertyData", propertyData);
 
       if (!propertyData.length) {
         return response.status(404).send({ message: "No data found for given properties" });
       }
-      
-       const properties = propertyData.map((value)=> {
-        const temp =value.gensetPropertyId;
-        console.log(temp);
-       });
-       console.log("properties, ", properties);
+
+      const properties = propertyData.map((value) => {
+        const temp = value.gensetPropertyId;
+        // console.log(temp);
+      });
+      // console.log("properties, ", properties);
 
       const label = propertyData[0].gensetProperty?.readablePropertyName || "?";
       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toFormat("dd-MM"));
@@ -107,6 +112,7 @@ export default class ReportsController {
     #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
     #let ys = (${ys.join(", ")})
     
+    // #set align(right)
     #lq.diagram(
       xaxis: (
         ticks: xs .map(rotate.with(-45deg, reflow: true))
@@ -117,6 +123,12 @@ export default class ReportsController {
     )
   `;
       };
+
+  
+    
+
+  
+
       const data = await request.validateUsing(getAnomalyStatisticsValidator);
       const timezone = request.header("timezone");
       const result = await ArchiveService.getAnomalyStatistics(timezone);
@@ -135,13 +147,15 @@ export default class ReportsController {
     #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
     #let ysl = (${ysl.join(", ")})
     
+    #box(width: 50%, height: 0pt)[
+    #set align(top + left)
     #lq.diagram(
       xaxis: (
         ticks: xsl .map(rotate.with(-45deg, reflow: true))
       .map(align.with(right)).enumerate(),
       ),
       lq.bar(range(${ysl.length}), ysl)
-    )
+      )]
   `;
       };
 
@@ -152,11 +166,12 @@ export default class ReportsController {
         // console.log("dataTuplr", dataTuple);
 
         return `
-         Anomaly By Peoperty   
+          
 #let data = (
   ${dataTuple}
 )
-
+#box(width: 100%, height: 220pt)[
+#set align(top + right)
 #cetz.canvas({
   let colors = gradient.linear(red, blue, green, yellow)
 
@@ -174,12 +189,12 @@ export default class ReportsController {
      
      inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
   )
-})
+      })]
 `;
       };
 
       const typstDoc =
-        typstBase + generateTypstBarChart(xs, ys, label) + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple);
+        typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple) + generateTypstBarChart(xs, ys, label);
       //  + pieChart;
       // console.log(typstDoc);
 
@@ -196,5 +211,4 @@ export default class ReportsController {
       return response.status(500).send(err);
     }
   }
-
 }
