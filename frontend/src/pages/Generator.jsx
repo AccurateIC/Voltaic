@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { SemiCircleGauge } from "../components/SemiCircleGauge";
 import { VoltageStatCard } from "../components/VoltageStatCard";
+import { ROUTES } from "../config/backend.ts";
 
 export const Generator = () => {
   const [stats, setStats] = useState({
@@ -22,7 +23,7 @@ export const Generator = () => {
 
   const getData = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+      const response = await fetch(ROUTES.ARCHIVE_GET_LATEST, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

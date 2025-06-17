@@ -1,17 +1,9 @@
 import { ROUTES } from "../config/backend";
-import {
-  PDMCreationResponse,
-  PDMNotification,
-  PDMNotificationCount,
-  PDMStatistics,
-  VibrationData,
-} from "../types/pdm.types";
-
-const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
+import { PDMCreationResponse, PDMNotification, PDMStatistics, VibrationData } from "../types/pdm.types";
 
 export const pdmApi = {
   create: async (): Promise<PDMCreationResponse> => {
-    const response = await fetch(`${BASE_URL}/pdm/create`, {
+    const response = await fetch(ROUTES.PDM_CREATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -22,7 +14,7 @@ export const pdmApi = {
   },
 
   getRecentVibrationData: async (): Promise<VibrationData[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getRecent`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_RECENT, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -33,7 +25,7 @@ export const pdmApi = {
   },
 
   getLatestVibrationEntry: async (): Promise<VibrationData[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getLatestEntry`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_LATEST_ENTRY, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -44,7 +36,7 @@ export const pdmApi = {
   },
 
   getRecentActualVibrationData: async (): Promise<VibrationData[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getRecentActual`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_RECENT_ACTUAL, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -55,7 +47,7 @@ export const pdmApi = {
   },
 
   getRecentForecastedVibrationData: async (): Promise<VibrationData[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getRecentForecasted`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_RECENT_FORECASTED, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -66,7 +58,7 @@ export const pdmApi = {
   },
 
   getAllNotifications: async (): Promise<PDMNotification[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getAll`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_ALL, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -77,7 +69,7 @@ export const pdmApi = {
   },
 
   getUnresolvedNotifications: async (): Promise<PDMNotification[]> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getUnresolved`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_UNRESOLVED, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -88,7 +80,7 @@ export const pdmApi = {
   },
 
   getLatestUnresolvedNotification: async (): Promise<PDMNotification> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/getLatestUnresolved`, {
+    const response = await fetch(ROUTES.PDM_NOTIF_GET_LATEST_UNRESOLVED, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -98,7 +90,7 @@ export const pdmApi = {
   },
 
   markNotificationAsRead: async (notificationId: number): Promise<PDMNotification> => {
-    const response = await fetch(`${BASE_URL}/pdm/notification/read/${notificationId}`, {
+    const response = await fetch(`${ROUTES.PDM_NOTIF_MARK_AS_READ}/${notificationId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -112,7 +104,7 @@ export const pdmApi = {
 
   // TODO: get timezone from user's browser instead of hardcoding
   getPDMStatistics: async (timeDuration: string): Promise<PDMStatistics> => {
-    const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getStatistics`, {
+    const response = await fetch(ROUTES.PDM_GET_STATISTICS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -131,7 +123,7 @@ export const pdmApi = {
   },
 
   deleteAllPdmData: async (): Promise<VibrationData> => {
-    const response = await fetch(`${BASE_URL}/pdm/delete`, {
+    const response = await fetch(ROUTES.PDM_DELETE, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -140,5 +132,3 @@ export const pdmApi = {
     return response.json() as Promise<VibrationData>;
   },
 };
-
-// 1384

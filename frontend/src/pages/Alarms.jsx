@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 import { RiResetLeftLine } from "react-icons/ri";
 import "cally";
 import { useGensetProperty } from "../hooks/useGensetProperty.ts";
+import { ROUTES } from "../config/backend.ts";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
@@ -79,7 +80,7 @@ const Alarms = () => {
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+      const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_ALL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -108,7 +109,7 @@ const Alarms = () => {
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/read/${notificationId}`, {
+      const response = await fetch(ROUTES.ANOMALY_NOTIF_MARK_AS_READ + "/" + notificationId, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

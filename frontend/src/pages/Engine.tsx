@@ -11,6 +11,7 @@ import { Modules } from "../config/extern.ts";
 import { User } from "../types/auth.types.ts";
 import { catchErrTyped, ExternalServerError, Result } from "../lib/Err.js";
 import { SessionStore } from "../lib/SessionStore.js";
+import { ROUTES } from "../config/backend.js";
 
 // #fff627
 
@@ -199,7 +200,7 @@ const Engine = () => {
   const fetchLatestArchiveData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+      const response = await fetch(ROUTES.ARCHIVE_GET_LATEST, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

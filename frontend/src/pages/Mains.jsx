@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { VoltageStatCard } from "../components/VoltageStatCard.tsx";
+import { ROUTES } from "../config/backend.ts";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
@@ -61,7 +62,7 @@ export const Mains = () => {
 
   const getData = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getLatest`, {
+      const response = await fetch(ROUTES.ARCHIVE_GET_LATEST, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

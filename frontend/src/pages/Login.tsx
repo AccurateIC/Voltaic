@@ -39,11 +39,9 @@ const Login = () => {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
+        const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
         });
 
@@ -78,14 +76,12 @@ const Login = () => {
     };
 
     try {
-      const url = isSignUp
-        ? `${import.meta.env.VITE_ADONIS_BACKEND}/auth/register`
-        : `${import.meta.env.VITE_ADONIS_BACKEND}/auth/login`;
+      const url = isSignUp //
+        ? ROUTES.AUTH_USER_REGISTER
+        : ROUTES.AUTH_USER_LOGIN;
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(userData),
       });

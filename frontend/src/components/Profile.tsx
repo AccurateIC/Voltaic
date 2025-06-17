@@ -3,6 +3,8 @@
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SessionStore } from "../lib/SessionStore";
+import { ROUTES } from "../config/backend";
+import { Modules } from "../config/extern";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -13,11 +15,9 @@ const Profile = () => {
       // TEMPORARY
       // ####################################
       // fetch logged in user details
-      const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
+      const loggedInUser = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       const user = await loggedInUser.json();
@@ -25,7 +25,7 @@ const Profile = () => {
       // send to pdm server
       try {
         console.log("sending logout to pdm");
-        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
+        const sendUserToPdmServerResponse = fetch(Modules.PDM + "/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...user, logged_in: false }),
@@ -41,7 +41,7 @@ const Profile = () => {
       // send to rul server
       try {
         console.log("sending logout to rul");
-        const sendUserToPdmServerResponse = fetch(`${import.meta.env.VITE_RUL_BACKEND}/user`, {
+        const sendUserToPdmServerResponse = fetch(Modules.RUL + "/user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...user, logged_in: false }),
@@ -55,10 +55,7 @@ const Profile = () => {
       }
       // ####################################
 
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetch(ROUTES.AUTH_USER_LOGOUT, { method: "POST", credentials: "include" });
 
       if (!response.ok) throw new Error(`Status Code: ${response.status}`);
       toast.success("Logged out successfully!");

@@ -11,6 +11,7 @@ import transmitConnection from "../lib/TransmitConnection";
 import { cn, formatTimestamp } from "../lib/Utils";
 import { useAnomalyNotification } from "../hooks/useAnomalyNotification";
 import { LiaConnectdevelop } from "react-icons/lia";
+import { ROUTES } from "../config/backend";
 
 const primaryTab = {
   ANOMALIES: "Anomalies",
@@ -56,7 +57,7 @@ const Navbar = () => {
   // fetch resolved anomaly notifications
   const fetchResolvedPdmNotifications = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getResolved`, {
+      const response = await fetch(ROUTES.PDM_NOTIF_GET_RESOLVED, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -73,7 +74,7 @@ const Navbar = () => {
   // fetch unresolved anomaly notifications
   const fetchUnresolvedPdmNotifications = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getUnresolved`, {
+      const response = await fetch(ROUTES.PDM_NOTIF_GET_UNRESOLVED, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -158,7 +159,7 @@ const Navbar = () => {
   const handleMarkPdmNotificationAsRead = async (pdmNotificationId) => {
     try {
       // make req to backend to mark notification as read
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/read/${pdmNotificationId}`, {
+      const response = await fetch(ROUTES.PDM_NOTIF_MARK_AS_READ + "/" + pdmNotificationId, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

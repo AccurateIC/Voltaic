@@ -1,11 +1,12 @@
 // src/lib/TransmitConnection.js
 import { Transmit } from "@adonisjs/transmit-client";
+import { BACKEND_BASE_URL } from "../config/backend";
 
 class TransmitConnection {
   constructor() {
     if (!TransmitConnection.instance) {
       this.transmit = new Transmit({
-        baseUrl: import.meta.env.VITE_ADONIS_BACKEND,
+        baseUrl: BACKEND_BASE_URL,
         withCredentials: true,
         maxReconnectionAttempts: 5,
         onReconnectAttempt: (attempt) => console.log("Reconnect attempt", attempt),

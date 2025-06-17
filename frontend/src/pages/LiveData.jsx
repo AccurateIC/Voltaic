@@ -9,6 +9,7 @@ import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
+import { ROUTES } from "../config/backend.ts";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -167,7 +168,7 @@ export const LiveData = () => {
     // const { from, to } = calculateTimeRange(selectedTimeRange);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
+      const response = await fetch(ROUTES.ARCHIVE_GET_DATA_BETWEEN + `?from=${from}&to=${to}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -302,7 +303,7 @@ export const LiveData = () => {
       console.log("Error fetching data", error);
     }
     try {
-      const pdmResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecentActual`, {
+      const pdmResponse = await fetch(ROUTES.PDM_GET_RECENT_ACTUAL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -20,12 +20,14 @@ import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { FaRegQuestionCircle } from "react-icons/fa";
+import { ROUTES } from "../config/backend";
+import { Modules } from "../config/extern";
 
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const ResetPdmDataButton = () => {
   const handleReset = async () => {
-    const loggedInUser = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
+    const loggedInUser = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -36,7 +38,7 @@ const ResetPdmDataButton = () => {
 
     // logout
     console.log("sending logout to pdm");
-    const sendUserToPdmServerResponse = await fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
+    const sendUserToPdmServerResponse = await fetch(Modules.PDM + "/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...user, logged_in: false }),
@@ -49,7 +51,7 @@ const ResetPdmDataButton = () => {
     console.log("sent logout to pdm");
 
     // delete pdm vibration data and maintenance notification data
-    const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/delete`, {
+    const response = await fetch(ROUTES.PDM_DELETE, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -60,7 +62,7 @@ const ResetPdmDataButton = () => {
 
     // now we need to send login request to PDM server
     console.log("sending logout to pdm");
-    const sendLogin = await fetch(`${import.meta.env.VITE_PDM_BACKEND}/user`, {
+    const sendLogin = await fetch(Modules.PDM + "/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...user, logged_in: true }),
@@ -240,7 +242,7 @@ const Maintenance = () => {
 
   const fetchNotificationTimestamps = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getAll`, {
+      const response = await fetch(ROUTES.PDM_NOTIF_GET_ALL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -258,7 +260,7 @@ const Maintenance = () => {
       setIsPdmLoading(true);
       await fetchLatestPdmEntry();
 
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/notification/getLatestUnresolved`, {
+      const response = await fetch(ROUTES.PDM_NOTIF_GET_LATEST_UNRESOLVED, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -289,7 +291,7 @@ const Maintenance = () => {
   const fetchLatestPdmEntry = async () => {
     try {
       setIsPdmLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getLatestEntry`, {
+      const response = await fetch(ROUTES.PDM_GET_LATEST, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -338,7 +340,7 @@ const Maintenance = () => {
     try {
       setIsPdmLoading(true);
       // fetch actual data
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecentActual`, {
+      const response = await fetch(ROUTES.PDM_GET_RECENT_ACTUAL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -353,7 +355,7 @@ const Maintenance = () => {
       setActualPdmData(data);
 
       // fetch forecasted data
-      const forecastedResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/pdm/getRecentForecasted`, {
+      const forecastedResponse = await fetch(ROUTES.PDM_GET_RECENT_FORECASTED, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

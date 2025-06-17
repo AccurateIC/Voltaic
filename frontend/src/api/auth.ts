@@ -1,16 +1,12 @@
 // src/features/shared/api/auth.ts
-
+import { ROUTES } from "../config/backend";
 import { User } from "../types/auth.types";
-
-const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
 
 export const auth = {
   getLoggedInUser: async (): Promise<User> => {
-    const response = await fetch(`${BASE_URL}/auth/getLoggedInUser`, {
+    const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
     });
     if (!response.ok) throw new Error("Authorization failed", { cause: response.json() });
@@ -18,11 +14,9 @@ export const auth = {
   },
 
   login: async (email: string, password: string): Promise<User> => {
-    const response: Response = await fetch(`${BASE_URL}/auth/login`, {
+    const response: Response = await fetch(ROUTES.AUTH_USER_LOGIN, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ email, password }),
     });
@@ -31,11 +25,9 @@ export const auth = {
   },
 
   register: async (user: User): Promise<User> => {
-    const response: Response = await fetch(`${BASE_URL}/auth/register`, {
+    const response: Response = await fetch(ROUTES.AUTH_USER_REGISTER, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
         email: user.email,

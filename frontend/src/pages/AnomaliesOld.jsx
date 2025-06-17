@@ -12,6 +12,7 @@ import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
 import AnomalyGraphModal from "../components/charts/AnomalyGraphModal";
 import { formatTimestamp } from "../lib/Utils";
+import { ROUTES } from "../config/backend";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
@@ -318,7 +319,7 @@ const Anomalies = () => {
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/notification/getAll`, {
+      const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_ALL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -352,7 +353,7 @@ const Anomalies = () => {
   const fetchAnomaliesDatas = async (from, to, selectedProperties) => {
     console.log(selectedProperties);
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getPropertyDataBetween`, {
+      const response = await fetch(ROUTES.ARCHIVE_PROPERTY_GET_DATA_BETWEEN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -410,7 +411,7 @@ const Anomalies = () => {
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/getBetween?from=${from}&to=${to}`, {
+      const response = await fetch(ROUTES.ARCHIVE_GET_DATA_BETWEEN + `?from=${from}&to=${to}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -480,9 +481,7 @@ const Anomalies = () => {
 
     try {
       setIsLoading(true);
-      const url = `${
-        import.meta.env.VITE_ADONIS_BACKEND
-      }/archive/getPropertyDataBetween?from=${from}&to=${to}&propertyName=${propertyName}`;
+      const url = ROUTES.ARCHIVE_PROPERTY_GET_DATA_BETWEEN + `?from=${from}&to=${to}&propertyName=${propertyName}`;
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -517,7 +516,7 @@ const Anomalies = () => {
 
   const fetchProperties = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/property/getAll`, {
+      const res = await fetch(ROUTES.GENSET_PROPERTY_GET_ALL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

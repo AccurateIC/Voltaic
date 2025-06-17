@@ -1,6 +1,6 @@
 // frontend/src/hooks/anomalies/useAnomalyNotification.ts
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { archiveApi } from "../api/archive";
+import { archiveApi, GetDataPaginatedFilters } from "../api/archive";
 import { GetPropertyStatisticsFilters } from "../types/archive.types";
 
 export const QUERY_KEYS = {
@@ -11,9 +11,26 @@ export const QUERY_KEYS = {
     filters.timeDuration,
   ],
   propertyDataBetween: ["property-data-between"] as const,
+  paginated: (filters: GetDataPaginatedFilters) => [
+    "paginated",
+    filters.from,
+    filters.to,
+    filters.page,
+    filters.isAnomaly,
+    filters.propertyNames,
+  ],
 };
 
 export function useArchive() {
+  const getDataPaginated = useMutation({
+    mutationFn: (filters: GetDataPaginatedFilters) => archiveApi.getDataPaginated(filters),
+  });
+
+  // const getDataPaginated = (filters: GetDataPaginatedFilters) => useMutation({
+  //     mutationFn: () => archiveApi.getDataPaginated(filters),
+  //     mutationKey: QUERY_KEYS.paginated(filters),
+  //   });
+
   const getPropertyStatistics = (filters: GetPropertyStatisticsFilters) =>
     useQuery({
       queryKey: QUERY_KEYS.propertyStatistics(filters),
@@ -28,10 +45,10 @@ export function useArchive() {
   const getPropertyDataBetween = useMutation({
     mutationFn: archiveApi.getPropertyDataBetween,
     mutationKey: QUERY_KEYS.propertyDataBetween,
-    onSuccess: (data) => {},
   });
 
   return {
+    getDataPaginated,
     getPropertyStatistics,
     getAnomalyStatistics,
     getPropertyDataBetween,

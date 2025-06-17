@@ -1,9 +1,10 @@
 // src/features/RUL/api/rul.ts
 
+import { Modules } from "../config/extern";
 import { User } from "../types/auth.types";
 import { RulInputData, RulPrediction } from "../types/rul.types";
 
-const BASE_URL = import.meta.env.VITE_RUL_BACKEND;
+const BASE_URL = Modules.RUL;
 
 export const rulApi = {
   getPrediction: async (inputData: RulInputData): Promise<RulPrediction> => {

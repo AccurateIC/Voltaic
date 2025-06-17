@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { ROUTES } from "../config/backend";
 
 const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
   const handleChange = (e) => {
@@ -93,16 +94,13 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
                 <button
                   onClick={async () => {
                     console.log(userDetails);
-                    const response = await fetch(
-                      `${import.meta.env.VITE_ADONIS_BACKEND}/auth/hardDelete/${userDetails.id}`,
-                      {
-                        method: "DELETE",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        credentials: "include",
-                      }
-                    );
+                    const response = await fetch(ROUTES.AUTH_USER_HARD_DELETE + userDetails.id, {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      credentials: "include",
+                    });
                     if (!response.ok) {
                       toast.error("Failed to delete account.");
                       console.error(response.status, await response.json());
@@ -155,7 +153,7 @@ const Profile = () => {
   const getUserDetails = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, {
+      const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -167,7 +165,7 @@ const Profile = () => {
 
       const userData = await response.json();
 
-      const roleResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/role/getAll`, {
+      const roleResponse = await fetch(ROUTES.ROLE_GET_ALL, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -206,7 +204,7 @@ const Profile = () => {
       const updatedData = { firstName, lastName, email };
 
       // Send updated data to backend
-      const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/update`, {
+      const response = await fetch(ROUTES.AUTH_USER_UPDATE, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),

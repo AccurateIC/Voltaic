@@ -1,12 +1,11 @@
 // src/features/shared/api/anomaly.ts
 
-import { AnomalyNotification } from "../types/anomaly.types.ts";
-
-const BASE_URL = import.meta.env.VITE_ADONIS_BACKEND;
+import { ROUTES } from "../config/backend.js";
+import { AnomalyNotification } from "../types/anomaly.types";
 
 export const anomalyNotificationsApi = {
   getAll: async (): Promise<AnomalyNotification[]> => {
-    const response = await fetch(`${BASE_URL}/notification/getAll`, {
+    const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_ALL, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -17,7 +16,7 @@ export const anomalyNotificationsApi = {
   },
 
   getResolved: async (): Promise<AnomalyNotification[]> => {
-    const response = await fetch(`${BASE_URL}/notification/getResolved`, {
+    const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_RESOLVED, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -28,7 +27,7 @@ export const anomalyNotificationsApi = {
   },
 
   getUnresolved: async (): Promise<AnomalyNotification[]> => {
-    const response = await fetch(`${BASE_URL}/notification/getUnresolved`, {
+    const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_UNRESOLVED, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -39,7 +38,7 @@ export const anomalyNotificationsApi = {
   },
 
   read: async (notificationId: number): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/notification/read/${notificationId}`, {
+    const response = await fetch(ROUTES.ANOMALY_NOTIF_MARK_AS_READ + "/" + notificationId, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

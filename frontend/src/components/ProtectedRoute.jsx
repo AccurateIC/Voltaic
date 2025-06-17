@@ -2,12 +2,13 @@ import { Navigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { toast } from "sonner";
+import { ROUTES } from "../config/backend";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const checkIfAuthenticated = async () => {
   await sleep(1500);
-  const response = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/auth/getLoggedInUser`, { credentials: "include" });
+  const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, { method: "GET", credentials: "include" });
   if (!response.ok) return false;
   return true;
 };
