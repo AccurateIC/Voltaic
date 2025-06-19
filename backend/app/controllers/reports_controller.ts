@@ -8,6 +8,7 @@ import Archive from "#models/archive";
 import { getPdfPropertyBetweenValidator, getAnomalyStatisticsValidator } from "../validators/archive.js";
 import { DateTime } from "luxon";
 import { ArchiveService } from "#services/archive_service";
+import { argv } from "node:process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,68 +67,217 @@ export default class ReportsController {
     // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
+      //     const resultData = await ArchiveService.getPropertyStatistics({ request });
 
-      const resultData = await ArchiveService.getPropertyStatistics({ request });
-     console.log("resultData", resultData);
+      //     console.log("resultData", resultData);
+      //     const durationTime = resultData?.meta.timeDuration;
+      //     console.log(durationTime);
 
-      const reusableData = await request.validateUsing(getPdfPropertyBetweenValidator);
-      //  console.log("reusableData, ", reusableData);
-      const propertyNames = reusableData.properties || [];
+      //     function getWeekRange(week: number, month: number, year: number) {
+      //       // Use ISO week logic: weekNumber & weekday (1 = Monday)
+      //       const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
+      //       const end = start.endOf("week");
+      //       return { start, end };
+      //     }
 
-      // add data from db to typst doc
-      const query = Archive.query();
+      //     let xs = " ";
+      //     // const ys = resultData?.data.map((entry)=> avg = e);
+      //     const ys = resultData.data.map((entry) => entry.avg);
 
-      // filter by property names
-      query.whereHas("gensetProperty", (propertyQuery) => {
-        propertyQuery.whereIn("propertyName", propertyNames);
-      });
+      //     switch (durationTime) {
+      //       case "year":
+      //         console.log("year TD");
+      //         xs = resultData.data.map((entry) =>
+      //           DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL")
+      //         );
+      //         break;
 
-      // preload
-      query.preload("gensetProperty", (preloadQuery) => {
-        preloadQuery.preload("physicalQuantity");
-      });
-      // latest first
-      query.orderBy("timestamp", "desc");
-      const propertyData = await query.exec();
+      //       case "month":
+      //         console.log("month TD");
+      //         xs = resultData.data.map((entry) => {
+      //           const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
+      //           return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
+      //         });
+      //         break;
 
-      // console.log("propertyData", propertyData);
+      //       case "week":
+      //         console.log("week TD");
+      //         xs = resultData.data.map(
+      //           (entry) =>
+      //             DateTime.fromObject({
+      //               day: entry.day,
+      //               month: entry.month,
+      //               year: entry.year,
+      //             }).toFormat("ccc LLL dd") // 👉 e.g., "Mon Jun 16"
+      //         );
+      //         break;
+      //     }
 
-      if (!propertyData.length) {
-        return response.status(404).send({ message: "No data found for given properties" });
-      }
+      //     console.log("xs", xs);
+      //     console.log("ys", ys);
 
-      const properties = propertyData.map((value) => {
-        const temp = value.gensetPropertyId;
-        // console.log(temp);
-      });
-      // console.log("properties, ", properties);
+      //     const generateTypstBarChart = (xs: string[], ys: number[]) => {
+      //       return `
 
-      const label = propertyData[0].gensetProperty?.readablePropertyName || "?";
-      const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp).toFormat("dd-MM"));
-      const ys = propertyData.map((value) => value.propertyValue);
-      // console.log("ys array:", ys);
+      //   #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
+      //   #let ys = (${ys.join(", ")})
 
-      const generateTypstBarChart = (xs: string[], ys: number[], label: string) => {
-        return `
-    #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-    #let ys = (${ys.join(", ")})
-    
-    // #set align(right)
-    #lq.diagram(
-      xaxis: (
-        ticks: xs .map(rotate.with(-45deg, reflow: true))
-      .map(align.with(right)).enumerate(),
-      ),
-  
-      lq.bar(range(${ys.length}), ys, label: ["${label}"])
-    )
-  `;
-      };
+      //    #box(width: 50%, height: 10pt)[
 
-  
-    
+      //   #lq.diagram(
+      //     xaxis: (
+      //       ticks: xs .map(rotate.with(-45deg, reflow: true))
+      //     .map(align.with(right)).enumerate(),
+      //     ),
 
-  
+      //     lq.bar(range(${ys.length}), ys)
+      //     )]
+      // `;
+      //     };
+
+//       const resultData = await ArchiveService.getPropertyStatistics({ request });
+
+//       const durationTime = resultData?.meta.timeDuration;
+
+//       // Utility: Get week range
+//       function getWeekRange(week: number, month: number, year: number) {
+//         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
+//         const end = start.endOf("week");
+//         return { start, end };
+//       }
+
+//       // Group by genset_property_id
+//       const groupedData = resultData.data.reduce(
+//         (acc, entry) => {
+//           const key = entry.genset_property_id;
+//           if (!acc[key]) acc[key] = [];
+//           acc[key].push(entry);
+//           return acc;
+//         },
+//         {} as Record<number, typeof resultData.data>
+//       );
+
+//       // console.log("groupedData", groupedData);
+//       // Typst generator
+//       const generateTypstBarChart = (xs: string[], ys: number[], propertyId: string | number) => {
+//         return `
+
+
+// #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
+// #let ys = (${ys.join(", ")})
+
+
+//   #lq.diagram(
+//     xaxis: (
+//       ticks: xs
+//         .map(rotate.with(-45deg, reflow: true))
+//         .map(align.with(right))
+//         .enumerate(),
+//     ),
+//     lq.bar(range(${ys.length}), ys)
+//   )
+
+// `;
+//       };
+
+//       // 🧠 Final result
+//       let allChartsTypstCode = "";
+//       //  console.log(entries);
+//       // 👇 This is the only loop using xs/ys
+//       for (const [propertyId, entries] of Object.entries(groupedData)) {
+//         console.log("entries,", entries);
+//         const xs = entries.map((entry) => {
+//           switch (durationTime) {
+//             case "year":
+//               return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
+//             case "month":
+//               const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
+//               return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
+//             case "week":
+//               return DateTime.fromObject({
+//                 day: entry.day,
+//                 month: entry.month,
+//                 year: entry.year,
+//               }).toFormat("ccc LLL dd");
+//             default:
+//               return "";
+//           }
+//         });
+
+//         const ys = entries.map((entry) => entry.avg);
+//         console.log("ys", ys);
+//         console.log("xs", xs);
+//         allChartsTypstCode += generateTypstBarChart(xs, ys, propertyId);
+//         // allChartsTypstCode += generateTypstBarChart(xs, ys, propertyId);
+//       }
+
+
+// let responseData = await Archive.query()
+// .select("day", "month", "year", "genset_property_id")
+//           .whereHas("gensetProperty", (propertyQuery) => {
+//             propertyQuery.where("propertyName", data.propertyName);
+//           })
+//           .whereBetween("timestamp", [startOfDuration, endOfDuration])
+//           .avg("property_value")
+//           .groupBy("day", "month", "year", "genset_property_id")
+//           .orderBy("genset_property_id", "asc");
+          
+const resultData = await ArchiveService.getPropertyStatistics({ request });
+const durationTime = resultData?.meta.timeDuration;
+
+function getWeekRange(week: number, month: number, year: number) {
+  const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
+  return { start, end: start.endOf("week") };
+}
+
+// Group data by genset_property_id
+const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
+  const key = entry.genset_property_id;
+  (acc[key] ||= []).push(entry); // shorthand for if (!acc[key]) acc[key] = []
+  return acc;
+}, {});
+
+// Typst chart generator
+const generateTypstBarChart = (xs: string[], ys: number[]) => `
+#let xs = (${xs.map(v => `"${v}"`).join(", ")})
+#let ys = (${ys.join(", ")})
+
+#lq.diagram(
+  xaxis: (
+    ticks: xs
+      .map(rotate.with(-45deg, reflow: true))
+      .map(align.with(right))
+      .enumerate(),
+  ),
+  lq.bar(range(${ys.length}), ys)
+)
+`;
+
+// Utility to get formatted label
+function formatLabel(entry: any): string {
+  switch (durationTime) {
+    case "year":
+      return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
+    case "month": {
+      const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
+      return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
+    }
+    case "week":
+      return DateTime.fromObject({ day: entry.day, month: entry.month, year: entry.year }).toFormat("ccc LLL dd");
+    default:
+      return "";
+  }
+}
+
+// Generate all charts
+let allChartsTypstCode = "";
+for (const entries of Object.values(groupedData)) {
+  const xs = entries.map(formatLabel);
+  const ys = entries.map(entry => entry.avg);
+  allChartsTypstCode += generateTypstBarChart(xs, ys);
+}
+
+      // ✅ This is your full final Typst chart code:
 
       const data = await request.validateUsing(getAnomalyStatisticsValidator);
       const timezone = request.header("timezone");
@@ -143,12 +293,12 @@ export default class ReportsController {
         // console.log("xs", xsl);
         // console.log("ys", ysl); // [0, 0, 0, 144]
         return `
-        
+          Anomaly Count
     #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
     #let ysl = (${ysl.join(", ")})
     
-    #box(width: 50%, height: 0pt)[
-    #set align(top + left)
+    #box(width: 50%, height: 5pt)[
+    //  #set align(top + left)
     #lq.diagram(
       xaxis: (
         ticks: xsl .map(rotate.with(-45deg, reflow: true))
@@ -160,17 +310,16 @@ export default class ReportsController {
       };
 
       const dataTuple = result.byProperty.map((prop) => `("${prop.readablePropertyName}", ${prop.total})`).join(",\n  ");
-      // console.log("dataTuple", dataTuple);
-      // console.log(typeof dataTuple);
+
       const generatePieChart = (dataTuple) => {
         // console.log("dataTuplr", dataTuple);
 
         return `
-          
+            
 #let data = (
   ${dataTuple}
 )
-#box(width: 100%, height: 220pt)[
+#box(width: 100%, height: 150pt)[
 #set align(top + right)
 #cetz.canvas({
   let colors = gradient.linear(red, blue, green, yellow)
@@ -193,8 +342,9 @@ export default class ReportsController {
 `;
       };
 
-      const typstDoc =
-        typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple) + generateTypstBarChart(xs, ys, label);
+      const typstDoc = typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple) + allChartsTypstCode;
+      // generateTypstBarChart(xs, ys, propertyId)
+      // generateTypstBarChart(xs, ys);
       //  + pieChart;
       // console.log(typstDoc);
 
