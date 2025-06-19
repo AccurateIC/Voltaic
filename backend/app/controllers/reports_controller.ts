@@ -106,10 +106,12 @@ const groupedData = resultData.data.reduce<Record<number, typeof resultData.data
 }, {});
 
 // Typst chart generator
-const generateTypstBarChart = (xs: string[], ys: number[]) => `
+const generateTypstBarChart = (title: string , xs: string[], ys: number[]) => `
 #let xs = (${xs.map(v => `"${v}"`).join(", ")})
 #let ys = (${ys.join(", ")})
 
+
+// #set align(center)
 #lq.diagram(
   xaxis: (
     ticks: xs
@@ -117,7 +119,7 @@ const generateTypstBarChart = (xs: string[], ys: number[]) => `
       .map(align.with(right))
       .enumerate(),
   ),
-  lq.bar(range(${ys.length}), ys)
+  lq.bar(range(${ys.length}), ys, label: ["${title}"])
 )
 `;
 
@@ -139,12 +141,33 @@ function formatLabel(entry: any): string {
 
 // Generate all charts
 let allChartsTypstCode = "";
-for (const entries of Object.values(groupedData)) {
+// for (const entries of Object.values(groupedData)) {
   
+//   const xs = entries.map(formatLabel);
+//   const ys = entries.map(entry => entry.avg);
+//   allChartsTypstCode += generateTypstBarChart(xs, ys);
+// }
+
+
+for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
+  if (!Array.isArray(entries)) {
+    console.warn("Skipping non-array entry:", entries);
+    continue;
+  }
+
   const xs = entries.map(formatLabel);
   const ys = entries.map(entry => entry.avg);
-  allChartsTypstCode += generateTypstBarChart(xs, ys);
+
+  const propertyId = Number(propertyIdStr);
+  const matched = propertyStats.find(p => p.gensetPropertyId === propertyId);
+  if (!matched) continue;
+
+  const title = matched.readablePropertyName;
+  console.log(typeof(title));
+  allChartsTypstCode += generateTypstBarChart(title, xs, ys);
 }
+
+
 
       // ✅ This is your full final Typst chart code:
 
@@ -166,7 +189,7 @@ for (const entries of Object.values(groupedData)) {
     #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
     #let ysl = (${ysl.join(", ")})
     
-    #box(width: 50%, height: 5pt)[
+    // #box(width: 50%, height: 5pt)[
     //  #set align(top + left)
     #lq.diagram(
       xaxis: (
@@ -174,7 +197,8 @@ for (const entries of Object.values(groupedData)) {
       .map(align.with(right)).enumerate(),
       ),
       lq.bar(range(${ysl.length}), ysl)
-      )]
+      )
+      // ]
   `;
       };
 
@@ -188,8 +212,8 @@ for (const entries of Object.values(groupedData)) {
 #let data = (
   ${dataTuple}
 )
-#box(width: 100%, height: 150pt)[
-#set align(top + right)
+// #box(width: 100%, height: 150pt)[
+// #set align(top + right)
 #cetz.canvas({
   let colors = gradient.linear(red, blue, green, yellow)
 
@@ -207,7 +231,8 @@ for (const entries of Object.values(groupedData)) {
      
      inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
   )
-      })]
+      })
+  // ]
 `;
       };
 
