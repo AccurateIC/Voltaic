@@ -67,160 +67,28 @@ export default class ReportsController {
     // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
-      //     const resultData = await ArchiveService.getPropertyStatistics({ request });
-
-      //     console.log("resultData", resultData);
-      //     const durationTime = resultData?.meta.timeDuration;
-      //     console.log(durationTime);
-
-      //     function getWeekRange(week: number, month: number, year: number) {
-      //       // Use ISO week logic: weekNumber & weekday (1 = Monday)
-      //       const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
-      //       const end = start.endOf("week");
-      //       return { start, end };
-      //     }
-
-      //     let xs = " ";
-      //     // const ys = resultData?.data.map((entry)=> avg = e);
-      //     const ys = resultData.data.map((entry) => entry.avg);
-
-      //     switch (durationTime) {
-      //       case "year":
-      //         console.log("year TD");
-      //         xs = resultData.data.map((entry) =>
-      //           DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL")
-      //         );
-      //         break;
-
-      //       case "month":
-      //         console.log("month TD");
-      //         xs = resultData.data.map((entry) => {
-      //           const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
-      //           return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
-      //         });
-      //         break;
-
-      //       case "week":
-      //         console.log("week TD");
-      //         xs = resultData.data.map(
-      //           (entry) =>
-      //             DateTime.fromObject({
-      //               day: entry.day,
-      //               month: entry.month,
-      //               year: entry.year,
-      //             }).toFormat("ccc LLL dd") // 👉 e.g., "Mon Jun 16"
-      //         );
-      //         break;
-      //     }
-
-      //     console.log("xs", xs);
-      //     console.log("ys", ys);
-
-      //     const generateTypstBarChart = (xs: string[], ys: number[]) => {
-      //       return `
-
-      //   #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-      //   #let ys = (${ys.join(", ")})
-
-      //    #box(width: 50%, height: 10pt)[
-
-      //   #lq.diagram(
-      //     xaxis: (
-      //       ticks: xs .map(rotate.with(-45deg, reflow: true))
-      //     .map(align.with(right)).enumerate(),
-      //     ),
-
-      //     lq.bar(range(${ys.length}), ys)
-      //     )]
-      // `;
-      //     };
-
-//       const resultData = await ArchiveService.getPropertyStatistics({ request });
-
-//       const durationTime = resultData?.meta.timeDuration;
-
-//       // Utility: Get week range
-//       function getWeekRange(week: number, month: number, year: number) {
-//         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
-//         const end = start.endOf("week");
-//         return { start, end };
-//       }
-
-//       // Group by genset_property_id
-//       const groupedData = resultData.data.reduce(
-//         (acc, entry) => {
-//           const key = entry.genset_property_id;
-//           if (!acc[key]) acc[key] = [];
-//           acc[key].push(entry);
-//           return acc;
-//         },
-//         {} as Record<number, typeof resultData.data>
-//       );
-
-//       // console.log("groupedData", groupedData);
-//       // Typst generator
-//       const generateTypstBarChart = (xs: string[], ys: number[], propertyId: string | number) => {
-//         return `
+    
+ const requestBody = request.body();
+ console.log("requestBody", requestBody);
+ const selectedPropertyNames = requestBody.properties || []
+ console.log("selectedPropertyNames", selectedPropertyNames);
 
 
-// #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-// #let ys = (${ys.join(", ")})
+  const propertyStats = (
+      await Archive.query()
+       .whereHas("gensetProperty", (query) => {
+      query.whereIn("propertyName", selectedPropertyNames)
+    })
+        .preload("gensetProperty")  // "Also fetch the related gensetProperty data along with each archive entry."
+        .select("gensetPropertyId")
+        .groupBy("gensetPropertyId")
+    ).map((value) => ({
+      readablePropertyName: value.gensetProperty.readablePropertyName,
+      gensetPropertyId: value.gensetPropertyId,
+      propertyName: value.gensetProperty.propertyName,
+    }));
 
-
-//   #lq.diagram(
-//     xaxis: (
-//       ticks: xs
-//         .map(rotate.with(-45deg, reflow: true))
-//         .map(align.with(right))
-//         .enumerate(),
-//     ),
-//     lq.bar(range(${ys.length}), ys)
-//   )
-
-// `;
-//       };
-
-//       // 🧠 Final result
-//       let allChartsTypstCode = "";
-//       //  console.log(entries);
-//       // 👇 This is the only loop using xs/ys
-//       for (const [propertyId, entries] of Object.entries(groupedData)) {
-//         console.log("entries,", entries);
-//         const xs = entries.map((entry) => {
-//           switch (durationTime) {
-//             case "year":
-//               return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
-//             case "month":
-//               const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
-//               return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
-//             case "week":
-//               return DateTime.fromObject({
-//                 day: entry.day,
-//                 month: entry.month,
-//                 year: entry.year,
-//               }).toFormat("ccc LLL dd");
-//             default:
-//               return "";
-//           }
-//         });
-
-//         const ys = entries.map((entry) => entry.avg);
-//         console.log("ys", ys);
-//         console.log("xs", xs);
-//         allChartsTypstCode += generateTypstBarChart(xs, ys, propertyId);
-//         // allChartsTypstCode += generateTypstBarChart(xs, ys, propertyId);
-//       }
-
-
-// let responseData = await Archive.query()
-// .select("day", "month", "year", "genset_property_id")
-//           .whereHas("gensetProperty", (propertyQuery) => {
-//             propertyQuery.where("propertyName", data.propertyName);
-//           })
-//           .whereBetween("timestamp", [startOfDuration, endOfDuration])
-//           .avg("property_value")
-//           .groupBy("day", "month", "year", "genset_property_id")
-//           .orderBy("genset_property_id", "asc");
+    console.log("propertyStats", propertyStats);
           
 const resultData = await ArchiveService.getPropertyStatistics({ request });
 const durationTime = resultData?.meta.timeDuration;
@@ -272,6 +140,7 @@ function formatLabel(entry: any): string {
 // Generate all charts
 let allChartsTypstCode = "";
 for (const entries of Object.values(groupedData)) {
+  
   const xs = entries.map(formatLabel);
   const ys = entries.map(entry => entry.avg);
   allChartsTypstCode += generateTypstBarChart(xs, ys);
