@@ -22,7 +22,7 @@ const typstBase = `
 #set document(author: "NeuroGen", title: "NeuroGen Report")
 
 // font style
-#set text(font: "New Computer Modern", size: 10pt, lang: "en", ligatures: false)
+ #set text(font: "New Computer Modern", size: 11pt, lang: "en", ligatures: false)
 
 // page properties
 #set page(margin: 0.5in, paper: "a4")
@@ -98,6 +98,7 @@ function getWeekRange(week: number, month: number, year: number) {
   return { start, end: start.endOf("week") };
 }
 
+console.log("resultData", resultData);
 // Group data by genset_property_id
 const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
   const key = entry.genset_property_id;
@@ -113,6 +114,9 @@ const generateTypstBarChart = (title: string , xs: string[], ys: number[]) => `
 
 // #set align(center)
 #lq.diagram(
+  width: 7cm,
+  height: 6cm,
+  legend: (position: left + top),
   xaxis: (
     ticks: xs
       .map(rotate.with(-45deg, reflow: true))
@@ -148,7 +152,7 @@ let allChartsTypstCode = "";
 //   allChartsTypstCode += generateTypstBarChart(xs, ys);
 // }
 
-
+console.log("groupedData", groupedData);
 for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
   if (!Array.isArray(entries)) {
     console.warn("Skipping non-array entry:", entries);
@@ -159,11 +163,13 @@ for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
   const ys = entries.map(entry => entry.avg);
 
   const propertyId = Number(propertyIdStr);
+  console.log("propertyId", propertyId);
   const matched = propertyStats.find(p => p.gensetPropertyId === propertyId);
   if (!matched) continue;
 
   const title = matched.readablePropertyName;
   console.log(typeof(title));
+  console.log("props", xs, ys, title);
   allChartsTypstCode += generateTypstBarChart(title, xs, ys);
 }
 
@@ -192,6 +198,8 @@ for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
     // #box(width: 50%, height: 5pt)[
     //  #set align(top + left)
     #lq.diagram(
+    width: 7cm,
+  height: 6cm,
       xaxis: (
         ticks: xsl .map(rotate.with(-45deg, reflow: true))
       .map(align.with(right)).enumerate(),
@@ -218,6 +226,7 @@ for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
   let colors = gradient.linear(red, blue, green, yellow)
 
   chart.piechart(
+  
     data,
     value-key: 1,
      label-key: 0,
