@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
-import { getPdfPropertyBetweenValidator, getAnomalyStatisticsValidator } from "../validators/archive.js";
+import {  getAnomalyStatisticsValidator } from "../validators/archive.js";
 import { DateTime } from "luxon";
 import { ArchiveService } from "#services/archive_service";
 import { argv } from "node:process";

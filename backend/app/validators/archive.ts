@@ -55,6 +55,8 @@ export const getPropertyStatisticsValidator = vine.compile(
       .string()
       .in(["day", "week", "month", "year"]) // subset of DateTimeUnit
       .transform((value) => value as DateTimeUnit),
+    properties: vine.array(vine.string()).optional(),
+
     headers: vine.object({
       timezone: vine.string().use(timezoneRule()),
     }),
@@ -68,8 +70,4 @@ export const getAnomalyStatisticsValidator = vine.compile(
     }),
   })
 );
-export const getPdfPropertyBetweenValidator = vine.compile(
-  vine.object({
-    properties: vine.array(vine.string()).optional(),  // ✅ optional applied to the array
-  })
-);
+

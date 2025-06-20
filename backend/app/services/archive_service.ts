@@ -1,10 +1,8 @@
 import Archive from "#models/archive";
 import { DateTime, DateTimeUnit } from "luxon";
 import type { HttpContext } from "@adonisjs/core/http";
-import { getPropertyStatisticsValidator} from  "#validators/archive";
-import {
-  getAnomalyStatisticsValidator,
-} from "#validators/archive";
+import { getPropertyStatisticsValidator } from "#validators/archive";
+import { getAnomalyStatisticsValidator } from "#validators/archive";
 
 export class ArchiveService {
   static async getLatestEntries() {
@@ -13,7 +11,6 @@ export class ArchiveService {
       .preload("gensetProperty", (query) => {
         query.preload("physicalQuantity");
       });
-
   }
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {
     console.log(timezone);
@@ -38,23 +35,6 @@ export class ArchiveService {
     return parseInt(res[0].count);
   }
 
- static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]) {
-    const query = Archive.query().where("isAnomaly", true);
-
-    if (timeDuration && timezone) {
-      const now = DateTime.now().setZone(timezone);
-      const start = now.startOf(timeDuration).toUTC();
-      const end = now.endOf(timeDuration).toUTC();
-      query.whereBetween("timestamp", [start, end]);
-    }
-
-    if (properties) {
-      query.whereHas("gensetProperty", (q) => q.whereIn("propertyName", properties));
-    }
-
-    const result = await query.count("*").pojo();
-    return parseInt(result[0].count);
-  }
 
   static async getAnomalyStatistics(timezone: string) {
     // Validate timezone
@@ -104,91 +84,109 @@ export class ArchiveService {
     return { timezone, overall, byProperty };
   }
 
-
-  
   static async getPropertyStatistics({ request }: HttpContext) {
-      const data = await request.validateUsing(getPropertyStatisticsValidator);
-      const timezone: string = data.headers.timezone;
-      const timeDuration: DateTimeUnit = data.timeDuration;
-      const now = DateTime.now().setZone(timezone).toUTC();
-      const startOfDuration = now.startOf(timeDuration);
-      const endOfDuration = now.endOf(timeDuration);
-  
-      let responseData;
-  
-      switch (timeDuration) {
-        case "day": // show data averaged hourly
-          // not implemented
-          break;
-        case "week": // show data averaged daily
-          responseData = await Archive.query() //
-            .select("day", "month", "year", "genset_property_id")
-            .whereHas("gensetProperty", (propertyQuery) => {
+    const data = await request.validateUsing(getPropertyStatisticsValidator);
+   
+    const timezone: string = data.headers.timezone;
+    const timeDuration: DateTimeUnit = data.timeDuration;
+    const now = DateTime.now().setZone(timezone).toUTC();
+    const startOfDuration = now.startOf(timeDuration);
+    const endOfDuration = now.endOf(timeDuration);
+
+    let responseData;
+
+    switch (timeDuration) {
+      case "day": // show data averaged hourly
+        // not implemented
+        break;
+      case "week": // show data averaged daily
+        responseData = await Archive.query() //
+          .select("day", "month", "year", "genset_property_id")
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
+          .whereHas("gensetProperty", (propertyQuery) => {
+            if (data.properties?.length) {
+              propertyQuery.whereIn("propertyName", data.properties);
+            } else {
               propertyQuery.where("propertyName", data.propertyName);
-            })
-            .whereBetween("timestamp", [startOfDuration, endOfDuration])
-            .avg("property_value")
-            .groupBy("day", "month", "year", "genset_property_id")
-            .orderBy("genset_property_id", "asc")
-            .pojo();
-  
-          responseData = {
-            meta: {
-              timeDuration,
-              averaged: "daily",
-            },
-            data: responseData,
-          };
-  
-          break;
-        case "month": // show data averaged weekly
-          responseData = await Archive.query() //
-            .select("week", "month", "year", "genset_property_id")
-            .whereHas("gensetProperty", (propertyQuery) => {
+            }
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("day", "month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      case "month": // show data averaged weekly
+        responseData = await Archive.query() //
+          .select("week", "month", "year", "genset_property_id")
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
+          .whereHas("gensetProperty", (propertyQuery) => {
+            if (data.properties?.length) {
+              propertyQuery.whereIn("propertyName", data.properties);
+            } else {
               propertyQuery.where("propertyName", data.propertyName);
-            })
-            .whereBetween("timestamp", [startOfDuration, endOfDuration])
-            .avg("property_value")
-            .groupBy("week", "month", "year", "genset_property_id")
-            .orderBy("genset_property_id", "asc")
-            .pojo();
-  
-          responseData = {
-            meta: {
-              timeDuration,
-              averaged: "daily",
-            },
-            data: responseData,
-          };
-  
-          break;
-        case "year": // show data averaged monthly
-          responseData = await Archive.query() //
-            .select("month", "year", "genset_property_id")
-            .whereHas("gensetProperty", (propertyQuery) => {
+            }
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("week", "month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      case "year": // show data averaged monthly
+        responseData = await Archive.query() //
+          .select("month", "year", "genset_property_id")
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
+          .whereHas("gensetProperty", (propertyQuery) => {
+            if (data.properties?.length) {
+              propertyQuery.whereIn("propertyName", data.properties);
+            } else {
               propertyQuery.where("propertyName", data.propertyName);
-            })
-            .whereBetween("timestamp", [startOfDuration, endOfDuration])
-            .avg("property_value")
-            .groupBy("month", "year", "genset_property_id")
-            .orderBy("genset_property_id", "asc")
-            .pojo();
-  
-          responseData = {
-            meta: {
-              timeDuration,
-              averaged: "daily",
-            },
-            data: responseData,
-          };
-  
-          break;
-        default:
-          break;
-      }
-  
-      return responseData;
+            }
+          })
+          .whereBetween("timestamp", [startOfDuration, endOfDuration])
+          .avg("property_value")
+          .groupBy("month", "year", "genset_property_id")
+          .orderBy("genset_property_id", "asc")
+          .pojo();
+
+        responseData = {
+          meta: {
+            timeDuration,
+            averaged: "daily",
+          },
+          data: responseData,
+        };
+
+        break;
+      default:
+        break;
     }
 
-
+    return responseData;
+  }
 }
