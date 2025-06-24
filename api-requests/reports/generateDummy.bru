@@ -4,8 +4,24 @@ meta {
   seq: 1
 }
 
-get {
-  url: {{BASE_URL}}/reports/generateDummy
+post {
+  url: {{BASE_URL}}/reports/generateDummy?propertyName=genTotalVA&timeDuration=year
   body: json
   auth: inherit
+}
+
+params:query {
+  propertyName: genTotalVA
+  timeDuration: year
+}
+
+headers {
+  timezone: Asia/Kolkata
+}
+
+body:json {
+  {
+    "properties": [ "engOilPress", "genTotalVA", "engFuelLevelUnits", "engSpeedDisplay"]
+  }
+  
 }

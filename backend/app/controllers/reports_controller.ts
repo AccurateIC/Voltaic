@@ -106,11 +106,15 @@ export default class ReportsController {
       // Typst chart generator
       const generateTypstBarChart = (title: string, xs: object, ys: object) =>
         `
+      
       #grid(
       columns: (1fr, 1fr),
-
+       inset:20pt,
       align(center)[
-     
+      
+        #set align(top + center)
+        *${title}*
+
       #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
       #let ys = (${ys.join(", ")})
       // #set align(center)
@@ -194,132 +198,103 @@ export default class ReportsController {
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
 
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
-        console.log("xsl", xsl);
-         console.log("xsl", ysl);
-        
         return `
-         
+
+        
         #grid(
-      columns: (1fr, 1fr),
-      inset:10pt,
-   align: horizon,
-     [
-  #set align(top + center)
-       *Anomlay count*
-  
-    #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
-    #let ysl = (${ysl.join(", ")})
+        columns: (1fr, 1fr),
+        inset:20pt,
+        align: horizon,
+          [
+          #set align(top + center)
+          *Anomaly count*
 
-    // #box(width: 50%, height: 5pt)[
-    //  #set align(top + left)
-    #lq.diagram(
-    width: 7cm,
-  height: 6cm,
-      xaxis: (
-        ticks: xsl .map(rotate.with(-45deg, reflow: true))
-      .map(align.with(right)).enumerate(),
-      ),
-      lq.bar(range(${ysl.length}), ysl)
-      )
-       ],
-       align(center)[
-       #set align(center)
-       #set text(weight: 350, size: 18pt)
-
+          #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
+          #let ysl = (${ysl.join(", ")})
+          // #box(width: 50%, height: 5pt)[
+          //  #set align(top + left)
+          #lq.diagram(
+            width: 7cm,
+            height: 6cm,
+            xaxis: (
+                    ticks: xsl .map(rotate.with(-45deg, reflow: true))
+                    .map(align.with(right)).enumerate(),
+                    ),
+          
+            lq.bar(range(${ysl.length}), ysl)
+             )
+          ],
        
-       #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
-       #let ysl = (${ysl.join(", ")})
-       #for labels in xsl [
+          align(center)[
+          #box(inset: (top: 1pt,  right: 80pt))[
+  #set align(left)
+  #set text(weight: 150, size: 14pt)
+  #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
+  #let ysl = (${ysl.join(", ")})
+  #for i in range(xsl.len()) [
+    #xsl.at(i) Anomalies : #ysl.at(i) \\
 
-       #labels's Anomalies: #ysl 
-      ]
-
-      ]
-      )
-  `;
+  ]
+]
+]
+      )`;
       };
 
-      //   return `
-      // #grid(
-      //   columns: (1fr, 1fr),
-
-      //   // Column 1: Bar Chart
-      //   [
-      //     #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
-      //     #let ysl = (${ysl.join(", ")})
-      //     #lq.diagram(
-      //       width: 7cm,
-      //       height: 6cm,
-      //       xaxis: (
-      //         ticks: xsl
-      //           .map(rotate.with(-45deg, reflow: true))
-      //           .map(align.with(right))
-      //           .enumerate(),
-      //       ),
-      //       lq.bar(range(${ysl.length}), ysl)
-      //     )
-      //   ],
-
-      //   // Column 2: Description
-      //   [
-      //     #box(padding: 1em)[
-      //       #align(center)[
-      //         Genset Property Name \\
-      //         Oil Pressure \\
-      //         Engine Speed \\
-      //         Engine Voltage
-      //       ]
-      //     ]
-      //   ]
-      // )
-      // `;
-      // };
-
-      // const dataTuple = result.byProperty.map((prop) => `("${prop.readablePropertyName}", ${prop.total})`).join(",\n  ");
       const dataTuple = result.byProperty
         .filter((prop) => typeof prop.total === "number" && prop.readablePropertyName)
         .map((prop) => `("${prop.readablePropertyName}", ${prop.total})`)
         .join(",\n  ");
 
-        console.log("dataTuple", dataTuple);
       const generatePieChart = (dataTuple) => {
+        console.log("dataTuple", dataTuple);
         const fallback = `("No Data", 1)`; // default dummy value if empty
         const tuple = dataTuple?.trim().length ? dataTuple : fallback;
-        return `
-            
+        console.log("tuple", tuple);
+        return `  
         #grid(
-      columns: (1fr, 1fr),
-     [   
-#let data = (
-  ${tuple}
-)
-// #box(width: 100%, height: 150pt)[
-// #set align(top + right)
-#cetz.canvas({
-  let colors = gradient.linear(red, blue, green, yellow)
-  chart.piechart(
-    data,
-    value-key: 1,
-     label-key: 0,
-    radius: 3,
-    outset-key: none,
-    slice-style: colors,
-    inner-radius: 0.1,
-    outset: 4,
-    //outer-label.content: "LABEL",
-      outer-label: (content: (value, label) => [#text(white, str(value))], radius: 110%, layout: "vertical",),
-     inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
-  )
+        columns: (1fr, 1fr),
+         inset:20pt,
+        [   
+         #set align(top + center)
+          *Anomlay By Property*
+        // ${data.value}
+        
+        #let data = (
+        ${tuple}
+        )
+        // #box(width: 100%, height: 150pt)[
+        // #set align(top + right)
+
+        #cetz.canvas({
+        let colors = gradient.linear(red, blue, green, yellow)    
+        chart.piechart(  
+        data,  
+        value-key: 1,  
+        label-key: 0, 
+        radius: 3,
+        outset-key: none,  
+        slice-style: colors,
+        inner-radius: 0.1,
+        outset: 4,
+       //outer-label.content: "LABEL",
+       outer-label: (content: (value, label) => [#text(white, str(value))], radius: 110%, layout: "vertical",),
+       inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
+      )
       })
    ],
-   align(center)[
-  #set align(center)
-  #set text(weight: 350, size: 18pt)
-   Anomalies By Property
-// ${data.value}
-      ]
-      )
+    align(center)[
+    #box(inset: 14pt)
+    #set align(left)
+    #set text(weight: 150, size: 14pt)
+    #let tupleData = (
+        ${tuple}
+        )
+    #for item in tupleData [
+    #item.at(0): #item.at(1) \\
 
+      
+      ] ]
+      )
 `;
       };
 
