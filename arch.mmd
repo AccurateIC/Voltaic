@@ -1,0 +1,21 @@
+graph TD
+    G1[Genset 1]
+    G2[Genset 2]
+    G3[Genset 3]
+    G4[Genset 4]
+    G5[Genset 5]
+    G6[Genset 6]
+
+    G1 --> DIS[Data Ingestion Service]
+    G2 --> DIS
+    G3 --> DIS
+    G4 --> DIS
+    G5 --> DIS
+    G6 --> DIS
+
+    DIS -- publish --> QTD[Queue for Telemetry Data]
+    DIS -- publish --> QVD[Queue for Vibration Data]
+
+    QTD --> ADM[Anomaly Detection Model]
+    QVD --> PDMM[Predictive Maintenance Model]
+

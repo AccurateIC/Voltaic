@@ -1,0 +1,101 @@
+erDiagram
+    ROLE                        ||--o{      USER             : "has many"
+    GENSET_PROPERTY             ||--o{      ARCHIVE          : "has many"
+    ARCHIVE                     ||--o{      NOTIFICATION     : "generates"
+    PHYSICAL_QUANTITY           ||--o{      GENSET_PROPERTY  : "relates to"
+    NOTIFICATION_TYPE           ||--o{      NOTIFICATION     : "has many"
+    SENSOR_PROPERTY             ||--o{      VIBRATION        : "relates to"
+    MAINTENANCE_NOTIFICATION    ||--o{      VIBRATION        : "diagnoses"
+    PDM_DATA_KIND               ||--o{      VIBRATION        : "has"
+
+    USER {
+        int         id                          PK
+        string      firstName
+        string      lastName
+        string      email
+        string      password
+        int         roleId                      FK
+        boolean     isActive
+    }
+
+    ROLE {
+        int         id                          PK
+        string      roleName
+    }
+
+    ARCHIVE {
+        int         id                          PK
+        datetime    timestamp
+        int         day
+        int         week
+        int         month
+        int         year
+        int         gensetPropertyId            FK
+        float       propertyValue
+        boolean     isAnomaly
+    }
+
+    GENSET_PROPERTY {
+        int         id                          PK
+        string      propertyName
+        string      readablePropertyName
+        int         physicalQuantityId          FK
+    }
+
+    PHYSICAL_QUANTITY {
+        int         id                          PK
+        string      quantityName
+        string      unitName
+        string      unitSymbol
+    }
+
+    NOTIFICATION {
+        int         id                          PK
+        string      summary
+        string      message
+        int         archiveId                   FK
+        boolean     shouldBeDisplayed
+        int         notificationTypeId
+        datetime    startedAt
+        datetime    finishedAt
+    }
+
+    NOTIFICATION_TYPE {
+        int         id                          PK
+        string      type
+    }
+
+    VIBRATION {
+        int         id                          PK
+        datetime    timestamp
+        int         sensorPropertyId            FK
+        float       value
+        float       confidenceScorePercentage
+        int         maintenanceNotificationId   FK
+        int         pdmDataKindId               FK
+    }
+
+    SENSOR_PROPERTY {
+        int         id                          PK 
+        string      propertyName
+        string      unit
+    }
+
+    MAINTENANCE_NOTIFICATION {
+        int         id                          PK
+        datetime    timestamp
+        int         day
+        int         week
+        int         month
+        int         year
+        json        maintenanceReason
+        float       predictedDominantFrequency
+        float       predictedDominantAmplitude
+        boolean     shouldBeDisplayed
+        datetime    resolvedAt
+    }
+
+    PDM_DATA_KIND {
+        int         id                          PK
+        string      kind
+    }
