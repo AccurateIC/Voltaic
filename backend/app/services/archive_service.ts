@@ -13,7 +13,7 @@ export class ArchiveService {
       });
   }
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {
-    console.log(timezone);
+  
     const query = Archive.query() //
       .where("isAnomaly", true);
 
