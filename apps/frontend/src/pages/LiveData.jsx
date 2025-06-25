@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
-import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
-import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
-import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
-import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
-import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart";
+import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart.tsx";
+import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart.tsx";
+import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart.tsx";
+import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart.tsx";
+import { OilPressureLineChart } from "../components/charts/OilPressureLineChart.tsx";
+import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart.tsx";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
-import { PDMLineChart } from "../components/charts/PDMLineChart";
-import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
+import { PDMLineChart } from "../components/charts/PDMLineChart.tsx";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal.tsx";
 import { ROUTES } from "../config/backend.ts";
 
 export const LiveData = () => {

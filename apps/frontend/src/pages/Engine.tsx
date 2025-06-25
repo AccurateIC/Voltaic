@@ -4,18 +4,27 @@ import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
 import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
 import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus.ts";
+import { useMessageBus } from "../lib/MessageBus";
 import { MdEnergySavingsLeaf } from "react-icons/md";
-import { cn } from "../lib/Utils.ts";
-import { Modules } from "../config/extern.ts";
-import { User } from "../types/auth.types.ts";
-import { catchErrTyped, ExternalServerError, Result } from "../lib/Err.js";
-import { SessionStore } from "../lib/SessionStore.js";
-import { ROUTES } from "../config/backend.js";
+import { cn } from "../lib/Utils";
+import { Modules } from "../config/extern";
+import { User } from "../types/auth.types";
+import { catchErrTyped, ExternalServerError, Result } from "../lib/Err";
+import { SessionStore } from "../lib/SessionStore";
+import { ROUTES } from "../config/backend";
 
-// #fff627
+import { createTuyau } from "@tuyau/client";
+import { api } from "backend/api";
+export const tuyau = createTuyau({ api, baseUrl: "http://localhost:3333" });
 
 const EngineRPM = ({ engineRpmDetails }) => {
+  useEffect(() => {
+    (async function () {
+      const { data, error } = await tuyau.archive.getPropertyDataBetween();
+      if (error?.status || data === null) return;
+      console.log("5684684684646", JSON.stringify(data[0].email, null, 2));
+    })();
+  }, []);
   console.log(engineRpmDetails);
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;
@@ -223,14 +232,6 @@ const Engine = () => {
       await fetchLatestArchiveData();
     })();
   }, []);
-
-  useEffect(() => {
-    console.log(
-      "84646",
-      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]?.gensetProperty
-        ?.readablePropertyName
-    );
-  }, [archiveData]);
 
   return (
     <div className="h-full w-full min-h-0 min-w-0">

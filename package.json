@@ -1,0 +1,33 @@
+{
+  "name": "voltaic",
+  "version": "1.0.0",
+  "description": "Monorepo for Voltaic Web (Gen Set)",
+  "scripts": {
+    "dev:all": "pnpm --recursive --parallel run dev",
+    "build:all": "pnpm --recursive --parallel run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AccurateIC/Voltaic.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AccurateIC/Voltaic/issues"
+  },
+  "homepage": "https://github.com/AccurateIC/Voltaic#readme",
+  "resolutions": {
+    "strtok3": "8.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "strtok3": "8.0.1"
+    },
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "core-js",
+      "esbuild"
+    ]
+  }
+}

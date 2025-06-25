@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.ts";
-import { SemiCircleGauge } from "../components/SemiCircleGauge";
-import { VoltageStatCard } from "../components/VoltageStatCard";
+import { SemiCircleGauge } from "../components/SemiCircleGauge.tsx";
+import { VoltageStatCard } from "../components/VoltageStatCard.tsx";
 import { ROUTES } from "../config/backend.ts";
 
 export const Generator = () => {

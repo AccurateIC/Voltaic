@@ -3,6 +3,7 @@ import { auth } from "../api/auth";
 import { User } from "../types/auth.types";
 import { toast } from "sonner";
 
+
 export const AUTH_QUERY_KEYS = {
   auth: ["auth"] as const,
   user: ["user"] as const,

@@ -1,7 +1,7 @@
 // src/features/shared/api/anomaly.ts
 
 import { ROUTES } from "../config/backend.js";
-import { AnomalyNotification } from "../types/anomaly.types";
+import { AnomalyNotification } from "../types/anomaly.types.js";
 
 export const anomalyNotificationsApi = {
   getAll: async (): Promise<AnomalyNotification[]> => {

@@ -3,7 +3,7 @@ import { useMessageBus } from "../lib/MessageBus.ts";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFileExport, FaFilter } from "react-icons/fa6";
-import { cn, formatTimestamp } from "../lib/Utils";
+import { cn, formatTimestamp } from "../lib/Utils.ts";
 import * as XLSX from "xlsx";
 import { RiResetLeftLine } from "react-icons/ri";
 import "cally";
