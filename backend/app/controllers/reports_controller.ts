@@ -37,13 +37,6 @@ const typstBase = `
   #set text(weight: 500, size: 24pt)
   #pad([#smallcaps(it.body)])
 ]
-= Genset Report
-#pad(top: 0.25em, align(center)[
-  Accurate |
-  Pune 
-])
-
-
 `;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
@@ -70,18 +63,16 @@ export default class ReportsController {
     return archiveData as Promise<Archive[]>;
   }
   async generateDummy({ request, response }: HttpContext) {
-    // make a temporary typst file with .typ extension
     const tmpFile = path.join(__dirname, "report.typ");
     try {
       const requestBody = request.body();
       const selectedPropertyNames = requestBody.properties || [];
-
       const propertyStats = (
         await Archive.query()
           .whereHas("gensetProperty", (query) => {
             query.whereIn("propertyName", selectedPropertyNames);
           })
-          .preload("gensetProperty") // "Also fetch the related gensetProperty data along with each archive entry."
+          .preload("gensetProperty")
           .select("gensetPropertyId")
           .groupBy("gensetPropertyId")
       ).map((value) => ({
@@ -92,21 +83,21 @@ export default class ReportsController {
 
       const resultData = await ArchiveService.getPropertyStatistics({ request });
       const durationTime = resultData?.meta.timeDuration;
+
       function getWeekRange(week: number, month: number, year: number) {
         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
         return { start, end: start.endOf("week") };
       }
-      // Group data by genset_property_id
+    
       const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
         const key = entry.genset_property_id;
-        (acc[key] ||= []).push(entry); // shorthand for if (!acc[key]) acc[key] = []
+        (acc[key] ||= []).push(entry); 
         return acc;
       }, {});
 
       // Typst chart generator
       const generateTypstBarChart = (title: string, xs: object, ys: object) =>
         `
-      
       #grid(
       columns: (1fr, 1fr),
        inset:20pt,
@@ -135,19 +126,14 @@ export default class ReportsController {
       ],
 
       align(center)[
+      #set text(size: 14pt, weight: 300)
+
       Genset Property Name:  *${title}* 
 
-      Oil Pressure 
-
-      Engine Voltage  
-
-      Engine Speed 
-     
-       Engine Voltage
+      This chart shows the average ${title} values recorded for the ${durationTime} duration by each weekly average data.
   ]
 )
 `;
-      // Utility to get formatted label
       function formatLabel(entry: any): string {
         switch (durationTime) {
           case "year":
@@ -162,18 +148,10 @@ export default class ReportsController {
             return "";
         }
       }
-      // Generate all charts
+  
       let allChartsTypstCode = "";
-      // for (const entries of Object.values(groupedData)) {
-      //   const xs = entries.map(formatLabel);
-      //   const ys = entries.map(entry => entry.avg);
-      //   allChartsTypstCode += generateTypstBarChart(xs, ys);
-      // }
-
       for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
         if (!Array.isArray(entries)) {
-          // console.warn("Skipping non-array entry:", entries);
-          // continue;
           console.warn(`Skipping non-array entry for propertyId: ${propertyIdStr}`, {
             receivedType: typeof entries,
             value: entries,
@@ -192,22 +170,23 @@ export default class ReportsController {
 
       const data = await request.validateUsing(getAnomalyStatisticsValidator);
       const timezone = request.header("timezone");
+      console.log("timezone", timezone);
       const result = await ArchiveService.getAnomalyStatistics(timezone);
+
+      console.log("result", result);
       const overallAnomaly = result.overall;
+
       const xsl = Object.entries(result.overall).map(([key, _]) => key);
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
-
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
-
-        
         #grid(
         columns: (1fr, 1fr),
         inset:20pt,
         align: horizon,
           [
           #set align(top + center)
-          *Anomaly count*
+          *Anomaly count* 
 
           #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
           #let ysl = (${ysl.join(", ")})
@@ -226,17 +205,20 @@ export default class ReportsController {
           ],
        
           align(center)[
-          #box(inset: (top: 1pt,  right: 80pt))[
-  #set align(left)
-  #set text(weight: 150, size: 14pt)
-  #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
-  #let ysl = (${ysl.join(", ")})
-  #for i in range(xsl.len()) [
-    #xsl.at(i) Anomalies : #ysl.at(i) \\
+          
+          #box(inset: (top: 1pt,  right: 70pt))[
+          #set align(left)
+          #set text(weight: 150, size: 14pt)
+         
+          #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
+          #let ysl = (${ysl.join(", ")})
 
-  ]
-]
-]
+          #for i in range(xsl.len()) [
+          #xsl.at(i)'s Anomalies : #ysl.at(i) \\
+
+           ]
+          ]
+           ]
       )`;
       };
 
@@ -292,17 +274,12 @@ export default class ReportsController {
     #for item in tupleData [
     #item.at(0): #item.at(1) \\
 
-      
       ] ]
       )
 `;
       };
 
       const typstDoc = typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple) + allChartsTypstCode;
-      // generateTypstBarChart(xs, ys, propertyId)
-      // generateTypstBarChart(xs, ys);
-      //  + pieChart;
-
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
       response.header("Content-Type", "application/pdf");
