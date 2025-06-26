@@ -88,78 +88,30 @@ export default class ReportsController {
         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
         return { start, end: start.endOf("week") };
       }
-    
+
       const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
         const key = entry.genset_property_id;
-        (acc[key] ||= []).push(entry); 
+        (acc[key] ||= []).push(entry);
         return acc;
       }, {});
 
-      // console.log("groupedData, groupedData", groupedData);
-      // Typst chart generator
-//       const generateTypstBarChart = (title: string, xs: object, ys: object) =>
-//         `
-//       #grid(
-//       columns: (1fr, 1fr),
-//        inset:20pt,
-//       align(center)[
-      
-//         #set align(top + center)
-//         *${title}*
+      const generateTypstBarChart = (title: string, xs: object[], ys: object[], durationTime: string) => {
+        let granularity = "";
+        if (durationTime === "week") {
+          granularity = "day";
+        } else if (durationTime === "month") {
+          granularity = "week";
+        } else if (durationTime === "year") {
+          granularity = "month";
+        }
 
-//       #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-//       #let ys = (${ys.join(", ")})
-//       // #set align(center)
-//       #box(width: 80%, height: 160pt)[
-//       #lq.diagram(
-//       width: 7cm,
-//       height: 6cm,
-//       legend: (position: left + top),
-//       xaxis: (
-//       ticks: xs
-//       .map(rotate.with(-45deg, reflow: true))
-//       .map(align.with(right))
-//       .enumerate(),
-//       ),
-//       lq.bar(range(${ys.length}), ys, label: ["${title}"],
-//       width: 0.7, 
-//       )
-//       )
-//       ]
-// ],
-
-//       align(center)[
-     
-//       #set text(size: 14pt, weight: 300)
-
-//       Genset Property Name:  *${title}* 
-
-//       This chart shows the average ${title} values recorded for the ${durationTime} duration by each weekly 
-     
-//       average data.
-// ]
-// )
-// `;
-
-
-const generateTypstBarChart = ( title: string,xs: object[],ys: object[],durationTime: string
-) => {
-  let granularity = "";
-  if (durationTime === "week") {
-    granularity = "day";
-  } else if (durationTime === "month") {
-    granularity = "week";
-  } else if (durationTime === "year") {
-    granularity = "month";
-  }
-
-  return `
+        return `
     #grid(
     columns: (1fr, 1fr),
     inset:20pt,
     align(center)[
       #set align(top + center)
-      *${title}*
+      *${title}  Monitor*  
 
       #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
       #let ys = (${ys.join(", ")})
@@ -187,8 +139,7 @@ const generateTypstBarChart = ( title: string,xs: object[],ys: object[],duration
     ]
   )
   `;
-};
-
+      };
       function formatLabel(entry: any): string {
         switch (durationTime) {
           case "year":
@@ -203,7 +154,7 @@ const generateTypstBarChart = ( title: string,xs: object[],ys: object[],duration
             return "";
         }
       }
-  
+
       let allChartsTypstCode = "";
       for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
         if (!Array.isArray(entries)) {
@@ -232,8 +183,8 @@ const generateTypstBarChart = ( title: string,xs: object[],ys: object[],duration
 
       const xsl = Object.entries(result.overall).map(([key, _]) => key);
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
-      console.log("type of xsl", typeof(xsl));
-        console.log("type of xsl", typeof(ysl));
+      console.log("type of xsl", typeof xsl);
+      console.log("type of xsl", typeof ysl);
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
         #grid(
@@ -277,9 +228,9 @@ const generateTypstBarChart = ( title: string,xs: object[],ys: object[],duration
            ]
       )`;
       };
-      console.log("result",result.byProperty );
-      const propertynm = result.byProperty.map((item)=>item.readablePropertyName);
-       const totalAnoamly = result.byProperty.map((item)=>item.total);
+      console.log("result", result.byProperty);
+      const propertynm = result.byProperty.map((item) => item.readablePropertyName);
+      const totalAnoamly = result.byProperty.map((item) => item.total);
 
       console.log("proper ty name", propertynm);
       console.log("ToatlAnomaly", totalAnoamly);
@@ -289,62 +240,45 @@ const generateTypstBarChart = ( title: string,xs: object[],ys: object[],duration
         .map((prop) => `("${prop.readablePropertyName}", ${prop.total})`)
         .join(",\n  ");
 
-//console.log("dataTuple", dataTuple);
+      //console.log("dataTuple", dataTuple);
+      const generatePieChart = (propertynm, totalAnomaly) => {
+        return `
+#let xsl = (${propertynm.map((v) => `"${v}"`).join(", ")})
+#let ysl = (${totalAnomaly.join(", ")})
+#grid(
+  columns: (1fr, 1fr),
+  inset: -12pt,
+  align: horizon,
+  [
+    #set align(top + center)
+    *Anomaly By Property*
 
+    #lq.diagram(
+      width: 7cm,
+      height: 6cm,
+      xaxis: (
+        ticks: xsl.map(rotate.with(-45deg, reflow: true)).map(align.with(right)).enumerate(),
+      ),
+      lq.bar(range(${totalAnomaly.length}), ysl)
+    )
+  ],
+  align(center)[
+    #box(inset: (bottom: 90pt, right: 70pt))[
+      #set align(left)
+      #set text(weight: 150, size: 12pt)
 
-      const generatePieChart = (dataTuple) => {
-      //  console.log("dataTuple", dataTuple);
-        const fallback = `("No Data", 1)`; // default dummy value if empty
-        const tuple = dataTuple?.trim().length ? dataTuple : fallback;
-        console.log("tuple", tuple);
-        return `  
-        #grid(
-        columns: (1fr, 1fr),
-         inset:20pt,
-        [   
-         #set align(top + center) 
-          *Anomlay By Property*
-        // ${data.value}
+      #for i in range(xsl.len()) [
+        #xsl.at(i)'s Anomalies : #ysl.at(i) \\
         
-        #let data = (
-        ${tuple}
-        )
-        // #box(width: 100%, height: 150pt)[
-        // #set align(top + right)
-
-        #cetz.canvas({
-        let colors = gradient.linear(red, blue, green, yellow)    
-        chart.piechart(  
-        data,  
-        value-key: 1,  
-        label-key: 0, 
-        radius: 3,
-        outset-key: none,  
-        slice-style: colors,
-        inner-radius: 0.1,
-        outset: 4,
-       //outer-label.content: "LABEL",
-       outer-label: (content: (value, label) => [#text(white, str(value))], radius: 110%, layout: "vertical",),
-       inner-label: (content: (value, label) => [#text(white, str(value))], radius: 110%)
-      )
-      })
-   ],
-    align(center)[
-    #box(inset: 14pt)
-    #set align(left)
-    #set text(weight: 150, size: 14pt)
-    #let tupleData = (
-        ${tuple}
-        )
-    #for item in tupleData [
-    #item.at(0): #item.at(1) \\
-
-      ] ]
-      )
-`;
+      ]
+    ]
+  ]
+)
+  `;
       };
 
-      const typstDoc = typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(dataTuple) + allChartsTypstCode;
+      const typstDoc =
+        typstBase + generateAnomalyBarChart(xsl, ysl) + generatePieChart(propertynm, totalAnoamly) + allChartsTypstCode;
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
       response.header("Content-Type", "application/pdf");
