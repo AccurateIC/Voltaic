@@ -34,7 +34,7 @@ const typstBase = `
 // Name will be aligned left, bold and big
 #show heading.where(level: 1): it => [
   #set align(center)
-  #set text(weight: 500, size: 24pt)
+  #set text(weight: 500, si: 24pt)
   #pad([#smallcaps(it.body)])
 ]
 `;
@@ -95,45 +95,100 @@ export default class ReportsController {
         return acc;
       }, {});
 
+      // console.log("groupedData, groupedData", groupedData);
       // Typst chart generator
-      const generateTypstBarChart = (title: string, xs: object, ys: object) =>
-        `
-      #grid(
-      columns: (1fr, 1fr),
-       inset:20pt,
-      align(center)[
+//       const generateTypstBarChart = (title: string, xs: object, ys: object) =>
+//         `
+//       #grid(
+//       columns: (1fr, 1fr),
+//        inset:20pt,
+//       align(center)[
       
-        #set align(top + center)
-        *${title}*
+//         #set align(top + center)
+//         *${title}*
+
+//       #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
+//       #let ys = (${ys.join(", ")})
+//       // #set align(center)
+//       #box(width: 80%, height: 160pt)[
+//       #lq.diagram(
+//       width: 7cm,
+//       height: 6cm,
+//       legend: (position: left + top),
+//       xaxis: (
+//       ticks: xs
+//       .map(rotate.with(-45deg, reflow: true))
+//       .map(align.with(right))
+//       .enumerate(),
+//       ),
+//       lq.bar(range(${ys.length}), ys, label: ["${title}"],
+//       width: 0.7, 
+//       )
+//       )
+//       ]
+// ],
+
+//       align(center)[
+     
+//       #set text(size: 14pt, weight: 300)
+
+//       Genset Property Name:  *${title}* 
+
+//       This chart shows the average ${title} values recorded for the ${durationTime} duration by each weekly 
+     
+//       average data.
+// ]
+// )
+// `;
+
+
+const generateTypstBarChart = ( title: string,xs: object[],ys: object[],durationTime: string
+) => {
+  let granularity = "";
+  if (durationTime === "week") {
+    granularity = "day";
+  } else if (durationTime === "month") {
+    granularity = "week";
+  } else if (durationTime === "year") {
+    granularity = "month";
+  }
+
+  return `
+    #grid(
+    columns: (1fr, 1fr),
+    inset:20pt,
+    align(center)[
+      #set align(top + center)
+      *${title}*
 
       #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
       #let ys = (${ys.join(", ")})
-      // #set align(center)
-      #lq.diagram(
-      width: 7cm,
-      height: 6cm,
-      legend: (position: left + top),
-      xaxis: (
-      ticks: xs
-      .map(rotate.with(-45deg, reflow: true))
-      .map(align.with(right))
-      .enumerate(),
-      ),
-      lq.bar(range(${ys.length}), ys, label: ["${title}"],
-      width: 0.7, 
-      )
-      ))
-      ],
+      #box(width: 80%, height: 160pt)[
+        #lq.diagram(
+          width: 7cm,
+          height: 6cm,
+          legend: (position: left + top),
+          xaxis: (
+            ticks: xs
+              .map(rotate.with(-45deg, reflow: true))
+              .map(align.with(right))
+              .enumerate(),
+          ),
+          lq.bar(range(${ys.length}), ys, label: ["${title}"], width: 0.7)
+        )
+      ]
+    ],
 
-      align(center)[
+    align(center)[
       #set text(size: 14pt, weight: 300)
+     Property Name: *${title}*
 
-      Genset Property Name:  *${title}* 
+      This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
+    ]
+  )
+  `;
+};
 
-      This chart shows the average ${title} values recorded for the ${durationTime} duration by each weekly average data.
-  ]
-)
-`;
       function formatLabel(entry: any): string {
         switch (durationTime) {
           case "year":
@@ -165,19 +220,20 @@ export default class ReportsController {
         const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
         if (!matched) continue;
         const title = matched.readablePropertyName;
-        allChartsTypstCode += generateTypstBarChart(title, xs, ys);
+        allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime);
       }
 
       const data = await request.validateUsing(getAnomalyStatisticsValidator);
       const timezone = request.header("timezone");
-      console.log("timezone", timezone);
       const result = await ArchiveService.getAnomalyStatistics(timezone);
 
-      console.log("result", result);
+      // console.log("result", result);
       const overallAnomaly = result.overall;
 
       const xsl = Object.entries(result.overall).map(([key, _]) => key);
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
+      console.log("type of xsl", typeof(xsl));
+        console.log("type of xsl", typeof(ysl));
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
         #grid(
@@ -187,6 +243,7 @@ export default class ReportsController {
           [
           #set align(top + center)
           *Anomaly count* 
+          
 
           #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
           #let ysl = (${ysl.join(", ")})
@@ -203,7 +260,6 @@ export default class ReportsController {
             lq.bar(range(${ysl.length}), ysl)
              )
           ],
-       
           align(center)[
           
           #box(inset: (top: 1pt,  right: 70pt))[
@@ -221,14 +277,23 @@ export default class ReportsController {
            ]
       )`;
       };
+      console.log("result",result.byProperty );
+      const propertynm = result.byProperty.map((item)=>item.readablePropertyName);
+       const totalAnoamly = result.byProperty.map((item)=>item.total);
+
+      console.log("proper ty name", propertynm);
+      console.log("ToatlAnomaly", totalAnoamly);
 
       const dataTuple = result.byProperty
         .filter((prop) => typeof prop.total === "number" && prop.readablePropertyName)
         .map((prop) => `("${prop.readablePropertyName}", ${prop.total})`)
         .join(",\n  ");
 
+//console.log("dataTuple", dataTuple);
+
+
       const generatePieChart = (dataTuple) => {
-        console.log("dataTuple", dataTuple);
+      //  console.log("dataTuple", dataTuple);
         const fallback = `("No Data", 1)`; // default dummy value if empty
         const tuple = dataTuple?.trim().length ? dataTuple : fallback;
         console.log("tuple", tuple);
@@ -237,7 +302,7 @@ export default class ReportsController {
         columns: (1fr, 1fr),
          inset:20pt,
         [   
-         #set align(top + center)
+         #set align(top + center) 
           *Anomlay By Property*
         // ${data.value}
         
