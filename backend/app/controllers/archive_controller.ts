@@ -34,9 +34,9 @@ export default class ArchiveController {
       case "week": // show data averaged daily
         responseData = await Archive.query() //
           .select("day", "month", "year", "genset_property_id")
-          .whereHas("gensetProperty", (propertyQuery) => {
-            propertyQuery.where("propertyName", data.propertyName);
-          })
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")
           .groupBy("day", "month", "year", "genset_property_id")
@@ -55,9 +55,9 @@ export default class ArchiveController {
       case "month": // show data averaged weekly
         responseData = await Archive.query() //
           .select("week", "month", "year", "genset_property_id")
-          .whereHas("gensetProperty", (propertyQuery) => {
-            propertyQuery.where("propertyName", data.propertyName);
-          })
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")
           .groupBy("week", "month", "year", "genset_property_id")
@@ -76,9 +76,9 @@ export default class ArchiveController {
       case "year": // show data averaged monthly
         responseData = await Archive.query() //
           .select("month", "year", "genset_property_id")
-          .whereHas("gensetProperty", (propertyQuery) => {
-            propertyQuery.where("propertyName", data.propertyName);
-          })
+          // .whereHas("gensetProperty", (propertyQuery) => {
+          //   propertyQuery.where("propertyName", data.propertyName);
+          // })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")
           .groupBy("month", "year", "genset_property_id")
