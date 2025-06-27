@@ -109,6 +109,7 @@ export default class ReportsController {
         }
 
         return `
+        #box(height: 8cm)[
         #grid(
         columns: (1fr, 1fr),
         inset:20pt,
@@ -142,7 +143,7 @@ export default class ReportsController {
       This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
       
     ]
-  )
+      )]
   `;
       };
 
@@ -192,6 +193,7 @@ export default class ReportsController {
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
+        #box(height: 9cm)[
         #grid(
         columns: (1fr, 1fr),
         inset:10pt,
@@ -230,7 +232,7 @@ export default class ReportsController {
            ]
           ]
            ]
-      )`;
+      )]`;
       };
 
       const propertynm = result.byProperty.map((item) => item.readablePropertyName);
@@ -247,6 +249,7 @@ export default class ReportsController {
             #let xsl = (${propertynm.map((v) => `"${v}"`).join(", ")})
             #let ysl = (${totalAnomaly.join(", ")})
             
+            #box(height: 8.7cm)[
             #grid(
             columns: (1fr, 1fr),
             inset: -12pt,
@@ -276,7 +279,7 @@ export default class ReportsController {
           ] 
          ]
          ]
-        )`;
+      )]`;
       };
       const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
       console.log("pdmData,pdmData", pdmData);
@@ -294,6 +297,7 @@ export default class ReportsController {
         return `
            #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
            #let count = (${counts.join(", ")})
+           #box(height: 8cm)[
            #grid(
            columns: (1fr, 1fr),
            inset:10pt,
@@ -323,11 +327,12 @@ export default class ReportsController {
           // #let ysl = (${ysl.join(", ")})
           // - Anomaly by Time Duration
           //  #for i in range(xsl.len()) [
-          //   - #xsl.at(i)'s Anomalies : #ysl.at(i) \\
+          //   - #xsl.at(i)'s Anomalies : #ysl.at(i) 
+             Numder of PDM alerts forecasted by ML model  
           //  ]
           ]
           ]
-          )`;
+      )]`;
       };
 
       const typstDoc =
