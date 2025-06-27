@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "./",
     "outDir": "./build",
-    "module": "nodenext"
-  },
+    "module": "nodenext",
+    "paths": { "@voltaic/*": ["../../packages/*/src"] }
+  }
 }

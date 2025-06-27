@@ -6,6 +6,7 @@ node_modules
 
 # Build outputs
 dist
+test-dist
 build
 out-tsc
 tmp

@@ -5,8 +5,6 @@ import BackImage from "../assets/back.svg";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { User } from "../types/auth.types";
-import { Result, ExternalServerError, catchErrTyped } from "../lib/Err";
-import { Modules } from "../config/extern";
 import { ROUTES } from "../config/backend";
 import { SessionStore } from "../lib/SessionStore";
 
@@ -95,7 +93,9 @@ const Login = () => {
       // SessionStore.set("user", user);
 
       console.log(isSignUp ? "User registered:" : "User logged in:", response);
-      toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
+      toast.success(
+        isSignUp ? "Account created successfully!" : "Logged in successfully!"
+      );
 
       // ##################################################################
 
@@ -130,7 +130,10 @@ const Login = () => {
       //   if (res.error) toast.error("Failed to send user details to PDM Server.");
       // });
     } catch (error) {
-      console.error(isSignUp ? "Error creating account:" : "Error logging in:", error);
+      console.error(
+        isSignUp ? "Error creating account:" : "Error logging in:",
+        error
+      );
       // toast.error(error.message || "An error occurred");
     }
   };
@@ -147,7 +150,10 @@ const Login = () => {
     <div className="min-h-screen w-full flex relative bg-base-300">
       {/* Left Panel */}
       <div className="hidden md:flex w-full bg-primary/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url(${BackImage})` }} />
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-90"
+          style={{ backgroundImage: `url(${BackImage})` }}
+        />
         <div className="relative z-10 w-full flex flex-col justify-center items-center p-8">
           <div className="max-w-md text-center"></div>
         </div>
@@ -210,7 +216,8 @@ const Login = () => {
               <button
                 type="submit"
                 //  className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content"
-                className="btn btn-success w-full mt-6">
+                className="btn btn-success w-full mt-6"
+              >
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
             </form>
@@ -239,8 +246,13 @@ const Login = () => {
 
             {/* Account Switch Link */}
             <div className="text-center mt-4">
-              <button onClick={() => setIsSignUp(!isSignUp)} className="link link-primary">
-                {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="link link-primary"
+              >
+                {isSignUp
+                  ? "Already have an account? Sign In"
+                  : "New here? Create Account"}
               </button>
             </div>
           </div>

@@ -16,6 +16,9 @@ import PhysicalQuantity from "#models/physical_quantity";
 import { DateTime } from "luxon";
 import { ArchiveService, PropertyStatisticsResponse } from "#services/archive_service";
 import { Exception } from "@adonisjs/core/exceptions";
+import { errors } from "@vinejs/vine";
+import ValidationException from "#exceptions/validation_exception";
+import { catchErrTyped } from "@voltaic/err";
 
 export default class ArchiveController {
   async getPropertyStatistics({ request }: HttpContext): Promise<PropertyStatisticsResponse> {
@@ -96,36 +99,46 @@ export default class ArchiveController {
   }
 
   async getPropertyDataBetween({ request }: HttpContext) {
-    const data = await request.validateUsing(getArchiveDataPropertyBetweenValidator);
+    try {
+      // const data = await request.validateUsing(getArchiveDataPropertyBetweenValidator);
+      const { data, error, success } = await catchErrTyped(
+        request.validateUsing(getArchiveDataPropertyBetweenValidator),
+        [errors.E_VALIDATION_ERROR]
+      );
+      if (!success) throw new ValidationException(error.messages);
+      const query = Archive.query();
 
-    const query = Archive.query();
+      // filter by time
+      if (data.from && data.to) {
+        query.whereBetween("timestamp", [data.from, data.to]);
+      } else {
+        console.log("unexpected");
+      }
 
-    // filter by time
-    if (data.from && data.to) {
-      query.whereBetween("timestamp", [data.from, data.to]);
-    } else {
-      console.log("unexpected");
-    }
+      // filter by property names
+      if (data?.properties) {
+        const propertyNames = data.properties;
+        query.whereHas("gensetProperty", (propertyQuery) => {
+          propertyQuery.whereIn("propertyName", propertyNames);
+        });
+      }
 
-    // filter by property names
-    if (data?.properties) {
-      const propertyNames = data.properties;
-      query.whereHas("gensetProperty", (propertyQuery) => {
-        propertyQuery.whereIn("propertyName", propertyNames);
+      // preload
+      query.preload("gensetProperty", (preloadQuery) => {
+        preloadQuery.preload("physicalQuantity");
       });
+
+      // latest first
+      query.orderBy("timestamp", "desc");
+
+      const propertyData = await query.exec();
+
+      return propertyData;
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        throw new ValidationException(error.messages);
+      }
     }
-
-    // preload
-    query.preload("gensetProperty", (preloadQuery) => {
-      preloadQuery.preload("physicalQuantity");
-    });
-
-    // latest first
-    query.orderBy("timestamp", "desc");
-
-    const propertyData = await query.exec();
-
-    return propertyData;
   }
 
   // TODO: maybe handle case when no entries are present in the database
@@ -143,7 +156,9 @@ export default class ArchiveController {
       try {
         // fetch all genset properties
         const propertyNames: string[] = data.map((element) => element.property);
-        const gensetProperties = await GensetProperty.query({ client: trx }).whereIn("propertyName", propertyNames).exec();
+        const gensetProperties = await GensetProperty.query({ client: trx })
+          .whereIn("propertyName", propertyNames)
+          .exec();
 
         // create hash map for efficient property lookup
         const propertyMap = new Map(gensetProperties.map((prop) => [prop.propertyName, prop]));
@@ -212,10 +227,7 @@ export default class ArchiveController {
             }
           } else if (activeNotification) {
             // close
-            notificationUpdates.push({
-              id: activeNotification.id,
-              finishedAt: timestamp,
-            });
+            notificationUpdates.push({ id: activeNotification.id, finishedAt: timestamp });
           }
         }
 
@@ -246,9 +258,7 @@ export default class ArchiveController {
 
     // broadcast after transaction completes
     // Broadcast event
-    transmit.broadcast("archive", {
-      message: "new entry created",
-    });
+    transmit.broadcast("archive", { message: "new entry created" });
     transmit.broadcast("notification", { message: "notification table updated" });
     if (trxResult.newNotifications.length > 0 || trxResult.notificationUpdates.length > 0) {
     }
@@ -266,18 +276,22 @@ export default class ArchiveController {
     try {
       const now = DateTime.now().setZone(timezone);
       if (!now.isValid) {
-        return response.status(400).json({
-          error: "Invalid timezone",
-          message: `'${timezone}' is not a valid IANA timezone identifier`,
-          details: now.invalidReason,
-        });
+        return response
+          .status(400)
+          .json({
+            error: "Invalid timezone",
+            message: `'${timezone}' is not a valid IANA timezone identifier`,
+            details: now.invalidReason,
+          });
       }
     } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
-      });
+      return response
+        .status(400)
+        .json({
+          error: "Invalid timezone",
+          message: `'${timezone}' is not a valid IANA timezone identifier`,
+          details: error.message,
+        });
     }
 
     // Get property-based stats with preloaded relationships
@@ -302,14 +316,7 @@ export default class ArchiveController {
         const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year", [entry.propertyName]);
         const totalCount = await ArchiveService.getAnomalyCount(undefined, undefined, [entry.propertyName]);
 
-        return {
-          ...entry,
-          today: todaysTotal,
-          week: weekTotal,
-          month: monthTotal,
-          year: yearTotal,
-          total: totalCount,
-        };
+        return { ...entry, today: todaysTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: totalCount };
       })
     );
 
@@ -321,13 +328,7 @@ export default class ArchiveController {
 
     return {
       timezone, // Include timezone in response for clarity
-      overall: {
-        today: todaysTotal,
-        week: weekTotal,
-        month: monthTotal,
-        year: yearTotal,
-        total: totalCount,
-      },
+      overall: { today: todaysTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: totalCount },
       byProperty: propertyStatsByTime,
     };
   }

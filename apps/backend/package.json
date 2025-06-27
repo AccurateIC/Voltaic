@@ -7,14 +7,17 @@
   "scripts": {
     "start": "node bin/server.js",
     "build": "node ace build",
+    "clean": "rm -rf build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "migrate-fresh": "node ace migration:fresh",
     "seed": "node ace db:seed",
     "tuyau": "node ace tuyau:generate",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
@@ -68,7 +71,9 @@
     "@adonisjs/session": "^7.5.1",
     "@adonisjs/transmit": "^2.0.2",
     "@tuyau/core": "^0.4.1",
+    "@tuyau/superjson": "^0.1.1",
     "@vinejs/vine": "^3.0.1",
+    "@voltaic/err": "workspace:*",
     "adonis-autoswagger": "^3.73.0",
     "luxon": "^3.6.1",
     "pg": "^8.16.2",

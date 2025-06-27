@@ -1,0 +1,25 @@
+{
+  "name": "@voltaic/err",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prebuild": "rm -rf dist",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No linting configured for @voltaic/err'",
+    "lint:fix": "echo 'No linting configured for @voltaic/err'",
+    "test": "echo 'No tests configured for @voltaic/err'"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "~5.8"
+  }
+}

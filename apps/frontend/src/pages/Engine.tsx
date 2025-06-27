@@ -1,3 +1,4 @@
+// frontend/src/pages/Engine.tsx
 import { useEffect, useState } from "react";
 import GaugeComponent from "react-gauge-component";
 import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
@@ -9,22 +10,20 @@ import { MdEnergySavingsLeaf } from "react-icons/md";
 import { cn } from "../lib/Utils";
 import { Modules } from "../config/extern";
 import { User } from "../types/auth.types";
-import { catchErrTyped, ExternalServerError, Result } from "../lib/Err";
 import { SessionStore } from "../lib/SessionStore";
-import { ROUTES } from "../config/backend";
-
-import { createTuyau } from "@tuyau/client";
-import { api } from "backend/api";
-export const tuyau = createTuyau({ api, baseUrl: "http://localhost:3333" });
+import { tuyau } from "../lib/Tuyau";
+import Archive from "../../../backend/app/models/archive";
+import { catchErrTyped, ExternalServerError, Result } from "@voltaic/err";
 
 const EngineRPM = ({ engineRpmDetails }) => {
-  useEffect(() => {
-    (async function () {
-      const { data, error } = await tuyau.archive.getPropertyDataBetween();
-      if (error?.status || data === null) return;
-      console.log("5684684684646", JSON.stringify(data[0].email, null, 2));
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async function () {
+  //     const { data, error } = await tuyau.auth.getAll.$get();
+  //     if (error?.status || data === null) return;
+  //     const emails = data.map((user) => user.email);
+  //     console.log("5684684684646", emails);
+  //   })();
+  // }, []);
   console.log(engineRpmDetails);
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;
@@ -59,12 +58,7 @@ const EngineRPM = ({ engineRpmDetails }) => {
               tickLabels: { defaultTickValueConfig: { style: { fill: "#6a7282" } } }, // For the tick labels (500, 1000, etc)
             }}
             value={engineRpm}
-            style={{
-              width: "100%",
-              maxWidth: "85%",
-              maxHeight: "100%",
-              height: "auto",
-            }}
+            style={{ width: "100%", maxWidth: "85%", maxHeight: "100%", height: "auto" }}
           />
         </div>
       </div>
@@ -99,7 +93,8 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
           // Added a 10px offset to shift marks down and adjusted calculation
           bottom: `calc(${(level / maxFuelLevel) * 100}% - 10px)`,
           left: "60px",
-        }}>
+        }}
+      >
         {/* Line mark */}
         <div className="w-3 h-[2px] bg-base-content"></div>
         {/* Level number */}
@@ -183,9 +178,36 @@ const sendLoggedInUser = async (user: User, url: string): Promise<Result<void, E
   );
 };
 
+const fetchLatestArchiveData = async (
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
+  setIsError: React.Dispatch<React.SetStateAction<Object>>
+) => {
+  setIsLoading(true);
+  const { data, error } = await tuyau.archive.getLatest.$get();
+  if (error) {
+    setArchiveData([]);
+    setIsError(error.value);
+    throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
+  }
+  setArchiveData(data);
+  setIsLoading(false);
+};
+
+const Skeletons = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="skeleton aspect-video rounded-lg" />
+      ))}
+    </div>
+  );
+};
+
 const Engine = () => {
-  const [archiveData, setArchiveData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [archiveData, setArchiveData] = useState<Archive[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<Object>({});
 
   const user = SessionStore.get("user");
 
@@ -202,90 +224,71 @@ const Engine = () => {
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
-      await fetchLatestArchiveData();
+      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
     })();
   });
-
-  const fetchLatestArchiveData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(ROUTES.ARCHIVE_GET_LATEST, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      console.log("Fetched data:", data);
-      setArchiveData(data);
-    } catch (error) {
-      console.error("Fetch error:", error);
-      // toast.error("Error fetching data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     console.log("Engine page mount effect running");
     (async () => {
-      await fetchLatestArchiveData();
+      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
     })();
   }, []);
+
+  if (isLoading) return <Skeletons />;
 
   return (
     <div className="h-full w-full min-h-0 min-w-0">
       <PanelGroup direction="horizontal" className="gap-1">
-        {/* */}
         <Panel defaultSize={80}>
           <PanelGroup direction="vertical" className="gap-1">
-            {/* */}
-
             <Panel defaultSize={50}>
               <PanelGroup direction="horizontal" className="gap-1">
                 <Panel defaultSize={50}>
                   <EngineRPM
-                    engineRpmDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engSpeedDisplay")}
+                    engineRpmDetails={archiveData.filter(
+                      (entry) => entry.gensetProperty.propertyName === "engSpeedDisplay"
+                    )}
                   />
                 </Panel>
                 <PanelResizeHandle />
                 <Panel defaultSize={50}>
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.gensetProperty
-                        ?.readablePropertyName || "Generator Power Output"
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
+                        ?.gensetProperty?.readablePropertyName || "Generator Power Output"
                     }
                     propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.propertyValue
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
+                        ?.propertyValue
                     }
                     PropertyIcon={MdEnergySavingsLeaf}
                     propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]?.gensetProperty
-                        .physicalQuantity.unitSymbol
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
+                        ?.gensetProperty.physicalQuantity.unitSymbol
                     }
                   />
                 </Panel>
               </PanelGroup>
             </Panel>
-            {/* */}
             <PanelResizeHandle />
-            {/* */}
             <Panel>
               <PanelGroup direction="horizontal" className="gap-1">
                 <Panel>
                   {/* Engine Oil Pressure */}
                   <PropertyCard
                     propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty
-                        ?.readablePropertyName || "Engine Oil Pressure"
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
+                        ?.gensetProperty?.readablePropertyName || "Engine Oil Pressure"
                     }
                     propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.propertyValue
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
+                        ?.propertyValue
                     }
                     PropertyIcon={FaOilCan}
                     propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]?.gensetProperty
-                        .physicalQuantity.unitSymbol
+                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
+                        ?.gensetProperty.physicalQuantity.unitSymbol
                     }
                   />
                 </Panel>
@@ -329,20 +332,16 @@ const Engine = () => {
                 </Panel>
               </PanelGroup>
             </Panel>
-            {/* */}
           </PanelGroup>
         </Panel>
 
-        {/* */}
         <PanelResizeHandle />
-        {/* */}
 
         <Panel>
           <VerticalFuelLevelIndicator
             fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevelUnits")}
           />
         </Panel>
-        {/* */}
       </PanelGroup>
     </div>
   );

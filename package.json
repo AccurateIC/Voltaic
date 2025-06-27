@@ -3,14 +3,34 @@
   "version": "1.0.0",
   "description": "Monorepo for Voltaic Web (Gen Set)",
   "scripts": {
-    "dev:all": "pnpm --recursive --parallel run dev",
-    "build:all": "pnpm --recursive --parallel run build"
+    "dev": "pnpm run build:packages && pnpm --recursive --parallel run dev",
+    "dev:frontend": "pnpm run build:packages && pnpm --filter frontend run dev",
+    "dev:backend": "pnpm run build:packages && pnpm --filter backend run dev",
+    "dev:only": "pnpm --recursive --parallel run dev",
+    "dev:frontend:only": "pnpm --filter frontend run dev",
+    "dev:backend:only": "pnpm --filter backend run dev",
+    "build": "pnpm run build:packages && pnpm run build:apps",
+    "build:packages": "pnpm --filter \"./packages/*\" run build",
+    "build:apps": "pnpm --filter \"./apps/*\" run build",
+    "build:err": "pnpm --filter @voltaic/err build",
+    "build:backend": "pnpm --filter backend run build",
+    "build:frontend": "pnpm --filter frontend run build",
+    "clean": "pnpm --recursive run clean",
+    "clean:dist": "find . -name 'dist' -type d -not -path './node_modules/*' -exec rm -rf {} + 2>/dev/null || true",
+    "clean:deps": "rm -rf node_modules && pnpm --recursive exec rm -rf node_modules",
+    "lint": "pnpm --recursive --parallel run lint",
+    "lint:fix": "pnpm --recursive --parallel run lint:fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "pnpm --recursive --parallel run type-check",
+    "test": "pnpm --recursive --parallel run test",
+    "fresh": "pnpm run clean:deps && pnpm install && pnpm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AccurateIC/Voltaic.git"
   },
-  "author": "",
+  "author": "Swarnim Barapatre",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/AccurateIC/Voltaic/issues"
@@ -29,5 +49,14 @@
       "core-js",
       "esbuild"
     ]
+  },
+  "devDependencies": {
+    "prettier": "^3.6.0",
+    "@types/node": "^24.0.3",
+    "typescript": "~5.8"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   }
 }
