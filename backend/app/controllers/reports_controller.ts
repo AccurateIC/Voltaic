@@ -4,10 +4,11 @@ import path from "node:path";
 import { fileURLToPath } from "url";
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
-import { getAnomalyStatisticsValidator } from "../validators/archive.js";
 import { DateTime } from "luxon";
 import { ArchiveService } from "#services/archive_service";
 import { PdmService } from "#services/pdm_service";
+import { filteredHealthIndexData } from "./filteredHealthIndex.js";
+import { RulService } from "../../app/services/rul_service.js";
 import { argv } from "node:process";
 import { count } from "node:console";
 
@@ -82,7 +83,6 @@ export default class ReportsController {
         gensetPropertyId: value.gensetPropertyId,
         propertyName: value.gensetProperty.propertyName,
       }));
-
       const resultData = await ArchiveService.getPropertyStatistics({ request });
       const durationTime = resultData?.meta.timeDuration;
 
@@ -96,7 +96,6 @@ export default class ReportsController {
         (acc[key] ||= []).push(entry);
         return acc;
       }, {});
-      console.log("groupedData", groupedData);
 
       const generateTypstBarChart = (title: string, xs: object[], ys: object[], durationTime: string) => {
         let granularity = "";
@@ -144,6 +143,7 @@ export default class ReportsController {
       
     ]
       )]
+    
   `;
       };
 
@@ -172,25 +172,20 @@ export default class ReportsController {
         }
         // console.log("entries",entries);
         const xs = entries.map(formatLabel);
-
         const ys = entries.map((entry) => entry.avg);
         const propertyId = Number(propertyIdStr);
-
         const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
         if (!matched) continue;
         const title = matched.readablePropertyName;
         allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime);
       }
 
-      const data = await request.validateUsing(getAnomalyStatisticsValidator);
       const timezone = request.header("timezone");
       const result = await ArchiveService.getAnomalyStatistics(timezone);
-
-      // console.log("result", result);
       const overallAnomaly = result.overall;
-
       const xsl = Object.entries(result.overall).map(([key, _]) => key);
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
+
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
         #box(height: 9cm)[
@@ -228,7 +223,6 @@ export default class ReportsController {
           - Anomaly by Time Duration
            #for i in range(xsl.len()) [
             - #xsl.at(i)'s Anomalies : #ysl.at(i) \\
-
            ]
           ]
            ]
@@ -237,13 +231,11 @@ export default class ReportsController {
 
       const propertynm = result.byProperty.map((item) => item.readablePropertyName);
       const totalAnoamly = result.byProperty.map((item) => item.total);
-
       const dataTuple = result.byProperty
         .filter((prop) => typeof prop.total === "number" && prop.readablePropertyName)
         .map((prop) => `("${prop.readablePropertyName}", ${prop.total})`)
         .join(",\n  ");
 
-      //console.log("dataTuple", dataTuple);
       const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
         return `
             #let xsl = (${propertynm.map((v) => `"${v}"`).join(", ")})
@@ -282,18 +274,10 @@ export default class ReportsController {
       )]`;
       };
       const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
-      console.log("pdmData,pdmData", pdmData);
-      console.log("pdm data", pdmData.data);
       const counts = pdmData.data.map((entry) => Number(entry.count));
-
-      console.log("entries", pdmData.data);
       const xs = pdmData.data.map(formatLabel);
-      console.log("xl", xs);
 
-      console.log(counts); // Output: [1]
-      console.log("xl", xs);
       const generatePDMBarChart = (xs: object[], counts: object[]) => {
-        console.log("xs, counts", xs, counts);
         return `
            #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
            #let count = (${counts.join(", ")})
@@ -332,15 +316,65 @@ export default class ReportsController {
           //  ]
           ]
           ]
-      )]`;
+      )
+          ]`;
       };
+
+      const rulPrediction = await RulService.fetchPrediction({ request });
+      console.log("RUL Prediction result:", rulPrediction);
+      const futurePredictions = rulPrediction.Future_Predictions;
+      console.log("futurePredictions", futurePredictions);
+
+      const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
+      const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
+      const xs2 = filteredHealthIndexData.map((d) => d.Time_Hours);
+      const ys2 = filteredHealthIndexData.map((d) => d.Predicted_Health_Index);
+
+      const rulLineChart = (timeHours: number[], predictiveHealthIndex: number[]) => {
+        return `
+            #let xs = (${timeHours.join(", ")})
+            #let ys = (${predictiveHealthIndex.join(", ")})
+            #let xs1 = (${xs2.join(", ")})
+            #let ys1 = (${ys2.join(", ")})
+            #box(height: 8cm)[
+            #grid(
+            columns: (1fr, 1fr),
+            inset:10pt,
+            align: horizon,
+            [
+            #set align(top + center)
+            == RUL Predictions
+            #lq.diagram(
+            width: 7cm,
+            height: 6cm,
+
+            xlabel: [Time (Hours)], 
+            ylabel: [Predicted Health Index],
+
+            lq.plot(xs, ys, mark: "o", label: [Predicted Health Index]),
+            lq.plot( xs1,  ys1, mark: "s", label: [Health Index Trends ])
+            )
+            ],
+            align(center)[
+             #box(inset: (top: 1pt,  right: 70pt))[
+            #set align(left)
+            #set text(weight: 150, size: 14pt)
+            Remaining Useful Life Cycle
+            ]
+            ]
+        )
+          ]`;
+      };
+
 
       const typstDoc =
         typstBase +
         generateAnomalyBarChart(xsl, ysl) +
         generatePropertyAnomalyChart(propertynm, totalAnoamly) +
         allChartsTypstCode +
-        generatePDMBarChart(xs, counts);
+        generatePDMBarChart(xs, counts) +
+        rulLineChart(timeHours, predictiveHealthIndex);
+
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
       response.header("Content-Type", "application/pdf");

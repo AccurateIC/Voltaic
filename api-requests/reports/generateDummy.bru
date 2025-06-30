@@ -5,13 +5,12 @@ meta {
 }
 
 post {
-  url: {{BASE_URL}}/reports/generateDummy?propertyName=genTotalVA&timeDuration=year
+  url: {{BASE_URL}}/reports/generateDummy?timeDuration=year
   body: json
   auth: inherit
 }
 
 params:query {
-  propertyName: genTotalVA
   timeDuration: year
 }
 
@@ -21,7 +20,13 @@ headers {
 
 body:json {
   {
-    "properties": [ "engOilPress", "genTotalVA", "engFuelLevelUnits", "engSpeedDisplay"]
+    "timeDuration": "week",
+    "properties": ["engFuelLevelUnits", "engSpeedDisplay"],
+    "Time_Hours": 210,
+    "RPM_Deviation_Percentage": 0.067,
+    "Oil_Pressure": 1.88,
+    "Power_Output_kW": 0.924,
+    "Inverse_Fuel_Consumption": 0.825
   }
   
 }
