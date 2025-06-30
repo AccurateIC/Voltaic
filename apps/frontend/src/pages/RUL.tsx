@@ -86,7 +86,8 @@ const RUL = () => {
           <button
             onClick={fetchRulPrediction}
             className={cn("btn btn-primary flex justify-center")}
-            disabled={getRulPrediction.isPending}>
+            disabled={getRulPrediction.isPending}
+          >
             Calculate RUL
             {getRulPrediction.isPending && <span className="loading loading-spinner"></span>}
           </button>
@@ -112,7 +113,8 @@ const RUL = () => {
           className={cn(
             "flex flex-col bg-base-200 text-base-content items-center justify-center w-1/3 p-2",
             "rounded hover:bg-base-100 hover:text-base-content transition-all duration-200 shadow"
-          )}>
+          )}
+        >
           <div className="text-2xl font-semibold">Remaining Useful Life</div>
           <div className="text-xl">{parseInt(apiPoint[0]?.Remaining_Useful_Life) || "N/A"} hours</div>
         </div>

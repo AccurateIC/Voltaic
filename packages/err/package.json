@@ -13,10 +13,7 @@
     "prebuild": "rm -rf dist",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
-    "type-check": "tsc --noEmit",
-    "lint": "echo 'No linting configured for @voltaic/err'",
-    "lint:fix": "echo 'No linting configured for @voltaic/err'",
-    "test": "echo 'No tests configured for @voltaic/err'"
+    "type-check": "tsc --noEmit"
   },
   "devDependencies": {
     "tsup": "^8.5.0",
