@@ -100,7 +100,6 @@ export default class ArchiveController {
 
   async getPropertyDataBetween({ request }: HttpContext) {
     try {
-      // const data = await request.validateUsing(getArchiveDataPropertyBetweenValidator);
       const { data, error, success } = await catchErrTyped(
         request.validateUsing(getArchiveDataPropertyBetweenValidator),
         [errors.E_VALIDATION_ERROR]
