@@ -13,7 +13,6 @@ export class ArchiveService {
       });
   }
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {
-  
     const query = Archive.query() //
       .where("isAnomaly", true);
 
@@ -34,7 +33,6 @@ export class ArchiveService {
     const res = await query.count("*").pojo();
     return parseInt(res[0].count);
   }
-
 
   static async getAnomalyStatistics(timezone: string) {
     // Validate timezone
@@ -86,7 +84,7 @@ export class ArchiveService {
 
   static async getPropertyStatistics({ request }: HttpContext) {
     const data = await request.validateUsing(getPropertyStatisticsValidator);
-   
+
     const timezone: string = data.headers.timezone;
     const timeDuration: DateTimeUnit = data.timeDuration;
     const now = DateTime.now().setZone(timezone).toUTC();
@@ -108,9 +106,10 @@ export class ArchiveService {
           .whereHas("gensetProperty", (propertyQuery) => {
             if (data.properties?.length) {
               propertyQuery.whereIn("propertyName", data.properties);
-            } else {
-              propertyQuery.where("propertyName", data.propertyName);
             }
+            //  else {
+            //   propertyQuery.where("propertyName", data.propertyName);
+            // }
           })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")
@@ -136,9 +135,10 @@ export class ArchiveService {
           .whereHas("gensetProperty", (propertyQuery) => {
             if (data.properties?.length) {
               propertyQuery.whereIn("propertyName", data.properties);
-            } else {
-              propertyQuery.where("propertyName", data.propertyName);
             }
+            // else {
+            //   propertyQuery.where("propertyName", data.propertyName);
+            // }
           })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")
@@ -164,9 +164,10 @@ export class ArchiveService {
           .whereHas("gensetProperty", (propertyQuery) => {
             if (data.properties?.length) {
               propertyQuery.whereIn("propertyName", data.properties);
-            } else {
-              propertyQuery.where("propertyName", data.propertyName);
             }
+            // else {
+            //   propertyQuery.where("propertyName", data.propertyName);
+            // }
           })
           .whereBetween("timestamp", [startOfDuration, endOfDuration])
           .avg("property_value")

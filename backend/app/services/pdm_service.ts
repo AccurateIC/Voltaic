@@ -15,7 +15,7 @@ export class PdmService {
     if (typeof ctxOrTimezone !== "string") {
       const { request } = ctxOrTimezone;
       const reqBody = await request.validateUsing(getPdmStatisticsValidator);
-      console.log("reqBody PDM", reqBody);
+      // console.log("reqBody PDM", reqBody);
 
       timezone = reqBody.headers.timezone;
       timeDuration = reqBody.timeDuration;

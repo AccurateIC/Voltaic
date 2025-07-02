@@ -70,6 +70,7 @@ export default class ReportsController {
     try {
       const requestBody = request.body();
       const selectedPropertyNames = requestBody.properties || [];
+      console.log("selectedPropertyNames",selectedPropertyNames);
       const propertyStats = (
         await Archive.query()
           .whereHas("gensetProperty", (query) => {
@@ -83,7 +84,10 @@ export default class ReportsController {
         gensetPropertyId: value.gensetPropertyId,
         propertyName: value.gensetProperty.propertyName,
       }));
+     
+      
       const resultData = await ArchiveService.getPropertyStatistics({ request });
+      // console.log("resultData from getPropertyStaticstics", resultData);
       const durationTime = resultData?.meta.timeDuration;
 
       function getWeekRange(week: number, month: number, year: number) {
@@ -97,7 +101,9 @@ export default class ReportsController {
         return acc;
       }, {});
 
+
       const generateTypstBarChart = (title: string, xs: object[], ys: object[], durationTime: string) => {
+        // console.log(`Generating chart for ${title}: xs=`, xs, "ys=", ys);
         let granularity = "";
         if (durationTime === "week") {
           granularity = "day";
@@ -106,8 +112,8 @@ export default class ReportsController {
         } else if (durationTime === "year") {
           granularity = "month";
         }
-
         return `
+     
         #box(height: 8cm)[
         #grid(
         columns: (1fr, 1fr),
@@ -143,7 +149,8 @@ export default class ReportsController {
       
     ]
       )]
-    
+     
+
   `;
       };
 
@@ -175,6 +182,7 @@ export default class ReportsController {
         const ys = entries.map((entry) => entry.avg);
         const propertyId = Number(propertyIdStr);
         const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
+        
         if (!matched) continue;
         const title = matched.readablePropertyName;
         allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime);
@@ -228,7 +236,6 @@ export default class ReportsController {
            ]
       )]`;
       };
-
       const propertynm = result.byProperty.map((item) => item.readablePropertyName);
       const totalAnoamly = result.byProperty.map((item) => item.total);
       const dataTuple = result.byProperty
@@ -321,9 +328,9 @@ export default class ReportsController {
       };
 
       const rulPrediction = await RulService.fetchPrediction({ request });
-      console.log("RUL Prediction result:", rulPrediction);
+      // console.log("RUL Prediction result:", rulPrediction);
       const futurePredictions = rulPrediction.Future_Predictions;
-      console.log("futurePredictions", futurePredictions);
+      // console.log("futurePredictions", futurePredictions);
 
       const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
       const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
@@ -359,7 +366,7 @@ export default class ReportsController {
              #box(inset: (top: 1pt,  right: 70pt))[
             #set align(left)
             #set text(weight: 150, size: 14pt)
-            Remaining Useful Life Cycle
+           This graph shows the Health Index Trend with calculated Remaining Useful Life (RUL) at the current point, alongside a Simulated Health Index curve predicting future deterioration until the failure threshold is reached.
             ]
             ]
         )
@@ -377,6 +384,7 @@ export default class ReportsController {
 
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
+     
       response.header("Content-Type", "application/pdf");
       response.header("Content-Disposition", "attachment; filename=report.pdf");
       // serve the compiled pdf

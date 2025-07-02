@@ -137,13 +137,13 @@ export const Reports = () => {
     const label = allSelected
       ? "All Charts Selected"
       : noneSelected
-        ? "Select Charts"
-        : selectedCharts.length <= 2
-          ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
-              .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
-              .map((c) => ("title" in c ? c.title : c.chartTitle))
-              .join(", ")
-          : `${selectedCharts.length} Selected`;
+      ? "Select Charts"
+      : selectedCharts.length <= 2
+      ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
+          .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
+          .map((c) => ("title" in c ? c.title : c.chartTitle))
+          .join(", ")
+      : `${selectedCharts.length} Selected`;
 
     return (
       <>
@@ -209,6 +209,33 @@ export const Reports = () => {
     );
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`http://localhost:3333/reports/generateDummy?timeDuration=${timeDuration}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // e.g., "Asia/Kolkata"
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Server error ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `neurogen.pdf`); // to download the file
+      document.body.appendChild(link);
+      link.click(); //start download
+      link.parentNode?.removeChild(link);
+    } catch (error) {
+      console.error("Failed to export report:", error);
+      alert("Failed to export report. Please try again.");
+    }
+  };
+
   console.log("timeDuration", timeDuration);
   return (
     <div>
@@ -221,7 +248,10 @@ export const Reports = () => {
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
             <SelectChartsDropdown />
           </div>
-          {/* <button className="btn">Export</button> */}
+
+          <button className="btn" onClick={handleExport}>
+            Export
+          </button>
         </div>
       </div>
 
