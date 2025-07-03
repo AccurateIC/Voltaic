@@ -13,6 +13,7 @@ import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 import React from "react";
 import { FaFilter } from "react-icons/fa6";
+import { saveAs } from "file-saver";
 
 export const Reports = () => {
   // hooks
@@ -215,28 +216,23 @@ export const Reports = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, // e.g., "Asia/Kolkata"
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
+        body: JSON.stringify({
+          properties: selectedCharts,
+        }),
       });
-      if (!response.ok) {
-        throw new Error(`Server error ${response.status}`);
-      }
+
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `neurogen.pdf`); // to download the file
-      document.body.appendChild(link);
-      link.click(); //start download
-      link.parentNode?.removeChild(link);
+      saveAs(blob, "neurogenlocaldfedr.pdf");
     } catch (error) {
       console.error("Failed to export report:", error);
       alert("Failed to export report. Please try again.");
     }
   };
 
-  console.log("timeDuration", timeDuration);
   return (
     <div>
       <div className="p-2">

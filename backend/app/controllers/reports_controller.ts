@@ -373,7 +373,7 @@ export default class ReportsController {
           ]`;
       };
 
-
+      
       const typstDoc =
         typstBase +
         generateAnomalyBarChart(xsl, ysl) +
