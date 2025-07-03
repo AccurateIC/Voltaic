@@ -55,16 +55,10 @@ export const getPropertyStatisticsValidator = vine.compile(
       .string()
       .in(["day", "week", "month", "year"]) // subset of DateTimeUnit
       .transform((value) => value as DateTimeUnit),
-    headers: vine.object({
-      timezone: vine.string().use(timezoneRule()),
-    }),
+    headers: vine.object({ timezone: vine.string().use(timezoneRule()) }),
   })
 );
 
 export const getAnomalyStatisticsValidator = vine.compile(
-  vine.object({
-    headers: vine.object({
-      timezone: vine.string().use(timezoneRule()),
-    }),
-  })
+  vine.object({ headers: vine.object({ timezone: vine.string().use(timezoneRule()) }) })
 );

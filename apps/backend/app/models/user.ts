@@ -5,13 +5,13 @@ import { BaseModel, column, belongsTo, beforeCreate } from "@adonisjs/lucid/orm"
 import { withAuthFinder } from "@adonisjs/auth/mixins/lucid";
 import Role from "#models/role";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
-import { randomUUID } from "node:crypto";
+import { randomUUID, type UUID } from "node:crypto";
 
 const AuthFinder = withAuthFinder(() => hash.use("scrypt"), { uids: ["email"], passwordColumnName: "password" });
 
 export default class User extends compose(BaseModel, AuthFinder) {
   @column({ isPrimary: true })
-  declare id: string;
+  declare id: UUID;
 
   @column()
   declare firstName: string | null;

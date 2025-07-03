@@ -4,16 +4,17 @@ import SensorProperty from "./sensor_property.js";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
 import MaintenanceNotification from "./maintenance_notification.js";
 import PdmDataKind from "./pdm_data_kind.js";
+import { type UUID } from "node:crypto";
 
 export default class Vibration extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare timestamp: DateTime;
 
   @column()
-  declare sensorPropertyId: number;
+  declare sensorPropertyId: UUID;
 
   @belongsTo(() => SensorProperty)
   declare sensorProperty: BelongsTo<typeof SensorProperty>;
@@ -25,13 +26,13 @@ export default class Vibration extends BaseModel {
   declare confidenceScorePercentage: number;
 
   @column()
-  declare maintenanceNotificationId: number;
+  declare maintenanceNotificationId: UUID;
 
   @belongsTo(() => MaintenanceNotification)
   declare maintenanceNotification: BelongsTo<typeof MaintenanceNotification>;
 
   @column()
-  declare pdmDataKindId: number;
+  declare pdmDataKindId: UUID;
 
   @belongsTo(() => PdmDataKind)
   declare pdmDataKind: BelongsTo<typeof PdmDataKind>;

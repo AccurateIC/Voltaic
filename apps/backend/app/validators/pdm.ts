@@ -39,8 +39,6 @@ const DateTimeUnits = ["year", "quarter", "month", "week", "day", "hour", "minut
 export const getPdmStatisticsValidator = vine.compile(
   vine.object({
     timeDuration: vine.string().in(DateTimeUnits),
-    headers: vine.object({
-      timezone: vine.string().use(timezoneRule()),
-    }),
+    headers: vine.object({ timezone: vine.string().use(timezoneRule()) }),
   })
 );

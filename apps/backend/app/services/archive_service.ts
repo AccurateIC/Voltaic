@@ -1,12 +1,13 @@
 import Archive from "#models/archive";
 import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
+import { type UUID } from "node:crypto";
 
 export interface PropertyStatisticsData {
   day?: DayNumbers;
   week?: WeekNumbers;
   month: MonthNumbers;
   year: number;
-  genset_property_id: number;
+  genset_property_id: UUID;
   avg: number;
 }
 
@@ -29,7 +30,10 @@ export class ArchiveService {
       });
   }
 
-  static async getPropertyStatisticsForWeek(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+  static async getPropertyStatisticsForWeek(
+    timezone: string,
+    propertyName: string
+  ): Promise<PropertyStatisticsResponse> {
     const now = DateTime.now().setZone(timezone).toUTC();
     const startOfWeek = now.startOf("week").toJSDate();
     const endOfWeek = now.endOf("week").toJSDate();
@@ -45,16 +49,13 @@ export class ArchiveService {
       .orderBy("genset_property_id", "asc")
       .pojo()) as PropertyStatisticsData[];
 
-    return {
-      meta: {
-        timeDuration: "week",
-        averaged: "daily",
-      },
-      data: statistics,
-    };
+    return { meta: { timeDuration: "week", averaged: "daily" }, data: statistics };
   }
 
-  static async getPropertyStatisticsForMonth(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+  static async getPropertyStatisticsForMonth(
+    timezone: string,
+    propertyName: string
+  ): Promise<PropertyStatisticsResponse> {
     const now = DateTime.now().setZone(timezone).toUTC();
     const startOfMonth = now.startOf("month").toJSDate();
     const endOfMonth = now.endOf("month").toJSDate();
@@ -70,16 +71,13 @@ export class ArchiveService {
       .orderBy("genset_property_id", "asc")
       .pojo();
 
-    return {
-      meta: {
-        timeDuration: "month",
-        averaged: "weekly",
-      },
-      data: statistics as PropertyStatisticsData[],
-    };
+    return { meta: { timeDuration: "month", averaged: "weekly" }, data: statistics as PropertyStatisticsData[] };
   }
 
-  static async getPropertyStatisticsForYear(timezone: string, propertyName: string): Promise<PropertyStatisticsResponse> {
+  static async getPropertyStatisticsForYear(
+    timezone: string,
+    propertyName: string
+  ): Promise<PropertyStatisticsResponse> {
     const now = DateTime.now().setZone(timezone).toUTC();
     const startOfYear = now.startOf("year").toJSDate();
     const endOfYear = now.endOf("year").toJSDate();
@@ -95,13 +93,7 @@ export class ArchiveService {
       .orderBy("genset_property_id", "asc")
       .pojo();
 
-    return {
-      meta: {
-        timeDuration: "year",
-        averaged: "monthly",
-      },
-      data: statistics as PropertyStatisticsData[],
-    };
+    return { meta: { timeDuration: "year", averaged: "monthly" }, data: statistics as PropertyStatisticsData[] };
   }
 
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {

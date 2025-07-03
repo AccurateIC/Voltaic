@@ -1,4 +1,5 @@
 import vine from "@vinejs/vine";
+import { UUID } from "node:crypto";
 
 /**
  * Validator for user creation.
@@ -9,7 +10,10 @@ export const createUserValidator = vine.compile(
     password: vine.string().minLength(5),
     firstName: vine.string().minLength(2),
     lastName: vine.string().optional(),
-    roleId: vine.number(),
+    roleId: vine
+      .string()
+      .uuid({ version: [4] })
+      .transform((value) => value as UUID),
     isActive: vine.boolean(),
   })
 );
@@ -19,10 +23,7 @@ export const createUserValidator = vine.compile(
  */
 
 export const loginValidator = vine.compile(
-  vine.object({
-    email: vine.string().email(),
-    password: vine.string().minLength(5),
-  })
+  vine.object({ email: vine.string().email(), password: vine.string().minLength(5) })
 );
 
 export const updateUserProfileValidator = vine.compile(

@@ -19,6 +19,7 @@ import { Exception } from "@adonisjs/core/exceptions";
 import { errors } from "@vinejs/vine";
 import ValidationException from "#exceptions/validation_exception";
 import { catchErrTyped } from "@voltaic/err";
+import NotificationType from "#models/notification_type";
 
 export default class ArchiveController {
   async getPropertyStatistics({ request }: HttpContext): Promise<PropertyStatisticsResponse> {
@@ -150,6 +151,8 @@ export default class ArchiveController {
     const timestamp = DateTime.fromJSDate(payload.timestamp);
     const data = payload.data;
 
+    const alertNotificationType = await NotificationType.findByOrFail("type", "alert");
+
     // begin db transaction
     const trxResult = await db.transaction(async (trx) => {
       try {
@@ -219,7 +222,7 @@ export default class ArchiveController {
                 message: `Property value: ${archive.propertyValue}${unit}`,
                 archiveId: archive.id,
                 shouldBeDisplayed: true,
-                notificationTypeId: 3,
+                notificationTypeId: alertNotificationType.id,
                 startedAt: timestamp,
                 finishedAt: null,
               });
@@ -294,13 +297,12 @@ export default class ArchiveController {
     }
 
     // Get property-based stats with preloaded relationships
-    const propertyStats = (
-      await Archive.query()
-        .where("isAnomaly", 1)
-        .preload("gensetProperty")
-        .select("gensetPropertyId")
-        .groupBy("gensetPropertyId")
-    ).map((value) => ({
+    const gensetProperty = await Archive.query()
+      .where("isAnomaly", 1)
+      .preload("gensetProperty")
+      .select("gensetPropertyId")
+      .groupBy("gensetPropertyId");
+    const propertyStats = gensetProperty.map((value) => ({
       readablePropertyName: value.gensetProperty.readablePropertyName,
       gensetPropertyId: value.gensetPropertyId,
       propertyName: value.gensetProperty.propertyName,

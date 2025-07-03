@@ -5,11 +5,10 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments("id");
+      table.uuid("id").primary();
       table.timestamp("timestamp").notNullable();
-      table
-        .integer("sensor_property_id")
-        .unsigned()
+      table //
+        .uuid("sensor_property_id")
         .notNullable()
         .references("id")
         .inTable("sensor_properties")
@@ -17,14 +16,13 @@ export default class extends BaseSchema {
       table.float("value");
       table.decimal("confidence_score_percentage");
       table
-        .integer("maintenance_notification_id")
-        .unsigned()
+        .uuid("maintenance_notification_id")
+        .notNullable()
         .references("id")
         .inTable("maintenance_notifications")
         .onDelete("RESTRICT");
-      table
-        .integer("pdm_data_kind_id")
-        .unsigned()
+      table //
+        .uuid("pdm_data_kind_id")
         .notNullable()
         .references("id")
         .inTable("pdm_data_kinds")

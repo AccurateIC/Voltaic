@@ -2,13 +2,13 @@ import User from "#models/user";
 import { BaseModel, beforeCreate, column, hasMany } from "@adonisjs/lucid/orm";
 import type { HasMany } from "@adonisjs/lucid/types/relations";
 import { DateTime } from "luxon";
-import { randomUUID } from "node:crypto";
+import { randomUUID, type UUID } from "node:crypto";
 
 export default class Role extends BaseModel {
   static selfAssignPrimaryKey = true;
 
   @column({ isPrimary: true })
-  declare id: string;
+  declare id: UUID;
 
   @column()
   declare roleName: string;
