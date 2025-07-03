@@ -41,7 +41,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare updatedAt: DateTime;
 
   @beforeCreate()
-  static assignUuid(role: Role) {
-    role.id = randomUUID();
+  static assignUuid(user: User) {
+    user.id = randomUUID();
   }
 }
