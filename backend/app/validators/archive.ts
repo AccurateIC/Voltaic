@@ -48,40 +48,22 @@ export const getPaginatedDataValidator = vine.compile(
   })
 );
 
-// export const getPropertyStatisticsValidator = vine.compile(
-//   vine.object({
-//     // propertyName: vine.string().exists({ table: "genset_properties", column: "property_name" }),
-//     timeDuration: vine
-//       .string()
-//       .in(["day", "week", "month", "year"]) // subset of DateTimeUnit
-//       .transform((value) => value as DateTimeUnit),  //PArams
-
-//     properties: vine.array(vine.string()).optional(), //body
-    
-
-//     headers: vine.object({
-//       timezone: vine.string().use(timezoneRule()),   
-//     }),
-//   })
-// );
-
 export const getPropertyStatisticsValidator = vine.compile(
   vine.object({
-    timeDuration: vine.string().in(["day", "week", "month", "year"]).transform((v) => v as DateTimeUnit),
+    timeDuration: vine
+      .string()
+      .in(["day", "week", "month", "year"])
+      .transform((v) => v as DateTimeUnit),
     properties: vine.array(vine.string()).optional(),
-    Time_Hours: vine.number().optional(),
-    RPM_Deviation_Percentage: vine.number().optional(),
-    Oil_Pressure: vine.number().optional(),
-    Power_Output_kW: vine.number().optional(),
-    Inverse_Fuel_Consumption: vine.number().optional(),
-
+    anomaliesCount: vine.boolean().optional(),
+    anomaliesByProperty: vine.boolean().optional(),
+    pdm: vine.boolean().optional(),
+    rul: vine.boolean().optional(),
     headers: vine.object({
-  timezone: vine.string().use(timezoneRule()),
-}),
-
+      timezone: vine.string().use(timezoneRule()),
+    }),
   })
 );
-
 
 export const getAnomalyStatisticsValidator = vine.compile(
   vine.object({
@@ -90,4 +72,3 @@ export const getAnomalyStatisticsValidator = vine.compile(
     }),
   })
 );
-

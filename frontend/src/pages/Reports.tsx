@@ -220,6 +220,10 @@ export const Reports = () => {
         },
         body: JSON.stringify({
           properties: selectedCharts,
+          anomaliesCount: selectedCharts.includes("anomaliesCount"),
+          anomaliesByProperty: selectedCharts.includes("anomaliesByProperty"),
+          pdm: selectedCharts.includes("pdm"),
+          rul: selectedCharts.includes("rul"),
         }),
       });
 

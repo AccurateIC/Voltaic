@@ -68,9 +68,10 @@ export default class ReportsController {
   async generateDummy({ request, response }: HttpContext) {
     const tmpFile = path.join(__dirname, "report.typ");
     try {
+      const { properties, anomaliesCount, anomaliesByProperty, pdm, rul } = request.body();
       const requestBody = request.body();
       const selectedPropertyNames = requestBody.properties || [];
-      console.log("selectedPropertyNames",selectedPropertyNames);
+
       const propertyStats = (
         await Archive.query()
           .whereHas("gensetProperty", (query) => {
@@ -84,12 +85,9 @@ export default class ReportsController {
         gensetPropertyId: value.gensetPropertyId,
         propertyName: value.gensetProperty.propertyName,
       }));
-     
-      
-      const resultData = await ArchiveService.getPropertyStatistics({ request });
-      // console.log("resultData from getPropertyStaticstics", resultData);
-      const durationTime = resultData?.meta.timeDuration;
 
+      const resultData = await ArchiveService.getPropertyStatistics({ request });
+      const durationTime = resultData?.meta.timeDuration;
       function getWeekRange(week: number, month: number, year: number) {
         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
         return { start, end: start.endOf("week") };
@@ -101,9 +99,7 @@ export default class ReportsController {
         return acc;
       }, {});
 
-
       const generateTypstBarChart = (title: string, xs: object[], ys: object[], durationTime: string) => {
-        // console.log(`Generating chart for ${title}: xs=`, xs, "ys=", ys);
         let granularity = "";
         if (durationTime === "week") {
           granularity = "day";
@@ -177,20 +173,19 @@ export default class ReportsController {
             value: entries,
           });
         }
-        // console.log("entries",entries);
+
         const xs = entries.map(formatLabel);
         const ys = entries.map((entry) => entry.avg);
         const propertyId = Number(propertyIdStr);
         const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
-        
         if (!matched) continue;
+
         const title = matched.readablePropertyName;
         allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime);
       }
 
       const timezone = request.header("timezone");
       const result = await ArchiveService.getAnomalyStatistics(timezone);
-      const overallAnomaly = result.overall;
       const xsl = Object.entries(result.overall).map(([key, _]) => key);
       const ysl = Object.entries(result.overall).map(([_, value]) => value);
 
@@ -236,12 +231,9 @@ export default class ReportsController {
            ]
       )]`;
       };
+
       const propertynm = result.byProperty.map((item) => item.readablePropertyName);
-      const totalAnoamly = result.byProperty.map((item) => item.total);
-      const dataTuple = result.byProperty
-        .filter((prop) => typeof prop.total === "number" && prop.readablePropertyName)
-        .map((prop) => `("${prop.readablePropertyName}", ${prop.total})`)
-        .join(",\n  ");
+      const totalAnomaly = result.byProperty.map((item) => item.total);
 
       const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
         return `
@@ -280,6 +272,7 @@ export default class ReportsController {
          ]
       )]`;
       };
+
       const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
       const counts = pdmData.data.map((entry) => Number(entry.count));
       const xs = pdmData.data.map(formatLabel);
@@ -328,10 +321,6 @@ export default class ReportsController {
       };
 
       const rulPrediction = await RulService.fetchPrediction({ request });
-      // console.log("RUL Prediction result:", rulPrediction);
-      const futurePredictions = rulPrediction.Future_Predictions;
-      // console.log("futurePredictions", futurePredictions);
-
       const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
       const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
       const xs2 = filteredHealthIndexData.map((d) => d.Time_Hours);
@@ -373,18 +362,28 @@ export default class ReportsController {
           ]`;
       };
 
-      
-      const typstDoc =
-        typstBase +
-        generateAnomalyBarChart(xsl, ysl) +
-        generatePropertyAnomalyChart(propertynm, totalAnoamly) +
-        allChartsTypstCode +
-        generatePDMBarChart(xs, counts) +
-        rulLineChart(timeHours, predictiveHealthIndex);
+      let typstDoc = typstBase;
+
+      if (anomaliesCount) {
+        typstDoc += generateAnomalyBarChart(xsl, ysl);
+      }
+
+      if (anomaliesByProperty) {
+        typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
+      }
+
+      if (allChartsTypstCode) typstDoc += allChartsTypstCode;
+
+      if (pdm) {
+        typstDoc += generatePDMBarChart(xs, counts);
+      }
+
+      if (rul) {
+        typstDoc += rulLineChart(timeHours, predictiveHealthIndex);
+      }
 
       await fs.writeFile(tmpFile, typstDoc);
       const pdfBuffer = await compilePdf(tmpFile);
-     
       response.header("Content-Type", "application/pdf");
       response.header("Content-Disposition", "attachment; filename=report.pdf");
       // serve the compiled pdf
