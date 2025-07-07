@@ -18,29 +18,46 @@ const typstBase = `
 // packages
 #import "@preview/lilaq:0.2.0" as lq
 #import "@preview/cetz:0.4.0"
+#import "@preview/cetz:0.2.2"
 #import "@preview/cetz-plot:0.1.2": chart
 
+
+
 #set page(numbering: "1")
+
+#set align(center  ) 
+
+// #align(center, block[
+// #set align(right)
+// = Report Page \
+// dsfdf\dfdf
+// ])
+
+#set page()
 // set doc metadata
-#set document(author: "NeuroGen", title: "NeuroGen Report")
+// #set document(author: "NeuroGen", title: "NeuroGen Report")
 
 // font style
  #set text(font: "New Computer Modern", size: 11pt, lang: "en", ligatures: false)
 
 // page properties
+
 #set page(margin: 0.5in, paper: "a4")
 // Small caps for section titles
-#show heading.where(level: 2): it => [
-  #pad(top: 0pt, bottom: -10pt, [#smallcaps(it.body)])
-  #line(length: 100%, stroke: 0.1pt)
-]
-  = Report Document
+= Generator Report 
+#set heading(numbering: "1.")
+
+// #show heading.where(level: 2): it => [
+//   #pad(top: 0pt, bottom: -10pt, [#(it.body)])
+//   // #line(length: 100%, stroke: 0.1pt)
+// ]
+
+
 // Name will be aligned left, bold and big
-#show heading.where(level: 1): it => [
-  #set align(center)
-  #set text(weight: 500, si: 24pt)
-  #pad([#smallcaps(it.body)])
-]`;
+// #show heading.where(level: 1): it => [
+//   // #set text(weight: 500, size: 18pt)
+//    #pad([#(it.body)])
+// ]`;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
@@ -109,15 +126,15 @@ export default class ReportsController {
           granularity = "month";
         }
         return `
-     
+    
         #box(height: 8cm)[
         #grid(
         columns: (1fr, 1fr),
         inset:20pt,
         
         align(center)[
-        #set align(top + center)
-        *${title}  Monitor*  
+        == *${title}  Monitor* 
+        // #set align(top + center)
         #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
         #let ys = (${ys.join(", ")})
 
@@ -137,8 +154,8 @@ export default class ReportsController {
           ]
         ],
 
-    align(center)[
-      #set text(size: 14pt, weight: 300)
+   [
+     
      Property Name: *${title}*
 
       This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
@@ -191,6 +208,9 @@ export default class ReportsController {
 
       const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
         return `
+        #set align(left)
+  = Anomaly Count 
+
         #box(height: 9cm)[
         #grid(
         columns: (1fr, 1fr),
@@ -198,7 +218,7 @@ export default class ReportsController {
         align: horizon,
           [
           #set align(top + center)
-         == Anomaly count 
+        
 
           #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
           #let ysl = (${ysl.join(", ")})
@@ -237,6 +257,7 @@ export default class ReportsController {
 
       const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
         return `
+        = Anomaly By Property
             #let xsl = (${propertynm.map((v) => `"${v}"`).join(", ")})
             #let ysl = (${totalAnomaly.join(", ")})
             
@@ -247,7 +268,7 @@ export default class ReportsController {
             align: horizon,
             [
             #set align(top + center)
-            == Anomaly By Property
+            
 
             #lq.diagram(
             width: 7cm,
@@ -279,6 +300,7 @@ export default class ReportsController {
 
       const generatePDMBarChart = (xs: object[], counts: object[]) => {
         return `
+        = PDM Notification Graph
            #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
            #let count = (${counts.join(", ")})
            #box(height: 8cm)[
@@ -288,7 +310,7 @@ export default class ReportsController {
            align: horizon,
            [
            #set align(top + center)
-           == PDM Notification Graph
+           
            // #box(width: 50%, height: 5pt)[
            //  #set align(top + left)
            #lq.diagram(
@@ -328,6 +350,7 @@ export default class ReportsController {
 
       const rulLineChart = (timeHours: number[], predictiveHealthIndex: number[]) => {
         return `
+            = RUL Predictions
             #let xs = (${timeHours.join(", ")})
             #let ys = (${predictiveHealthIndex.join(", ")})
             #let xs1 = (${xs2.join(", ")})
@@ -339,7 +362,6 @@ export default class ReportsController {
             align: horizon,
             [
             #set align(top + center)
-            == RUL Predictions
             #lq.diagram(
             width: 7cm,
             height: 6cm,
@@ -372,8 +394,13 @@ export default class ReportsController {
         typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
       }
 
-      if (allChartsTypstCode) typstDoc += allChartsTypstCode;
+const des= ` \n=  GensetProperty Charts;`
 
+      if (allChartsTypstCode)
+        {
+          typstDoc +=des;
+         typstDoc += allChartsTypstCode;
+      }
       if (pdm) {
         typstDoc += generatePDMBarChart(xs, counts);
       }
