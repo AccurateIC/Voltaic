@@ -21,19 +21,24 @@ const typstBase = `
 #import "@preview/cetz:0.2.2"
 #import "@preview/cetz-plot:0.1.2": chart
 
+#set page(
+  margin: (
+    top: 3cm,        // no top margin: header/logo goes right at top
+    bottom: 2cm,
+    x: 1.5cm,
+  ),
+  header: align(right)[
+    #image("logo.png", width: 20%)
+  ],
+  numbering: "1"
+)
 
-
-#set page(numbering: "1")
-
+// Add padding *before* your main content to push it down below the header:
 #set align(center  ) 
+#pad(top: 10cm)[
+  = Generator Report
+]
 
-// #align(center, block[
-// #set align(right)
-// = Report Page \
-// dsfdf\dfdf
-// ])
-
-#set page()
 // set doc metadata
 // #set document(author: "NeuroGen", title: "NeuroGen Report")
 
@@ -53,10 +58,7 @@ const typstBase = `
 // ]
 
 
-// Name will be aligned left, bold and big
-// #show heading.where(level: 1): it => [
-//   // #set text(weight: 500, size: 18pt)
-//    #pad([#(it.body)])
+
 // ]`;
 
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
@@ -127,7 +129,7 @@ export default class ReportsController {
         }
         return `
     
-        #box(height: 8cm)[
+        #box(height: 9cm)[
         #grid(
         columns: (1fr, 1fr),
         inset:20pt,
@@ -211,6 +213,7 @@ export default class ReportsController {
         #set align(left)
   = Anomaly Count 
 
+
         #box(height: 9cm)[
         #grid(
         columns: (1fr, 1fr),
@@ -218,8 +221,6 @@ export default class ReportsController {
         align: horizon,
           [
           #set align(top + center)
-        
-
           #let xsl = (${xsl.map((v) => `"${v}"`).join(", ")})
           #let ysl = (${ysl.join(", ")})
           // #box(width: 50%, height: 5pt)[
@@ -257,11 +258,14 @@ export default class ReportsController {
 
       const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
         return `
+         #set align(left)
         = Anomaly By Property
+
             #let xsl = (${propertynm.map((v) => `"${v}"`).join(", ")})
             #let ysl = (${totalAnomaly.join(", ")})
             
-            #box(height: 8.7cm)[
+
+            #box(height: 9cm)[
             #grid(
             columns: (1fr, 1fr),
             inset: -12pt,
@@ -269,7 +273,7 @@ export default class ReportsController {
             [
             #set align(top + center)
             
-
+#pad(top: 1cm, bottom: 1cm)[
             #lq.diagram(
             width: 7cm,
             height: 6cm,
@@ -277,7 +281,7 @@ export default class ReportsController {
             ticks: xsl.map(rotate.with(-45deg, reflow: true)).map(align.with(right)).enumerate(),
             ),
             lq.bar(range(${totalAnomaly.length}), ysl)
-            )
+      )]
            ],
            align(center)[
            #box(inset: (bottom: 90pt, right: 70pt))[
