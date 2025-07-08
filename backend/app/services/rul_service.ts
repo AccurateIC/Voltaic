@@ -1,10 +1,10 @@
 
 import { getRulPrediction } from "../utils/rul_api.js"; // path to your fetch logic (make sure it's correct!)
-import { getPropertyStatisticsValidator } from "#validators/archive";
+import { propertyStatsValidator } from "#validators/archive";
 
 export class RulService {
   static async fetchPrediction({ request }: HttpContext) {
-    const data = await request.validateUsing(getPropertyStatisticsValidator);
+    const data = await request.validateUsing(propertyStatsValidator);
     
     const service = {
       Time_Hours: 210,

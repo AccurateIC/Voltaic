@@ -13,92 +13,23 @@ import type { HttpContext } from "@adonisjs/core/http";
 import transmit from "@adonisjs/transmit/services/main";
 import db from "@adonisjs/lucid/services/db";
 import PhysicalQuantity from "#models/physical_quantity";
-import { DateTime, DateTimeUnit } from "luxon";
-import { ArchiveService } from "#services/archive_service";
+import { DateTime } from "luxon";
+import { ArchiveService, PropertyStatisticsResponse } from "#services/archive_service";
+import { Exception } from "@adonisjs/core/exceptions";
 
 export default class ArchiveController {
-  async getPropertyStatistics({ request }: HttpContext) {
+  async getPropertyStatistics({ request }: HttpContext): Promise<PropertyStatisticsResponse> {
     const data = await request.validateUsing(getPropertyStatisticsValidator);
-    const timezone: string = data.headers.timezone;
-    const timeDuration: DateTimeUnit = data.timeDuration;
-    const now = DateTime.now().setZone(timezone).toUTC();
-    const startOfDuration = now.startOf(timeDuration);
-    const endOfDuration = now.endOf(timeDuration);
-
-    let responseData;
-
-    switch (timeDuration) {
-      case "day": // show data averaged hourly
-        // not implemented
-        break;
+    switch (data.timeDuration) {
       case "week": // show data averaged daily
-        responseData = await Archive.query() //
-          .select("day", "month", "year", "genset_property_id")
-          // .whereHas("gensetProperty", (propertyQuery) => {
-          //   propertyQuery.where("propertyName", data.propertyName);
-          // })
-          .whereBetween("timestamp", [startOfDuration, endOfDuration])
-          .avg("property_value")
-          .groupBy("day", "month", "year", "genset_property_id")
-          .orderBy("genset_property_id", "asc")
-          .pojo();
-
-        responseData = {
-          meta: {
-            timeDuration,
-            averaged: "daily",
-          },
-          data: responseData,
-        };
-
-        break;
+        return ArchiveService.getPropertyStatisticsForWeek(data.headers.timezone, data.propertyName);
       case "month": // show data averaged weekly
-        responseData = await Archive.query() //
-          .select("week", "month", "year", "genset_property_id")
-          // .whereHas("gensetProperty", (propertyQuery) => {
-          //   propertyQuery.where("propertyName", data.propertyName);
-          // })
-          .whereBetween("timestamp", [startOfDuration, endOfDuration])
-          .avg("property_value")
-          .groupBy("week", "month", "year", "genset_property_id")
-          .orderBy("genset_property_id", "asc")
-          .pojo();
-
-        responseData = {
-          meta: {
-            timeDuration,
-            averaged: "daily",
-          },
-          data: responseData,
-        };
-
-        break;
+        return ArchiveService.getPropertyStatisticsForMonth(data.headers.timezone, data.propertyName);
       case "year": // show data averaged monthly
-        responseData = await Archive.query() //
-          .select("month", "year", "genset_property_id")
-          // .whereHas("gensetProperty", (propertyQuery) => {
-          //   propertyQuery.where("propertyName", data.propertyName);
-          // })
-          .whereBetween("timestamp", [startOfDuration, endOfDuration])
-          .avg("property_value")
-          .groupBy("month", "year", "genset_property_id")
-          .orderBy("genset_property_id", "asc")
-          .pojo();
-
-        responseData = {
-          meta: {
-            timeDuration,
-            averaged: "daily",
-          },
-          data: responseData,
-        };
-
-        break;
+        return ArchiveService.getPropertyStatisticsForYear(data.headers.timezone, data.propertyName);
       default:
-        break;
+        throw new Exception("Unexpected Branch", { status: 500 });
     }
-
-    return responseData;
   }
 
   async getAll({}: HttpContext) {
@@ -126,8 +57,9 @@ export default class ArchiveController {
 
     // filter property name
     if (requestData?.propertyNames && requestData.propertyNames.length > 0) {
+      const propertyNames = requestData.propertyNames;
       archiveQuery.whereHas("gensetProperty", (propertyQuery) => {
-        propertyQuery.whereIn("propertyName", requestData.propertyNames);
+        propertyQuery.whereIn("propertyName", propertyNames);
       });
     }
 
@@ -176,9 +108,10 @@ export default class ArchiveController {
     }
 
     // filter by property names
-    if (data?.properties && data.properties.length > 0) {
+    if (data?.properties) {
+      const propertyNames = data.properties;
       query.whereHas("gensetProperty", (propertyQuery) => {
-        propertyQuery.whereIn("propertyName", data.properties);
+        propertyQuery.whereIn("propertyName", propertyNames);
       });
     }
 
@@ -325,95 +258,11 @@ export default class ArchiveController {
     return trxResult;
   }
 
-  /*
-   * in input i need the time range for which i need to return counts
-   *
-   * so input may be like: {
-   *  timeDuration: "" // options: "*" | "1d" | "1w" | "1m";
-   *  selectedProperties: [] // array of properties to be included in count
-   * }
-   *
-   * case *:
-   * i need to return counts grouped by month
-   * so count in Dec 2024, Jan 2025, Feb 2025
-   *
-   * case 1d:
-   * this is simple
-   * i need to count anomalies today for selected properties
-   *
-   * case 1w:
-   * i need to find all the dates in current week
-   * for instance may 7 2025 is a wednesday
-   * so days in current week are:
-   * mon: 5/5/2025
-   * tue: 6/5/2025
-   * wed: 7/5/2025
-   * thu: 8/5/2025
-   * fri: 9/5/2025
-   * sat: 10/5/2025
-   * sun: 11/5/2025
-   *
-   * so we need to return counts grouped by these dates in the user's timezone
-   * and also filtered by selected properties
-   *
-   *
-   * case 1m:
-   * i need to find all weeks in the month
-   * so
-   * week 1: thu 1 may to sun 11 may
-   * week 2: mon 12 may to sun 18 may
-   * week 3: mon 19 may to sun 25 may
-   * week 4: mon 26 may to sat 31 may
-   *
-   * and i need to return counts for these dates in the user's timezone
-   * and also filter by properties
-   *
-   * */
-  async getAnomalyCountsByTimeRange({ request, response }: HttpContext) {
-    // Get timezone from request
-    const timezone = request.header("timezone");
-    if (!timezone) {
-      return response.status(400).json({
-        error: "Timezone header is required",
-        message: "Please provide a valid IANA timezone identifier in the request headers",
-      });
-    }
-
-    // Validate timezone using Luxon
-    try {
-      const now = DateTime.now().setZone(timezone);
-      if (!now.isValid) {
-        return response.status(400).json({
-          error: "Invalid timezone",
-          message: `'${timezone}' is not a valid IANA timezone identifier`,
-          details: now.invalidReason,
-        });
-      }
-    } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
-      });
-    }
-
-    const requestBody = request.body();
-    const timeDuration = requestBody?.timeDuration;
-    const selectedProperties = requestBody?.selectedProperties;
-  }
-
   async getAnomalyStatistics({ request, response }: HttpContext) {
-    const data = request.validateUsing(getAnomalyStatisticsValidator);
-    // Get timezone from request
-    const timezone = request.header("timezone");
-    if (!timezone) {
-      return response.status(400).json({
-        error: "Timezone header is required",
-        message: "Please provide a valid IANA timezone identifier in the request headers",
-      });
-    }
+    const data = await request.validateUsing(getAnomalyStatisticsValidator);
+    const timezone = data.headers.timezone;
 
-    // Validate timezone using Luxon
+    // check if timezone str is a valid IANA timezone identifier
     try {
       const now = DateTime.now().setZone(timezone);
       if (!now.isValid) {
@@ -443,8 +292,6 @@ export default class ArchiveController {
       gensetPropertyId: value.gensetPropertyId,
       propertyName: value.gensetProperty.propertyName,
     }));
-
-    console.log(propertyStats);
 
     // Get counts for each time period by property
     const propertyStatsByTime = await Promise.all(
@@ -490,7 +337,7 @@ export default class ArchiveController {
   }
 
   async deleteAll({}: HttpContext) {
-    const notifications = await Notification.query().delete();
+    await Notification.query().delete();
     const archive = await Archive.query().delete();
     return archive;
   }

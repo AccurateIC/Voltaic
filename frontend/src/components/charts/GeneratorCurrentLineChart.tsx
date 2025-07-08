@@ -65,7 +65,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
   const l2Data = value.map((item) => ({ x: item.timestamp, y: item.L2 }));
   const l3Data = value.map((item) => ({ x: item.timestamp, y: item.L3 }));
 
-  console.log("LLLLLL", l1Data, l2Data, l3Data);
+  // console.log("LLLLLL", l1Data, l2Data, l3Data);
 
   const data: ChartData<"line"> = {
     datasets: [
