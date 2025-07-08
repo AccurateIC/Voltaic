@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{BASE_URL}}/reports/generateDummy?timeDuration=year
+  url: {{BASE_URL}}/reports/generateDummy?timeDuration=month
   body: json
   auth: inherit
 }
 
 params:query {
-  timeDuration: year
+  timeDuration: month
 }
 
 headers {
@@ -20,13 +20,11 @@ headers {
 
 body:json {
   {
-    "timeDuration": "week",
-    "properties": ["engFuelLevelUnits", "engSpeedDisplay"],
-    "Time_Hours": 210,
-    "RPM_Deviation_Percentage": 0.067,
-    "Oil_Pressure": 1.88,
-    "Power_Output_kW": 0.924,
-    "Inverse_Fuel_Consumption": 0.825
+    "properties": [ "engChargeAltVolts", "genTotalVA", "engTemp"],
+    "anomaliesCount": true,
+    "anomaliesByProperty": true,
+    "pdm": false,
+    "rul": false
   }
   
 }
