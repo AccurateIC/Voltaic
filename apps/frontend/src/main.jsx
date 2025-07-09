@@ -7,7 +7,7 @@ import AnomaliesOld from "./pages/AnomaliesOld.jsx";
 import { LiveData } from "./pages/LiveData.jsx";
 import Maintenance from "./pages/Maintenance.js";
 import { Generator } from "./pages/Generator.tsx";
-import { Mains } from "./pages/Mains.jsx";
+import { Mains } from "./pages/Mains.tsx";
 import Alarms from "./pages/Alarms.jsx";
 import Archive from "./pages/Archive.js";
 import ProfilePage from "./pages/ProfilePage.jsx";
