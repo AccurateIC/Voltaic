@@ -128,46 +128,106 @@ export default class ReportsController {
           granularity = "month";
         }
         return `
-    
-        #box(height: 9cm)[
-        #grid(
-        columns: (1fr, 1fr),
-        inset:20pt,
-        
-        align(center)[
-        == *${title}  Monitor* 
-        // #set align(top + center)
-        #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
-        #let ys = (${ys.join(", ")})
 
-        #box(width: 80%, height: 160pt)[
-        #lq.diagram(
-        width: 7cm,
-        height: 6cm,
-        legend: (position: left + top),
-        xaxis: (
-          ticks: xs
-              .map(rotate.with(-45deg, reflow: true))
-              .map(align.with(right))
-              .enumerate(),
-            ),
-            lq.bar(range(${ys.length}), ys, label: ["${title}"], width: 0.7)
-            )
-          ]
-        ],
+            #box(height: 9cm)[
+            #grid(
+            columns: (1fr, 1fr),
+            inset:20pt,
 
-   [
-     
-     Property Name: *${title}*
+            align(center)[
+            == *${title}  Monitor*
+            // #set align(top + center)
+            #let xs = (${xs.map((v) => `"${v}"`).join(", ")})
+            #let ys = (${ys.join(", ")})
 
-      This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
-      
-    ]
-      )]
-     
+            #box(width: 80%, height: 160pt)[
+            #lq.diagram(
+            width: 7cm,
+            height: 6cm,
+            legend: (position: left + top),
+            xaxis: (
+              ticks: xs
+                  .map(rotate.with(-45deg, reflow: true))
+                  .map(align.with(right))
+                  .enumerate(),
+                ),
+                lq.bar(range(${ys.length}), ys, label: ["${title}"], width: 0.7)
+                )
+              ]
+            ],
 
-  `;
+       [
+
+         Property Name: *${title}*
+
+          This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
+
+        ]
+          )]
+
+      `;
       };
+
+      //   const generateTypstBarChart = (
+      //   title: string,
+      //   xs: string[],
+      //   ys: number[],
+      //   durationTime: string
+      // ): string => {
+      //   if (xs.length !== ys.length) return "";
+
+      //   const granularity =
+      //     durationTime === "week"
+      //       ? "day"
+      //       : durationTime === "month"
+      //       ? "week"
+      //       : durationTime === "year"
+      //       ? "month"
+      //       : durationTime;
+
+      //   // 👇 Convert to Typst element sequence with trailing comma
+      //   const xsTypst = `(${xs.map((v) => `"${v}"`).join(", ")},)`;
+      //   const ysTypst = `(${ys.join(", ")},)`;
+
+      //   return `
+      // #box(height: 9cm)[
+      //   #grid(
+      //     columns: (1fr, 1fr),
+      //     inset: 20pt,
+
+      //     align(center)[
+      //       == *${title} Monitor*
+      //       #let xs = ${xsTypst}
+      //       #let ys = ${ysTypst}
+
+      //       #box(width: 80%, height: 160pt)[
+      //         #lq.diagram(
+      //           width: 7cm,
+      //           height: 6cm,
+      //           legend: (position: left + top),
+      //          xaxis: (
+      //   ticks: (
+      //     ticks: range(xs.len()),
+      //     labels: xs
+      //       .map(rotate.with(-45deg, reflow: true))
+      //       .map(align.with(right)),
+      //   ),
+      // ),
+
+      //           lq.bar(range(ys.len()), ys, label: ["${title}"], width: 0.7)
+      //         )
+      //       ]
+      //     ],
+
+      //     [
+      //       Property Name: *${title}*
+
+      //       This chart shows the average ${title} values recorded for the ${durationTime} duration by each ${granularity} average data.
+      //     ]
+      //   )
+      // ]
+      // `;
+      // };
 
       function formatLabel(entry: any): string {
         switch (durationTime) {
@@ -398,12 +458,11 @@ export default class ReportsController {
         typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
       }
 
-const des= ` \n=  GensetProperty Charts;`
+      const des = ` \n=  GensetProperty Charts;`;
 
-      if (allChartsTypstCode)
-        {
-          typstDoc +=des;
-         typstDoc += allChartsTypstCode;
+      if (allChartsTypstCode) {
+        typstDoc += des;
+        typstDoc += allChartsTypstCode;
       }
       if (pdm) {
         typstDoc += generatePDMBarChart(xs, counts);

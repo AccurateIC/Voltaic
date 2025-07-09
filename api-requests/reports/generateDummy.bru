@@ -5,13 +5,13 @@ meta {
 }
 
 post {
-  url: {{BASE_URL}}/reports/generateDummy?timeDuration=month
+  url: {{BASE_URL}}/reports/generateDummy?timeDuration=week
   body: json
   auth: inherit
 }
 
 params:query {
-  timeDuration: month
+  timeDuration: week
 }
 
 headers {
