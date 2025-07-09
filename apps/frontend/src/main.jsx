@@ -6,7 +6,7 @@ import Layout from "./components/Layout.jsx";
 import AnomaliesOld from "./pages/AnomaliesOld.jsx";
 import { LiveData } from "./pages/LiveData.jsx";
 import Maintenance from "./pages/Maintenance.js";
-import { Generator } from "./pages/Generator.jsx";
+import { Generator } from "./pages/Generator.tsx";
 import { Mains } from "./pages/Mains.jsx";
 import Alarms from "./pages/Alarms.jsx";
 import Archive from "./pages/Archive.js";
