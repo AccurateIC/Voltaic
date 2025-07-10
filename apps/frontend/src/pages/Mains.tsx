@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { useMessageBus } from "../lib/MessageBus.ts";
-import { VoltageStatCard } from "../components/VoltageStatCard.tsx";
-import { ROUTES } from "../config/backend.ts";
+import { useMessageBus } from "../lib/MessageBus.js";
+import { VoltageStatCard } from "../components/VoltageStatCard.js";
+import { ROUTES } from "../config/backend.js";
+import Archive from "../../../backend/app/models/archive.js";
+import { tuyau } from "../lib/Tuyau.js";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
@@ -44,6 +46,10 @@ const SemiCircularStatCard = ({ value, maxValue, title, units, color }) => {
 };
 
 export const Mains = () => {
+    const [archiveData, setArchiveData] = useState<Archive[]>([]);
+     const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<Object>({});
+
   const [stats, setStats] = useState({
     mainsl1Voltage: 0,
     mainsl2Voltage: 0,
@@ -53,43 +59,55 @@ export const Mains = () => {
     mainsl3Current: 0,
   });
 
-  useMessageBus("archive", (msg) => {
+  const getData = async (
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+      setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
+      setIsError: React.Dispatch<React.SetStateAction<Object>>
+  ) => {
+    setIsLoading(true);
+     const { data, error } = await tuyau.archive.getLatest.$get();
+     if (error) {
+       setArchiveData([]);
+       setIsError(error.value);
+       throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
+     }
+     setArchiveData(data);
+     setIsLoading(false);
+  };
+
+
+  useEffect(() => {
+    console.log("Engine page mount effect running");
+    (async () => {
+      await getData(setIsLoading, setArchiveData, setIsError);
+    })();
+  }, []);
+
+  useEffect(() => {
+      if (!archiveData.length) return;
+      const getVal = (name) => archiveData.find((item) => item.gensetProperty.propertyName === name)?.propertyValue || 0;
+      setStats({
+        mainsl1Voltage: getVal("mainsL1Volts"),
+        mainsl2Voltage: getVal("mainsL2Volts"),
+        mainsl3Voltage: getVal("mainsL3Volts"),
+        mainsl1Current: getVal("mainsL1Current"),
+        mainsl2Current: getVal("mainsL2Current"),
+        mainsl3Current: getVal("mainsL3Current"),
+      });
+    }, [archiveData]);
+
+
+  useEffect(() => {
+    console.log(archiveData);
+  }, [archiveData]);
+
+
+ useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
       await getData();
     })();
   });
-
-  const getData = async () => {
-    try {
-      const response = await fetch(ROUTES.ARCHIVE_GET_LATEST, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        setStats({
-          mainsl1Voltage: data.filter((item) => item.gensetProperty.propertyName === "mainsL1Volts")[0].propertyValue,
-          mainsl2Voltage: data.filter((item) => item.gensetProperty.propertyName === "mainsL2Volts")[0].propertyValue,
-          mainsl3Voltage: data.filter((item) => item.gensetProperty.propertyName === "mainsL3Volts")[0].propertyValue,
-          mainsl1Current: data.filter((item) => item.gensetProperty.propertyName === "mainsL1Current")[0].propertyValue,
-          mainsl2Current: data.filter((item) => item.gensetProperty.propertyName === "mainsL2Current")[0].propertyValue,
-          mainsl3Current: data.filter((item) => item.gensetProperty.propertyName === "mainsL3Current")[0].propertyValue,
-        });
-      }
-    } catch (error) {
-      console.log("Error fetching notifications", error);
-    }
-  };
-
-  useEffect(() => {
-    console.log("Engine page mount effect running");
-    (async () => {
-      await getData();
-    })();
-  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
