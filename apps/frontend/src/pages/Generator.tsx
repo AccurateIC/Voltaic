@@ -16,29 +16,36 @@ export const Generator = () => {
   });
   const [archiveData, setArchiveData] = useState<Archive[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<Object>({});
+  const [error, setError] = useState<string | null>(null);
 
   const getData = async (
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-    setIsError: React.Dispatch<React.SetStateAction<Object>>
+    setError: React.Dispatch<React.SetStateAction<string | null>>
   ) => {
-    setIsLoading(true);
-    const { data, error } = await tuyau.archive.getLatest.$get();
-    console.log("data", data);
-    if (error) {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data, error } = await tuyau.archive.getLatest.$get();
+      
+      if (error) {
+        setArchiveData([]);
+        setError('Unable to load data. Please try again later.');
+        return;
+      }
+      setArchiveData(data);
+    } catch (err) {
+      setError('Unable to load data. Please try again later.');
       setArchiveData([]);
-      setIsError(error.value);
-      throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
+    } finally {
+      setIsLoading(false);
     }
-    setArchiveData(data);
-    setIsLoading(false);
   };
 
   useEffect(() => {
-    console.log("Generator page mount effect running");
+    // Load initial data
     (async () => {
-      await getData(setIsLoading, setArchiveData, setIsError);
+      await getData(setIsLoading, setArchiveData, setError);
     })();
   }, []);
 
@@ -55,19 +62,20 @@ export const Generator = () => {
     });
   }, [archiveData]);
 
-  useEffect(() => {
-    console.log(archiveData);
-  }, [archiveData]);
 
   useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    // Update data when new archive message received
     (async () => {
-      await getData(setIsLoading, setArchiveData, setIsError);
+      await getData(setIsLoading, setArchiveData, setError);
     })();
   });
 
   if (isLoading) {
-    return <div>Loading...</div>; // You can use a Skeleton here if you want
+    return <div className="flex justify-center items-center h-full">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-full text-red-500">Unable to load data. Please try again later.</div>;
   }
 
   return (

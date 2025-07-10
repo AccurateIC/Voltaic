@@ -16,14 +16,6 @@ import Archive from "../../../backend/app/models/archive";
 import { catchErrTyped, ExternalServerError, Result } from "@voltaic/err";
 
 const EngineRPM = ({ engineRpmDetails }) => {
-  // useEffect(() => {
-  //   (async function () {
-  //     const { data, error } = await tuyau.auth.getAll.$get();
-  //     if (error?.status || data === null) return;
-  //     const emails = data.map((user) => user.email);
-  //     console.log("5684684684646", emails);
-  //   })();
-  // }, []);
   console.log(engineRpmDetails);
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;

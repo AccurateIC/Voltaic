@@ -48,7 +48,7 @@ const SemiCircularStatCard = ({ value, maxValue, title, units, color }) => {
 export const Mains = () => {
     const [archiveData, setArchiveData] = useState<Archive[]>([]);
      const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<Object>({});
+  const [error, setError] = useState<string | null>(null);
 
   const [stats, setStats] = useState({
     mainsl1Voltage: 0,
@@ -61,25 +61,33 @@ export const Mains = () => {
 
   const getData = async (
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-      setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-      setIsError: React.Dispatch<React.SetStateAction<Object>>
+    setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>
   ) => {
-    setIsLoading(true);
-     const { data, error } = await tuyau.archive.getLatest.$get();
-     if (error) {
-       setArchiveData([]);
-       setIsError(error.value);
-       throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
-     }
-     setArchiveData(data);
-     setIsLoading(false);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { data, error } = await tuyau.archive.getLatest.$get();
+      
+      if (error) {
+        setArchiveData([]);
+        setError('Unable to load data. Please try again later.');
+        return;
+      }
+      setArchiveData(data);
+    } catch (err) {
+      setError('Unable to load data. Please try again later.');
+      setArchiveData([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
   useEffect(() => {
-    console.log("Engine page mount effect running");
+    // Load initial data
     (async () => {
-      await getData(setIsLoading, setArchiveData, setIsError);
+      await getData(setIsLoading, setArchiveData, setError);
     })();
   }, []);
 
@@ -97,26 +105,31 @@ export const Mains = () => {
     }, [archiveData]);
 
 
-  useEffect(() => {
-    console.log(archiveData);
-  }, [archiveData]);
 
 
  useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
+    // Update data when new archive message received
     (async () => {
-      await getData();
+      await getData(setIsLoading, setArchiveData, setError);
     })();
   });
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-full">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex justify-center items-center h-full text-red-500">Unable to load data. Please try again later.</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
       <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl1Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl2Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl3Voltage} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl1Current} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl2Current} />
-      <VoltageStatCard kind="current" name={"Mains L1 Voltage"} value={stats.mainsl3Current} />
+      <VoltageStatCard kind="voltage" name={"Mains L2 Voltage"} value={stats.mainsl2Voltage} />
+      <VoltageStatCard kind="voltage" name={"Mains L3 Voltage"} value={stats.mainsl3Voltage} />
+      <VoltageStatCard kind="current" name={"Mains L1 Current"} value={stats.mainsl1Current} />
+      <VoltageStatCard kind="current" name={"Mains L2 Current"} value={stats.mainsl2Current} />
+      <VoltageStatCard kind="current" name={"Mains L3 Current"} value={stats.mainsl3Current} />
     </div>
   );
 };

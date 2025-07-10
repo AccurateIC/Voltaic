@@ -47,20 +47,12 @@ export const MainsVoltageStatistics = ({ chartData }) => {
         type: "timeseries",
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { autoSkip: false, color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
-        title: {
-          display: true,
-          text: "Time ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
       },
       y: {
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
-        title: {
-          display: true,
-          text: "Voltage (V) ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Voltage (V) ⟶", font: { size: 18, weight: "normal" } },
       },
     },
   };
@@ -72,10 +64,7 @@ export const MainsVoltageStatistics = ({ chartData }) => {
         label: "Mains L1 Volts",
         data: chartData
           .filter((value) => value.gensetProperty.propertyName === "mainsL1Volts")
-          .map((value) => ({
-            x: DateTime.fromISO(value.timestamp).toJSDate(),
-            y: value.propertyValue,
-          })),
+          .map((value) => ({ x: DateTime.fromISO(value.timestamp).toJSDate(), y: value.propertyValue })),
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
       },
@@ -84,10 +73,7 @@ export const MainsVoltageStatistics = ({ chartData }) => {
         label: "Mains L2 Volts",
         data: chartData
           .filter((value) => value.gensetProperty.propertyName === "mainsL2Volts")
-          .map((value) => ({
-            x: DateTime.fromISO(value.timestamp).toJSDate(),
-            y: value.propertyValue,
-          })),
+          .map((value) => ({ x: DateTime.fromISO(value.timestamp).toJSDate(), y: value.propertyValue })),
         borderColor: "rgba(209, 120, 82, 1)",
         backgroundColor: "rgba(209, 120, 82, 0.5)",
       },
@@ -96,10 +82,7 @@ export const MainsVoltageStatistics = ({ chartData }) => {
         label: "Mains L3 Volts",
         data: chartData
           .filter((value) => value.gensetProperty.propertyName === "mainsL3Volts")
-          .map((value) => ({
-            x: DateTime.fromISO(value.timestamp).toJSDate(),
-            y: value.propertyValue,
-          })),
+          .map((value) => ({ x: DateTime.fromISO(value.timestamp).toJSDate(), y: value.propertyValue })),
         borderColor: "rgba(82, 209, 120, 1)",
         backgroundColor: "rgba(82, 209, 120, 0.5)",
       },
