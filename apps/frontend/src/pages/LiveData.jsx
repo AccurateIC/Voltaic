@@ -9,7 +9,7 @@ import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart.tsx";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal.tsx";
-import { ROUTES } from "../config/backend.ts";
+import { tuyau } from "../lib/Tuyau";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -168,13 +168,10 @@ export const LiveData = () => {
     // const { from, to } = calculateTimeRange(selectedTimeRange);
 
     try {
-      const response = await fetch(ROUTES.ARCHIVE_GET_DATA_BETWEEN + `?from=${from}&to=${to}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      const { data, error } = await tuyau.archive.getBetween.$get({
+        query: { from, to }
       });
-      const data = await response.json();
-      if (response.ok) {
+      if (!error) {
         const l1Voltage = generateEmptyDataPoints(
           data
             .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
@@ -303,12 +300,11 @@ export const LiveData = () => {
       console.log("Error fetching data", error);
     }
     try {
-      const pdmResponse = await fetch(ROUTES.PDM_GET_RECENT_ACTUAL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await pdmResponse.json();
+      const { data, error } = await tuyau.pdm.getRecentActual.$get();
+      if (error) {
+        console.log("Error fetching PDM data", error);
+        return;
+      }
       setPdmData(data);
     } catch (error) {
       console.log("Error fetching data", error);

@@ -1,16 +1,36 @@
+import { UUID } from "node:crypto";
 import { useArchive } from "../../hooks/useArchive";
 import { StatCard } from "./StatCard";
 
-export const StatGroup = () => {
-  const { getAnomalyStatistics } = useArchive();
-  const { data, isLoading, isError } = getAnomalyStatistics;
+export const StatGroup = ({
+  overallStatistics,
+  isLoading,
+}: {
+  overallStatistics: {
+    timezone: string;
+    overall: { today: number; week: number; month: number; year: number; total: number };
+    byProperty: {
+      today: number;
+      week: number;
+      month: number;
+      year: number;
+      total: number;
+      readablePropertyName: string;
+      gensetPropertyId: UUID;
+      propertyName: string;
+    }[];
+  };
+  isLoading: boolean;
+}) => {
+  // const { getAnomalyStatistics } = useArchive();
+  // const { data, isLoading, isError } = getAnomalyStatistics;
 
   return (
     <div className="w-full grid sm:grid-cols-4 grid-cols-2">
-      <StatCard title={"Daily Anomalies"} data={data?.overall.today} isLoading={isLoading} isError={isError} />
-      <StatCard title={"Weekly Anomalies"} data={data?.overall.week} isLoading={isLoading} isError={isError} />
-      <StatCard title={"Monthly Anomalies"} data={data?.overall.month} isLoading={isLoading} isError={isError} />
-      <StatCard title={"Total Anomalies"} data={data?.overall.total} isLoading={isLoading} isError={isError} />
+      <StatCard title={"Daily Anomalies"} data={overallStatistics?.overall.today} isLoading={isLoading} />
+      <StatCard title={"Weekly Anomalies"} data={overallStatistics?.overall.week} isLoading={isLoading} />
+      <StatCard title={"Monthly Anomalies"} data={overallStatistics?.overall.month} isLoading={isLoading} />
+      <StatCard title={"Total Anomalies"} data={overallStatistics?.overall.total} isLoading={isLoading} />
     </div>
   );
 };

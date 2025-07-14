@@ -1,32 +1,35 @@
 // frontend/src/components/charts/reports/AllAnomaliesCount.tsx
+import { useQuery } from "@tanstack/react-query";
 import {
   Chart as ChartJS,
   ChartData,
   ChartOptions,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
   Colors,
 } from "chart.js";
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Colors);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors);
 import { Bar } from "react-chartjs-2";
-import { useArchive } from "../../../hooks/useArchive";
+import { tuyau } from "../../../lib/Tuyau";
 
 export const AllAnomaliesCount = () => {
   //hooks
-  const { getAnomalyStatistics } = useArchive();
-  const { data, isPending, isError } = getAnomalyStatistics;
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["archive", "get-anomaly-statistics"],
+    queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(),
+  });
 
-  if (isPending) return <div className="skeleton h-full w-full"></div>;
-  if (isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
+  if (isLoading) return <div className="skeleton h-full w-full"></div>;
+  if (isError || !data || !data.overall)
+    return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
   console.log(data.overall);
   const xs = Object.keys(data.overall);
-  const ys = Object.values(data.overall);
+  const ys = Object.values(data.overall) as number[];
 
   const chartData: ChartData<"bar"> = {
     labels: xs,

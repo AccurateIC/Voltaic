@@ -1,18 +1,19 @@
-import { useAnomalyNotification } from "../../hooks/useAnomalyNotification";
+import { useQuery } from "@tanstack/react-query";
+import { tuyau } from "../../lib/Tuyau";
 
 export const AnomalyNotificationTable = () => {
-  const { getAllAnomalies } = useAnomalyNotification();
+  const { data, isLoading, isError } = useQuery({ queryKey: [], queryFn: () => tuyau.notification.getAll.$get() });
 
   return (
     <>
       {/* Table Loading State */}
-      {getAllAnomalies.isLoading && (
+      {isLoading && (
         <div className="h-full flex items-center justify-center">
           <span className="loading loading-spinner loading-xl"></span>
         </div>
       )}
       {/* Table Error State */}
-      {getAllAnomalies.isError && <div className="h-full flex items-center justify-center">Failed to fetch anomalies</div>}
+      {isError && <div className="h-full flex items-center justify-center">Failed to fetch anomalies</div>}
 
       {/* Table */}
       <div className="overflow-y-auto flex-1 rounded-lg">
@@ -27,9 +28,9 @@ export const AnomalyNotificationTable = () => {
             </tr>
           </thead>
           <tbody className="">
-            {!getAllAnomalies.isError &&
-              getAllAnomalies?.data &&
-              getAllAnomalies.data.map((entry, index) => (
+            {!isError &&
+              data &&
+              data.map((entry, index) => (
                 <tr key={index} className="hover:bg-base-300 duration-200 transition-all">
                   <td>{entry.id}</td>
                   <td>{entry.startedAt}</td>

@@ -12,13 +12,13 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^24.0.4
-        version: 24.0.12
+        specifier: ^24.0.13
+        version: 24.0.13
       prettier:
-        specifier: ^3.6.0
+        specifier: ^3.6.2
         version: 3.6.2
       typescript:
-        specifier: ~5.8
+        specifier: ~5.8.3
         version: 5.8.3
 
   apps/backend:
@@ -139,11 +139,8 @@ importers:
         specifier: ^4.1.10
         version: 4.1.11(vite@6.3.5(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1))
       '@tanstack/react-query':
-        specifier: ^5.80.7
-        version: 5.82.0(react@19.1.0)
-      '@tanstack/react-query-devtools':
-        specifier: ^5.80.7
-        version: 5.82.0(@tanstack/react-query@5.82.0(react@19.1.0))(react@19.1.0)
+        specifier: ^5.83.0
+        version: 5.83.0(react@19.1.0)
       '@tuyau/client':
         specifier: ^0.2.9
         version: 0.2.10
@@ -217,9 +214,6 @@ importers:
       '@eslint/js':
         specifier: ^9.29.0
         version: 9.30.1
-      '@tanstack/eslint-plugin-query':
-        specifier: ^5.78.0
-        version: 5.81.2(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3)
       '@types/luxon':
         specifier: ^3.6.2
         version: 3.6.2
@@ -1370,25 +1364,11 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
-  '@tanstack/eslint-plugin-query@5.81.2':
-    resolution: {integrity: sha512-h4k6P6fm5VhKP5NkK+0TTVpGGyKQdx6tk7NYYG7J7PkSu7ClpLgBihw7yzK8N3n5zPaF3IMyErxfoNiXWH/3/A==}
-    peerDependencies:
-      eslint: ^8.57.0 || ^9.0.0
+  '@tanstack/query-core@5.83.0':
+    resolution: {integrity: sha512-0M8dA+amXUkyz5cVUm/B+zSk3xkQAcuXuz5/Q/LveT4ots2rBpPTZOzd7yJa2Utsf8D2Upl5KyjhHRY+9lB/XA==}
 
-  '@tanstack/query-core@5.82.0':
-    resolution: {integrity: sha512-JrjoVuaajBQtnoWSg8iaPHaT4mW73lK2t+exxHNOSMqy0+13eKLqJgTKXKImLejQIfdAHQ6Un0njEhOvUtOd5w==}
-
-  '@tanstack/query-devtools@5.81.2':
-    resolution: {integrity: sha512-jCeJcDCwKfoyyBXjXe9+Lo8aTkavygHHsUHAlxQKKaDeyT0qyQNLKl7+UyqYH2dDF6UN/14873IPBHchcsU+Zg==}
-
-  '@tanstack/react-query-devtools@5.82.0':
-    resolution: {integrity: sha512-MC05Zq3zr/59jhgF7dL6JSGPg1krbasDSizmRxjNcvxgh/sUTwRFD9CGN10YYX7LB6jq0ZpFtCjSVGdLiFrKAA==}
-    peerDependencies:
-      '@tanstack/react-query': ^5.82.0
-      react: ^18 || ^19
-
-  '@tanstack/react-query@5.82.0':
-    resolution: {integrity: sha512-mnk8/ofKEthFeMdhV1dV8YXRf+9HqvXAcciXkoo755d/ocfWq7N/Y9jGOzS3h7ZW9dDGwSIhs3/HANWUBsyqYg==}
+  '@tanstack/react-query@5.83.0':
+    resolution: {integrity: sha512-/XGYhZ3foc5H0VM2jLSD/NyBRIOK4q9kfeml4+0x2DlL6xVuAcVEW+hTlTapAmejObg0i3eNqhkr2dT+eciwoQ==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -1563,6 +1543,9 @@ packages:
 
   '@types/node@24.0.12':
     resolution: {integrity: sha512-LtOrbvDf5ndC9Xi+4QZjVL0woFymF/xSTKZKPgrrl7H7XoeDvnD+E2IclKVDyaK9UM756W/3BXqSU+JEHopA9g==}
+
+  '@types/node@24.0.13':
+    resolution: {integrity: sha512-Qm9OYVOFHFYg3wJoTSrz80hoec5Lia/dPp84do3X7dZvLikQvM1YpmvTBEdIr/e+U8HTkFjLHLnl78K/qjf+jQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -5964,27 +5947,11 @@ snapshots:
       tailwindcss: 4.1.11
       vite: 6.3.5(@types/node@24.0.12)(jiti@2.4.2)(lightningcss@1.30.1)
 
-  '@tanstack/eslint-plugin-query@5.81.2(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3)':
+  '@tanstack/query-core@5.83.0': {}
+
+  '@tanstack/react-query@5.83.0(react@19.1.0)':
     dependencies:
-      '@typescript-eslint/utils': 8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3)
-      eslint: 9.30.1(jiti@2.4.2)
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-
-  '@tanstack/query-core@5.82.0': {}
-
-  '@tanstack/query-devtools@5.81.2': {}
-
-  '@tanstack/react-query-devtools@5.82.0(@tanstack/react-query@5.82.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@tanstack/query-devtools': 5.81.2
-      '@tanstack/react-query': 5.82.0(react@19.1.0)
-      react: 19.1.0
-
-  '@tanstack/react-query@5.82.0(react@19.1.0)':
-    dependencies:
-      '@tanstack/query-core': 5.82.0
+      '@tanstack/query-core': 5.83.0
       react: 19.1.0
 
   '@tokenizer/inflate@0.2.7':
@@ -6180,6 +6147,10 @@ snapshots:
   '@types/methods@1.1.4': {}
 
   '@types/node@24.0.12':
+    dependencies:
+      undici-types: 7.8.0
+
+  '@types/node@24.0.13':
     dependencies:
       undici-types: 7.8.0
 

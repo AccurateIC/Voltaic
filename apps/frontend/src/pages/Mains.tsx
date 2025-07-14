@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.js";
 import { VoltageStatCard } from "../components/VoltageStatCard.js";
-import { ROUTES } from "../config/backend.js";
 import Archive from "../../../backend/app/models/archive.js";
 import { tuyau } from "../lib/Tuyau.js";
 
@@ -15,7 +14,8 @@ const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
     <svg
       viewBox="0 0 100 50"
       className="w-full h-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl"
-      xmlns="http://www.w3.org/2000/svg">
+      xmlns="http://www.w3.org/2000/svg"
+    >
       {/* Background Arc */}
       <path d="M5,50 A45,45 0 0,1 95,50" fill="none" stroke="#e0e0e0" strokeWidth="10" />
       {/* Foreground Arc */}
@@ -46,8 +46,8 @@ const SemiCircularStatCard = ({ value, maxValue, title, units, color }) => {
 };
 
 export const Mains = () => {
-    const [archiveData, setArchiveData] = useState<Archive[]>([]);
-     const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [archiveData, setArchiveData] = useState<Archive[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const [stats, setStats] = useState({
@@ -68,21 +68,20 @@ export const Mains = () => {
       setIsLoading(true);
       setError(null);
       const { data, error } = await tuyau.archive.getLatest.$get();
-      
+
       if (error) {
         setArchiveData([]);
-        setError('Unable to load data. Please try again later.');
+        setError("Unable to load data. Please try again later.");
         return;
       }
       setArchiveData(data);
     } catch (err) {
-      setError('Unable to load data. Please try again later.');
+      setError("Unable to load data. Please try again later.");
       setArchiveData([]);
     } finally {
       setIsLoading(false);
     }
   };
-
 
   useEffect(() => {
     // Load initial data
@@ -92,22 +91,19 @@ export const Mains = () => {
   }, []);
 
   useEffect(() => {
-      if (!archiveData.length) return;
-      const getVal = (name) => archiveData.find((item) => item.gensetProperty.propertyName === name)?.propertyValue || 0;
-      setStats({
-        mainsl1Voltage: getVal("mainsL1Volts"),
-        mainsl2Voltage: getVal("mainsL2Volts"),
-        mainsl3Voltage: getVal("mainsL3Volts"),
-        mainsl1Current: getVal("mainsL1Current"),
-        mainsl2Current: getVal("mainsL2Current"),
-        mainsl3Current: getVal("mainsL3Current"),
-      });
-    }, [archiveData]);
+    if (!archiveData.length) return;
+    const getVal = (name) => archiveData.find((item) => item.gensetProperty.propertyName === name)?.propertyValue || 0;
+    setStats({
+      mainsl1Voltage: getVal("mainsL1Volts"),
+      mainsl2Voltage: getVal("mainsL2Volts"),
+      mainsl3Voltage: getVal("mainsL3Volts"),
+      mainsl1Current: getVal("mainsL1Current"),
+      mainsl2Current: getVal("mainsL2Current"),
+      mainsl3Current: getVal("mainsL3Current"),
+    });
+  }, [archiveData]);
 
-
-
-
- useMessageBus("archive", (msg) => {
+  useMessageBus("archive", (msg) => {
     // Update data when new archive message received
     (async () => {
       await getData(setIsLoading, setArchiveData, setError);
@@ -119,7 +115,11 @@ export const Mains = () => {
   }
 
   if (error) {
-    return <div className="flex justify-center items-center h-full text-red-500">Unable to load data. Please try again later.</div>;
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        Unable to load data. Please try again later.
+      </div>
+    );
   }
 
   return (

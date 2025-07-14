@@ -9,30 +9,54 @@ import { toast } from "sonner";
 import { useMessageBus } from "../lib/MessageBus";
 import transmitConnection from "../lib/TransmitConnection";
 import { cn, formatTimestamp } from "../lib/Utils";
-import { useAnomalyNotification } from "../hooks/useAnomalyNotification";
 import { LiaConnectdevelop } from "react-icons/lia";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-const primaryTab = {
-  ANOMALIES: "Anomalies",
-  MAINTENANCE: "Maintenance",
-} as const;
+const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as const;
 
-const secondaryTab = {
-  RESOLVED: "Resolved",
-  UNRESOLVED: "Unresolved",
-} as const;
+const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
 
 const Navbar = () => {
-  const { getResolvedAnomalies, getUnresolvedAnomalies, markAnomaliesRead, totalAnomalyCount } = useAnomalyNotification();
-  const resolvedAnomalies = getResolvedAnomalies.data || [];
-  const unresolvedAnomalies = getUnresolvedAnomalies.data || [];
+  // resolved notifs
+  const {
+    data: resolvedAnomalyNotificationsData,
+    error: resolvedAnomalynotificationsError,
+    isLoading: resolvedAnomalyNotificationsIsLoading,
+  } = useQuery({
+    queryKey: ["anomaly-notification", "resolved"],
+    queryFn: () => tuyau.notification.getResolved.$get().unwrap(),
+  });
 
-  // const [anomalyResolvedNotifications, setAnomalyResolvedNotifications] = useState([]);
-  // const [anomalyUnresolvedNotifications, setAnomalyUnresolvedNotifications] = useState([]);
+  // unresolved notifs
+  const {
+    data: unresolvedAnomalyNotificationsData,
+    error: unresolvedAnomalynotificationsError,
+    isLoading: unresolvedAnomalyNotificationsIsLoading,
+  } = useQuery({
+    queryKey: ["anomaly-notification", "unresolved"],
+    queryFn: () => tuyau.notification.getUnresolved.$get().unwrap(),
+  });
 
-  const [pdmResolvedNotifications, setPdmResolvedNotifications] = useState([]);
-  const [pdmUnresolvedNotifications, setPdmUnresolvedNotifications] = useState([]);
+  // resolved pdm notifications
+  const {
+    data: pdmResolvedNotifications = [],
+    error: pdmResolvedNotificationsError,
+    isLoading: pdmResolvedNotificationsIsLoading,
+  } = useQuery({
+    queryKey: ["pdm", "notification", "resolved"],
+    queryFn: () => tuyau.pdm.notification.getResolved.$get().unwrap(),
+  });
+
+  // unresolved pdm notifications
+  const {
+    data: pdmUnresolvedNotifications = [],
+    error: pdmUnresolvedNotificationsError,
+    isLoading: pdmUnresolvedNotificationsIsLoading,
+  } = useQuery({
+    queryKey: ["pdm", "notification", "unresolved"],
+    queryFn: () => tuyau.pdm.notification.getUnresolved.$get().unwrap(),
+  });
 
   const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
   const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.UNRESOLVED);
@@ -54,51 +78,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // fetch resolved anomaly notifications
-  const fetchResolvedPdmNotifications = async () => {
-    try {
-      const response = await fetch(ROUTES.PDM_NOTIF_GET_RESOLVED, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setPdmResolvedNotifications(data.slice(0, 3));
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching pdm notifications");
-    }
-  };
-
-  // fetch unresolved anomaly notifications
-  const fetchUnresolvedPdmNotifications = async () => {
-    try {
-      const response = await fetch(ROUTES.PDM_NOTIF_GET_UNRESOLVED, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch");
-      const data = await response.json();
-      setPdmUnresolvedNotifications(data.slice(0, 3));
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching pdm notifications");
-    }
-  };
-
-  // fetch anomaly and pdm notifications on first render
-  useEffect(() => {
-    Promise.all([
-      fetchResolvedPdmNotifications(),
-      fetchUnresolvedPdmNotifications(),
-      // getResolvedAnomalies.refetch(),
-      // getUnresolvedAnomalies.refetch(),
-      // fetchResolvedAnomalyNotifications(),
-      // fetchUnresolvedAnomalyNotifications(),
-    ]);
-  }, []);
 
   // Subscribe to real-time notifications
   useEffect(() => {
@@ -116,15 +95,9 @@ const Navbar = () => {
       console.log("Subscribed to pdm channel");
     })();
 
+    // re fetch data when new data is inserted in db
     const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
-      Promise.all([
-        fetchResolvedPdmNotifications(),
-        fetchUnresolvedPdmNotifications(),
-        getResolvedAnomalies.refetch(),
-        getUnresolvedAnomalies.refetch(),
-        // fetchResolvedAnomalyNotifications(),
-        // fetchUnresolvedAnomalyNotifications(),
-      ]);
+      // React Query will automatically refetch when data changes
     });
 
     const archiveUnsubscribe = archiveSubscription.onMessage(async () => {
@@ -139,7 +112,7 @@ const Navbar = () => {
     const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
       try {
         console.log("::::new pdm data:::", message);
-        Promise.all([fetchResolvedPdmNotifications(), fetchUnresolvedPdmNotifications()]);
+        // React Query will automatically refetch when data changes
         pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
       } catch (err) {
         console.error(err);
@@ -156,18 +129,18 @@ const Navbar = () => {
     };
   }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
 
-  const handleMarkPdmNotificationAsRead = async (pdmNotificationId) => {
+  const handleMarkPdmNotificationAsRead = async (pdmNotificationId: string) => {
     try {
       // make req to backend to mark notification as read
-      const response = await fetch(ROUTES.PDM_NOTIF_MARK_AS_READ + "/" + pdmNotificationId, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      const { mutate, data, isError, error } = useMutation({
+        mutationKey: ["pdm", "notification", "read"],
+        mutationFn: (pdmNotificationId: string) => tuyau.pdm.notification.read({ id: pdmNotificationId }).$patch(),
       });
-      const data = await response.json();
 
-      if (!response.ok) {
-        toast.error(data.message || `Failed to resolve notification`);
+      mutate(pdmNotificationId);
+
+      if (isError) {
+        toast.error(error.message || `Failed to resolve pdm notification`);
         return;
       }
 
@@ -178,17 +151,22 @@ const Navbar = () => {
         notificationId: pdmNotificationId,
       });
 
-      // re fetch notifications?
-      Promise.all([fetchResolvedPdmNotifications(), fetchUnresolvedPdmNotifications()]);
+      // React Query will automatically refetch when data changes
     } catch (err) {
       console.error("Error resolving notification:", err);
-      toast.error(`Failed to resolve notification: ${err.message}`);
+      toast.error(`Failed to resolve notification: ${err?.message}`);
     }
   };
 
-  const handleMarkNotificationAsRead = async (notificationId) => {
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
     try {
-      await markAnomaliesRead.mutateAsync(notificationId);
+      // make req to backend to mark notification as read
+      const { mutate, data, isError, isLoading, error } = useMutation({
+        mutationKey: ["anomaly", "notification", "read"],
+        mutationFn: (notificationId: string) => tuyau.notification.read({ id: notificationId }).$patch(),
+      });
+
+      mutate(notificationId);
 
       // The mutation will automatically trigger a refetch of the queries
       // No need to manually refetch
@@ -205,11 +183,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[rgba(177,213,189,1)] bg-base-200 px-4 py-2 flex justify-between items-center">
+    <nav className="bg-base-200 px-4 py-2 flex justify-between items-center">
       {/* navigate to engine page */}
       <div
         className="flex items-center justify-center space-x-2 w-50 cursor-pointer"
-        onClick={() => window.location.replace("/engine")}>
+        onClick={() => window.location.replace("/engine")}
+      >
         {/* <img src={Logo} alt="AccurateIC Logo" className="w-40" /> */}
         <LiaConnectdevelop size={40} />
         <span className="text-2xl">NeuroGen</span>
@@ -220,9 +199,16 @@ const Navbar = () => {
         <details ref={detailsRef} className="dropdown dropdown-end">
           <summary className="btn btn-ghost btn-circle relative">
             <CiBellOn size={38} />
-            {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
+            {(resolvedAnomalyNotificationsData?.length || 0) +
+              (unresolvedAnomalyNotificationsData?.length || 0) +
+              pdmResolvedNotifications.length +
+              pdmUnresolvedNotifications.length >
+              0 && (
               <div className="badge badge-sm badge-primary absolute top-0 right-4">
-                {totalAnomalyCount + pdmResolvedNotifications.length + pdmUnresolvedNotifications.length}
+                {(resolvedAnomalyNotificationsData?.length || 0) +
+                  (unresolvedAnomalyNotificationsData?.length || 0) +
+                  pdmResolvedNotifications.length +
+                  pdmUnresolvedNotifications.length}
               </div>
             )}
           </summary>
@@ -232,36 +218,43 @@ const Navbar = () => {
               tabIndex={0}
               className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100"
               onClick={(e) => e.stopPropagation()}
-              data-modal="true">
+              data-modal="true"
+            >
               {/* Tabs */}
               <div className="tabs tabs-bordered px-2">
                 <button
                   className={`tab tab-lifted flex-1 text-base-content ${
                     activeTab === primaryTab.ANOMALIES ? "tab-active " : ""
                   }`}
-                  onClick={() => setActiveTab(primaryTab.ANOMALIES)}>
+                  onClick={() => setActiveTab(primaryTab.ANOMALIES)}
+                >
                   <p
                     className={` ${
                       activeTab === primaryTab.ANOMALIES
                         ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out"
                         : ""
-                    }`}>
+                    }`}
+                  >
                     {primaryTab.ANOMALIES}
                   </p>
-                  {totalAnomalyCount > 0 && <span className="ml-2 badge badge-sm badge-primary">{totalAnomalyCount}</span>}
+                  {(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0) > 0 && (
+                    <span className="ml-2 badge badge-sm badge-primary">{(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0)}</span>
+                  )}
                 </button>
                 <button
-                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === "maintenance" ? "tab-active" : ""}`}
+                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === primaryTab.MAINTENANCE ? "tab-active" : ""}`}
                   onClick={() => {
                     setActiveTab(primaryTab.MAINTENANCE);
                     setActiveSecondaryTab(secondaryTab.UNRESOLVED);
-                  }}>
+                  }}
+                >
                   <p
                     className={` ${
                       activeTab === primaryTab.MAINTENANCE
                         ? "underline underline-offset-4 decoration-error decoration-solid decoration-2 transition-all duration-200 ease-in-out"
                         : ""
-                    }`}>
+                    }`}
+                  >
                     {primaryTab.MAINTENANCE}
                   </p>
                   {pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
@@ -279,7 +272,8 @@ const Navbar = () => {
                     setActiveSecondaryTab(secondaryTab.UNRESOLVED);
                   }}
                   role="tab"
-                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.UNRESOLVED ? "tab-active" : "")}>
+                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.UNRESOLVED ? "tab-active" : "")}
+                >
                   {secondaryTab.UNRESOLVED}
                 </a>
                 <a
@@ -287,7 +281,8 @@ const Navbar = () => {
                     setActiveSecondaryTab(secondaryTab.RESOLVED);
                   }}
                   role="tab"
-                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.RESOLVED ? "tab-active" : "")}>
+                  className={cn("tab flex-1", activeSecondaryTab === secondaryTab.RESOLVED ? "tab-active" : "")}
+                >
                   {secondaryTab.RESOLVED}
                 </a>
               </div>
@@ -298,15 +293,16 @@ const Navbar = () => {
                   activeSecondaryTab === secondaryTab.UNRESOLVED ? (
                     // anomaly tab + unresolved tab
                     <div className="p-2">
-                      {unresolvedAnomalies.length === 0 ? (
+                      {!unresolvedAnomalyNotificationsData || unresolvedAnomalyNotificationsData.length === 0 ? (
                         <div className="text-center py-8 text-base-content/70">
                           <p>No new unresolved anomalies</p>
                         </div>
                       ) : (
-                        unresolvedAnomalies.map((notification) => (
+                        unresolvedAnomalyNotificationsData.map((notification) => (
                           <div
                             key={notification.id}
-                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                          >
                             <div className="card-body">
                               <div className="flex flex-col justify-between items-start gap-2">
                                 <div>
@@ -320,13 +316,15 @@ const Navbar = () => {
                                   {notification.shouldBeDisplayed ? (
                                     <button
                                       onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                      className="btn btn-xs w-full btn-error">
+                                      className="btn btn-xs w-full btn-error"
+                                    >
                                       Resolve
                                     </button>
                                   ) : (
                                     <button
                                       onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                      className="btn btn-xs w-full btn-disabled">
+                                      className="btn btn-xs w-full btn-disabled"
+                                    >
                                       Resolved
                                     </button>
                                   )}
@@ -340,15 +338,16 @@ const Navbar = () => {
                   ) : (
                     // anomaly + resolved
                     <div className="p-2">
-                      {resolvedAnomalies.length === 0 ? (
+                      {!resolvedAnomalyNotificationsData || resolvedAnomalyNotificationsData.length === 0 ? (
                         <div className="text-center py-8 text-base-content/70">
                           <p>No new resolved anomalies</p>
                         </div>
                       ) : (
-                        resolvedAnomalies.map((notification) => (
+                        resolvedAnomalyNotificationsData.map((notification) => (
                           <div
                             key={notification.id}
-                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                          >
                             <div className="card-body">
                               <div className="flex flex-col justify-between items-start gap-2">
                                 <div>
@@ -361,14 +360,16 @@ const Navbar = () => {
                                 {notification.shouldBeDisplayed && (
                                   <button
                                     onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-error btn-outline w-full">
+                                    className="btn btn-xs btn-error btn-outline w-full"
+                                  >
                                     Resolve
                                   </button>
                                 )}
                                 {!notification.shouldBeDisplayed && (
                                   <button
                                     onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                    className="btn btn-xs btn-disabled w-full">
+                                    className="btn btn-xs btn-disabled w-full"
+                                  >
                                     Resolved
                                   </button>
                                 )}
@@ -390,12 +391,15 @@ const Navbar = () => {
                       pdmUnresolvedNotifications.map((pdmNotif) => (
                         <div
                           key={pdmNotif.id}
-                          className="card card-compact w-full bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          className="card card-compact w-full bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                        >
                           <div className="card-body w-full">
                             <div className="flex flex-col w-full gap-2">
                               <div className="w-full">
                                 <h4 className="card-title text-sm text-base-content">Maintenance Prediction Alert</h4>
-                                <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
+                                <p className="text-xs text-base-content/70 mt-1">
+                                  {formatTimestamp(pdmNotif.timestamp)}
+                                </p>
                                 <p className="text-sm mt-2 break-words text-base-content/90">
                                   {pdmNotif.maintenanceReason?.accel_x}
                                 </p>
@@ -417,14 +421,16 @@ const Navbar = () => {
                               {pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-error w-full">
+                                  className="btn btn-xs btn-error w-full"
+                                >
                                   Resolve
                                 </button>
                               )}
                               {!pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-disabled w-full">
+                                  className="btn btn-xs btn-disabled w-full"
+                                >
                                   Resolved
                                 </button>
                               )}
@@ -445,12 +451,15 @@ const Navbar = () => {
                       pdmResolvedNotifications.map((pdmNotif) => (
                         <div
                           key={pdmNotif.id}
-                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors">
+                          className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                        >
                           <div className="card-body">
                             <div className="flex flex-col justify-between items-start gap-2">
                               <div>
                                 <h4 className="card-title text-sm text-base-content">Maintenance Alert</h4>
-                                <p className="text-xs text-base-content/70 mt-1">{formatTimestamp(pdmNotif.timestamp)}</p>
+                                <p className="text-xs text-base-content/70 mt-1">
+                                  {formatTimestamp(pdmNotif.timestamp)}
+                                </p>
                                 <p className="text-sm mt-2 break-words text-base-content/90">
                                   {pdmNotif.maintenanceReason?.accel_x}
                                 </p>
@@ -472,14 +481,16 @@ const Navbar = () => {
                               {pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-error w-full">
+                                  className="btn btn-xs btn-error w-full"
+                                >
                                   Resolve
                                 </button>
                               )}
                               {!pdmNotif.shouldBeDisplayed && (
                                 <button
                                   onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-disabled w-full">
+                                  className="btn btn-xs btn-disabled w-full"
+                                >
                                   Resolved
                                 </button>
                               )}

@@ -19,14 +19,7 @@ export function useRulPrediction() {
     },
   });
 
-  const sendLoggedInUser = useMutation({
-    mutationFn: rulApi.sendLoggedInUser,
-    onError: () => {},
-    onSuccess: () => {},
-  });
+  const sendLoggedInUser = useMutation({ mutationFn: rulApi.sendLoggedInUser, onError: () => {}, onSuccess: () => {} });
 
-  return {
-    getRulPrediction,
-    sendLoggedInUser,
-  };
+  return { getRulPrediction, sendLoggedInUser };
 }

@@ -16,13 +16,12 @@
     "test": "echo 'No tests configured for frontend'"
   },
   "dependencies": {
-    "@voltaic/err": "workspace:*",
     "@adonisjs/transmit-client": "^1.0.0",
     "@tailwindcss/vite": "^4.1.10",
-    "@tanstack/react-query": "^5.80.7",
-    "@tanstack/react-query-devtools": "^5.80.7",
+    "@tanstack/react-query": "^5.83.0",
     "@tuyau/client": "^0.2.9",
     "@tuyau/superjson": "^0.1.1",
+    "@voltaic/err": "workspace:*",
     "backend": "workspace:*",
     "cally": "^0.8.0",
     "chart.js": "^4.5.0",
@@ -46,7 +45,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
-    "@tanstack/eslint-plugin-query": "^5.78.0",
     "@types/luxon": "^3.6.2",
     "@types/node": "^24.0.3",
     "@types/react": "^19.1.8",

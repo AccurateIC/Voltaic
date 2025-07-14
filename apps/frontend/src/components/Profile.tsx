@@ -3,7 +3,7 @@
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { SessionStore } from "../lib/SessionStore";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
 import { Modules } from "../config/extern";
 
 const Profile = () => {
@@ -15,12 +15,10 @@ const Profile = () => {
       // TEMPORARY
       // ####################################
       // fetch logged in user details
-      const loggedInUser = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const user = await loggedInUser.json();
+      const { data: user, error: userError } = await tuyau.auth.getLoggedInUser.$get();
+      if (userError) {
+        throw new Error("Failed to get logged in user");
+      }
 
       // send to pdm server
       try {
@@ -55,9 +53,8 @@ const Profile = () => {
       }
       // ####################################
 
-      const response = await fetch(ROUTES.AUTH_USER_LOGOUT, { method: "POST", credentials: "include" });
-
-      if (!response.ok) throw new Error(`Status Code: ${response.status}`);
+      const { data, error } = await tuyau.auth.logout.$post();
+      if (error) throw new Error(`Logout failed: ${error.status}`);
       toast.success("Logged out successfully!");
       navigate("/");
     } catch (err) {

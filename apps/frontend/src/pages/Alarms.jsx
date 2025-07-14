@@ -7,24 +7,21 @@ import { cn, formatTimestamp } from "../lib/Utils.ts";
 import * as XLSX from "xlsx";
 import { RiResetLeftLine } from "react-icons/ri";
 import "cally";
-import { useGensetProperty } from "../hooks/useGensetProperty.ts";
-import { ROUTES } from "../config/backend.ts";
+import { tuyau } from "../lib/Tuyau";
+import { useQuery } from "@tanstack/react-query";
 // TODO: add button loading state until the notification is marked as resolved
 
 const Alarms = () => {
   const [notifications, setNotifications] = useState([]); // original notifications
   const [filteredNotifications, setFilteredNotifications] = useState([]); // filtered notifications
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    fromDate: "",
-    toDate: "",
-    property: "Property",
-    anomalyStatus: "",
-  });
+  const [filters, setFilters] = useState({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });
 
   // hooks
-  const { getAllGensetProperties } = useGensetProperty();
-  const gensetProperties = getAllGensetProperties.data;
+  const { data: gensetProperties, isLoading: isGensetPropertiesLoading, isError: isGensetPropertiesError } = useQuery({
+    queryKey: ["genset-properties"],
+    queryFn: () => tuyau.property.getAll.$get().unwrap(),
+  });
 
   const handleAnomalyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));
@@ -33,12 +30,7 @@ const Alarms = () => {
     setFilters((prevFilters) => ({ ...prevFilters, property: event.target.value }));
   };
   const handleResetFilters = () => {
-    setFilters({
-      fromDate: "",
-      toDate: "",
-      property: "Property",
-      anomalyStatus: "",
-    });
+    setFilters({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });
   };
 
   // apply filters whenever filters or notifications change
@@ -80,16 +72,10 @@ const Alarms = () => {
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_ALL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch notification data");
+      const { data, error } = await tuyau.notification.getAll.$get();
+      if (error) {
+        throw new Error(error.message || "Failed to fetch notification data");
       }
-      const data = await response.json();
       console.log("alarms", data);
       setNotifications(data);
     } catch (error) {
@@ -109,15 +95,10 @@ const Alarms = () => {
   const handleMarkNotificationAsRead = async (notificationId) => {
     try {
       // make req to backend to mark notification as read
-      const response = await fetch(ROUTES.ANOMALY_NOTIF_MARK_AS_READ + "/" + notificationId, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await response.json();
+      const { data, error } = await tuyau.notification.read[notificationId].$patch();
 
-      if (!response.ok) {
-        toast.error(data.message || `Failed to resolve notification`);
+      if (error) {
+        toast.error(error.message || `Failed to resolve notification`);
         return;
       }
 
@@ -212,7 +193,9 @@ const Alarms = () => {
                   </div>
                   <div className="dropdown-content card bg-base-100 shadow">
                     <calendar-range
-                      value={filters.fromDate !== "" && filters.toDate !== "" ? `${filters.fromDate}/${filters.toDate}` : ""}
+                      value={
+                        filters.fromDate !== "" && filters.toDate !== "" ? `${filters.fromDate}/${filters.toDate}` : ""
+                      }
                       class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
                       onchange={(event) => {
                         const val = event.target.value;
@@ -222,7 +205,8 @@ const Alarms = () => {
                           fromDate: val.split("/")[0],
                           toDate: val.split("/")[1],
                         }));
-                      }}>
+                      }}
+                    >
                       <calendar-month />
                     </calendar-range>
                   </div>
@@ -238,7 +222,8 @@ const Alarms = () => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256">
+                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256"
+                  >
                     <div className="overflow-y-auto max-h-60">
                       <li value={"All"} onClick={() => setFilters((prev) => ({ ...prev, property: "Property" }))}>
                         <a>All</a>
@@ -247,12 +232,8 @@ const Alarms = () => {
                         <li
                           key={index}
                           value={property.readablePropertyName}
-                          onClick={() =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              property: property.readablePropertyName,
-                            }))
-                          }>
+                          onClick={() => setFilters((prev) => ({ ...prev, property: property.readablePropertyName }))}
+                        >
                           <a>{property.readablePropertyName}</a>
                         </li>
                       ))}
@@ -269,17 +250,22 @@ const Alarms = () => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256">
+                    className="dropdown-content menu bg-base-100 rounded-box z-50 w-64 p-2 shadow-sm max-h-256"
+                  >
                     <div className="overflow-y-auto max-h-60">
                       <li value={"All"} onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: null }))}>
                         <a>All</a>
                       </li>
-                      <li value="Resolved" onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Resolved" }))}>
+                      <li
+                        value="Resolved"
+                        onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Resolved" }))}
+                      >
                         <a>Resolved</a>
                       </li>
                       <li
                         value="Unresolved"
-                        onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Unresolved" }))}>
+                        onClick={() => setFilters((prev) => ({ ...prev, anomalyStatus: "Unresolved" }))}
+                      >
                         <a>Unresolved</a>
                       </li>
                     </div>
@@ -301,7 +287,8 @@ const Alarms = () => {
                 <td>
                   <button
                     onClick={() => handleMarkNotificationAsRead(entry.id)}
-                    className={cn("btn btn-outline btn-info", `${entry.shouldBeDisplayed ? "" : "btn btn-disabled"}`)}>
+                    className={cn("btn btn-outline btn-info", `${entry.shouldBeDisplayed ? "" : "btn btn-disabled"}`)}
+                  >
                     {entry.shouldBeDisplayed ? "Resolve" : "Resolved"}
                   </button>
                 </td>

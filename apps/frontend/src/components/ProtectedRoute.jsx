@@ -2,14 +2,14 @@ import { Navigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import Loader from "./Loader";
 import { toast } from "sonner";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const checkIfAuthenticated = async () => {
   await sleep(1500);
-  const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, { method: "GET", credentials: "include" });
-  if (!response.ok) return false;
+  const { data, error } = await tuyau.auth.getLoggedInUser.$get();
+  if (error) return false;
   return true;
 };
 

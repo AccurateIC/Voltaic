@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useArchive } from "../hooks/useArchive";
 import { AnomalyCountByPropertyChart } from "../components/Anomalies/AnomalyCountByPropertyChart";
 import { AnomalyNotificationTable } from "../components/Anomalies/AnomalyNotificationTable";
 import { StatGroup } from "../components/Anomalies/StatGroup";
 import { FaFilter } from "react-icons/fa6";
-import { useGensetProperty } from "../hooks/useGensetProperty";
 import { AnomalyCountByTimeChart } from "../components/Anomalies/AnomalyCountByTimeRangeChart";
+import { tuyau } from "../lib/Tuyau";
+import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 // types
 type TimeRange = "*" | "1d" | "1w" | "1m";
@@ -53,7 +54,8 @@ const AnomalyCombinedFilter = ({
 
         <ul
           tabIndex={0}
-          className="dropdown-content z-10 menu shadow bg-base-200 rounded h-72 flex flex-row overflow-y-scroll">
+          className="dropdown-content z-10 menu shadow bg-base-200 rounded h-72 flex flex-row overflow-y-scroll"
+        >
           {allGensetProperties?.length > 0 &&
             allGensetProperties.map((property, index) => (
               <li key={index} className="w-full">
@@ -80,11 +82,64 @@ const AnomalyCombinedFilter = ({
   );
 };
 
-export const Anomalies = () => {
-  // hooks
-  const { getAnomalyStatistics } = useArchive();
-  const overallStatistics = getAnomalyStatistics?.data?.overall;
-  const { getAllGensetProperties } = useGensetProperty();
+const Loader = () => {
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        className="animate-spin"
+      >
+        <path d="M12 2v4" />
+        <path d="m16.2 7.8 2.9-2.9" />
+        <path d="M18 12h4" />
+        <path d="m16.2 16.2 2.9 2.9" />
+        <path d="M12 18v4" />
+        <path d="m4.9 19.1 2.9-2.9" />
+        <path d="M2 12h4" />
+        <path d="m4.9 4.9 2.9 2.9" />
+      </svg>
+    </div>
+  );
+};
+
+export const Anomalies = async () => {
+  const {
+    data: anomalyStatisticsData,
+    isLoading: anomalyStatisticsIsLoading,
+    isError: anomalyStatisticsIsError,
+  } = useQuery({ queryKey: ["anomaly-statistics"], queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap() });
+
+  if (anomalyStatisticsIsError) {
+    toast.error("Failed to fetch anomaly statistics");
+    return <div className="h-full w-full">N/A</div>;
+  }
+
+  if (anomalyStatisticsIsLoading) {
+    return <Loader />;
+  }
+
+  const {
+    data: allGensetPropertiesData,
+    isLoading: allGensetPropertiesIsLoading,
+    isError: allGensetPropertiesIsError,
+  } = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap() });
+
+  if (allGensetPropertiesIsError) {
+    toast.error("Failed to fetch anomaly statistics");
+    return <div className="h-full w-full">N/A</div>;
+  }
+
+  if (allGensetPropertiesIsLoading) {
+    return <Loader />;
+  }
 
   // state
   const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRange>("*");
@@ -95,7 +150,7 @@ export const Anomalies = () => {
     <div className="flex flex-col gap-4 min-h-full">
       <section>
         <div className="h-1/8 w-full">
-          <StatGroup overallStatistics={overallStatistics} />
+          <StatGroup overallStatistics={anomalyStatisticsData} isLoading={anomalyStatisticsIsLoading} />
         </div>
       </section>
 
@@ -106,7 +161,7 @@ export const Anomalies = () => {
             timeRange={timeRangeFilter}
             selectedProperties={selectedProperties}
             setSelectedProperties={setSelectedProperties}
-            allGensetProperties={getAllGensetProperties?.data?.map((entry, index) => entry.readablePropertyName)}
+            allGensetProperties={allGensetPropertiesData?.map((entry, index) => entry.readablePropertyName)}
           />
         </div>
       </section>
