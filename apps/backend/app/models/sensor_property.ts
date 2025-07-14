@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
-import { BaseModel, column } from "@adonisjs/lucid/orm";
-import { type UUID } from "node:crypto";
+import { BaseModel, beforeCreate, column } from "@adonisjs/lucid/orm";
+import { randomUUID, type UUID } from "node:crypto";
 
 export default class SensorProperty extends BaseModel {
   @column({ isPrimary: true })
@@ -17,4 +17,9 @@ export default class SensorProperty extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  @beforeCreate()
+  static assignUuid(sensorProperty: SensorProperty) {
+    sensorProperty.id = randomUUID();
+  }
 }

@@ -89,7 +89,7 @@ export default class PdmController {
     transmit.broadcast("pdm", "new pdm data");
 
     // 1: if maintenance is needed, add to maintenance_notifications table
-    let maintenanceNotifId;
+    let maintenanceNotificationId;
     if (data.maintenance_needed === true) {
       const maintenanceNotification = await MaintenanceNotification.create({
         predictedDominantFrequency: data.predicted_dominant_frequency,
@@ -98,7 +98,7 @@ export default class PdmController {
         maintenanceReason: data.maintenance_reason,
         shouldBeDisplayed: true,
       });
-      maintenanceNotifId = maintenanceNotification.id;
+      maintenanceNotificationId = maintenanceNotification.id;
     }
 
     // 2: Get references for pdm_data_kinds
@@ -119,7 +119,7 @@ export default class PdmController {
         timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.actual_values.accel_x[i],
-        maintenanceNotifId: maintenanceNotifId || null,
+        maintenanceNotificationId: maintenanceNotificationId || null,
         pdm_data_kind_id: actualKind!.id,
         confidence_score_percentage: data.confidence_score_percentage,
       });
@@ -130,7 +130,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.actual_values.accel_y[i],
-          maintenanceNotifId: maintenanceNotifId || null,
+          maintenanceNotificationId: maintenanceNotificationId || null,
           pdm_data_kind_id: actualKind!.id,
           confidence_score_percentage: data.confidence_score_percentage,
         });
@@ -142,7 +142,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.actual_values.accel_z[i],
-          maintenanceNotifId: maintenanceNotifId || null,
+          maintenanceNotificationId: maintenanceNotificationId || null,
           pdm_data_kind_id: actualKind!.id,
           confidence_score_percentage: data.confidence_score_percentage,
         });
@@ -156,7 +156,7 @@ export default class PdmController {
         timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.forecasted_values.accel_x[i],
-        maintenanceNotifId: maintenanceNotifId || null,
+        maintenanceNotificationId: maintenanceNotificationId || null,
         pdm_data_kind_id: forecastedKind!.id,
         confidence_score_percentage: null,
       });
@@ -167,7 +167,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.forecasted_values.accel_y[i],
-          maintenanceNotifId: maintenanceNotifId || null,
+          maintenanceNotificationId: maintenanceNotificationId || null,
           pdm_data_kind_id: forecastedKind!.id,
           confidence_score_percentage: null,
         });
@@ -179,7 +179,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.forecasted_values.accel_z[i],
-          maintenanceNotifId: maintenanceNotifId || null,
+          maintenanceNotificationId: maintenanceNotificationId || null,
           pdm_data_kind_id: forecastedKind!.id,
           confidence_score_percentage: null,
         });

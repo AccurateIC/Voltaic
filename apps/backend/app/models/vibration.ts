@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, belongsTo, column } from "@adonisjs/lucid/orm";
 import SensorProperty from "./sensor_property.js";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
 import MaintenanceNotification from "./maintenance_notification.js";
@@ -42,4 +42,13 @@ export default class Vibration extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the Vibration instance before creation.
+   * @param vibration Vibration
+   */
+  @beforeCreate()
+  static assignUuid(vibration: Vibration) {
+    vibration.id = crypto.randomUUID();
+  }
 }
