@@ -3,7 +3,7 @@ import User from "#models/user";
 import { createUserValidator, loginValidator, updateUserProfileValidator } from "#validators/auth";
 
 export default class AuthController {
-  async getLoggedInUser({ auth }: HttpContext) {
+  async getLoggedInUser({ auth }: HttpContext): Promise<User> {
     const user = await auth.authenticate();
     return user;
   }

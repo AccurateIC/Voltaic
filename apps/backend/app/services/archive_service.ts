@@ -117,6 +117,6 @@ export class ArchiveService {
     }
     const res = await query.count("*");
     const count: string = res[0].$extras.count;
-    return parseInt(count);
+    return Number.parseInt(count);
   }
 }

@@ -7,7 +7,9 @@ export default class NotificationController {
   async getAll({}: HttpContext) {
     return await Notification.query()
       .preload("notificationType")
-      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")))
+      .preload("archive", (archiveQuery) =>
+        archiveQuery.preload("gensetProperty", (gensetQuery) => gensetQuery.preload("physicalQuantity"))
+      )
       .orderBy("id", "desc");
     // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
@@ -17,7 +19,9 @@ export default class NotificationController {
     return await Notification.query()
       .where("shouldBeDisplayed", false)
       .preload("notificationType")
-      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+      .preload("archive", (archiveQuery) =>
+        archiveQuery.preload("gensetProperty", (gensetQuery) => gensetQuery.preload("physicalQuantity"))
+      );
     // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
 
@@ -26,7 +30,9 @@ export default class NotificationController {
     return await Notification.query()
       .where("shouldBeDisplayed", true)
       .preload("notificationType")
-      .preload("archive", (query) => query.preload("gensetProperty", (query) => query.preload("physicalQuantity")));
+      .preload("archive", (archiveQuery) =>
+        archiveQuery.preload("gensetProperty", (gensetQuery) => gensetQuery.preload("physicalQuantity"))
+      );
     // const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
   }
 

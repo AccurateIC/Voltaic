@@ -20,6 +20,38 @@ import { errors } from "@vinejs/vine";
 import ValidationException from "#exceptions/validation_exception";
 import { catchErrTyped } from "@voltaic/err";
 import NotificationType from "#models/notification_type";
+import { UUID } from "node:crypto";
+import { ModelPaginatorContract } from "@adonisjs/lucid/types/model";
+
+interface PaginatedArchiveResponse {
+  data: Archive[];
+  meta: {
+    total: number;
+    perPage: number;
+    currentPage: number;
+    lastPage: number;
+    firstPage: number;
+    firstPageUrl: string;
+    lastPageUrl: string;
+    nextPageUrl: string | null;
+    previousPageUrl: string | null;
+  };
+}
+
+interface AnomalyStatisticsResponse {
+  timezone: string;
+  overall: { today: number; week: number; month: number; year: number; total: number };
+  byProperty: {
+    today: number;
+    week: number;
+    month: number;
+    year: number;
+    total: number;
+    readablePropertyName: string;
+    gensetPropertyId: UUID; // assuming UUID is a string
+    propertyName: string;
+  }[];
+}
 
 export default class ArchiveController {
   async getPropertyStatistics({ request }: HttpContext): Promise<PropertyStatisticsResponse> {
@@ -41,7 +73,7 @@ export default class ArchiveController {
     return archiveData;
   }
 
-  async getPaginated({ request }: HttpContext) {
+  async getPaginated({ request }: HttpContext): Promise<PaginatedArchiveResponse> {
     const requestData = await request.validateUsing(getPaginatedDataValidator);
     console.log(requestData);
 
@@ -81,9 +113,10 @@ export default class ArchiveController {
     archiveQuery.orderBy("timestamp", "desc");
 
     // pagination
-    const archiveData = await archiveQuery.paginate(requestData.page);
+    const archiveData: ModelPaginatorContract<Archive> = await archiveQuery.paginate(requestData.page);
 
-    return archiveData;
+    const serialized = archiveData.serialize();
+    return { data: serialized.data as Archive[], meta: serialized.meta };
   }
 
   async getBetween({ request }: HttpContext) {
@@ -270,7 +303,7 @@ export default class ArchiveController {
     return trxResult;
   }
 
-  async getAnomalyStatistics({ request, response }: HttpContext) {
+  async getAnomalyStatistics({ request }: HttpContext): Promise<AnomalyStatisticsResponse> {
     const data = await request.validateUsing(getAnomalyStatisticsValidator);
     const timezone = data.headers.timezone;
 
@@ -278,22 +311,16 @@ export default class ArchiveController {
     try {
       const now = DateTime.now().setZone(timezone);
       if (!now.isValid) {
-        return response
-          .status(400)
-          .json({
-            error: "Invalid timezone",
-            message: `'${timezone}' is not a valid IANA timezone identifier`,
-            details: now.invalidReason,
-          });
+        throw new Exception(`${timezone} is not a valid IANA timezone identifier`, {
+          status: 400,
+          code: "E_INVALID_TIMEZONE",
+        });
       }
     } catch (error) {
-      return response
-        .status(400)
-        .json({
-          error: "Invalid timezone",
-          message: `'${timezone}' is not a valid IANA timezone identifier`,
-          details: error.message,
-        });
+      throw new Exception(`${timezone} is not a valid IANA timezone identifier`, {
+        status: 400,
+        code: "E_INVALID_TIMEZONE",
+      });
     }
 
     // Get property-based stats with preloaded relationships
@@ -328,7 +355,7 @@ export default class ArchiveController {
     const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
 
     return {
-      timezone, // Include timezone in response for clarity
+      timezone, // include timezone in response for clarity
       overall: { today: todaysTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: totalCount },
       byProperty: propertyStatsByTime,
     };

@@ -1,14 +1,14 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
 
 import { DateTime } from "luxon";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const typstBase = `
 // packages
@@ -101,7 +101,7 @@ export default class ReportsController {
   }
   async generateDummy({ response }: HttpContext) {
     // make a temporary typst file with .typ extension
-    const tmpFile = path.join(__dirname, "report.typ");
+    const tmpFile = path.join(dirname, "report.typ");
     try {
       const reusableData = await this.getData();
       console.log(reusableData);
@@ -131,10 +131,10 @@ export default class ReportsController {
       // console.log(xs);
       // console.log(ys);
 
-      const generateTypstBarChart = (xs: string[] | number[], ys: number[]) => {
+      const generateTypstBarChart = (xValues: string[] | number[], yValues: number[]) => {
         return `
-        #let xs = ( ${xs.map((value) => value).join(", ")} )
-        #let ys = ( ${ys.map((value) => `${value}`).join(", ")} )
+        #let xs = ( ${xValues.map((value) => value).join(", ")} )
+        #let ys = ( ${yValues.map((value) => `${value}`).join(", ")} )
 
         #lq.diagram(
           lq.bar(xs, ys, label: [Engine Oil Pressure])

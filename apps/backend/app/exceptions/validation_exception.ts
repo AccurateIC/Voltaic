@@ -8,11 +8,6 @@ export default class ValidationException extends Exception {
   async handle(error: this, ctx: HttpContext) {
     ctx.response
       .status(this.status)
-      .send({
-        type: this.code,
-        title: "Validation of inputs failed",
-        detail: error.message,
-        status: this.status,
-      });
+      .send({ type: this.code, title: "Validation of inputs failed", detail: error.message, status: this.status });
   }
 }

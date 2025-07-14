@@ -1,9 +1,25 @@
 // backend/app/services/pdm_service.ts
 import MaintenanceNotification from "#models/maintenance_notification";
-import { DateTime, DateTimeUnit } from "luxon";
+import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
+
+export interface MaintenanceNotificationCount {
+  day?: DayNumbers;
+  week?: WeekNumbers;
+  month: MonthNumbers;
+  year: number;
+  count: number;
+}
+
+export interface MaintenanceNotificationStatisticsResponse {
+  meta: { timeDuration: DateTimeUnit };
+  data: MaintenanceNotificationCount[];
+}
 
 export class PdmService {
-  static async maintenanceNotificationStatistics(timezone: string, timeDuration: DateTimeUnit) {
+  static async maintenanceNotificationStatistics(
+    timezone: string,
+    timeDuration: DateTimeUnit
+  ): Promise<MaintenanceNotificationStatisticsResponse> {
     const query = MaintenanceNotification.query();
 
     if (!timezone) throw new Error("no timezone provided");
@@ -16,49 +32,35 @@ export class PdmService {
 
     switch (timeDuration) {
       case "week":
-        const weekStats = await query //
+        const weekStats = (await query //
           .select("day", "month", "year")
           .count("id")
           .groupBy("day", "month", "year")
           .orderBy("day")
-          .pojo();
+          .pojo()) as MaintenanceNotificationCount[];
 
-        return {
-          meta: {
-            timeDuration,
-          },
-          data: weekStats,
-        };
+        return { meta: { timeDuration }, data: weekStats };
+
       case "month":
-        const monthStats = await query //
+        const monthStats = (await query //
           .select("week", "month", "year")
           .count("id")
           .groupBy("week", "month", "year")
           .orderBy("week")
-          .pojo();
+          .pojo()) as MaintenanceNotificationCount[];
 
-        return {
-          meta: {
-            timeDuration,
-          },
-          data: monthStats,
-        };
+        return { meta: { timeDuration }, data: monthStats };
       case "year":
-        const yearStats = await query //
+        const yearStats = (await query //
           .select("month", "year")
           .count("id")
           .groupBy("month", "year")
           .orderBy("month")
-          .pojo();
+          .pojo()) as MaintenanceNotificationCount[];
 
-        return {
-          meta: {
-            timeDuration,
-          },
-          data: yearStats,
-        };
+        return { meta: { timeDuration }, data: yearStats };
       default:
-        break;
+        throw new Error(`Unsupported time duration: ${timeDuration}`);
     }
   }
 }
