@@ -14,7 +14,8 @@ import AutoSwagger from "adonis-autoswagger";
 import swagger from "#config/swagger";
 
 // index route
-router.get("/", async () => {
+router.get("/", async ({ logger }) => {
+  logger.info("hello");
   return { message: "neurogen server is live!" };
 });
 
