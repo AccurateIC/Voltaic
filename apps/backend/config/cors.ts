@@ -8,7 +8,16 @@ import { defineConfig } from "@adonisjs/cors";
  */
 const corsConfig = defineConfig({
   enabled: true,
-  origin: ["http://127.0.0.1:5173", "http://localhost:5173", "http://localhost", "capacitor://localhost", "ionic://localhost"],
+  origin: [
+    //
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:4173",
+    "http://localhost:4173",
+    "http://localhost",
+    "capacitor://localhost",
+    "ionic://localhost",
+  ],
   methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
   headers: true,
   exposeHeaders: [],
