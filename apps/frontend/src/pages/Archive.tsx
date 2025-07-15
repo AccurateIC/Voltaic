@@ -9,6 +9,7 @@ import "cally";
 import { type Archive } from "../types/archive.types";
 import { tuyau } from "../lib/Tuyau";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { DateTime } from "luxon";
 
 const excelify = (data: Archive[]) => {
   const excelData = data.map((entry, index) => ({
@@ -100,28 +101,26 @@ const Archive = () => {
   }, [filters]);
 
   // Export data mutation
-  const getPropertyDataBetween = {
-    mutate: async (params: any, options: any) => {
-      try {
-        const { data, error } = await tuyau.archive.getPropertyDataBetween.$post(params);
-        if (error) {
-          options.onError?.(error);
-          return;
-        }
-        options.onSuccess?.(data);
-      } catch (error) {
-        options.onError?.(error);
-      }
-    },
-  };
+  const {
+    mutate: mutateGetPropertyDataBetween,
+    data: getPropertyDataBetweenData,
+    isError: getPropertyDataBetweenIsError,
+    isPending: getPropertyDataBetweenIsPending,
+  } = useMutation({
+    mutationKey: [],
+    mutationFn: (params: { from?: string; to?: string; properties?: string[] }) =>
+      tuyau.archive.getPropertyDataBetween.$post(params),
+    onSuccess: () => {},
+    onError: () => {},
+  });
 
   // we receive message on this bus if archive table updates
   useMessageBus("archive", () => {
-    mutate(filters);
+    mutatePaginatedData(filters);
   });
 
   const handleResetFilters = () => {
-    setFilters({ page: 1, propertyNames: [], isAnomaly: null, from: null, to: null });
+    setFilters({ page: 1, propertyNames: [], isAnomaly: undefined, from: undefined, to: undefined });
   };
 
   // Handle loading and error states AFTER all hooks are called
@@ -150,11 +149,11 @@ const Archive = () => {
         <div className="flex gap-2 mb-2">
           <button
             onClick={() =>
-              getPropertyDataBetween.mutate(
+              mutateGetPropertyDataBetween(
                 {
                   from: filters.from,
                   to: filters.to,
-                  properties: filters.propertyNames.length > 0 ? filters.propertyNames : null,
+                  properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
                 },
                 {
                   onError: () => {

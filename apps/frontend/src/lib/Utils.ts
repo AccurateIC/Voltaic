@@ -4,9 +4,9 @@ import { twMerge } from "tailwind-merge";
 
 export const cn = (...inputs: string[]) => twMerge(clsx(inputs));
 
-export const formatTimestamp = (timestamp: string) => {
+export const formatTimestamp = (timestamp: string | Date) => {
   if (!timestamp) return;
-  const dt = DateTime.fromISO(timestamp);
+  const dt = typeof timestamp === "string" ? DateTime.fromISO(timestamp) : DateTime.fromJSDate(timestamp);
   return dt.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS);
 };
 
