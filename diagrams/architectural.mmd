@@ -1,0 +1,50 @@
+graph TD
+  Genset["Genset"]
+  VibrationSensor["PDM Model <br> Predictive Maintenance"]
+  SensorData["Anomaly detection Model"]
+  RULData["RUL Model <br> Remainign Useful Life Cycle"]
+
+  DB["PostgreSQL <br>(Archive and PDM DB)"]
+  Backend["Backend"]
+  Frontend["Frontend"]
+
+  GenPage["Genset Telemetries"]
+  Generator["<b>Generator</b> <br>Rendering Live Data for L1, L2, L3  Voltages and L1, L2, L3 Current  "]
+  Mains["<b>Mains</b> <br>Rendering Mains Live Data for L1, L2, L3  Voltages and L1, L2, L3 Current  "]
+  Engine["<b>Engine Page </b> <br> Shows Live Data of Genset Properties"]
+  LivePage["<b>Live Data Page</b><br>Renders real-time graphs <br>Oil Pressure, Engine Speed, Battery Voltage, Vibration Data, Voltage (L1, L2, L3), Current (L1, L2, L3)"]
+  AnomalyPage["<b>Anomalies Page</b> <br> Anomaly Count, Anomaly count by property"]
+  RULPage["<b>RUL</b>  <br>(Shows Remaining Useful Lifecycle for Genset )"]
+  Report["<b>Report Page</b> <br>Genset Report"]
+  Maintenance["<b>Maintenance Page </b> </br> Calculate Confidence Score"]
+  Archive["<b>Archive Page</b> <br>Historical Genset Data"]
+  Alarms["<b>Alarms Page</b>  <br> Anomaly Detection history and Maintenance Prediction Alert history"]
+
+  Genset -->|Vibration Sensor| VibrationSensor
+  Genset --> |Controller Sensor|SensorData
+  SensorData --> RULData
+
+  VibrationSensor --> DB
+  SensorData --> DB
+  
+  DB  -->  Backend
+
+  Backend --> |Archive Data, PDM Data, notifications Data|Frontend
+  RULData -->|RUL Simulated Data|Frontend
+
+  Frontend -->  GenPage
+  GenPage --> |Mains Voltage and Current|Mains
+  GenPage --> |Generator's Voltage and Current|Generator
+  GenPage -->  |Engine Speed Oil Pressure, Charging Alternator Volatge , Battery Voltage Fuel Level, Power Output|Engine
+  Frontend --> |Archive Data|LivePage
+  Frontend --> |Anomaly Detection |AnomalyPage
+  Frontend --> Report
+  Frontend --> |Notification Data|Alarms
+  Frontend --> |PDM |Maintenance
+  Frontend --> |RUL Simulated Data|RULPage
+  Frontend --> |Archive Data|Archive
+  
+  
+  
+  
+  
