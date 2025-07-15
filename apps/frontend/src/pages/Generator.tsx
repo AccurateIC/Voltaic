@@ -15,37 +15,25 @@ export const Generator = () => {
     l3Current: 0,
   });
   const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const getData = async (
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
+  const getData = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
       const { data, error } = await tuyau.archive.getLatest.$get();
-      
+
       if (error) {
         setArchiveData([]);
-        setError('Unable to load data. Please try again later.');
         return;
       }
       setArchiveData(data);
     } catch (err) {
-      setError('Unable to load data. Please try again later.');
       setArchiveData([]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     // Load initial data
     (async () => {
-      await getData(setIsLoading, setArchiveData, setError);
+      await getData();
     })();
   }, []);
 
@@ -62,21 +50,12 @@ export const Generator = () => {
     });
   }, [archiveData]);
 
-
   useMessageBus("archive", (msg) => {
     // Update data when new archive message received
     (async () => {
-      await getData(setIsLoading, setArchiveData, setError);
+      await getData();
     })();
   });
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="flex justify-center items-center h-full text-red-500">Unable to load data. Please try again later.</div>;
-  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">

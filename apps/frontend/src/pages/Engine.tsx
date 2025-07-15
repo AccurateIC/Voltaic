@@ -16,7 +16,6 @@ import Archive from "../../../backend/app/models/archive";
 import { catchErrTyped, ExternalServerError, Result } from "@voltaic/err";
 
 const EngineRPM = ({ engineRpmDetails }) => {
-  console.log(engineRpmDetails);
   let engineRpm;
   if (!engineRpmDetails[0]) engineRpm = 0;
   else engineRpm = engineRpmDetails[0].propertyValue;
@@ -170,36 +169,17 @@ const sendLoggedInUser = async (user: User, url: string): Promise<Result<void, E
   );
 };
 
-const fetchLatestArchiveData = async (
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-  setIsError: React.Dispatch<React.SetStateAction<Object>>
-) => {
-  setIsLoading(true);
-  const { data, error } = await tuyau.archive.getLatest.$get();
-  if (error) {
-    setArchiveData([]);
-    setIsError(error.value);
-    throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
-  }
-  setArchiveData(data);
-  setIsLoading(false);
-};
-
-const Skeletons = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="skeleton aspect-video rounded-lg" />
-      ))}
-    </div>
-  );
-};
-
 const Engine = () => {
   const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<Object>({});
+
+  const fetchLatestArchiveData = async () => {
+    const { data, error } = await tuyau.archive.getLatest.$get();
+    if (error) {
+      setArchiveData([]);
+      throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
+    }
+    setArchiveData(data);
+  };
 
   const user = SessionStore.get("user");
 
@@ -216,18 +196,16 @@ const Engine = () => {
   useMessageBus("archive", (msg) => {
     console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
     (async () => {
-      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
+      await fetchLatestArchiveData();
     })();
   });
 
   useEffect(() => {
     console.log("Engine page mount effect running");
     (async () => {
-      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
+      await fetchLatestArchiveData();
     })();
   }, []);
-
-  if (isLoading) return <Skeletons />;
 
   return (
     <div className="h-full w-full min-h-0 min-w-0">
