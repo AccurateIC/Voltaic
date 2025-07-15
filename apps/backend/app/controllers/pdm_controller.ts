@@ -7,6 +7,7 @@ import PdmDataKind from "#models/pdm_data_kind";
 import SensorProperty from "#models/sensor_property";
 import { DateTime, DateTimeUnit } from "luxon";
 import { PdmService } from "#services/pdm_service";
+import { Exception } from "@adonisjs/core/exceptions";
 
 export default class PdmController {
   async markNotificationRead({ params }: HttpContext) {
@@ -89,7 +90,7 @@ export default class PdmController {
     transmit.broadcast("pdm", "new pdm data");
 
     // 1: if maintenance is needed, add to maintenance_notifications table
-    let maintenanceNotificationId;
+    let maintenanceNotificationId = undefined;
     if (data.maintenance_needed === true) {
       const maintenanceNotification = await MaintenanceNotification.create({
         predictedDominantFrequency: data.predicted_dominant_frequency,
@@ -99,6 +100,13 @@ export default class PdmController {
         shouldBeDisplayed: true,
       });
       maintenanceNotificationId = maintenanceNotification.id;
+    }
+
+    if (data.maintenance_needed === true && maintenanceNotificationId === undefined) {
+      throw new Exception("Failed to create maintenance notification record when maintenance was required.", {
+        code: "E_DB_INSERT_FAILED",
+        status: 500,
+      });
     }
 
     // 2: Get references for pdm_data_kinds
@@ -119,7 +127,7 @@ export default class PdmController {
         timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.actual_values.accel_x[i],
-        maintenanceNotificationId: maintenanceNotificationId || null,
+        maintenanceNotificationId: maintenanceNotificationId,
         pdm_data_kind_id: actualKind!.id,
         confidence_score_percentage: data.confidence_score_percentage,
       });
@@ -130,7 +138,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.actual_values.accel_y[i],
-          maintenanceNotificationId: maintenanceNotificationId || null,
+          maintenanceNotificationId: maintenanceNotificationId,
           pdm_data_kind_id: actualKind!.id,
           confidence_score_percentage: data.confidence_score_percentage,
         });
@@ -142,7 +150,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.actual_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.actual_values.accel_z[i],
-          maintenanceNotificationId: maintenanceNotificationId || null,
+          maintenanceNotificationId: maintenanceNotificationId,
           pdm_data_kind_id: actualKind!.id,
           confidence_score_percentage: data.confidence_score_percentage,
         });
@@ -156,7 +164,7 @@ export default class PdmController {
         timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
         sensor_property_id: sensorPropsMap.get("vibration_acceleration_x"),
         value: data.forecasted_values.accel_x[i],
-        maintenanceNotificationId: maintenanceNotificationId || null,
+        maintenanceNotificationId: maintenanceNotificationId,
         pdm_data_kind_id: forecastedKind!.id,
         confidence_score_percentage: null,
       });
@@ -167,7 +175,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_y"),
           value: data.forecasted_values.accel_y[i],
-          maintenanceNotificationId: maintenanceNotificationId || null,
+          maintenanceNotificationId: maintenanceNotificationId,
           pdm_data_kind_id: forecastedKind!.id,
           confidence_score_percentage: null,
         });
@@ -179,7 +187,7 @@ export default class PdmController {
           timestamp: DateTime.fromJSDate(data.forecasted_values_timestamp[i]),
           sensor_property_id: sensorPropsMap.get("vibration_acceleration_z"),
           value: data.forecasted_values.accel_z[i],
-          maintenanceNotificationId: maintenanceNotificationId || null,
+          maintenanceNotificationId: maintenanceNotificationId,
           pdm_data_kind_id: forecastedKind!.id,
           confidence_score_percentage: null,
         });
