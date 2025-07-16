@@ -110,9 +110,9 @@ export const Mains = () => {
     })();
   });
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading...</div>;
-  }
+  // if (isLoading) {
+  //   return <div className="flex justify-center items-center h-full">Loading...</div>;
+  // }
 
   if (error) {
     return (

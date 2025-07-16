@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useMessageBus } from "../lib/MessageBus.js";
-import { SemiCircleGauge } from "../components/SemiCircleGauge.js";
 import { VoltageStatCard } from "../components/VoltageStatCard.js";
 import { tuyau } from "../lib/Tuyau.js";
 import Archive from "../../../backend/app/models/archive.js";
@@ -27,15 +26,15 @@ export const Generator = () => {
       setIsLoading(true);
       setError(null);
       const { data, error } = await tuyau.archive.getLatest.$get();
-      
+
       if (error) {
         setArchiveData([]);
-        setError('Unable to load data. Please try again later.');
+        setError("Unable to load data. Please try again later.");
         return;
       }
       setArchiveData(data);
     } catch (err) {
-      setError('Unable to load data. Please try again later.');
+      setError("Unable to load data. Please try again later.");
       setArchiveData([]);
     } finally {
       setIsLoading(false);
@@ -62,7 +61,6 @@ export const Generator = () => {
     });
   }, [archiveData]);
 
-
   useMessageBus("archive", (msg) => {
     // Update data when new archive message received
     (async () => {
@@ -70,12 +68,16 @@ export const Generator = () => {
     })();
   });
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-full">Loading...</div>;
-  }
+  // if (isLoading) {
+  //   return <div className="flex justify-center items-center h-full">Loading...</div>;
+  // }
 
   if (error) {
-    return <div className="flex justify-center items-center h-full text-red-500">Unable to load data. Please try again later.</div>;
+    return (
+      <div className="flex justify-center items-center h-full text-red-500">
+        Unable to load data. Please try again later.
+      </div>
+    );
   }
 
   return (
