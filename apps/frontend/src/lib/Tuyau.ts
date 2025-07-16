@@ -7,7 +7,9 @@ import { BACKEND_BASE_URL } from "../config/backend";
 export const tuyau = createTuyau({
   api,
   baseUrl: BACKEND_BASE_URL,
-  headers: { "timezone": Intl.DateTimeFormat().resolvedOptions().timeZone },
-  credentials: "include", // TODO: does sending credentials in all requests result in failed requests
+  headers: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
   plugins: [superjson()],
+  fetch: (url, options = {}) => {
+    return fetch(url, { ...options, credentials: "include" });
+  },
 });
