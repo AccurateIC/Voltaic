@@ -38,7 +38,7 @@ const Login = () => {
     const checkAuthentication = async () => {
       try {
         const { data, error } = await tuyau.auth.getLoggedInUser.$get();
-        
+
         if (error) {
           console.error("Error checking authentication:", error);
           return;
@@ -72,7 +72,7 @@ const Login = () => {
 
     try {
       let user: User;
-      
+
       if (isSignUp) {
         const { data, error } = await tuyau.auth.register.$post(userData);
         if (error) {
@@ -80,10 +80,7 @@ const Login = () => {
         }
         user = data;
       } else {
-        const { data, error } = await tuyau.auth.login.$post({
-          email: userData.email,
-          password: userData.password,
-        });
+        const { data, error } = await tuyau.auth.login.$post({ email: userData.email, password: userData.password });
         if (error) {
           throw new Error(`Login failed: ${error.status}`);
         }
@@ -94,9 +91,7 @@ const Login = () => {
       // SessionStore.set("user", user);
 
       console.log(isSignUp ? "User registered:" : "User logged in:", user);
-      toast.success(
-        isSignUp ? "Account created successfully!" : "Logged in successfully!"
-      );
+      toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
 
       // ##################################################################
 
@@ -131,10 +126,7 @@ const Login = () => {
       //   if (res.error) toast.error("Failed to send user details to PDM Server.");
       // });
     } catch (error) {
-      console.error(
-        isSignUp ? "Error creating account:" : "Error logging in:",
-        error
-      );
+      console.error(isSignUp ? "Error creating account:" : "Error logging in:", error);
       // toast.error(error.message || "An error occurred");
     }
   };
@@ -247,13 +239,8 @@ const Login = () => {
 
             {/* Account Switch Link */}
             <div className="text-center mt-4">
-              <button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="link link-primary"
-              >
-                {isSignUp
-                  ? "Already have an account? Sign In"
-                  : "New here? Create Account"}
+              <button onClick={() => setIsSignUp(!isSignUp)} className="link link-primary">
+                {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
               </button>
             </div>
           </div>
