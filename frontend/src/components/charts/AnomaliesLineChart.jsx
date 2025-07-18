@@ -36,7 +36,35 @@ const AnomaliesLineChart = ({ value }) => {
   const dataPoints = sortedData.map((item) => item.propertyValue);
   const anomalyPoints = sortedData.map((item) => item.isAnomaly);
 
-  const yAxisTitle = value[0]?.gensetProperty?.readablePropertyName || "Property Value";
+  const readablePropertyName = value[0]?.gensetProperty?.readablePropertyName;
+  // const yAxisTitle = value[0]?.gensetProperty?.readablePropertyName || "Property Value";
+  console.log(readablePropertyName);
+  let yAxisTitle;
+  switch (readablePropertyName) {
+    case "Engine Fuel Level Units":
+      yAxisTitle = "Engine Fuel Level(L)";
+      break;
+    case "Engine Oil Pressure":
+      yAxisTitle = " Engine Oil Pressure(Bar)";
+      break;
+    case "Generator Phase 1 Current":
+      yAxisTitle = "Generator Phase 1 Current(Amp)";
+      break;
+    case "Engine Speed":
+      yAxisTitle = "Engine Speed(RPM)";
+      break;
+    case "Generator Power Output":
+      yAxisTitle = "Generator Power Output(kVA)";
+      break;
+      default :
+      yAxisTitle = "Property Value";
+  }
+
+  // Engine Fuel Level Units
+  // Engine Speed
+  // Engine Oil Pressure
+  // Generator Phase 1 Current
+  // Generator Power Output
 
   const data = {
     labels,
