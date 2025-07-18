@@ -316,7 +316,7 @@ export const LiveData = () => {
   };
 
   useEffect(() => {
-    console.log("pdm data changed", pdmData);
+    // console.log("pdm data changed", pdmData);
 
     // transform data for plotting graph
     const formattedData = pdmData.map((item) => {

@@ -48,6 +48,24 @@ export const getPaginatedDataValidator = vine.compile(
   })
 );
 
+export const propertyStatsValidator = vine.compile(
+  vine.object({
+    timeDuration: vine
+      .string()
+      .in(["day", "week", "month", "year"])
+      .transform((v) => v as DateTimeUnit),
+    properties: vine.array(vine.string()).optional(),
+    anomaliesCount: vine.boolean().optional(),
+    anomaliesByProperty: vine.boolean().optional(),
+    pdm: vine.boolean().optional(),
+    rul: vine.boolean().optional(),
+    headers: vine.object({
+      timezone: vine.string().use(timezoneRule()),
+    }),
+  })
+);
+
+
 export const getPropertyStatisticsValidator = vine.compile(
   vine.object({
     propertyName: vine.string().exists({ table: "genset_properties", column: "property_name" }),

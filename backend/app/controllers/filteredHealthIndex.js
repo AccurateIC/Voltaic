@@ -1,0 +1,402 @@
+export const filteredHealthIndexData = [
+  {
+    Time_Hours: 0,
+    Predicted_Health_Index: 0.91065819925,
+  },
+  {
+    Time_Hours: 100,
+    Predicted_Health_Index: 0.85574908575,
+  },
+  {
+    Time_Hours: 200,
+    Predicted_Health_Index: 0.81999659675,
+  },
+  {
+    Time_Hours: 300,
+    Predicted_Health_Index: 0.772893583,
+  },
+  {
+    Time_Hours: 400,
+    Predicted_Health_Index: 0.7153957885,
+  },
+  {
+    Time_Hours: 500,
+    Predicted_Health_Index: 0.66038070375,
+  },
+  {
+    Time_Hours: 600,
+    Predicted_Health_Index: 0.6197822590000001,
+  },
+  {
+    Time_Hours: 700,
+    Predicted_Health_Index: 0.590821705,
+  },
+  {
+    Time_Hours: 800,
+    Predicted_Health_Index: 0.5680617875,
+  },
+  {
+    Time_Hours: 900,
+    Predicted_Health_Index: 0.54856911,
+  },
+  {
+    Time_Hours: 1000,
+    Predicted_Health_Index: 0.5534983929999999,
+  },
+  {
+    Time_Hours: 1100,
+    Predicted_Health_Index: 0.53475725725,
+  },
+  {
+    Time_Hours: 1200,
+    Predicted_Health_Index: 0.515037635,
+  },
+  {
+    Time_Hours: 1300,
+    Predicted_Health_Index: 0.49620166825,
+  },
+  {
+    Time_Hours: 1400,
+    Predicted_Health_Index: 0.47804268450000004,
+  },
+  {
+    Time_Hours: 1500,
+    Predicted_Health_Index: 0.46117389825,
+  },
+  {
+    Time_Hours: 1600,
+    Predicted_Health_Index: 0.44364276075,
+  },
+  {
+    Time_Hours: 1700,
+    Predicted_Health_Index: 0.43265675449999996,
+  },
+  {
+    Time_Hours: 1800,
+    Predicted_Health_Index: 0.41856008425,
+  },
+  {
+    Time_Hours: 1900,
+    Predicted_Health_Index: 0.4215528705,
+  },
+  {
+    Time_Hours: 2000,
+    Predicted_Health_Index: 0.4085673275,
+  },
+  {
+    Time_Hours: 2100,
+    Predicted_Health_Index: 0.39653617725,
+  },
+  {
+    Time_Hours: 2200,
+    Predicted_Health_Index: 0.38561044825,
+  },
+  {
+    Time_Hours: 2300,
+    Predicted_Health_Index: 0.375092034,
+  },
+  {
+    Time_Hours: 2400,
+    Predicted_Health_Index: 0.37026177275,
+  },
+  {
+    Time_Hours: 2500,
+    Predicted_Health_Index: 0.35994868375,
+  },
+  {
+    Time_Hours: 2600,
+    Predicted_Health_Index: 0.35190388699999997,
+  },
+  {
+    Time_Hours: 2700,
+    Predicted_Health_Index: 0.35789448525,
+  },
+  {
+    Time_Hours: 2800,
+    Predicted_Health_Index: 0.34976170875,
+  },
+  {
+    Time_Hours: 2900,
+    Predicted_Health_Index: 0.3423232805,
+  },
+  {
+    Time_Hours: 3000,
+    Predicted_Health_Index: 0.334792883,
+  },
+  {
+    Time_Hours: 3100,
+    Predicted_Health_Index: 0.330059079,
+  },
+  {
+    Time_Hours: 3200,
+    Predicted_Health_Index: 0.32341162025,
+  },
+  {
+    Time_Hours: 3300,
+    Predicted_Health_Index: 0.315916831,
+  },
+  {
+    Time_Hours: 3400,
+    Predicted_Health_Index: 0.30936879175,
+  },
+  {
+    Time_Hours: 3500,
+    Predicted_Health_Index: 0.31484867475,
+  },
+  {
+    Time_Hours: 3600,
+    Predicted_Health_Index: 0.31168628175,
+  },
+  {
+    Time_Hours: 3700,
+    Predicted_Health_Index: 0.30602392675,
+  },
+  {
+    Time_Hours: 3800,
+    Predicted_Health_Index: 0.299478529,
+  },
+  {
+    Time_Hours: 3900,
+    Predicted_Health_Index: 0.2928186375,
+  },
+  {
+    Time_Hours: 4000,
+    Predicted_Health_Index: 0.28665877500000003,
+  },
+  {
+    Time_Hours: 4100,
+    Predicted_Health_Index: 0.28370237,
+  },
+  {
+    Time_Hours: 4200,
+    Predicted_Health_Index: 0.288999038,
+  },
+  {
+    Time_Hours: 4300,
+    Predicted_Health_Index: 0.28325418474999997,
+  },
+  {
+    Time_Hours: 4400,
+    Predicted_Health_Index: 0.277344989,
+  },
+  {
+    Time_Hours: 4500,
+    Predicted_Health_Index: 0.270909356,
+  },
+  {
+    Time_Hours: 4600,
+    Predicted_Health_Index: 0.26851112425,
+  },
+  {
+    Time_Hours: 4700,
+    Predicted_Health_Index: 0.2624329695,
+  },
+  {
+    Time_Hours: 4800,
+    Predicted_Health_Index: 0.25773451775,
+  },
+  {
+    Time_Hours: 4900,
+    Predicted_Health_Index: 0.2616669645,
+  },
+  {
+    Time_Hours: 5000,
+    Predicted_Health_Index: 0.256367112,
+  },
+  {
+    Time_Hours: 5100,
+    Predicted_Health_Index: 0.25386774624999997,
+  },
+  {
+    Time_Hours: 5200,
+    Predicted_Health_Index: 0.24870110225,
+  },
+  {
+    Time_Hours: 5300,
+    Predicted_Health_Index: 0.2434634035,
+  },
+  {
+    Time_Hours: 5400,
+    Predicted_Health_Index: 0.23936393025,
+  },
+  {
+    Time_Hours: 5500,
+    Predicted_Health_Index: 0.2459379005,
+  },
+  {
+    Time_Hours: 5600,
+    Predicted_Health_Index: 0.240805977,
+  },
+  {
+    Time_Hours: 5700,
+    Predicted_Health_Index: 0.2357539155,
+  },
+  {
+    Time_Hours: 5800,
+    Predicted_Health_Index: 0.231103069,
+  },
+  {
+    Time_Hours: 5900,
+    Predicted_Health_Index: 0.22919173799999998,
+  },
+  {
+    Time_Hours: 6000,
+    Predicted_Health_Index: 0.224887766,
+  },
+  {
+    Time_Hours: 6100,
+    Predicted_Health_Index: 0.22085611125,
+  },
+  {
+    Time_Hours: 6200,
+    Predicted_Health_Index: 0.22369075875,
+  },
+  {
+    Time_Hours: 6300,
+    Predicted_Health_Index: 0.221656834,
+  },
+  {
+    Time_Hours: 6400,
+    Predicted_Health_Index: 0.21804615524999998,
+  },
+  {
+    Time_Hours: 6500,
+    Predicted_Health_Index: 0.21381018175,
+  },
+  {
+    Time_Hours: 6600,
+    Predicted_Health_Index: 0.21007256125,
+  },
+  {
+    Time_Hours: 6700,
+    Predicted_Health_Index: 0.20791293724999999,
+  },
+  {
+    Time_Hours: 6800,
+    Predicted_Health_Index: 0.211337153,
+  },
+  {
+    Time_Hours: 6900,
+    Predicted_Health_Index: 0.20726277799999998,
+  },
+  {
+    Time_Hours: 7000,
+    Predicted_Health_Index: 0.20533650375,
+  },
+  {
+    Time_Hours: 7100,
+    Predicted_Health_Index: 0.20184638124999998,
+  },
+  {
+    Time_Hours: 7200,
+    Predicted_Health_Index: 0.1988887335,
+  },
+  {
+    Time_Hours: 7300,
+    Predicted_Health_Index: 0.19538951375,
+  },
+  {
+    Time_Hours: 7400,
+    Predicted_Health_Index: 0.199377919,
+  },
+  {
+    Time_Hours: 7500,
+    Predicted_Health_Index: 0.19653787425,
+  },
+  {
+    Time_Hours: 7600,
+    Predicted_Health_Index: 0.19312038975,
+  },
+  {
+    Time_Hours: 7700,
+    Predicted_Health_Index: 0.19152776,
+  },
+  {
+    Time_Hours: 7800,
+    Predicted_Health_Index: 0.18896455875,
+  },
+  {
+    Time_Hours: 7900,
+    Predicted_Health_Index: 0.19095485325,
+  },
+  {
+    Time_Hours: 8000,
+    Predicted_Health_Index: 0.1897584445,
+  },
+  {
+    Time_Hours: 8100,
+    Predicted_Health_Index: 0.18675122524999999,
+  },
+  {
+    Time_Hours: 8200,
+    Predicted_Health_Index: 0.18411962475,
+  },
+  {
+    Time_Hours: 8300,
+    Predicted_Health_Index: 0.1827957155,
+  },
+  {
+    Time_Hours: 8400,
+    Predicted_Health_Index: 0.180392736,
+  },
+  {
+    Time_Hours: 8500,
+    Predicted_Health_Index: 0.1823350665,
+  },
+  {
+    Time_Hours: 8600,
+    Predicted_Health_Index: 0.18095194250000002,
+  },
+  {
+    Time_Hours: 8700,
+    Predicted_Health_Index: 0.1786748305,
+  },
+  {
+    Time_Hours: 8800,
+    Predicted_Health_Index: 0.17651800125,
+  },
+  {
+    Time_Hours: 8900,
+    Predicted_Health_Index: 0.1753357765,
+  },
+  {
+    Time_Hours: 9000,
+    Predicted_Health_Index: 0.17725249575000002,
+  },
+  {
+    Time_Hours: 9100,
+    Predicted_Health_Index: 0.1747353425,
+  },
+  {
+    Time_Hours: 9200,
+    Predicted_Health_Index: 0.17409071850000002,
+  },
+  {
+    Time_Hours: 9300,
+    Predicted_Health_Index: 0.1725117045,
+  },
+  {
+    Time_Hours: 9400,
+    Predicted_Health_Index: 0.17047538925,
+  },
+  {
+    Time_Hours: 9500,
+    Predicted_Health_Index: 0.17248079424999999,
+  },
+  {
+    Time_Hours: 9600,
+    Predicted_Health_Index: 0.17110277125,
+  },
+  {
+    Time_Hours: 9700,
+    Predicted_Health_Index: 0.1702390195,
+  },
+  {
+    Time_Hours: 9800,
+    Predicted_Health_Index: 0.168754508,
+  },
+  {
+    Time_Hours: 9900,
+    Predicted_Health_Index: 0.16715603099999998,
+  },
+];

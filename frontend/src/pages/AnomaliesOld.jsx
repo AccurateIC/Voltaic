@@ -136,7 +136,7 @@ const Anomalies = () => {
   const [gensetProperties, setGensetProperties] = useState([]);
   const [anomalies, setAnomalies] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1m");
+  const [archiveTimeFilter, setArchiveTimeFilter] = useState("1w");
   const [archiveTimeFilter1, setArchiveTimeFilter1] = useState("1w");
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [filters, setFilters] = useState({
@@ -630,11 +630,11 @@ const Anomalies = () => {
       }>
       {/* Stats Cards */}
       <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
-        <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />
-        <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomaly" count={anomalyData.week.length} />
+        <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomalies" count={anomalyData.today.length} />
+        <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomalies" count={anomalyData.week.length} />
         <AnomalyStatsCard
           icon="FaCalendarAlt"
-          title="Monthly Anomaly"
+          title="Monthly Anomalies"
           count={anomalyData.month.length}
           onClick={() => handleAnomalyClick("month")}
         />
