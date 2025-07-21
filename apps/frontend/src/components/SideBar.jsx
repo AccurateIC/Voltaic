@@ -69,7 +69,7 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
 const SideBar = () => {
   return (
     <aside className="sticky top-0 h-[calc(100vh-4rem)] flex flex-col justify-between bg-[rgba(177,213,189,1)] bg-base-200 text-base-content w-15 md:w-58">
-      <ul className="flex-1 bg-[rgba(177,213,189,1)] bg-base-200 px-1 py-2">
+      <ul className="flex-1 bg-[rgba(177,213,189,1)] bg-base-200 px-1 py-2 overflow-y-auto">
         <SideBarGroup name="Genset" Icon={ImPowerCord} routes={["/engine", "/generator", "/mains"]}>
           <SideBarLink to="/engine" name="Engine" Icon={FaGears} />
           <SideBarLink to="/generator" name="Generator" Icon={FaPlug} />
