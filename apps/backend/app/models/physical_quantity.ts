@@ -1,0 +1,32 @@
+import { DateTime } from "luxon";
+import { BaseModel, beforeCreate, column } from "@adonisjs/lucid/orm";
+import { type UUID } from "node:crypto";
+
+export default class PhysicalQuantity extends BaseModel {
+  @column({ isPrimary: true })
+  declare id: UUID;
+
+  @column()
+  declare quantityName: string;
+
+  @column()
+  declare unitName: string;
+
+  @column()
+  declare unitSymbol: string;
+
+  @column.dateTime({ autoCreate: true, serializeAs: null })
+  declare createdAt: DateTime;
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
+  declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the PhysicalQuantity instance before creation.
+   * @param physicalQuantity PhysicalQuantity
+   */
+  @beforeCreate()
+  static assignUuid(physicalQuantity: PhysicalQuantity) {
+    physicalQuantity.id = crypto.randomUUID();
+  }
+}

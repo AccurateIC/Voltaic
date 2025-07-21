@@ -1,0 +1,22 @@
+{
+  "name": "@voltaic/err",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prebuild": "rm -rf dist",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "~5.8.3"
+  }
+}
