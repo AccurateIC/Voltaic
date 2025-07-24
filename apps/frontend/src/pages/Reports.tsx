@@ -138,13 +138,13 @@ export const Reports = () => {
     const label = allSelected
       ? "All Charts Selected"
       : noneSelected
-      ? "Select Charts"
-      : selectedCharts.length <= 2
-      ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
-          .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
-          .map((c) => ("title" in c ? c.title : c.chartTitle))
-          .join(", ")
-      : `${selectedCharts.length} Selected`;
+        ? "Select Charts"
+        : selectedCharts.length <= 2
+          ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
+              .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
+              .map((c) => ("title" in c ? c.title : c.chartTitle))
+              .join(", ")
+          : `${selectedCharts.length} Selected`;
 
     return (
       <>

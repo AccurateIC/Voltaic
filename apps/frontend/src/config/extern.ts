@@ -5,7 +5,7 @@
  */
 
 export const Modules = {
-  RUL: "http://localhost:5000",
-  PDM: "http://192.168.11.115:5000",
-  ANOMALY: "http://192.168.10.165:5000",
+  RUL: "http://localhost:5001",
+  PDM: "http://localhost:5002",
+  ANOMALY: "http://localhost:5000",
 };
