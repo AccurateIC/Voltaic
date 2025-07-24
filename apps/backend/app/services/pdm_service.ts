@@ -1,14 +1,17 @@
-<<<<<<< HEAD
+// backend/app/services/pdm_service.ts
+import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
 import MaintenanceNotification from "#models/maintenance_notification";
 import { HttpContext } from "@adonisjs/core/http";
 import { getPdmStatisticsValidator } from "#validators/pdm";
-import { DateTime, DateTimeUnit } from "luxon";
 
 export class PdmService {
   /**
    * Unified method: accepts either HttpContext OR timezone + timeDuration directly
    */
-  static async maintenanceNotificationStatistics(ctxOrTimezone: HttpContext | string, timeDurationParam?: DateTimeUnit) {
+  static async maintenanceNotificationStatistics(
+    ctxOrTimezone: HttpContext | string,
+    timeDurationParam?: DateTimeUnit
+  ) {
     let timezone: string;
     let timeDuration: DateTimeUnit;
 
@@ -40,7 +43,12 @@ export class PdmService {
       case "week":
         return {
           meta: { timeDuration },
-          data: await query.select("day", "month", "year").count("id").groupBy("day", "month", "year").orderBy("day").pojo(),
+          data: await query
+            .select("day", "month", "year")
+            .count("id")
+            .groupBy("day", "month", "year")
+            .orderBy("day")
+            .pojo(),
         };
 
       case "month":
@@ -66,138 +74,6 @@ export class PdmService {
   }
 }
 
-// // backend/app/services/pdm_service.ts
-// import MaintenanceNotification from "#models/maintenance_notification";
-// import { HttpContext } from "@adonisjs/core/http";
-// import { getPdmStatisticsValidator } from "#validators/pdm";
-// import { DateTime, DateTimeUnit } from "luxon";
-
-// export class PdmService {
-
-//     static async maintenanceNotificationStatistics({ request }: HttpContext) {
-//     const reqBody = await request.validateUsing(getPdmStatisticsValidator);
-//       console.log("reqBody  PDM", reqBody);
-//     const timezone = reqBody.headers.timezone;
-//     const timeDuration = reqBody.timeDuration;
-
-//     if (!timezone) throw new Error("no timezone provided");
-//     if (!timeDuration) throw new Error("no time duration provided");
-
-//     const now = DateTime.now().setZone(timezone);
-//     const start = now.startOf(timeDuration).toUTC();
-//     const end = now.endOf(timeDuration).toUTC();
-
-//     const query = MaintenanceNotification.query().whereBetween("timestamp", [start, end]);
-
-//     switch (timeDuration) {
-//       case "week":
-//         return {
-//           meta: { timeDuration },
-//           data: await query
-//             .select("day", "month", "year")
-//             .count("id")
-//             .groupBy("day", "month", "year")
-//             .orderBy("day")
-//             .pojo(),
-//         };
-
-//       case "month":
-//         return {
-//           meta: { timeDuration },
-//           data: await query
-//             .select("week", "month", "year")
-//             .count("id")
-//             .groupBy("week", "month", "year")
-//             .orderBy("week")
-//             .pojo(),
-//         };
-
-//       case "year":
-//         return {
-//           meta: { timeDuration },
-//           data: await query
-//             .select("month", "year")
-//             .count("id")
-//             .groupBy("month", "year")
-//             .orderBy("month")
-//             .pojo(),
-//         };
-
-//       default:
-//         throw new Error("Invalid time duration");
-//     }
-//   }
-// }
-
-// // // backend/app/services/pdm_service.ts
-// // import MaintenanceNotification from "#models/maintenance_notification";
-// // import { DateTime, DateTimeUnit } from "luxon";
-
-// // export class PdmService {
-// //   static async maintenanceNotificationStatistics(timezone: string, timeDuration: DateTimeUnit) {
-// //     const query = MaintenanceNotification.query();
-
-// //     if (!timezone) throw new Error("no timezone provided");
-// //     if (!timeDuration) throw new Error("no time duration provided");
-
-// //     const now = DateTime.now().setZone(timezone);
-// //     const startOfDuration: DateTime = now.startOf(timeDuration).toUTC();
-// //     const endOfDuration: DateTime = now.endOf(timeDuration).toUTC();
-// //     query.whereBetween("timestamp", [startOfDuration, endOfDuration]);
-
-// //     switch (timeDuration) {
-// //       case "week":
-// //         const weekStats = await query //
-// //           .select("day", "month", "year")
-// //           .count("id")
-// //           .groupBy("day", "month", "year")
-// //           .orderBy("day")
-// //           .pojo();
-
-// //         return {
-// //           meta: {
-// //             timeDuration,
-// //           },
-// //           data: weekStats,
-// //         };
-// //       case "month":
-// //         const monthStats = await query //
-// //           .select("week", "month", "year")
-// //           .count("id")
-// //           .groupBy("week", "month", "year")
-// //           .orderBy("week")
-// //           .pojo();
-
-// //         return {
-// //           meta: {
-// //             timeDuration,
-// //           },
-// //           data: monthStats,
-// //         };
-// //       case "year":
-// //         const yearStats = await query //
-// //           .select("month", "year")
-// //           .count("id")
-// //           .groupBy("month", "year")
-// //           .orderBy("month")
-// //           .pojo();
-
-// //         return {
-// //           meta: {
-// //             timeDuration,
-// //           },
-// //           data: yearStats,
-// //         };
-// //       default:
-// //         break;
-// //     }
-// //   }
-// // }
-=======
-// backend/app/services/pdm_service.ts
-import MaintenanceNotification from "#models/maintenance_notification";
-import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
-
 export interface MaintenanceNotificationCount {
   day?: DayNumbers;
   week?: WeekNumbers;
@@ -211,53 +87,52 @@ export interface MaintenanceNotificationStatisticsResponse {
   data: MaintenanceNotificationCount[];
 }
 
-export class PdmService {
-  static async maintenanceNotificationStatistics(
-    timezone: string,
-    timeDuration: DateTimeUnit
-  ): Promise<MaintenanceNotificationStatisticsResponse> {
-    const query = MaintenanceNotification.query();
+// export class PdmService {
+//   static async maintenanceNotificationStatistics(
+//     timezone: string,
+//     timeDuration: DateTimeUnit
+//   ): Promise<MaintenanceNotificationStatisticsResponse> {
+//     const query = MaintenanceNotification.query();
 
-    if (!timezone) throw new Error("no timezone provided");
-    if (!timeDuration) throw new Error("no time duration provided");
+//     if (!timezone) throw new Error("no timezone provided");
+//     if (!timeDuration) throw new Error("no time duration provided");
 
-    const now = DateTime.now().setZone(timezone);
-    const startOfDuration: Date = now.startOf(timeDuration).toUTC().toJSDate();
-    const endOfDuration: Date = now.endOf(timeDuration).toUTC().toJSDate();
-    query.whereBetween("timestamp", [startOfDuration, endOfDuration]);
+//     const now = DateTime.now().setZone(timezone);
+//     const startOfDuration: Date = now.startOf(timeDuration).toUTC().toJSDate();
+//     const endOfDuration: Date = now.endOf(timeDuration).toUTC().toJSDate();
+//     query.whereBetween("timestamp", [startOfDuration, endOfDuration]);
 
-    switch (timeDuration) {
-      case "week":
-        const weekStats = (await query //
-          .select("day", "month", "year")
-          .count("id")
-          .groupBy("day", "month", "year")
-          .orderBy("day")
-          .pojo()) as MaintenanceNotificationCount[];
+//     switch (timeDuration) {
+//       case "week":
+//         const weekStats = (await query //
+//           .select("day", "month", "year")
+//           .count("id")
+//           .groupBy("day", "month", "year")
+//           .orderBy("day")
+//           .pojo()) as MaintenanceNotificationCount[];
 
-        return { meta: { timeDuration }, data: weekStats };
+//         return { meta: { timeDuration }, data: weekStats };
 
-      case "month":
-        const monthStats = (await query //
-          .select("week", "month", "year")
-          .count("id")
-          .groupBy("week", "month", "year")
-          .orderBy("week")
-          .pojo()) as MaintenanceNotificationCount[];
+//       case "month":
+//         const monthStats = (await query //
+//           .select("week", "month", "year")
+//           .count("id")
+//           .groupBy("week", "month", "year")
+//           .orderBy("week")
+//           .pojo()) as MaintenanceNotificationCount[];
 
-        return { meta: { timeDuration }, data: monthStats };
-      case "year":
-        const yearStats = (await query //
-          .select("month", "year")
-          .count("id")
-          .groupBy("month", "year")
-          .orderBy("month")
-          .pojo()) as MaintenanceNotificationCount[];
+//         return { meta: { timeDuration }, data: monthStats };
+//       case "year":
+//         const yearStats = (await query //
+//           .select("month", "year")
+//           .count("id")
+//           .groupBy("month", "year")
+//           .orderBy("month")
+//           .pojo()) as MaintenanceNotificationCount[];
 
-        return { meta: { timeDuration }, data: yearStats };
-      default:
-        throw new Error(`Unsupported time duration: ${timeDuration}`);
-    }
-  }
-}
->>>>>>> 903961179e1d6005e168ec08e49c1b40e5f20388
+//         return { meta: { timeDuration }, data: yearStats };
+//       default:
+//         throw new Error(`Unsupported time duration: ${timeDuration}`);
+//     }
+//   }
+// }

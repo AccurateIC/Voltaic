@@ -132,224 +132,224 @@ const typstBase = `
  * @returns Promise resolving to a Buffer containing the PDF data
  */
 const compilePdf = (tmpFile: string): Promise<Buffer> => {
-	return new Promise((resolve, reject) => {
-		const compileProc = spawn("typst", ["compile", tmpFile, "-"]);
-		const pdfBuffers: Buffer[] = [];
+  return new Promise((resolve, reject) => {
+    const compileProc = spawn("typst", ["compile", tmpFile, "-"]);
+    const pdfBuffers: Buffer[] = [];
 
-		compileProc.stdout.on("data", (chunk) => {
-			pdfBuffers.push(chunk);
-		});
+    compileProc.stdout.on("data", (chunk) => {
+      pdfBuffers.push(chunk);
+    });
 
-		compileProc.stderr.on("data", (data) => {
-			reject(data.toString());
-		});
+    compileProc.stderr.on("data", (data) => {
+      reject(data.toString());
+    });
 
-		compileProc.on("close", async (code) => {
-			if (code !== 0) reject(`Compiler exited with code ${code}`);
-			resolve(Buffer.concat(pdfBuffers));
-		});
-	});
+    compileProc.on("close", async (code) => {
+      if (code !== 0) reject(`Compiler exited with code ${code}`);
+      resolve(Buffer.concat(pdfBuffers));
+    });
+  });
 };
 
 export default class ReportsController {
-	/**
-	 * Retrieves all archive data
-	 * @returns Promise resolving to an array of Archive objects
-	 */
-	async getData(): Promise<Archive[]> {
-		const archiveData = Archive.all();
-		return archiveData as Promise<Archive[]>;
-	}
+  /**
+   * Retrieves all archive data
+   * @returns Promise resolving to an array of Archive objects
+   */
+  async getData(): Promise<Archive[]> {
+    const archiveData = Archive.all();
+    return archiveData as Promise<Archive[]>;
+  }
 
-	/**
-	 * Generates a PDF report based on the request parameters
-	 * @param param0 HttpContext containing request and response objects
-	 * @returns HTTP response with the generated PDF
-	 */
-	async generateDummy({ request, response }: HttpContext) {
-		const tmpFile = path.join(__dirname, "report.typ");
+  /**
+   * Generates a PDF report based on the request parameters
+   * @param param0 HttpContext containing request and response objects
+   * @returns HTTP response with the generated PDF
+   */
+  async generateDummy({ request, response }: HttpContext) {
+    const tmpFile = path.join(__dirname, "report.typ");
 
-		try {
-			// Extract request parameters
-			const { properties, anomaliesCount, anomaliesByProperty, pdm, rul } = request.body();
-			const requestBody = request.body();
-			const selectedPropertyNames = requestBody.properties || [];
+    try {
+      // Extract request parameters
+      const { properties, anomaliesCount, anomaliesByProperty, pdm, rul } = request.body();
+      const requestBody = request.body();
+      const selectedPropertyNames = requestBody.properties || [];
 
-			// Get property statistics
-			const propertyStats = (
-				await Archive.query()
-					.whereHas("gensetProperty", (query) => {
-						query.whereIn("propertyName", selectedPropertyNames);
-					})
-					.preload("gensetProperty")
-					.select("gensetPropertyId")
-					.groupBy("gensetPropertyId")
-			).map((value) => ({
-				readablePropertyName: value.gensetProperty.readablePropertyName,
-				gensetPropertyId: value.gensetPropertyId,
-				propertyName: value.gensetProperty.propertyName,
-			}));
+      // Get property statistics
+      const propertyStats = (
+        await Archive.query()
+          .whereHas("gensetProperty", (query) => {
+            query.whereIn("propertyName", selectedPropertyNames);
+          })
+          .preload("gensetProperty")
+          .select("gensetPropertyId")
+          .groupBy("gensetPropertyId")
+      ).map((value) => ({
+        readablePropertyName: value.gensetProperty.readablePropertyName,
+        gensetPropertyId: value.gensetPropertyId,
+        propertyName: value.gensetProperty.propertyName,
+      }));
 
-			// Get property data
-			const resultData = await ArchiveService.getPropertyStatistics({ request });
-			const durationTime = resultData?.meta.timeDuration;
+      // Get property data
+      const resultData = await ArchiveService.getPropertyStatistics({ request });
+      const durationTime = resultData?.meta.timeDuration;
 
-			// Helper function to get week range
-			function getWeekRange(week: number, month: number, year: number) {
-				const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
-				return { start, end: start.endOf("week") };
-			}
+      // Helper function to get week range
+      function getWeekRange(week: number, month: number, year: number) {
+        const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
+        return { start, end: start.endOf("week") };
+      }
 
-			// Helper function to format date labels
-			function formatLabel(entry: any): string {
-				switch (durationTime) {
-					case "year":
-						return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
-					case "month": {
-						const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
-						return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
-					}
-					case "week":
-						return DateTime.fromObject({ day: entry.day, month: entry.month, year: entry.year }).toFormat("ccc LLL dd");
-					default:
-						return "";
-				}
-			}
+      // Helper function to format date labels
+      function formatLabel(entry: any): string {
+        switch (durationTime) {
+          case "year":
+            return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
+          case "month": {
+            const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
+            return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
+          }
+          case "week":
+            return DateTime.fromObject({ day: entry.day, month: entry.month, year: entry.year }).toFormat("ccc LLL dd");
+          default:
+            return "";
+        }
+      }
 
-			// Function to generate time period information - modify this function
-			function getTimePeriodInfo(durationTime: string, resultData: any) {
-				const currentDate = new Date();
-				let title = "";
-				let range = "";
-				let reportType = "";
+      // Function to generate time period information - modify this function
+      function getTimePeriodInfo(durationTime: string, resultData: any) {
+        const currentDate = new Date();
+        let title = "";
+        let range = "";
+        let reportType = "";
 
-				// Get actual date range from resultData if available
-				const startDate = resultData?.meta?.startDate || currentDate;
-				const endDate = resultData?.meta?.endDate || currentDate;
+        // Get actual date range from resultData if available
+        const startDate = resultData?.meta?.startDate || currentDate;
+        const endDate = resultData?.meta?.endDate || currentDate;
 
-				switch (durationTime) {
-					case "week":
-						title = "Weekly Performance Report";
-						reportType = "Weekly Performance Analysis";
+        switch (durationTime) {
+          case "week":
+            title = "Weekly Performance Report";
+            reportType = "Weekly Performance Analysis";
 
-						// Use actual data dates if available, otherwise calculate current week
-						if (resultData?.meta?.startDate && resultData?.meta?.endDate) {
-							const start = new Date(startDate);
-							const end = new Date(endDate);
-							range = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-						} else {
-							const startOfWeek = new Date(currentDate);
-							startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-							const endOfWeek = new Date(startOfWeek);
-							endOfWeek.setDate(startOfWeek.getDate() + 6);
-							range = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-						}
-						break;
+            // Use actual data dates if available, otherwise calculate current week
+            if (resultData?.meta?.startDate && resultData?.meta?.endDate) {
+              const start = new Date(startDate);
+              const end = new Date(endDate);
+              range = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+            } else {
+              const startOfWeek = new Date(currentDate);
+              startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+              const endOfWeek = new Date(startOfWeek);
+              endOfWeek.setDate(startOfWeek.getDate() + 6);
+              range = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
+            }
+            break;
 
-					case "month":
-						title = "Monthly Performance Report";
-						reportType = "Monthly Performance Analysis";
+          case "month":
+            title = "Monthly Performance Report";
+            reportType = "Monthly Performance Analysis";
 
-						// Use actual month from data if available
-						if (resultData?.meta?.month && resultData?.meta?.year) {
-							const monthNames = [
-								"January",
-								"February",
-								"March",
-								"April",
-								"May",
-								"June",
-								"July",
-								"August",
-								"September",
-								"October",
-								"November",
-								"December",
-							];
-							range = `${monthNames[resultData.meta.month - 1]} ${resultData.meta.year}`;
-						} else {
-							const monthNames = [
-								"January",
-								"February",
-								"March",
-								"April",
-								"May",
-								"June",
-								"July",
-								"August",
-								"September",
-								"October",
-								"November",
-								"December",
-							];
-							range = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-						}
-						break;
+            // Use actual month from data if available
+            if (resultData?.meta?.month && resultData?.meta?.year) {
+              const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ];
+              range = `${monthNames[resultData.meta.month - 1]} ${resultData.meta.year}`;
+            } else {
+              const monthNames = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+              ];
+              range = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            }
+            break;
 
-					case "year":
-						title = "Annual Performance Report";
-						reportType = "Annual Performance Analysis";
+          case "year":
+            title = "Annual Performance Report";
+            reportType = "Annual Performance Analysis";
 
-						// Use actual year from data if available
-						if (resultData?.meta?.year) {
-							range = `${resultData.meta.year}`;
-						} else {
-							range = `${currentDate.getFullYear()}`;
-						}
-						break;
+            // Use actual year from data if available
+            if (resultData?.meta?.year) {
+              range = `${resultData.meta.year}`;
+            } else {
+              range = `${currentDate.getFullYear()}`;
+            }
+            break;
 
-					default:
-						title = "Custom Performance Report";
-						reportType = "Custom Performance Analysis";
+          default:
+            title = "Custom Performance Report";
+            reportType = "Custom Performance Analysis";
 
-						// Handle custom date ranges
-						if (resultData?.meta?.startDate && resultData?.meta?.endDate) {
-							const start = new Date(startDate);
-							const end = new Date(endDate);
-							range = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-						} else {
-							range = "Custom Period";
-						}
-				}
+            // Handle custom date ranges
+            if (resultData?.meta?.startDate && resultData?.meta?.endDate) {
+              const start = new Date(startDate);
+              const end = new Date(endDate);
+              range = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+            } else {
+              range = "Custom Period";
+            }
+        }
 
-				return { title, range, reportType };
-			}
+        return { title, range, reportType };
+      }
 
-			// Group data by property ID
-			const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
-				const key = entry.genset_property_id;
-				(acc[key] ||= []).push(entry);
-				return acc;
-			}, {});
+      // Group data by property ID
+      const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
+        const key = entry.genset_property_id;
+        (acc[key] ||= []).push(entry);
+        return acc;
+      }, {});
 
-			// Function to generate bar chart for property data with new layout
-			const generateTypstBarChart = (
-				title: string,
-				xs: object[],
-				ys: object[],
-				durationTime: string,
-				timePeriodInfo: any
-			) => {
-				let granularity = "";
-				let description = "";
+      // Function to generate bar chart for property data with new layout
+      const generateTypstBarChart = (
+        title: string,
+        xs: object[],
+        ys: object[],
+        durationTime: string,
+        timePeriodInfo: any
+      ) => {
+        let granularity = "";
+        let description = "";
 
-				if (durationTime === "week") {
-					granularity = "daily";
-					description = "This chart displays daily average values for the selected week period.";
-				} else if (durationTime === "month") {
-					granularity = "weekly";
-					description = "This chart shows weekly average trends for the selected month period.";
-				} else if (durationTime === "year") {
-					granularity = "monthly";
-					description = "This chart presents monthly performance trends for the selected year period.";
-				}
+        if (durationTime === "week") {
+          granularity = "daily";
+          description = "This chart displays daily average values for the selected week period.";
+        } else if (durationTime === "month") {
+          granularity = "weekly";
+          description = "This chart shows weekly average trends for the selected month period.";
+        } else if (durationTime === "year") {
+          granularity = "monthly";
+          description = "This chart presents monthly performance trends for the selected year period.";
+        }
 
-				const average = (ys as number[]).reduce((a, b) => a + b, 0) / ys.length;
-				const maximum = Math.max(...(ys as number[]));
-				const minimum = Math.min(...(ys as number[]));
-				const trend = (ys as number[])[ys.length - 1] > (ys as number[])[0] ? "an increasing" : "a decreasing";
+        const average = (ys as number[]).reduce((a, b) => a + b, 0) / ys.length;
+        const maximum = Math.max(...(ys as number[]));
+        const minimum = Math.min(...(ys as number[]));
+        const trend = (ys as number[])[ys.length - 1] > (ys as number[])[0] ? "an increasing" : "a decreasing";
 
-				return `
+        return `
         #v(0.7cm)
 == ${title} Performance Analysis
 #v(0.5cm)
@@ -430,13 +430,13 @@ export default class ReportsController {
 #pagebreak()
 
 `;
-			};
+      };
 
-			// Function to generate anomaly bar chart with new layout
-			const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
-				const totalAnomalies = (ysl as number[]).reduce((a, b) => a + b, 0);
+      // Function to generate anomaly bar chart with new layout
+      const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
+        const totalAnomalies = (ysl as number[]).reduce((a, b) => a + b, 0);
 
-				return `
+        return `
 = Anomaly Detection Analysis
 
 This section presents the results of machine learning-based anomaly detection algorithms applied to generator operational data.
@@ -517,11 +517,11 @@ This section presents the results of machine learning-based anomaly detection al
 #pagebreak()
 
 `;
-			};
+      };
 
-			// Function to generate property anomaly chart with new layout
-			const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
-				return `
+      // Function to generate property anomaly chart with new layout
+      const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
+        return `
 == Anomaly Distribution by Property
 #v(0.5cm)
 // Centered chart with larger size
@@ -542,7 +542,6 @@ This section presents the results of machine learning-based anomaly detection al
         range(${totalAnomaly.length}),
         (${totalAnomaly.join(", ")}),
         fill: rgb("#dc2626"),
-        width: 0.7
       )
     )
   ]
@@ -598,13 +597,13 @@ This section presents the results of machine learning-based anomaly detection al
 #pagebreak()
 
 `;
-			};
+      };
 
-			// Function to generate PDM bar chart with new layout
-			const generatePDMBarChart = (xs: object[], counts: object[]) => {
-				const totalNotifications = (counts as number[]).reduce((a, b) => a + b, 0);
+      // Function to generate PDM bar chart with new layout
+      const generatePDMBarChart = (xs: object[], counts: object[]) => {
+        const totalNotifications = (counts as number[]).reduce((a, b) => a + b, 0);
 
-				return `
+        return `
 = Predictive Maintenance Analysis
 
 This section presents predictive maintenance notifications generated by machine learning algorithms analyzing equipment condition and performance trends.
@@ -686,19 +685,20 @@ This section presents predictive maintenance notifications generated by machine 
 #pagebreak()
 
 `;
-			};
+      };
 
-			// Function to generate RUL line chart with new layout
-			const rulLineChart = (timeHours: number[], predictiveHealthIndex: number[]) => {
-				const currentHealthIndex = filteredHealthIndexData[filteredHealthIndexData.length - 1]?.Predicted_Health_Index || 0;
-				console.log("currentHealthIndex", currentHealthIndex);
-				const predictedHealthIndex = predictiveHealthIndex[predictiveHealthIndex.length - 1] || 0;
-				console.log("predictedHealthIndex", predictedHealthIndex);
-				const maxHours = Math.max(...timeHours);
+      // Function to generate RUL line chart with new layout
+      const rulLineChart = (timeHours: number[], predictiveHealthIndex: number[]) => {
+        const currentHealthIndex =
+          filteredHealthIndexData[filteredHealthIndexData.length - 1]?.Predicted_Health_Index || 0;
+        console.log("currentHealthIndex", currentHealthIndex);
+        const predictedHealthIndex = predictiveHealthIndex[predictiveHealthIndex.length - 1] || 0;
+        console.log("predictedHealthIndex", predictedHealthIndex);
+        const maxHours = Math.max(...timeHours);
 
-				let historicalPlotContent = "";
-				if (filteredHealthIndexData.length > 0) {
-					historicalPlotContent = `
+        let historicalPlotContent = "";
+        if (filteredHealthIndexData.length > 0) {
+          historicalPlotContent = `
             lq.plot(
               (${filteredHealthIndexData.map((d) => d.Time_Hours).join(", ")}),
               (${filteredHealthIndexData.map((d) => d.Predicted_Health_Index).join(", ")}),
@@ -707,11 +707,11 @@ This section presents predictive maintenance notifications generated by machine 
               stroke: rgb("#059669")
             ),
           `;
-				}
+        }
 
-				let rulPlotContent = "";
-				if (timeHours.length > 0 && predictiveHealthIndex.length > 0) {
-					rulPlotContent = `
+        let rulPlotContent = "";
+        if (timeHours.length > 0 && predictiveHealthIndex.length > 0) {
+          rulPlotContent = `
             lq.plot(
               (${timeHours.join(", ")}),
               (${predictiveHealthIndex.join(", ")}),
@@ -720,9 +720,9 @@ This section presents predictive maintenance notifications generated by machine 
               stroke: rgb("#dc2626")
             ),
           `;
-				}
+        }
 
-				const failureThresholdPlot = `
+        const failureThresholdPlot = `
  lq.plot(
   (0, 10000),
   (0.2, 0.2),
@@ -732,17 +732,17 @@ This section presents predictive maintenance notifications generated by machine 
 
 
 `;
-				let diagramContent = "";
-				if (historicalPlotContent || rulPlotContent) {
-					// Generate desired X-axis ticks (1000, 2000, ..., 10000)
-					// console.log("rulPlotContent",rulPlotContent);
-					const desiredRULTicks = [];
-					for (let i = 0; i <= 10000; i += 1000) {
-						desiredRULTicks.push(i);
-					}
-					const typstRULTicksLiteral = `(${desiredRULTicks.map((t) => t.toString()).join(", ")})`;
+        let diagramContent = "";
+        if (historicalPlotContent || rulPlotContent) {
+          // Generate desired X-axis ticks (1000, 2000, ..., 10000)
+          // console.log("rulPlotContent",rulPlotContent);
+          const desiredRULTicks = [];
+          for (let i = 0; i <= 10000; i += 1000) {
+            desiredRULTicks.push(i);
+          }
+          const typstRULTicksLiteral = `(${desiredRULTicks.map((t) => t.toString()).join(", ")})`;
 
-					diagramContent = `
+          diagramContent = `
             #let rul_x_ticks = ${typstRULTicksLiteral} // Define Typst variable for RUL X-axis ticks
             #lq.diagram(
               width: 12cm,
@@ -760,11 +760,11 @@ This section presents predictive maintenance notifications generated by machine 
               ${failureThresholdPlot}
             )
           `;
-				} else {
-					diagramContent = `#align(center)[#text(size: 14pt, fill: red)[No RUL prediction data available.]]`;
-				}
+        } else {
+          diagramContent = `#align(center)[#text(size: 14pt, fill: red)[No RUL prediction data available.]]`;
+        }
 
-				return `
+        return `
 = Remaining Useful Life (RUL) Prediction
 
 This section provides advanced analytics on equipment health trends and remaining useful life predictions using machine learning models.
@@ -828,32 +828,32 @@ This section provides advanced analytics on equipment health trends and remainin
 #pagebreak()
 
 `;
-			};
+      };
 
-			// Get data from services
-			const timezone = request.header("timezone");
-			const anomalyResult = await ArchiveService.getAnomalyStatistics(timezone);
-			const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
-			const rulPrediction = await RulService.fetchPrediction({ request });
+      // Get data from services
+      const timezone = request.header("timezone");
+      const anomalyResult = await ArchiveService.getAnomalyStatistics(timezone);
+      const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
+      const rulPrediction = await RulService.fetchPrediction({ request });
 
-			const xsl = Object.entries(anomalyResult.overall).map(([key, _]) => key);
-			const ysl = Object.entries(anomalyResult.overall).map(([_, value]) => value);
-			const propertynm = anomalyResult.byProperty.map((item) => item.readablePropertyName);
-			const totalAnomaly = anomalyResult.byProperty.map((item) => item.total);
+      const xsl = Object.entries(anomalyResult.overall).map(([key, _]) => key);
+      const ysl = Object.entries(anomalyResult.overall).map(([_, value]) => value);
+      const propertynm = anomalyResult.byProperty.map((item) => item.readablePropertyName);
+      const totalAnomaly = anomalyResult.byProperty.map((item) => item.total);
 
-			const counts = pdmData.data.map((entry) => Number(entry.count));
-			const xs = pdmData.data.map(formatLabel);
+      const counts = pdmData.data.map((entry) => Number(entry.count));
+      const xs = pdmData.data.map(formatLabel);
 
-			const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
-			const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
+      const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
+      const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
 
-			// After getting the time period info, replace the template placeholders:
-			// Get time period information
-			const timePeriodInfo = getTimePeriodInfo(durationTime, resultData);
-			// Generate property charts
-			let allChartsTypstCode = ""; // Initialize here, outside the loop
-			if (Object.keys(groupedData).length > 0) {
-				allChartsTypstCode += `
+      // After getting the time period info, replace the template placeholders:
+      // Get time period information
+      const timePeriodInfo = getTimePeriodInfo(durationTime, resultData);
+      // Generate property charts
+      let allChartsTypstCode = ""; // Initialize here, outside the loop
+      if (Object.keys(groupedData).length > 0) {
+        allChartsTypstCode += `
 = Generator Performance Metrics
 
 This section provides detailed analysis of key generator performance parameters monitored during the reporting period. Each chart represents statistical analysis of sensor data collected at regular intervals.
@@ -861,54 +861,54 @@ This section provides detailed analysis of key generator performance parameters 
 
 `;
 
-				for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
-					if (!Array.isArray(entries)) {
-						console.warn(`Skipping non-array entry for propertyId: ${propertyIdStr}`);
-						continue;
-					}
+        for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
+          if (!Array.isArray(entries)) {
+            console.warn(`Skipping non-array entry for propertyId: ${propertyIdStr}`);
+            continue;
+          }
 
-					const xs = entries.map(formatLabel);
-					const ys = entries.map((entry) => entry.avg);
-					const propertyId = Number(propertyIdStr);
-					const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
+          const xs = entries.map(formatLabel);
+          const ys = entries.map((entry) => entry.avg);
+          const propertyId = Number(propertyIdStr);
+          const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
 
-					if (!matched) continue;
+          if (!matched) continue;
 
-					const title = matched.readablePropertyName;
-					allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime, timePeriodInfo);
-				}
-			}
+          const title = matched.readablePropertyName;
+          allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime, timePeriodInfo);
+        }
+      }
 
-			// Build the complete document with time period information - REPLACE ALL PLACEHOLDERS
-			let typstDoc = typstBase
-				.replace(/\{\{TIME_PERIOD_TITLE\}\}/g, timePeriodInfo.title)
-				.replace(/\{\{TIME_PERIOD_RANGE\}\}/g, timePeriodInfo.range)
-				.replace(/\{\{REPORT_TYPE\}\}/g, timePeriodInfo.reportType);
+      // Build the complete document with time period information - REPLACE ALL PLACEHOLDERS
+      let typstDoc = typstBase
+        .replace(/\{\{TIME_PERIOD_TITLE\}\}/g, timePeriodInfo.title)
+        .replace(/\{\{TIME_PERIOD_RANGE\}\}/g, timePeriodInfo.range)
+        .replace(/\{\{REPORT_TYPE\}\}/g, timePeriodInfo.reportType);
 
-			if (anomaliesCount) {
-				typstDoc += generateAnomalyBarChart(xsl, ysl);
-			}
+      if (anomaliesCount) {
+        typstDoc += generateAnomalyBarChart(xsl, ysl);
+      }
 
-			if (anomaliesByProperty) {
-				typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
-			}
+      if (anomaliesByProperty) {
+        typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
+      }
 
-			// Declare the variable before using it
+      // Declare the variable before using it
 
-			if (allChartsTypstCode) {
-				typstDoc += allChartsTypstCode;
-			}
+      if (allChartsTypstCode) {
+        typstDoc += allChartsTypstCode;
+      }
 
-			if (pdm) {
-				typstDoc += generatePDMBarChart(xs, counts);
-			}
+      if (pdm) {
+        typstDoc += generatePDMBarChart(xs, counts);
+      }
 
-			if (rul) {
-				typstDoc += rulLineChart(timeHours, predictiveHealthIndex);
-			}
+      if (rul) {
+        typstDoc += rulLineChart(timeHours, predictiveHealthIndex);
+      }
 
-			// Add conclusion
-			typstDoc += `
+      // Add conclusion
+      typstDoc += `
 = Conclusions and Recommendations
 
 == Summary
@@ -954,19 +954,20 @@ This comprehensive analysis of generator performance data provides valuable insi
 // ]
 `;
 
-			// Write the Typst document to a file and compile it
-			await fs.writeFile(tmpFile, typstDoc);
-			const pdfBuffer = await compilePdf(tmpFile);
+      // Write the Typst document to a file and compile it
+      await fs.writeFile(tmpFile, typstDoc);
+      const pdfBuffer = await compilePdf(tmpFile);
 
-			// Send the PDF as a response
-			response.header("Content-Type", "application/pdf");
-			response.header("Content-Disposition", "attachment; filename=generator-report.pdf");
-			response.send(pdfBuffer);
-		} catch (error) {
-			console.error("Error:", error);
-			response.status(500).send("An error occurred while generating the report.");
-		}
-	}
+      // Send the PDF as a response
+      response.header("Content-Type", "application/pdf");
+      response.header("Content-Disposition", "attachment; filename=generator-report.pdf");
+      response.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error:", error);
+      response.status(500).send("An error occurred while generating the report.");
+    }
+  }
+}
 // =======
 // import { fileURLToPath } from "node:url";
 // import { spawn } from "node:child_process";
@@ -989,7 +990,6 @@ This comprehensive analysis of generator performance data provides valuable insi
 
 // // page properties
 // #set page(margin: 0.5in, paper: "a4")
-
 
 // // Small caps for section titles
 // #show heading.where(level: 2): it => [
@@ -1017,13 +1017,11 @@ This comprehensive analysis of generator performance data provides valuable insi
 //   )[linkedin/swarnimbarapatre]
 // ])
 
-
 // #lq.diagram(
 //   lq.plot(
 //   (0, 1, 2, 3, 4),
 //   (5, 4, 2, 1, 2)
 // ))
-
 
 // #lq.diagram(
 //   xaxis: (
