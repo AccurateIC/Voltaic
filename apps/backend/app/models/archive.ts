@@ -1,12 +1,13 @@
 // backend/app/models/archive.ts
 import { DateTime, type DayNumbers, type MonthNumbers, type WeekNumbers } from "luxon";
-import { BaseModel, belongsTo, column, beforeSave } from "@adonisjs/lucid/orm";
+import { BaseModel, belongsTo, column, beforeSave, beforeCreate } from "@adonisjs/lucid/orm";
 import GensetProperty from "#models/genset_property";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
+import { randomUUID, type UUID } from "node:crypto";
 
 export default class Archive extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare timestamp: DateTime; // day, month, week, year => grpBy day, month, year
@@ -24,7 +25,7 @@ export default class Archive extends BaseModel {
   declare year: number;
 
   @column()
-  declare gensetPropertyId: number; //
+  declare gensetPropertyId: UUID;
 
   @belongsTo(() => GensetProperty)
   declare gensetProperty: BelongsTo<typeof GensetProperty>;
@@ -40,6 +41,15 @@ export default class Archive extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assign a UUID to the archive before creation
+   * @param archive Archive
+   */
+  @beforeCreate()
+  static assignUuid(archive: Archive) {
+    archive.id = randomUUID();
+  }
 
   /**
    * Automatically set day, week, month, and year from timestamp

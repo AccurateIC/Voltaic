@@ -1,0 +1,11 @@
+meta {
+  name: getLoggedInUser
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{BASE_URL}}/auth/isAuthenticated
+  body: none
+  auth: none
+}

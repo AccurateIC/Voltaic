@@ -4,8 +4,8 @@ import { createPhysicalQuantityValidator, updatePhysicalQuantityValidator } from
 
 export default class PhysicalQuantityController {
   async getAll({}: HttpContext) {
-    const physical_quantities: PhysicalQuantity[] = await PhysicalQuantity.all();
-    return physical_quantities;
+    const physicalQuantities: PhysicalQuantity[] = await PhysicalQuantity.all();
+    return physicalQuantities;
   }
 
   async create({ request }: HttpContext) {

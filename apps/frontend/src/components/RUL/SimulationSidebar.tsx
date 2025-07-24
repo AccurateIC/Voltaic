@@ -5,8 +5,8 @@ import { RulInputData, RulPrediction } from "../../types/rul.types";
 import { cn } from "../../lib/Utils";
 
 type SimulationProps = {
-  setSimulatedRul: (rul: RulPrediction) => void;
-  simulatedRul: RulPrediction;
+  setSimulatedRul: React.Dispatch<React.SetStateAction<RulPrediction[]>>;
+  simulatedRul: RulPrediction[];
 };
 
 export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationProps) => {
@@ -157,7 +157,8 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
       </fieldset>
       {getRulPrediction.isSuccess && (
         <div className="text-2xl py-2 bg-base-200 my-2 p-5 rounded">
-          Remaining Useful Life: {parseInt(getRulPrediction.data?.Future_Predictions[0]?.Remaining_Useful_Life, 10) || "N/A"}
+          Remaining Useful Life:
+          {parseInt(getRulPrediction.data?.Future_Predictions[0]?.Remaining_Useful_Life, 10) || "N/A"}
           hours
         </div>
       )}

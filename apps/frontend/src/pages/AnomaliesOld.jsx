@@ -12,7 +12,7 @@ import AnomaliesLineChart from "../components/charts/AnomaliesLineChart";
 import { FaFilter } from "react-icons/fa";
 import AnomalyGraphModal from "../components/charts/AnomalyGraphModal";
 import { formatTimestamp } from "../lib/Utils";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
@@ -319,17 +319,10 @@ const Anomalies = () => {
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(ROUTES.ANOMALY_NOTIF_GET_ALL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch notification data");
+      const { data, error } = await tuyau.notification.getAll.$get();
+      if (error) {
+        throw new Error(error.message || "Failed to fetch notification data");
       }
-      const data = await response.json();
       setNotifications(data);
       const anomalyStats = getAnomalyDataByPeriod(data);
       console.log(anomalyStats);
@@ -353,18 +346,14 @@ const Anomalies = () => {
   const fetchAnomaliesDatas = async (from, to, selectedProperties) => {
     console.log(selectedProperties);
     try {
-      const response = await fetch(ROUTES.ARCHIVE_PROPERTY_GET_DATA_BETWEEN, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          from,
-          to,
-          properties: selectedProperties, // pass array properly
-        }),
+      const { data, error } = await tuyau.archive.getPropertyDataBetween.$post({
+        from,
+        to,
+        properties: selectedProperties, // pass array properly
       });
-
-      const data = await response.json();
+      if (error) {
+        throw new Error("Failed to fetch anomalies data");
+      }
       console.log(data);
       // ⚡ Always reset all graphs first
       setLineEngFulLavel([]);
@@ -411,13 +400,12 @@ const Anomalies = () => {
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
-      const response = await fetch(ROUTES.ARCHIVE_GET_DATA_BETWEEN + `?from=${from}&to=${to}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      const { data, error } = await tuyau.archive.getBetween.$get({
+        query: { from, to }
       });
-
-      const data = await response.json();
+      if (error) {
+        throw new Error("Failed to fetch archive data");
+      }
       const anomalies = data.filter((item) => item.isAnomaly);
       // Extract unique gensetProperties from anomalies
       const uniqueProperties = Array.from(
@@ -481,24 +469,14 @@ const Anomalies = () => {
 
     try {
       setIsLoading(true);
-      const url = ROUTES.ARCHIVE_PROPERTY_GET_DATA_BETWEEN + `?from=${from}&to=${to}&propertyName=${propertyName}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          from,
-          to,
-          properties: [propertyName],
-        }),
+      const { data, error } = await tuyau.archive.getPropertyDataBetween.$post({
+        from,
+        to,
+        properties: [propertyName],
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch property data");
+      if (error) {
+        throw new Error(error.message || "Failed to fetch property data");
       }
-
-      const data = await response.json();
       const formattedData = data.map((item) => ({
         // x: new Date(item.timestamp).getTime(),
         x: DateTime.fromISO(item.timestamp),
@@ -516,13 +494,8 @@ const Anomalies = () => {
 
   const fetchProperties = async () => {
     try {
-      const res = await fetch(ROUTES.GENSET_PROPERTY_GET_ALL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error((await res.json()).message);
-      const data = await res.json();
+      const { data, error } = await tuyau.property.getAll.$get();
+      if (error) throw new Error(error.message);
       // setGensetProperties(data);
     } catch (err) {
       console.error("Fetch error:", err);

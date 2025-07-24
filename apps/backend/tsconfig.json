@@ -4,10 +4,6 @@
     "rootDir": "./",
     "outDir": "./build",
     "module": "nodenext",
-    "paths": {
-      "@voltaic/*": [
-        "../../packages/*/src"
-      ]
-    }
+    "paths": { "@voltaic/*": ["../../packages/*/src"] }
   }
 }

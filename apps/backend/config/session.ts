@@ -22,12 +22,7 @@ const sessionConfig = defineConfig({
    * Configuration for session cookie and the
    * cookie store
    */
-  cookie: {
-    path: "/",
-    httpOnly: true,
-    secure: app.inProduction,
-    sameSite: "lax",
-  },
+  cookie: { path: "/", httpOnly: true, secure: app.inProduction, sameSite: "lax" },
 
   /**
    * The store to use. Make sure to validate the environment
@@ -40,9 +35,7 @@ const sessionConfig = defineConfig({
    * List of configured stores. Refer documentation to see
    * list of available stores and their config.
    */
-  stores: {
-    cookie: stores.cookie(),
-  },
+  stores: { cookie: stores.cookie() },
 });
 
 export default sessionConfig;

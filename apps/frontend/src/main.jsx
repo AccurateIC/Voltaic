@@ -8,7 +8,6 @@ import { LiveData } from "./pages/LiveData";
 import Maintenance from "./pages/Maintenance";
 import { Generator } from "./pages/Generator";
 import { Mains } from "./pages/Mains";
-// import ReportsOld from "./pages/ReportsOld";
 import Alarms from "./pages/Alarms";
 import Archive from "./pages/Archive";
 import ProfilePage from "./pages/ProfilePage";
@@ -17,26 +16,18 @@ import "./index.css";
 import { Toaster } from "sonner";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-// import "/node_modules/react-resizable/css/styles.css";
-// import "/node_modules/react-grid-layout/css/styles.css";
 import { BrowserRouter, Route, Routes } from "react-router";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Anomalies } from "./pages/Anomalies.js";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { Anomalies } from "./pages/Anomalies";
 import { Reports } from "./pages/Reports";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// react-scan: automatically detects performance issues in your React app
-// see: https://react-scan.com/
-// scan({ enabled: true }); // DISABLE IN PRODUCTION
-
-const queryClient = new QueryClient({});
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <Toaster richColors={true} />
         <Routes>
           <Route index element={<Login />} />
@@ -46,7 +37,8 @@ createRoot(document.getElementById("root")).render(
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
-            }>
+            }
+          >
             <Route path="engine" element={<Engine />} />
             <Route path="generator" element={<Generator />} />
             <Route path="mains" element={<Mains />} />
@@ -62,7 +54,7 @@ createRoot(document.getElementById("root")).render(
           </Route>
           <Route path="/login" element={<Login />} />
         </Routes>
-      </QueryClientProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </QueryClientProvider>
   </StrictMode>
 );

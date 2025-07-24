@@ -14,10 +14,11 @@ import {
   TimeSeriesScale,
 } from "chart.js";
 import "chartjs-adapter-luxon";
-import { useArchive } from "../../../hooks/useArchive";
 import { DateTime, DateTimeUnit } from "luxon";
 import { getWeekRange } from "../../../lib/DateTimeUtils";
 import { GensetPropertyName } from "../../../types/gensetProperty.types";
+import { useQuery } from "@tanstack/react-query";
+import { tuyau } from "../../../lib/Tuyau";
 
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, BarElement, Title, Tooltip, Legend);
 
@@ -42,24 +43,12 @@ const getChartOptions = (chartTitle: string): ChartOptions<"bar"> => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: {
-        display: true,
-        text: chartTitle,
-        color: "rgba(255, 255, 255, 0.6)",
-        font: { size: 18, weight: "bold" },
-      },
+      title: { display: true, text: chartTitle, color: "rgba(255, 255, 255, 0.6)", font: { size: 18, weight: "bold" } },
       tooltip: {},
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: "Months ⟶",
-          font: {
-            weight: "bold",
-            size: 16,
-          },
-        },
+        title: { display: true, text: "Months ⟶", font: { weight: "bold", size: 16 } },
         grid: { color: "rgba(255, 255, 255, 0.1)" },
         ticks: { autoSkip: false, color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
       },
@@ -87,17 +76,16 @@ export const GenericPropertyStatisticsBarChart = ({
   propertyName: GensetPropertyName;
   chartTitle: string;
 }) => {
-  const { getPropertyStatistics } = useArchive();
-  const {
-    data: apiData,
-    isPending,
-    isError,
-  } = getPropertyStatistics({
-    timeDuration: timeDuration,
-    propertyName: propertyName,
+  const { data, isError, isLoading } = useQuery({
+    queryKey: ["archive", "get-property-statistics"],
+    queryFn: () =>
+      tuyau.archive.getPropertyStatistics
+        .$get({ query: { propertyName: propertyName, timeDuration: timeDuration } })
+        .unwrap(),
   });
-  if (isError) return <div className="flex h-full items-center justify-center">N/A</div>;
-  if (isPending) return <div className="skeleton h-full w-full"></div>;
+  if (isError || data === undefined || data.data.length === 0)
+    return <div className="flex h-full items-center justify-center">N/A</div>;
+  if (isLoading) return <div className="skeleton h-full w-full"></div>;
   const now = DateTime.now();
 
   switch (timeDuration) {
@@ -105,10 +93,10 @@ export const GenericPropertyStatisticsBarChart = ({
       return (
         <Bar
           data={getChartData(
-            apiData.data.map(
+            data?.data.map(
               (monthData) => DateTime.fromObject({ year: monthData.year, month: monthData.month, day: 1 }).monthShort
             ),
-            apiData.data.map((monthData) => monthData.avg),
+            data.data.map((monthData) => monthData.avg),
             chartTitle
           )}
           options={getChartOptions(chartTitle)}
@@ -116,12 +104,9 @@ export const GenericPropertyStatisticsBarChart = ({
       );
       break;
     case "month":
-      const weekRanges = apiData.data.map((point) => {
+      const weekRanges = data.data.map((point) => {
         const range = getWeekRange(point.week, point.month, point.year);
-        return {
-          ...point,
-          rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}`,
-        };
+        return { ...point, rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}` };
       });
 
       const monthOptions: ChartOptions<"bar"> = {
@@ -138,14 +123,7 @@ export const GenericPropertyStatisticsBarChart = ({
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: "Weeks ⟶",
-              font: {
-                weight: "bold",
-                size: 16,
-              },
-            },
+            title: { display: true, text: "Weeks ⟶", font: { weight: "bold", size: 16 } },
             grid: { color: "rgba(255, 255, 255, 0.1)" },
             ticks: { autoSkip: false, color: "rgba(255, 255, 255, 0.6)", font: { size: 14 } },
           },
@@ -185,7 +163,7 @@ export const GenericPropertyStatisticsBarChart = ({
       });
 
       const dataMap = new Map(
-        apiData.data.map((point) => {
+        data.data.map((point) => {
           const date = DateTime.fromObject({ year: point.year, month: point.month, day: point.day });
           return [date.toISODate(), point.avg];
         })
@@ -205,14 +183,7 @@ export const GenericPropertyStatisticsBarChart = ({
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: "Days ⟶",
-              font: {
-                weight: "bold",
-                size: 16,
-              },
-            },
+            title: { display: true, text: "Days ⟶", font: { weight: "bold", size: 16 } },
 
             type: "time",
             time: {

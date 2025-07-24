@@ -16,6 +16,42 @@ import PhysicalQuantity from "#models/physical_quantity";
 import { DateTime } from "luxon";
 import { ArchiveService, PropertyStatisticsResponse } from "#services/archive_service";
 import { Exception } from "@adonisjs/core/exceptions";
+import { errors } from "@vinejs/vine";
+import ValidationException from "#exceptions/validation_exception";
+import { catchErrTyped } from "@voltaic/err";
+import NotificationType from "#models/notification_type";
+import { UUID } from "node:crypto";
+import { ModelPaginatorContract } from "@adonisjs/lucid/types/model";
+
+interface PaginatedArchiveResponse {
+  data: Archive[];
+  meta: {
+    total: number;
+    perPage: number;
+    currentPage: number;
+    lastPage: number;
+    firstPage: number;
+    firstPageUrl: string;
+    lastPageUrl: string;
+    nextPageUrl: string | null;
+    previousPageUrl: string | null;
+  };
+}
+
+interface AnomalyStatisticsResponse {
+  timezone: string;
+  overall: { today: number; week: number; month: number; year: number; total: number };
+  byProperty: {
+    today: number;
+    week: number;
+    month: number;
+    year: number;
+    total: number;
+    readablePropertyName: string;
+    gensetPropertyId: UUID; // assuming UUID is a string
+    propertyName: string;
+  }[];
+}
 
 export default class ArchiveController {
   async getPropertyStatistics({ request }: HttpContext): Promise<PropertyStatisticsResponse> {
@@ -37,7 +73,7 @@ export default class ArchiveController {
     return archiveData;
   }
 
-  async getPaginated({ request }: HttpContext) {
+  async getPaginated({ request }: HttpContext): Promise<PaginatedArchiveResponse> {
     const requestData = await request.validateUsing(getPaginatedDataValidator);
     console.log(requestData);
 
@@ -77,9 +113,10 @@ export default class ArchiveController {
     archiveQuery.orderBy("timestamp", "desc");
 
     // pagination
-    const archiveData = await archiveQuery.paginate(requestData.page);
+    const archiveData: ModelPaginatorContract<Archive> = await archiveQuery.paginate(requestData.page);
 
-    return archiveData;
+    const serialized = archiveData.serialize();
+    return { data: serialized.data as Archive[], meta: serialized.meta };
   }
 
   async getBetween({ request }: HttpContext) {
@@ -96,36 +133,45 @@ export default class ArchiveController {
   }
 
   async getPropertyDataBetween({ request }: HttpContext) {
-    const data = await request.validateUsing(getArchiveDataPropertyBetweenValidator);
+    try {
+      const { data, error, success } = await catchErrTyped(
+        request.validateUsing(getArchiveDataPropertyBetweenValidator),
+        [errors.E_VALIDATION_ERROR]
+      );
+      if (!success) throw new ValidationException(error.messages);
+      const query = Archive.query();
 
-    const query = Archive.query();
+      // filter by time
+      if (data.from && data.to) {
+        query.whereBetween("timestamp", [data.from, data.to]);
+      } else {
+        console.log("unexpected");
+      }
 
-    // filter by time
-    if (data.from && data.to) {
-      query.whereBetween("timestamp", [data.from, data.to]);
-    } else {
-      console.log("unexpected");
-    }
+      // filter by property names
+      if (data?.properties) {
+        const propertyNames = data.properties;
+        query.whereHas("gensetProperty", (propertyQuery) => {
+          propertyQuery.whereIn("propertyName", propertyNames);
+        });
+      }
 
-    // filter by property names
-    if (data?.properties) {
-      const propertyNames = data.properties;
-      query.whereHas("gensetProperty", (propertyQuery) => {
-        propertyQuery.whereIn("propertyName", propertyNames);
+      // preload
+      query.preload("gensetProperty", (preloadQuery) => {
+        preloadQuery.preload("physicalQuantity");
       });
+
+      // latest first
+      query.orderBy("timestamp", "desc");
+
+      const propertyData = await query.exec();
+
+      return propertyData;
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        throw new ValidationException(error.messages);
+      }
     }
-
-    // preload
-    query.preload("gensetProperty", (preloadQuery) => {
-      preloadQuery.preload("physicalQuantity");
-    });
-
-    // latest first
-    query.orderBy("timestamp", "desc");
-
-    const propertyData = await query.exec();
-
-    return propertyData;
   }
 
   // TODO: maybe handle case when no entries are present in the database
@@ -138,12 +184,16 @@ export default class ArchiveController {
     const timestamp = DateTime.fromJSDate(payload.timestamp);
     const data = payload.data;
 
+    const alertNotificationType = await NotificationType.findByOrFail("type", "alert");
+
     // begin db transaction
     const trxResult = await db.transaction(async (trx) => {
       try {
         // fetch all genset properties
         const propertyNames: string[] = data.map((element) => element.property);
-        const gensetProperties = await GensetProperty.query({ client: trx }).whereIn("propertyName", propertyNames).exec();
+        const gensetProperties = await GensetProperty.query({ client: trx })
+          .whereIn("propertyName", propertyNames)
+          .exec();
 
         // create hash map for efficient property lookup
         const propertyMap = new Map(gensetProperties.map((prop) => [prop.propertyName, prop]));
@@ -205,17 +255,14 @@ export default class ArchiveController {
                 message: `Property value: ${archive.propertyValue}${unit}`,
                 archiveId: archive.id,
                 shouldBeDisplayed: true,
-                notificationTypeId: 3,
+                notificationTypeId: alertNotificationType.id,
                 startedAt: timestamp,
                 finishedAt: null,
               });
             }
           } else if (activeNotification) {
             // close
-            notificationUpdates.push({
-              id: activeNotification.id,
-              finishedAt: timestamp,
-            });
+            notificationUpdates.push({ id: activeNotification.id, finishedAt: timestamp });
           }
         }
 
@@ -246,9 +293,7 @@ export default class ArchiveController {
 
     // broadcast after transaction completes
     // Broadcast event
-    transmit.broadcast("archive", {
-      message: "new entry created",
-    });
+    transmit.broadcast("archive", { message: "new entry created" });
     transmit.broadcast("notification", { message: "notification table updated" });
     if (trxResult.newNotifications.length > 0 || trxResult.notificationUpdates.length > 0) {
     }
@@ -258,7 +303,7 @@ export default class ArchiveController {
     return trxResult;
   }
 
-  async getAnomalyStatistics({ request, response }: HttpContext) {
+  async getAnomalyStatistics({ request }: HttpContext): Promise<AnomalyStatisticsResponse> {
     const data = await request.validateUsing(getAnomalyStatisticsValidator);
     const timezone = data.headers.timezone;
 
@@ -266,28 +311,25 @@ export default class ArchiveController {
     try {
       const now = DateTime.now().setZone(timezone);
       if (!now.isValid) {
-        return response.status(400).json({
-          error: "Invalid timezone",
-          message: `'${timezone}' is not a valid IANA timezone identifier`,
-          details: now.invalidReason,
+        throw new Exception(`${timezone} is not a valid IANA timezone identifier`, {
+          status: 400,
+          code: "E_INVALID_TIMEZONE",
         });
       }
     } catch (error) {
-      return response.status(400).json({
-        error: "Invalid timezone",
-        message: `'${timezone}' is not a valid IANA timezone identifier`,
-        details: error.message,
+      throw new Exception(`${timezone} is not a valid IANA timezone identifier`, {
+        status: 400,
+        code: "E_INVALID_TIMEZONE",
       });
     }
 
     // Get property-based stats with preloaded relationships
-    const propertyStats = (
-      await Archive.query()
-        .where("isAnomaly", 1)
-        .preload("gensetProperty")
-        .select("gensetPropertyId")
-        .groupBy("gensetPropertyId")
-    ).map((value) => ({
+    const gensetProperty = await Archive.query()
+      .where("isAnomaly", 1)
+      .preload("gensetProperty")
+      .select("gensetPropertyId")
+      .groupBy("gensetPropertyId");
+    const propertyStats = gensetProperty.map((value) => ({
       readablePropertyName: value.gensetProperty.readablePropertyName,
       gensetPropertyId: value.gensetPropertyId,
       propertyName: value.gensetProperty.propertyName,
@@ -302,14 +344,7 @@ export default class ArchiveController {
         const yearTotal = await ArchiveService.getAnomalyCount(timezone, "year", [entry.propertyName]);
         const totalCount = await ArchiveService.getAnomalyCount(undefined, undefined, [entry.propertyName]);
 
-        return {
-          ...entry,
-          today: todaysTotal,
-          week: weekTotal,
-          month: monthTotal,
-          year: yearTotal,
-          total: totalCount,
-        };
+        return { ...entry, today: todaysTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: totalCount };
       })
     );
 
@@ -320,14 +355,8 @@ export default class ArchiveController {
     const monthTotal = await ArchiveService.getAnomalyCount(timezone, "month");
 
     return {
-      timezone, // Include timezone in response for clarity
-      overall: {
-        today: todaysTotal,
-        week: weekTotal,
-        month: monthTotal,
-        year: yearTotal,
-        total: totalCount,
-      },
+      timezone, // include timezone in response for clarity
+      overall: { today: todaysTotal, week: weekTotal, month: monthTotal, year: yearTotal, total: totalCount },
       byProperty: propertyStatsByTime,
     };
   }

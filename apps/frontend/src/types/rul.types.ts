@@ -14,3 +14,7 @@ export interface RulInputData {
   Power_Output_kW: number;
   Inverse_Fuel_Consumption: number;
 }
+
+export interface RulResponse {
+  Future_Predictions: RulPrediction[];
+}

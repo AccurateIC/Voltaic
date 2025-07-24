@@ -1,19 +1,20 @@
 import { DateTime } from "luxon";
-import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, belongsTo, column } from "@adonisjs/lucid/orm";
 import SensorProperty from "./sensor_property.js";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
 import MaintenanceNotification from "./maintenance_notification.js";
 import PdmDataKind from "./pdm_data_kind.js";
+import { type UUID } from "node:crypto";
 
 export default class Vibration extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare timestamp: DateTime;
 
   @column()
-  declare sensorPropertyId: number;
+  declare sensorPropertyId: UUID;
 
   @belongsTo(() => SensorProperty)
   declare sensorProperty: BelongsTo<typeof SensorProperty>;
@@ -25,13 +26,13 @@ export default class Vibration extends BaseModel {
   declare confidenceScorePercentage: number;
 
   @column()
-  declare maintenanceNotificationId: number;
+  declare maintenanceNotificationId: UUID;
 
   @belongsTo(() => MaintenanceNotification)
   declare maintenanceNotification: BelongsTo<typeof MaintenanceNotification>;
 
   @column()
-  declare pdmDataKindId: number;
+  declare pdmDataKindId: UUID;
 
   @belongsTo(() => PdmDataKind)
   declare pdmDataKind: BelongsTo<typeof PdmDataKind>;
@@ -41,4 +42,13 @@ export default class Vibration extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the Vibration instance before creation.
+   * @param vibration Vibration
+   */
+  @beforeCreate()
+  static assignUuid(vibration: Vibration) {
+    vibration.id = crypto.randomUUID();
+  }
 }

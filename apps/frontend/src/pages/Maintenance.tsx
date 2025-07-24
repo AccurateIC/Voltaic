@@ -20,21 +20,17 @@ import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { FaRegQuestionCircle } from "react-icons/fa";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
 import { Modules } from "../config/extern";
 
 ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const ResetPdmDataButton = () => {
   const handleReset = async () => {
-    const loggedInUser = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    const user = await loggedInUser.json();
+    const { data: user, error: userError } = await tuyau.auth.getLoggedInUser.$get();
+    if (userError) {
+      throw new Error("Failed to get logged in user");
+    }
 
     // logout
     console.log("sending logout to pdm");
@@ -51,13 +47,8 @@ const ResetPdmDataButton = () => {
     console.log("sent logout to pdm");
 
     // delete pdm vibration data and maintenance notification data
-    const response = await fetch(ROUTES.PDM_DELETE, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-
-    if (!response.ok) throw new Error("Failed to delete PDM Data");
+    const { data, error } = await tuyau.pdm.delete.$delete();
+    if (error) throw new Error("Failed to delete PDM Data");
     // pdm data deleted
 
     // now we need to send login request to PDM server
@@ -242,13 +233,8 @@ const Maintenance = () => {
 
   const fetchNotificationTimestamps = async () => {
     try {
-      const response = await fetch(ROUTES.PDM_NOTIF_GET_ALL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error(JSON.stringify(response.json()));
-      const data = await response.json();
+      const { data, error } = await tuyau.pdm.notification.getAll.$get();
+      if (error) throw new Error("Failed to fetch notification timestamps");
       setMaintenanceNotificationTimestamps(data.map((item) => item?.timestamp));
     } catch (err) {
       console.error("Error fetching notification data", err);
@@ -260,16 +246,10 @@ const Maintenance = () => {
       setIsPdmLoading(true);
       await fetchLatestPdmEntry();
 
-      const response = await fetch(ROUTES.PDM_NOTIF_GET_LATEST_UNRESOLVED, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch notification data");
+      const { data, error } = await tuyau.pdm.notification.getLatestUnresolved.$get();
+      if (error) {
+        throw new Error(error.message || "Failed to fetch notification data");
       }
-      const data = await response.json();
 
       if (data.length > 0) {
         setPdmError(data[0]);
@@ -291,16 +271,10 @@ const Maintenance = () => {
   const fetchLatestPdmEntry = async () => {
     try {
       setIsPdmLoading(true);
-      const response = await fetch(ROUTES.PDM_GET_LATEST, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch latest PDM entry");
+      const { data, error } = await tuyau.pdm.getLatestEntry.$get();
+      if (error) {
+        throw new Error(error.message || "Failed to fetch latest PDM entry");
       }
-      const data = await response.json();
 
       if (data.length > 0 && data[0]?.maintenanceNotificationId !== null) {
         // latest entry represented a maintenenace notification
@@ -340,33 +314,17 @@ const Maintenance = () => {
     try {
       setIsPdmLoading(true);
       // fetch actual data
-      const response = await fetch(ROUTES.PDM_GET_RECENT_ACTUAL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to fetch pdm data`);
+      const { data, error } = await tuyau.pdm.getRecentActual.$get();
+      if (error) {
+        throw new Error(error.message || `Failed to fetch pdm data`);
       }
-
-      const data = await response.json();
       setActualPdmData(data);
 
       // fetch forecasted data
-      const forecastedResponse = await fetch(ROUTES.PDM_GET_RECENT_FORECASTED, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!forecastedResponse.ok) {
-        const errorData = await forecastedResponse.json();
-        throw new Error(errorData.message || `Failed to fetch pdm data`);
+      const { data: forecastedData, error: forecastedError } = await tuyau.pdm.getRecentForecasted.$get();
+      if (forecastedError) {
+        throw new Error(forecastedError.message || `Failed to fetch pdm data`);
       }
-
-      const forecastedData = await forecastedResponse.json();
       // alert(JSON.stringify(forecastedData, null, 2));
       setForecastedPdmData(forecastedData);
     } catch (err) {

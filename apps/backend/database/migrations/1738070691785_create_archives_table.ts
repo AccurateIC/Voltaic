@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments("id").primary();
+      table.uuid("id").primary();
 
       table.timestamp("timestamp").notNullable();
       table.integer("day").notNullable();
@@ -13,9 +13,8 @@ export default class extends BaseSchema {
       table.integer("month").notNullable();
       table.integer("year").notNullable();
 
-      table
-        .integer("genset_property_id")
-        .unsigned()
+      table //
+        .uuid("genset_property_id")
         .notNullable()
         .references("id")
         .inTable("genset_properties")

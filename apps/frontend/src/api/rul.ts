@@ -2,12 +2,12 @@
 
 import { Modules } from "../config/extern";
 import { User } from "../types/auth.types";
-import { RulInputData, RulPrediction } from "../types/rul.types";
+import { RulInputData, RulResponse } from "../types/rul.types";
 
 const BASE_URL = Modules.RUL;
 
 export const rulApi = {
-  getPrediction: async (inputData: RulInputData): Promise<RulPrediction> => {
+  getPrediction: async (inputData: RulInputData): Promise<RulResponse> => {
     const response = await fetch(`${BASE_URL}/predict`, {
       method: "POST",
       body: JSON.stringify(inputData),
@@ -20,7 +20,7 @@ export const rulApi = {
     }
     const rulData = await response.json();
     console.log("RUL", rulData);
-    return rulData as Promise<RulPrediction>;
+    return rulData as Promise<RulResponse>;
   },
 
   sendLoggedInUser: async (user: User): Promise<void> => {

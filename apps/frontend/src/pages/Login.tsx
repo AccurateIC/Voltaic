@@ -5,10 +5,8 @@ import BackImage from "../assets/back.svg";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { User } from "../types/auth.types";
-import { Result, ExternalServerError, catchErrTyped } from "../lib/Err";
-import { Modules } from "../config/extern";
-import { ROUTES } from "../config/backend";
 import { SessionStore } from "../lib/SessionStore";
+import { tuyau } from "../lib/Tuyau";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
   <div className="form-control w-full">
@@ -39,20 +37,17 @@ const Login = () => {
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
+        const { data, error } = await tuyau.auth.getLoggedInUser.$get();
 
-        if (response.ok) {
-          const data = await response.json();
+        if (error) {
+          console.error("Error checking authentication:", error);
+          return;
+        }
 
-          if (data) {
-            setIsAuthenticated(true);
-            toast.success("User is already authenticated!");
-            navigate("/engine");
-          }
+        if (data) {
+          setIsAuthenticated(true);
+          toast.success("User is already authenticated!");
+          navigate("/engine");
         }
       } catch (error) {
         console.error("Error checking authentication:", error);
@@ -76,25 +71,26 @@ const Login = () => {
     };
 
     try {
-      const url = isSignUp //
-        ? ROUTES.AUTH_USER_REGISTER
-        : ROUTES.AUTH_USER_LOGIN;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(userData),
-      });
+      let user: User;
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+      if (isSignUp) {
+        const { data, error } = await tuyau.auth.register.$post(userData);
+        if (error) {
+          throw new Error(`Registration failed: ${error.status}`);
+        }
+        user = data;
+      } else {
+        const { data, error } = await tuyau.auth.login.$post({ email: userData.email, password: userData.password });
+        if (error) {
+          throw new Error(`Login failed: ${error.status}`);
+        }
+        user = data;
       }
 
-      const user: User = (await response.json()) as User;
       sessionStorage.setItem("user", JSON.stringify(user));
       // SessionStore.set("user", user);
 
-      console.log(isSignUp ? "User registered:" : "User logged in:", response);
+      console.log(isSignUp ? "User registered:" : "User logged in:", user);
       toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
 
       // ##################################################################
@@ -147,7 +143,10 @@ const Login = () => {
     <div className="min-h-screen w-full flex relative bg-base-300">
       {/* Left Panel */}
       <div className="hidden md:flex w-full bg-primary/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{ backgroundImage: `url(${BackImage})` }} />
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-90"
+          style={{ backgroundImage: `url(${BackImage})` }}
+        />
         <div className="relative z-10 w-full flex flex-col justify-center items-center p-8">
           <div className="max-w-md text-center"></div>
         </div>
@@ -210,7 +209,8 @@ const Login = () => {
               <button
                 type="submit"
                 //  className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content"
-                className="btn btn-success w-full mt-6">
+                className="btn btn-success w-full mt-6"
+              >
                 {isSignUp ? "Sign Up" : "Sign In"}
               </button>
             </form>

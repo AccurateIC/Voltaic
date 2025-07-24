@@ -6,10 +6,10 @@ import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
 import * as XLSX from "xlsx";
 import "cally";
-import { useArchive } from "../hooks/useArchive";
 import { type Archive } from "../types/archive.types";
-import { GetDataPaginatedFilters, Metadata, PaginatedArchiveData } from "../api/archive";
-import { useGensetProperty } from "../hooks/useGensetProperty";
+import { tuyau } from "../lib/Tuyau";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { DateTime } from "luxon";
 
 const excelify = (data: Archive[]) => {
   const excelData = data.map((entry, index) => ({
@@ -42,66 +42,105 @@ const excelify = (data: Archive[]) => {
   XLSX.writeFile(wb, fileName);
 };
 
+// interface Metadata {
+//   total: number;
+//   perPage: 20;
+//   currentPage: 1;
+//   lastPage: 3;
+//   firstPage: 1;
+//   firstPageUrl: "/?page=1";
+//   lastPageUrl: "/?page=3";
+//   nextPageUrl: "/?page=2";
+//   previousPageUrl: null;
+// }
+
+interface GetPaginatedArchiveDataFilters {
+  from?: string;
+  to?: string;
+  isAnomaly?: boolean;
+  propertyNames?: string[];
+  page: number;
+}
+
 const Archive = () => {
-  //hooks
-  const { getDataPaginated, getPropertyDataBetween } = useArchive();
-  const { getAllGensetProperties } = useGensetProperty();
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL
+  const {
+    data: allGensetPropertiesData,
+    isLoading: allGensetPropertiesIsLoading,
+    isError: allGensetPropertiesIsError,
+  } = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap() });
 
   // state
-  const {
-    data: allGensetProperties,
-    isError: getAllGensetPropertiesIsError,
-    isPending: getAllGensetPropertiesIsPending,
-  } = getAllGensetProperties;
   const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [paginationMetadata, setPaginationMetadata] = useState<Metadata>();
-  const [filters, setFilters] = useState<GetDataPaginatedFilters>({
+  const [paginationMetadata, setPaginationMetadata] = useState();
+  const [filters, setFilters] = useState<GetPaginatedArchiveDataFilters>({
     page: 1,
     propertyNames: [],
-    isAnomaly: null,
-    from: null,
-    to: null,
+    isAnomaly: undefined,
+    from: undefined,
+    to: undefined,
   });
 
+  const {
+    mutate: mutatePaginatedData,
+    data: paginatedData,
+    isError,
+    isPending,
+  } = useMutation({
+    mutationKey: ["archive", "get-paginated"],
+    mutationFn: (filters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(filters),
+    onSuccess: (paginatedData) => {
+      setArchiveData(paginatedData.data.data);
+      setPaginationMetadata(paginatedData.data.meta);
+    },
+  });
+
+  // re-fetch paginated data on filter change
   useEffect(() => {
-    getDataPaginated.mutate(filters, {
-      onSuccess: (data: PaginatedArchiveData) => {
-        setArchiveData(data.data);
-        setPaginationMetadata(data.meta);
-      },
-      onError: (error) => {
-        toast.error(`Failed to fetch archive data: ${error}`);
-      },
-    });
+    mutatePaginatedData(filters);
   }, [filters]);
+
+  // Export data mutation
+  const {
+    mutate: mutateGetPropertyDataBetween,
+    data: getPropertyDataBetweenData,
+    isError: getPropertyDataBetweenIsError,
+    isPending: getPropertyDataBetweenIsPending,
+  } = useMutation({
+    mutationKey: [],
+    mutationFn: (params: { from?: string; to?: string; properties?: string[] }) =>
+      tuyau.archive.getPropertyDataBetween.$post(params),
+    onSuccess: () => {},
+    onError: () => {},
+  });
 
   // we receive message on this bus if archive table updates
   useMessageBus("archive", () => {
-    // console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
-    getDataPaginated.mutate(filters, {
-      onSuccess: (data: PaginatedArchiveData) => {
-        setArchiveData(data.data);
-        setPaginationMetadata(data.meta);
-      },
-      onError: (error) => {
-        toast.error(`Failed to fetch archive data: ${error}`);
-      },
-    });
+    mutatePaginatedData(filters);
   });
 
   const handleResetFilters = () => {
-    setFilters({
-      page: 1,
-      propertyNames: [],
-      isAnomaly: null,
-      from: null,
-      to: null,
-    });
+    setFilters({ page: 1, propertyNames: [], isAnomaly: undefined, from: undefined, to: undefined });
   };
 
-  /* TODO: handle error and pending states differently */
-  if (getAllGensetPropertiesIsError) return <div className="h-full w-full">N/A</div>;
-  if (getAllGensetPropertiesIsPending) return <div className="h-full w-full">N/A</div>;
+  // Handle loading and error states AFTER all hooks are called
+  if (allGensetPropertiesIsLoading || isPending) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <span className="loading loading-spinner loading-md"></span>
+      </div>
+    );
+  }
+
+  if (allGensetPropertiesIsError || !allGensetPropertiesData) {
+    toast.error("Failed to fetch genset properties");
+    return <div className="h-full w-full">N/A</div>;
+  }
+
+  if (isError) {
+    toast.error("Failed to fetch archive data");
+    return <div className="h-full w-full">Error loading archive data</div>;
+  }
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -110,11 +149,11 @@ const Archive = () => {
         <div className="flex gap-2 mb-2">
           <button
             onClick={() =>
-              getPropertyDataBetween.mutate(
+              mutateGetPropertyDataBetween(
                 {
                   from: filters.from,
                   to: filters.to,
-                  properties: filters.propertyNames.length > 0 ? filters.propertyNames : null,
+                  properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
                 },
                 {
                   onError: () => {
@@ -127,7 +166,8 @@ const Archive = () => {
                 }
               )
             }
-            className="btn btn-primary">
+            className="btn btn-primary"
+          >
             Export to Excel
           </button>
           <button onClick={handleResetFilters} className="btn btn-primary">
@@ -151,9 +191,7 @@ const Archive = () => {
                     </div>
                     <div className="dropdown-content card bg-base-100 shadow">
                       <calendar-range
-                        value={
-                          filters.fromDate !== "" && filters.toDate !== "" ? `${filters.fromDate}/${filters.toDate}` : ""
-                        }
+                        value={filters.from !== null && filters.to !== null ? `${filters.from}/${filters.to}` : ""}
                         class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
                         onchange={(event) => {
                           const val = event.target.value;
@@ -163,7 +201,8 @@ const Archive = () => {
                             from: val.split("/")[0],
                             to: val.split("/")[1],
                           }));
-                        }}>
+                        }}
+                      >
                         <calendar-month />
                       </calendar-range>
                     </div>
@@ -179,14 +218,19 @@ const Archive = () => {
                     </div>
                     <div
                       tabIndex={0}
-                      className="dropdown-content z-10 max-h-64 w-56 overflow-y-auto bg-base-100 rounded-box shadow-lg">
+                      className="dropdown-content z-10 max-h-64 w-56 overflow-y-auto bg-base-100 rounded-box shadow-lg"
+                    >
                       <ul className="menu menu-compact p-2">
                         <li>
-                          <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: 1, propertyNames: [] }))}>
+                          <a
+                            onClick={() =>
+                              setFilters((prevFilters) => ({ ...prevFilters, page: 1, propertyNames: [] }))
+                            }
+                          >
                             Select All
                           </a>
                         </li>
-                        {allGensetProperties.map((property, index) => (
+                        {allGensetPropertiesData.map((property, index) => (
                           <li key={index} className="flex flex-row items-center p-1">
                             <input
                               id={property?.propertyName}
@@ -203,21 +247,20 @@ const Archive = () => {
                                   if (propertyIndex === -1) {
                                     updatedProperties = [...currentProperties, property.propertyName];
                                   } else {
-                                    updatedProperties = currentProperties.filter((name) => name !== property.propertyName);
+                                    updatedProperties = currentProperties.filter(
+                                      (name) => name !== property.propertyName
+                                    );
                                   }
 
-                                  return {
-                                    ...prevFilters,
-                                    propertyNames: updatedProperties,
-                                    page: 1,
-                                  };
+                                  return { ...prevFilters, propertyNames: updatedProperties, page: 1 };
                                 });
                               }}
                             />
                             <div
                               onClick={() =>
                                 setFilters((prevFilters) => ({ ...prevFilters, propertyName: property.propertyName }))
-                              }>
+                              }
+                            >
                               {property.readablePropertyName}
                             </div>
                           </li>
@@ -235,13 +278,18 @@ const Archive = () => {
                     </div>
                     <ul
                       tabIndex={0}
-                      className="dropdown-content menu bg-base-200 text-base-content rounded-box z-10 w-52 p-2 shadow-sm">
+                      className="dropdown-content menu bg-base-200 text-base-content rounded-box z-10 w-52 p-2 shadow-sm"
+                    >
                       <li>
-                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: null }))}>Select all</a>
+                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: null }))}>
+                          Select all
+                        </a>
                       </li>
 
                       <li>
-                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: true }))}>Anomalous</a>
+                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: true }))}>
+                          Anomalous
+                        </a>
                       </li>
                       <li>
                         <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: false }))}>
@@ -254,17 +302,19 @@ const Archive = () => {
               </tr>
             </thead>
             <tbody className="bg-base-200 text-base-content">
-              {archiveData?.map((entry, index) => (
-                <tr key={index}>
-                  <th>{entry.id}</th>
-                  <td>{formatTimestamp(entry.timestamp)}</td>
-                  <td>{entry.gensetProperty.readablePropertyName}</td>
-                  <td>
-                    {entry.propertyValue} {entry.gensetProperty.physicalQuantity.unitSymbol}
-                  </td>
-                  <td>{entry.isAnomaly ? "Yes" : "No"}</td>
-                </tr>
-              ))}
+              {archiveData &&
+                archiveData.length > 0 &&
+                archiveData?.map((entry, index) => (
+                  <tr key={index}>
+                    <th>{entry.id}</th>
+                    <td>{formatTimestamp(entry.timestamp)}</td>
+                    <td>{entry.gensetProperty.readablePropertyName}</td>
+                    <td>
+                      {entry.propertyValue} {entry.gensetProperty.physicalQuantity.unitSymbol}
+                    </td>
+                    <td>{entry.isAnomaly ? "Yes" : "No"}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -281,14 +331,16 @@ const Archive = () => {
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page - 1 }))}
             className={`join-item btn rounded-r-none rounded-l-lg ${
               paginationMetadata?.firstPage === filters.page ? "btn-disabled" : "text-base-content"
-            } `}>
+            } `}
+          >
             <MdKeyboardArrowLeft size={24} />
           </button>
           <button
             onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page + 1 }))}
             className={`join-item btn rounded-l-none rounded-r-lg ${
               paginationMetadata?.lastPage === filters.page ? "btn-disabled" : "text-base-content"
-            } `}>
+            } `}
+          >
             <MdKeyboardArrowRight size={24} />
           </button>
         </div>

@@ -1,4 +1,3 @@
-import { useArchive } from "../../hooks/useArchive";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +11,8 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { DateTime } from "luxon";
+import { tuyau } from "../../lib/Tuyau";
+import { useQuery } from "@tanstack/react-query";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -21,8 +22,13 @@ interface Props {
 }
 
 export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Props) => {
-  const { getAnomalyStatistics } = useArchive();
-  const { data: anomalyStatsData, isError, isLoading } = getAnomalyStatistics;
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["archive", "get-anomaly-statistics"],
+    queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
+  });
+
+  if (isError || data === undefined || data?.data === null || data.data.overall === null)
+    return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
   if (isLoading)
     return (
@@ -31,7 +37,7 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
       </div>
     );
 
-  if (isError || !anomalyStatsData)
+  if (isError || !data)
     return (
       <div className="h-full flex items-center justify-center">
         <span className="">N/A</span>
@@ -41,8 +47,8 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
   // Filter data based on selected properties
   const filteredData =
     selectedProperties.length > 0
-      ? anomalyStatsData.byProperty.filter((prop) => selectedProperties.includes(prop.readablePropertyName))
-      : anomalyStatsData.byProperty;
+      ? data.data.byProperty.filter((prop) => selectedProperties.includes(prop.readablePropertyName))
+      : data.byProperty;
 
   let labels: string[] = [];
   let counts: number[] = [];
@@ -75,7 +81,6 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
 
     case "1m": {
       // Group by weeks in current month
-      const now = DateTime.now();
       const weeksInMonth = new Map<number, number>();
 
       // Initialize weeks
@@ -139,20 +144,9 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
                 : timeDuration
         })`,
       },
-      tooltip: {
-        callbacks: {
-          label: (context) => `Count: ${Math.round(context.parsed.y)}`,
-        },
-      },
+      tooltip: { callbacks: { label: (context) => `Count: ${Math.round(context.parsed.y)}` } },
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value) => Math.round(Number(value)),
-        },
-      },
-    },
+    scales: { y: { beginAtZero: true, ticks: { callback: (value) => Math.round(Number(value)) } } },
   };
 
   const chartData: ChartData<"bar"> = {

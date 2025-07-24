@@ -14,65 +14,56 @@ import {
 } from "chart.js";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Colors);
 import { Bar } from "react-chartjs-2";
-import { usePDM } from "../../../hooks/usePdmHook";
-import { useEffect, useState } from "react";
-import { NotificationCount } from "../../../types/pdm.types";
 import { DateTime, DateTimeUnit } from "luxon";
 import { getWeekRange } from "../../../lib/DateTimeUtils";
+import { useMutation } from "@tanstack/react-query";
+import { tuyau } from "../../../lib/Tuyau";
+import { useEffect } from "react";
 
 export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: DateTimeUnit }) => {
   //hooks
-  const { getPDMStatistics } = usePDM();
-
-  // state
-  const [chartData, setChartData] = useState<NotificationCount[]>();
+  const { mutate, data, isError, isPending } = useMutation({
+    mutationKey: [],
+    mutationFn: (timeDuration: DateTimeUnit) =>
+      tuyau.pdm.notification.getStatistics.$post({ timeDuration: timeDuration }).unwrap(),
+  });
 
   useEffect(() => {
-    getPDMStatistics.mutate(timeDuration, {
-      onSuccess: (data) => {
-        setChartData(data.data);
-      },
-      onError: (error) => {
-        console.error("Error fetching PDM Statistics", error);
-      },
-    });
-  }, [timeDuration]); // you might include getPDMStatistics if needed
-
-  if (getPDMStatistics.isPending || !chartData) return <div className="skeleton h-full w-full"></div>;
-  if (getPDMStatistics.isError) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
+    mutate(timeDuration);
+  }, [timeDuration]); // Removed mutate from dependencies to prevent infinite loop
+  if (isPending) return <div className="skeleton h-full w-full"></div>;
+  if (isError || !data || data.data.length === 0)
+    return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
   let xs = [];
-  let ys = [];
-  switch (timeDuration) {
+  let ys: number[] = [];
+  switch (data.meta.timeDuration) {
     case "week":
-      xs = chartData.map((point) => {
+      xs = data.data.map((point) => {
         if (point.day)
           return DateTime.fromObject({ year: point.year, month: point.month, day: point.day }).toFormat("ccc, MMM d");
-        else throw new Error(`day not defined`);``
+        else throw new Error(`day not defined`);
       });
-      ys = chartData.map((point) => point.count);
+      ys = data.data.map((point) => point.count);
       break;
     case "month":
-      const weekRanges = chartData.map((point) => {
-        if (!point.week || !point.month) return;
+      const weekRanges = data.data.map((point) => {
+        if (undefined === point || !point.week || !point.month) return;
         const range = getWeekRange(point.week, point.month, point.year);
-        return {
-          ...point,
-          rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}`,
-        };
+        return { ...point, rangeStr: `${range.start.toFormat("MMM d")} - ${range.end.toFormat("MMM d")}` };
       });
       xs = weekRanges.map((point) => point?.rangeStr);
-      ys = weekRanges.map((point) => parseInt(point?.count));
+      ys = weekRanges.map((point) => point?.count);
       break;
     case "year":
-      xs = chartData.map((point) => DateTime.fromObject({ year: point.year, month: point.month }).toFormat("MMM"));
-      ys = chartData.map((point) => point.count);
+      xs = data.data.map((point) => DateTime.fromObject({ year: point.year, month: point.month }).toFormat("MMM"));
+      ys = data.data.map((point) => point.count);
       break;
     default:
       throw new Error(`unhandled time duration`);
   }
 
-  const data: ChartData<"bar"> = {
+  const chartData: ChartData<"bar"> = {
     labels: xs,
     datasets: [
       {
@@ -121,5 +112,5 @@ export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: Date
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return <Bar data={chartData} options={options} />;
 };

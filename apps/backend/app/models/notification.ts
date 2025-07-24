@@ -1,12 +1,13 @@
 import { DateTime } from "luxon";
-import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, belongsTo, column } from "@adonisjs/lucid/orm";
 import Archive from "#models/archive";
 import NotificationType from "#models/notification_type";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
+import { type UUID } from "node:crypto";
 
 export default class Notification extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare summary: string;
@@ -15,7 +16,7 @@ export default class Notification extends BaseModel {
   declare message: string;
 
   @column()
-  declare archiveId: number; // references archive.id
+  declare archiveId: UUID; // references archive.id
 
   @belongsTo(() => Archive)
   declare archive: BelongsTo<typeof Archive>;
@@ -24,7 +25,7 @@ export default class Notification extends BaseModel {
   declare shouldBeDisplayed: boolean;
 
   @column()
-  declare notificationTypeId: number; // references notification_type.id
+  declare notificationTypeId: UUID; // references notification_type.id
 
   @belongsTo(() => NotificationType)
   declare notificationType: BelongsTo<typeof NotificationType>;
@@ -40,4 +41,13 @@ export default class Notification extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assign a UUID to the Notification instance before creation.
+   * @param notification Notification
+   */
+  @beforeCreate()
+  static assignUuid(notification: Notification) {
+    notification.id = crypto.randomUUID();
+  }
 }

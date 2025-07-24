@@ -1,5 +1,5 @@
 // src/pages/Reports.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AllAnomaliesCount } from "../components/charts/reports/AllAnomaliesCount";
 import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByProperty";
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
@@ -8,20 +8,24 @@ import { RulChart } from "../components/charts/RulTrendChart";
 import { RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { rulInputData } from "../components/rulData";
-import { useAuth } from "../hooks/useAuth";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 import React from "react";
 import { FaFilter } from "react-icons/fa6";
 import { saveAs } from "file-saver";
+import { tuyau } from "../lib/Tuyau";
+import { toast } from "sonner";
+import { GensetPropertyName } from "../types/gensetProperty.types";
+import { useQuery } from "@tanstack/react-query";
 
 export const Reports = () => {
-  // hooks
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - NO CONDITIONAL RETURNS BEFORE THIS
   const { getRulPrediction } = useRulPrediction();
-  const { getLoggedInUser } = useAuth();
-
-  const loggedInUser = getLoggedInUser?.data;
-  const loggedInEmail = loggedInUser?.email;
+  const {
+    data: loggedInUserData,
+    error: loggedInUserError,
+    isLoading,
+  } = useQuery({ queryKey: ["logged-in-user"], queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap() });
 
   //state
   const [count, setCount] = useState(0);
@@ -30,20 +34,8 @@ export const Reports = () => {
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
   const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
 
-  const openInModal = (component: React.ReactNode) => {
-    setModalContent({ component });
-  };
-
-  const renderGraphCard = (content: React.ReactNode, key?: string | number) => (
-    <div
-      key={key}
-      className="aspect-4/3 bg-base-200 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => openInModal(content)}>
-      {content}
-    </div>
-  );
-
-  const properties = [
+  // Static data definitions
+  const properties: { propertyName: GensetPropertyName; chartTitle: string }[] = [
     { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
     { propertyName: "engOilPress", chartTitle: "Engine Oil Pressure (bar)" },
     { propertyName: "engFuelLevelUnits", chartTitle: "Engine Fuel Level (L)" },
@@ -62,49 +54,84 @@ export const Reports = () => {
   ] as const;
 
   const allChartKeys = [...staticCharts.map((c) => c.key), ...properties.map((p) => p.propertyName)];
-
   const [selectedCharts, setSelectedCharts] = useState<string[]>(allChartKeys);
 
-  // fetch rul prediction data
-  const fetchRulPrediction = async () => {
-    try {
-      // Check if user email exists and has data
-      if (!loggedInEmail || !rulInputData[loggedInEmail]) {
-        console.log("Waiting for user data...");
-        return;
+  const loggedInEmail = loggedInUserData?.email;
+
+  // Use useEffect to call fetchRulPrediction when the component mounts
+  useEffect(() => {
+    const fetchRulPrediction = async () => {
+      try {
+        // Check if user email exists and has data
+        if (!loggedInEmail || !rulInputData[loggedInEmail]) {
+          console.log("Waiting for user data...");
+          return;
+        }
+
+        const userDataArray = rulInputData[loggedInEmail];
+        // Use the length of the user's specific data array
+        const entry = userDataArray[count % userDataArray.length];
+
+        if (!entry) {
+          console.error("No entry found for current count");
+          return;
+        }
+
+        const newEntry = {
+          Time_Hours: entry.Time_Hours,
+          RPM_Deviation_Percentage: entry.RPM_Deviation_Percentage,
+          Oil_Pressure: entry.Oil_Pressure,
+          Power_Output_kW: entry.Power_Output_kW,
+          Inverse_Fuel_Consumption: entry.Inverse_Fuel_Consumption,
+        };
+
+        getRulPrediction.mutate(newEntry, {
+          onSuccess: (data) => {
+            console.log("RUL data fetched successfully:", data);
+            setRulPred(data?.Future_Predictions);
+            // Don't increment count here to avoid infinite loop
+            // setCount((prevCount) => (prevCount + 1) % userDataArray.length);
+          },
+          onError: (error) => {
+            console.error("Error fetching RUL data:", error);
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching RUL data:", err);
       }
+    };
 
-      const userDataArray = rulInputData[loggedInEmail];
-      // Use the length of the user's specific data array
-      const entry = userDataArray[count % userDataArray.length];
-
-      if (!entry) {
-        console.error("No entry found for current count");
-        return;
-      }
-
-      const newEntry = {
-        Time_Hours: entry.Time_Hours,
-        RPM_Deviation_Percentage: entry.RPM_Deviation_Percentage,
-        Oil_Pressure: entry.Oil_Pressure,
-        Power_Output_kW: entry.Power_Output_kW,
-        Inverse_Fuel_Consumption: entry.Inverse_Fuel_Consumption,
-      };
-
-      getRulPrediction.mutate(newEntry, {
-        onSuccess: (data) => {
-          console.log("RUL data fetched successfully:", data);
-          setRulPred(data?.Future_Predictions);
-          setCount((prevCount) => (prevCount + 1) % userDataArray.length);
-        },
-        onError: (error) => {
-          console.error("Error fetching RUL data:", error);
-        },
-      });
-    } catch (err) {
-      console.error("Error fetching RUL data:", error);
+    // Only run once when component mounts and email is available
+    if (loggedInEmail) {
+      fetchRulPrediction();
     }
+  }, [loggedInEmail]); // Only run when loggedInEmail changes
+
+  // Helper functions
+  const openInModal = (component: React.ReactNode) => {
+    setModalContent({ component });
   };
+
+  const renderGraphCard = (content: React.ReactNode, key?: string | number) => (
+    <div
+      key={key}
+      className="aspect-4/3 bg-base-200 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => openInModal(content)}
+    >
+      {content}
+    </div>
+  );
+
+  // NOW we can do conditional returns after all hooks are called
+  if (loggedInUserError) {
+    toast.error("Failed to get logged in user");
+    // TODO: clear session and log out ther user and redirect to login page
+    return <div className="h-full w-full">N/A</div>;
+  }
+
+  if (isLoading) {
+    return <div className="h-full w-full flex items-center justify-center">Loading...</div>;
+  }
 
   const TimeRangeSelector = ({ value, onChange }) => {
     const options = ["year", "month", "week"];
@@ -159,7 +186,8 @@ export const Reports = () => {
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu flex flex-row w-80 bg-base-100 shadow rounded-box h-80 overflow-y-scroll p-2 z-10">
+              className="dropdown-content menu flex flex-row w-80 bg-base-100 shadow rounded-box h-80 overflow-y-scroll p-2 z-10"
+            >
               <li className="flex flex-row w-full items-center gap-2 cursor-pointer">
                 <label className="w-full">
                   <input
@@ -179,7 +207,9 @@ export const Reports = () => {
                       className="checkbox checkbox-sm"
                       checked={selectedCharts.includes(c.key)}
                       onChange={(e) =>
-                        setSelectedCharts((prev) => (e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)))
+                        setSelectedCharts((prev) =>
+                          e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)
+                        )
                       }
                     />
                     <span className="w-full">{c.title}</span>
@@ -214,10 +244,7 @@ export const Reports = () => {
     try {
       const response = await fetch(`http://localhost:3333/reports/generateDummy?timeDuration=${timeDuration}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
+        headers: { "Content-Type": "application/json", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
         body: JSON.stringify({
           properties: selectedCharts,
           anomaliesCount: selectedCharts.includes("anomaliesCount"),
@@ -260,9 +287,10 @@ export const Reports = () => {
         {selectedCharts.includes("anomaliesCount") && renderGraphCard(<AllAnomaliesCount />, "anomaliesCount")}
         {selectedCharts.includes("anomaliesByProperty") &&
           renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />, "anomaliesByProperty")}
-        {selectedCharts.includes("pdm") && renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />, "pdm")}
+        {selectedCharts.includes("pdm") &&
+          renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />, "pdm")}
         {selectedCharts.includes("rul") &&
-          renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={null} />, "rul")}
+          renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={[]} />, "rul")}
 
         {/* All Properties Statistics */}
         {properties.map(
@@ -273,7 +301,8 @@ export const Reports = () => {
                 timeDuration={timeDuration}
                 propertyName={property.propertyName}
                 chartTitle={property.chartTitle}
-              />
+              />,
+              property.propertyName
             )
         )}
       </div>

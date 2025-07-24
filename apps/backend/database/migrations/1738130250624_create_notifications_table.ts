@@ -5,14 +5,13 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments("id").primary();
+      table.uuid("id").primary();
 
       table.string("summary").notNullable();
       table.string("message").nullable();
 
       table
-        .integer("archive_id") //
-        .unsigned()
+        .uuid("archive_id") //
         .notNullable()
         .references("id")
         .inTable("archives")
@@ -21,15 +20,14 @@ export default class extends BaseSchema {
       table.boolean("should_be_displayed").notNullable();
 
       table
-        .integer("notification_type_id")
-        .unsigned()
+        .uuid("notification_type_id")
         .notNullable()
         .references("id")
         .inTable("notification_types")
         .onDelete("RESTRICT");
 
       table.timestamp("started_at").notNullable();
-      table.timestamp("finished_at"); // should this be nullable?
+      table.timestamp("finished_at"); // TODO: should this be nullable?
 
       table.timestamp("created_at").notNullable();
       table.timestamp("updated_at").notNullable();

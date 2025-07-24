@@ -5,11 +5,18 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments("id").primary();
+      table.uuid("id").primary();
 
       table.string("property_name").notNullable().unique();
       table.string("readable_property_name").notNullable().unique();
-      table.integer("physical_quantity_id").unsigned().references("physical_quantities.id").onDelete("RESTRICT");
+
+      // relationships
+      table
+        .uuid("physical_quantity_id")
+        .notNullable()
+        .references("id")
+        .inTable("physical_quantities")
+        .onDelete("RESTRICT");
 
       table.timestamp("created_at").notNullable();
       table.timestamp("updated_at").notNullable();

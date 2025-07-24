@@ -1,4 +1,5 @@
 import vine from "@vinejs/vine";
+import { UUID } from "node:crypto";
 
 export const createGensetPropertyValidator = vine.compile(
   vine.object({
@@ -6,9 +7,11 @@ export const createGensetPropertyValidator = vine.compile(
       .string()
       .minLength(1)
       .unique({ table: "genset_properties", column: "property_name" }),
-    quantityId: vine //
-      .number()
-      .exists({ table: "physical_quantities", column: "id" }),
+    quantityId: vine
+      .string()
+      .uuid({ version: [4] })
+      .exists({ table: "physical_quantities", column: "id" })
+      .transform((value) => value as UUID),
   })
 );
 
@@ -20,8 +23,10 @@ export const updateGensetPropertyValidator = vine.compile(
       .unique({ table: "genset_properties", column: "property_name" })
       .optional(),
     physicalQuantityId: vine //
-      .number()
+      .string()
+      .uuid({ version: [4] })
       .exists({ table: "physical_quantities", column: "id" })
-      .optional(),
+      .optional()
+      .transform((value) => value as UUID),
   })
 );

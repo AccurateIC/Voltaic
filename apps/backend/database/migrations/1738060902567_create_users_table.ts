@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments("id").primary();
+      table.uuid("id").primary();
 
       // personal info
       table.string("first_name").nullable();
@@ -17,8 +17,7 @@ export default class extends BaseSchema {
 
       // relationships
       table
-        .integer("role_id") //
-        .unsigned()
+        .uuid("role_id") //
         .notNullable()
         .references("id")
         .inTable("roles")

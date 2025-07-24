@@ -3,7 +3,7 @@ import User from "#models/user";
 import { createUserValidator, loginValidator, updateUserProfileValidator } from "#validators/auth";
 
 export default class AuthController {
-  async getLoggedInUser({ auth }: HttpContext) {
+  async getLoggedInUser({ auth }: HttpContext): Promise<User> {
     const user = await auth.authenticate();
     return user;
   }
@@ -13,15 +13,8 @@ export default class AuthController {
     return users;
   }
 
-  /**
-   * @getAll
-   * @summary Get all users
-   * @description Returns an array of all registered users from the database
-   * @responseBody 200 - <User[]>
-   */
-  async getAll({}: HttpContext) {
-    const users = await User.all();
-    return users;
+  async getAll({}: HttpContext): Promise<User[]> {
+    return await User.all();
   }
 
   async register({ request, auth }: HttpContext) {
@@ -32,12 +25,6 @@ export default class AuthController {
     return user.serialize();
   }
 
-  /**
-   * @login
-   * @description Login an existing user
-   * @summary Login an existing user
-   * @requestBody <loginValidator>
-   */
   async login({ request, auth }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator);
     const user = await User.query().where("email", email).where("is_active", true).firstOrFail();

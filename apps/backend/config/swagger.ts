@@ -8,11 +8,7 @@ export default {
 
   tagIndex: 2,
   productionEnv: "production", // optional
-  info: {
-    title: "Voltaic Backend",
-    version: "1.0.0",
-    description: "AdonisJS Backend for the Voltaic project",
-  },
+  info: { title: "Voltaic Backend", version: "1.0.0", description: "AdonisJS Backend for the Voltaic project" },
   snakeCase: true,
 
   debug: false, // set to true, to get some useful debug output

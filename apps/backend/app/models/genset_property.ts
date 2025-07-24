@@ -1,13 +1,12 @@
 import { DateTime } from "luxon";
-import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, belongsTo, column } from "@adonisjs/lucid/orm";
 import PhysicalQuantity from "#models/physical_quantity";
 import type { BelongsTo } from "@adonisjs/lucid/types/relations";
-
-// id (primary key)	propertyName	quantityId	createdAt	updatedAt
+import { type UUID } from "node:crypto";
 
 export default class GensetProperty extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare propertyName: string;
@@ -16,7 +15,7 @@ export default class GensetProperty extends BaseModel {
   declare readablePropertyName: string;
 
   @column()
-  declare physicalQuantityId: number;
+  declare physicalQuantityId: UUID;
 
   @belongsTo(() => PhysicalQuantity)
   declare physicalQuantity: BelongsTo<typeof PhysicalQuantity>;
@@ -26,4 +25,13 @@ export default class GensetProperty extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the GensetProperty instance before creation.
+   * @param gensetProperty GensetProperty
+   */
+  @beforeCreate()
+  static assignUuid(gensetProperty: GensetProperty) {
+    gensetProperty.id = crypto.randomUUID();
+  }
 }

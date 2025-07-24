@@ -1,9 +1,10 @@
 import { DateTime } from "luxon";
-import { BaseModel, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, column } from "@adonisjs/lucid/orm";
+import { type UUID } from "node:crypto";
 
 export default class PdmDataKind extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare kind: string;
@@ -13,4 +14,13 @@ export default class PdmDataKind extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the PdmDataKind instance before creation.
+   * @param pdmDataKind PdmDataKind
+   */
+  @beforeCreate()
+  static assignUuid(pdmDataKind: PdmDataKind) {
+    pdmDataKind.id = crypto.randomUUID();
+  }
 }

@@ -3,7 +3,7 @@ import GensetProperty from "#models/genset_property";
 import { createGensetPropertyValidator, updateGensetPropertyValidator } from "#validators/genset_property";
 
 export default class GensetPropertyController {
-  async getAll({}: HttpContext) {
+  async getAll({}: HttpContext): Promise<GensetProperty[]> {
     const properties = GensetProperty.all();
     return properties;
   }

@@ -11,10 +11,7 @@ const bodyParserConfig = defineConfig({
    * Config for the "application/x-www-form-urlencoded"
    * content-type parser
    */
-  form: {
-    convertEmptyStringsToNull: true,
-    types: ["application/x-www-form-urlencoded"],
-  },
+  form: { convertEmptyStringsToNull: true, types: ["application/x-www-form-urlencoded"] },
 
   /**
    * Config for the JSON parser

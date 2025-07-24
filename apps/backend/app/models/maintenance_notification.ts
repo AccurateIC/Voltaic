@@ -1,5 +1,6 @@
 import { DateTime, type WeekNumbers, type DayNumbers, type MonthNumbers } from "luxon";
-import { BaseModel, beforeSave, column } from "@adonisjs/lucid/orm";
+import { BaseModel, beforeCreate, beforeSave, column } from "@adonisjs/lucid/orm";
+import { type UUID } from "node:crypto";
 
 interface MaintenanceReason {
   accel_x?: string;
@@ -9,7 +10,7 @@ interface MaintenanceReason {
 
 export default class MaintenanceNotification extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number;
+  declare id: UUID;
 
   @column()
   declare timestamp: DateTime;
@@ -46,6 +47,15 @@ export default class MaintenanceNotification extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   declare updatedAt: DateTime;
+
+  /**
+   * Assigns a UUID to the MaintenanceNotification instance before creation.
+   * @param maintenanceNotification MaintenanceNotification
+   */
+  @beforeCreate()
+  static assignUuid(maintenanceNotification: MaintenanceNotification) {
+    maintenanceNotification.id = crypto.randomUUID();
+  }
 
   /**
    * Automatically set day, week, month, and year from timestamp

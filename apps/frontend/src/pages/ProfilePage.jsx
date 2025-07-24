@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { ROUTES } from "../config/backend";
+import { tuyau } from "../lib/Tuyau";
 
 const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
   const handleChange = (e) => {
@@ -94,16 +94,10 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
                 <button
                   onClick={async () => {
                     console.log(userDetails);
-                    const response = await fetch(ROUTES.AUTH_USER_HARD_DELETE + userDetails.id, {
-                      method: "DELETE",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      credentials: "include",
-                    });
-                    if (!response.ok) {
+                    const { data, error } = await tuyau.auth.hardDelete[userDetails.id].$delete();
+                    if (error) {
                       toast.error("Failed to delete account.");
-                      console.error(response.status, await response.json());
+                      console.error(error.status, error.value);
                       return;
                     } else {
                       console.log("success");
@@ -153,25 +147,15 @@ const Profile = () => {
   const getUserDetails = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(ROUTES.AUTH_USER_GET_LOGGED_IN_USER, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
+      const { data: userData, error: userError } = await tuyau.auth.getLoggedInUser.$get();
+      if (userError) {
         throw new Error("User authentication failed");
       }
 
-      const userData = await response.json();
-
-      const roleResponse = await fetch(ROUTES.ROLE_GET_ALL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      const roles = await roleResponse.json();
+      const { data: roles, error: roleError } = await tuyau.role.getAll.$get();
+      if (roleError) {
+        throw new Error("Failed to fetch roles");
+      }
 
       const userRole = roles.find((role) => role.id === userData.roleId);
       const updatedDetails = {
@@ -204,19 +188,11 @@ const Profile = () => {
       const updatedData = { firstName, lastName, email };
 
       // Send updated data to backend
-      const response = await fetch(ROUTES.AUTH_USER_UPDATE, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to save changes");
+      const { data, error } = await tuyau.auth.update.$patch(updatedData);
+      if (error) {
+        throw new Error(error.message || "Failed to save changes");
       }
 
-      const result = await response.json();
       toast.success("Profile updated successfully!");
       // Update original details to match current details
       setOriginalDetails({ ...userDetails });

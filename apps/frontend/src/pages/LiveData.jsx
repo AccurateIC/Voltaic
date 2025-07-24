@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart";
-import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart";
-import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart";
-import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart";
-import { OilPressureLineChart } from "../components/charts/OilPressureLineChart";
-import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart";
+import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart.tsx";
+import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart.tsx";
+import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart.tsx";
+import { GeneratorCurrentLineChart } from "../components/charts/GeneratorCurrentLineChart.tsx";
+import { OilPressureLineChart } from "../components/charts/OilPressureLineChart.tsx";
+import { BatteryChargeLineChart } from "../components/charts/BatteryChargeLineChart.tsx";
 import { useMessageBus } from "../lib/MessageBus.ts";
 import { FaFilter } from "react-icons/fa";
-import { PDMLineChart } from "../components/charts/PDMLineChart";
-import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
-import { ROUTES } from "../config/backend.ts";
+import { PDMLineChart } from "../components/charts/PDMLineChart.tsx";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal.tsx";
+import { tuyau } from "../lib/Tuyau";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -168,13 +168,10 @@ export const LiveData = () => {
     // const { from, to } = calculateTimeRange(selectedTimeRange);
 
     try {
-      const response = await fetch(ROUTES.ARCHIVE_GET_DATA_BETWEEN + `?from=${from}&to=${to}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      const { data, error } = await tuyau.archive.getBetween.$get({
+        query: { from, to }
       });
-      const data = await response.json();
-      if (response.ok) {
+      if (!error) {
         const l1Voltage = generateEmptyDataPoints(
           data
             .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
@@ -303,12 +300,11 @@ export const LiveData = () => {
       console.log("Error fetching data", error);
     }
     try {
-      const pdmResponse = await fetch(ROUTES.PDM_GET_RECENT_ACTUAL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await pdmResponse.json();
+      const { data, error } = await tuyau.pdm.getRecentActual.$get();
+      if (error) {
+        console.log("Error fetching PDM data", error);
+        return;
+      }
       setPdmData(data);
     } catch (error) {
       console.log("Error fetching data", error);

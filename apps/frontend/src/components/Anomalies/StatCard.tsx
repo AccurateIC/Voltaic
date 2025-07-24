@@ -1,14 +1,4 @@
-export const StatCard = ({
-  title,
-  data,
-  isLoading,
-  isError,
-}: {
-  title: string;
-  data: number;
-  isLoading: boolean;
-  isError: boolean;
-}) => {
+export const StatCard = ({ title, data, isLoading }: { title: string; data: number; isLoading: boolean }) => {
   return (
     <div className="card card-border bg-base-100 w-96 shadow rounded-lg">
       <div className="card-body">
@@ -19,9 +9,6 @@ export const StatCard = ({
             <span className="loading loading-spinner loading-xl"></span>
           </div>
         )}
-
-        {/* Error State */}
-        {isError && <div className="text-xl">N/A</div>}
 
         {/* Data Available State */}
         <p className="text-xl">{data}</p>

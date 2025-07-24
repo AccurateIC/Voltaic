@@ -19,82 +19,6 @@ const typstBase = `
 #import "@preview/cetz:0.2.2"
 #import "@preview/cetz-plot:0.1.2": chart
 
-// Document setup
-
-// #set document(
-//   title: "Generator Performance Report",
-//   author: "NeuroGen Analytics"
-// )
-
-// // Page setup
-// #set page(
-//   paper: "a4",
-//   margin: (
-    
-//     bottom: 2cm,
-   
-//   ),
-//   header: align(right)[
-//     #image("logo.png", width: 20%)
-//   ],
-//   numbering: "1"
-// )
-
-// // Text formatting
-// #set text(
-//   font: "Liberation Sans",
-//   size: 11pt,
-//   lang: "en"
-// )
-
-// // Heading setup
-// #set heading(numbering: "1.")
-
-// // Title page
-// #align(center)[
-//   #box(
-//     stroke: black, // border color
-//     radius: 6pt,   // optional: rounded corners
-//     inset: 120pt,   // optional: padding inside the border
-//     width: auto,
-//     height: auto
-//   )[
-//     #v(3.5cm) // 👈 Space below logo/header
-
-//     #box(
-//       fill: rgb("c6efce"),
-//       width: 100%,
-//       height: 110pt,
-//       inset: 10pt,
-//       radius: 4pt
-//     )[
-//       #align(bottom)[
-//         #text(
-//           "Generator Performance Report",
-//           size: 16pt,
-//           weight: "bold"
-//         )
-//       ]
-//     ]
-
-//     #v(0.8cm)
-//     #text(size: 16pt, style: "italic")[Comprehensive Analysis & Monitoring Dashboard]
-
-//     #v(0.8cm)
-//     #table(
-//       columns: 2,
-//       stroke: none,
-//       align: left,
-//       inset: 8pt,
-//       [*Report Generated:*], [#datetime.today().display()],
-//       [*Report Period:*], [{{TIME_PERIOD_RANGE}}],
-//       [*Report Type:*], [{{REPORT_TYPE}}],
-//     )
-//   ]
-// ]
-// 
-
-
 #set document(
   title: "Generator Performance Report",
   author: "NeuroGen Analytics"
@@ -104,9 +28,9 @@ const typstBase = `
 #set page(
   paper: "a4",
   margin: (
-    
+
     bottom: 2cm,
-   
+
   ),
   header: align(right)[
     #image("logo.png", width: 20%)
@@ -179,8 +103,8 @@ const typstBase = `
 
 *Key Performance Indicators:*
 
-- Anomaly detection 
-- Predictive maintenance 
+- Anomaly detection
+- Predictive maintenance
 - Health index trending and RUL estimation
 
  #v(0.5cm)
@@ -445,9 +369,9 @@ export default class ReportsController {
           .enumerate(),
       ),
       lq.bar(
-        range(${ys.length}), 
+        range(${ys.length}),
         ( ${ys.join(", ")}, ),
-        label: ["${title}"], 
+        label: ["${title}"],
         width: 0.7,
         fill: rgb("#2563eb")
       )
@@ -462,41 +386,41 @@ export default class ReportsController {
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 20pt,
-    
+
     // Left column - Parameter details
     [
       #set text(size: 11pt)
-      
+
       #v(0.7cm)
       *Parameter Information*
-      
+
       *Parameter:* ${title}
-      
+
       *Analysis Period:* ${durationTime.charAt(0).toUpperCase() + durationTime.slice(1)}
-      
+
       *Data Points:* ${ys.length} ${granularity} measurements
-      
+
       *Report Period:* ${timePeriodInfo.range}
-      
+
       *Description:*
       ${description} This ${timePeriodInfo.title.toLowerCase()} covers the period from ${timePeriodInfo.range}.
     ],
-    
+
     // Right column - Statistics and analysis
     [
       #set text(size: 11pt)
        #v(0.7cm)
       *Statistical Analysis*
-      
+
       *Key Statistics:*
       - Average: ${average.toFixed(2)}
       - Maximum: ${maximum.toFixed(2)}
       - Minimum: ${minimum.toFixed(2)}
       - Range: ${(maximum - minimum).toFixed(2)}
-      
+
       *Trend Analysis:*
       The data shows ${trend} trend over the monitoring period.
-      
+
       *Performance Status:*
       ${average > (maximum + minimum) / 2 ? "Above average performance" : "Below average performance"}
     ]
@@ -534,7 +458,7 @@ This section presents the results of machine learning-based anomaly detection al
           .enumerate(),
       ),
       lq.bar(
-        range(${ysl.length}), 
+        range(${ysl.length}),
         (${ysl.join(", ")}),
         fill: rgb("#dc2626"),
         width: 0.7
@@ -550,38 +474,38 @@ This section presents the results of machine learning-based anomaly detection al
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 20pt,
-    
+
     // Left column - Anomaly summary
     [
       #set text(size: 11pt)
-      
+
       *Anomaly Detection Summary*
-      
+
       *Total Anomalies Detected:* ${totalAnomalies}
-      
+
       *Detection Method:* ML-based statistical analysis
-      
+
       *Time Period Breakdown:*
       ${xsl.map((period, index) => `- ${period}: ${ysl[index]} anomalies`).join("\n      ")}
-      
+
       *Analysis Method:*
       Advanced machine learning algorithms analyze patterns in operational data to identify deviations from normal operating parameters.
     ],
-    
+
     // Right column - Recommendations
     [
       #set text(size: 11pt)
-      
+
       *Analysis & Recommendations*
-      
+
       *Critical Findings:*
       ${totalAnomalies > 10 ? "High anomaly count requires immediate attention" : "Anomaly levels within acceptable range"}
-      
+
       *Immediate Actions:*
       - Investigate periods with high anomaly counts
       - Review maintenance schedules for affected systems
       - Monitor trending patterns for preventive action
-      
+
       *Long-term Strategy:*
       - Implement enhanced monitoring protocols
       - Optimize detection algorithms
@@ -615,7 +539,7 @@ This section presents the results of machine learning-based anomaly detection al
           .enumerate(),
       ),
       lq.bar(
-        range(${totalAnomaly.length}), 
+        range(${totalAnomaly.length}),
         (${totalAnomaly.join(", ")}),
         fill: rgb("#dc2626"),
         width: 0.7
@@ -631,38 +555,38 @@ This section presents the results of machine learning-based anomaly detection al
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 20pt,
-    
+
     // Left column - Property analysis
     [
       #set text(size: 11pt)
-      
+
       *Property-wise Analysis*
-      
+
       *Properties Monitored:* ${propertynm.length}
-      
+
       *Anomaly Distribution:*
       ${propertynm.map((prop, index) => `- ${prop}: ${totalAnomaly[index]} anomalies`).join("\n      ")}
-      
+
       *Critical Properties:*
       Properties with highest anomaly counts require immediate attention and may indicate equipment issues.
     ],
-    
+
     // Right column - Action items
     [
       #set text(size: 11pt)
-      
+
       *Action Items & Recommendations*
-      
+
       *Immediate Actions:*
       - Focus maintenance on high-anomaly properties
       - Verify sensor accuracy and calibration
       - Implement enhanced monitoring protocols
-      
+
       *Root Cause Analysis:*
       - Sensor calibration issues
       - Equipment degradation
       - Operational stress conditions
-      
+
       *Prevention Measures:*
       - Regular sensor maintenance
       - Predictive maintenance scheduling
@@ -700,7 +624,7 @@ This section presents predictive maintenance notifications generated by machine 
           .enumerate(),
       ),
       lq.bar(
-        range(${counts.length}), 
+        range(${counts.length}),
         (${counts.join(", ")},),
         fill: rgb("#7c3aed"),
         width: 0.7
@@ -716,41 +640,41 @@ This section presents predictive maintenance notifications generated by machine 
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 20pt,
-    
+
     // Left column - PDM summary
     [
       #set text(size: 11pt)
-      
+
       *Predictive Maintenance Summary*
-      
+
       *Total Notifications:* ${totalNotifications}
-      
+
       *Prediction Model:* Advanced ML algorithms
-      
+
       *Notification Types:*
       - Scheduled maintenance reminders
       - Condition-based alerts
       - Performance degradation warnings
-      
+
       *Model Benefits:*
       Predictive maintenance reduces unplanned downtime and optimizes maintenance scheduling.
     ],
-    
+
     // Right column - Benefits and actions
     [
       #set text(size: 11pt)
-      
+
       *Benefits & Next Actions*
-      
+
       *Key Benefits:*
       - Reduced unplanned downtime
       - Optimized maintenance scheduling
       - Extended equipment lifespan
       - Cost-effective operations
-      
+
       *Immediate Actions:*
       Review and schedule recommended maintenance activities based on ML predictions.
-      
+
       *Long-term Strategy:*
       - Implement condition-based maintenance
       - Optimize maintenance intervals
@@ -805,7 +729,7 @@ This section presents predictive maintenance notifications generated by machine 
   label: [Failure Threshold],
   stroke: rgb("#991b1b")
       )
-  
+
 
 `;
 				let diagramContent = "";
@@ -859,42 +783,42 @@ This section provides advanced analytics on equipment health trends and remainin
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 20pt,
-    
+
     // Left column - RUL analysis
     [
       #set text(size: 11pt)
-      
+
       *RUL Analysis Summary*
-      
+
       *Current Health Index:* ${currentHealthIndex.toFixed(2)}
-      
+
       *Predicted Health Index :* ${predictedHealthIndex.toFixed(2)}
-      
+
       *Prediction Horizon:* ${maxHours} hours
-      
+
       *Model Accuracy:* High confidence ML prediction
-    
-   
+
+
     ],
-    
+
     // Right column - Recommendations
     [
       #set text(size: 11pt)
-      
+
       *Recommendations & Actions*
-      
+
       *Immediate Actions:*
       - Monitor health index trends closely
       - Plan maintenance before critical threshold
       - Consider component replacement timing
       - Optimize operational parameters
-      
+
       *Strategic Planning:*
       - Develop replacement schedules
       - Budget for component replacements
       - Implement condition monitoring
       - Track degradation patterns
-      
+
       *Risk Assessment:*
       ${currentHealthIndex.toFixed(2) < 0.4 ? "Critical - Immediate action required" : currentHealthIndex.toFixed(2) < 0.6 ? "Moderate - Plan maintenance soon" : "Low - Continue monitoring"}
     ]
@@ -1004,11 +928,11 @@ This comprehensive analysis of generator performance data provides valuable insi
 1. *Immediate Actions:*
    - Address high-priority anomalies identified in the analysis
    - Schedule maintenance activities as recommended by PDM algorithms
-   
+
 2. *Short-term Planning:*
    - Implement enhanced monitoring for critical parameters
    - Optimize operational procedures based on performance data
-   
+
 3. *Long-term Strategy:*
    - Plan equipment replacement based on RUL predictions
    - Develop preventive maintenance schedules
@@ -1024,7 +948,7 @@ This comprehensive analysis of generator performance data provides valuable insi
 // #align(center)[
 //   #text(size: 10pt, style: "italic")[
 //     Report generated by NeuroGen Analytics Platform
-    
+
 //     For technical support or questions, contact the analytics team.
 //   ]
 // ]
@@ -1043,4 +967,163 @@ This comprehensive analysis of generator performance data provides valuable insi
 			response.status(500).send("An error occurred while generating the report.");
 		}
 	}
-}
+// =======
+// import { fileURLToPath } from "node:url";
+// import { spawn } from "node:child_process";
+// import Archive from "#models/archive";
+
+// import { DateTime } from "luxon";
+
+// const filename = fileURLToPath(import.meta.url);
+// const dirname = path.dirname(filename);
+
+// const typstBase = `
+// // packages
+// #import "@preview/lilaq:0.2.0" as lq
+
+// // set doc metadata
+// #set document(author: "NeuroGen", title: "NeuroGen Report")
+
+// // font style
+// #set text(font: "New Computer Modern", size: 10pt, lang: "en", ligatures: false)
+
+// // page properties
+// #set page(margin: 0.5in, paper: "a4")
+
+
+// // Small caps for section titles
+// #show heading.where(level: 2): it => [
+//   #pad(top: 0pt, bottom: -10pt, [#smallcaps(it.body)])
+//   #line(length: 100%, stroke: 0.1pt)
+// ]
+
+// // Name will be aligned left, bold and big
+// #show heading.where(level: 1): it => [
+//   #set align(center)
+//   #set text(weight: 500, size: 24pt)
+//   #pad([#smallcaps(it.body)])
+// ]
+
+// = Swarnim Barapatre
+
+// // personal info
+// #pad(top: 0.25em, align(center)[
+//   +91 8149 833 469 |
+//   Pune |
+//   #link("mailto:swarnim335@gmail.com") |
+//   #link("https://github.com/swarnimcodes/")[github/swarnimcodes] |
+//   #link(
+//     "https://www.linkedin.com/in/swarnimbarapatre/",
+//   )[linkedin/swarnimbarapatre]
+// ])
+
+
+// #lq.diagram(
+//   lq.plot(
+//   (0, 1, 2, 3, 4),
+//   (5, 4, 2, 1, 2)
+// ))
+
+
+// #lq.diagram(
+//   xaxis: (
+//     ticks: ("Apples", "Bananas", "Kiwis", "Mangos", "Papayas")
+//       .map(rotate.with(-45deg, reflow: true))
+//       .map(align.with(right))
+//       .enumerate(),
+//     subticks: none,
+//   ),
+//   lq.bar(
+//     range(5),
+//     (5, 3, 4, 2, 1),
+//   )
+// )
+// `;
+
+// const compilePdf = (tmpFile: string): Promise<Buffer> => {
+//   return new Promise((resolve, reject) => {
+//     const compileProc = spawn("typst", ["compile", tmpFile, "-"]);
+//     const pdfBuffers: Buffer[] = [];
+
+//     compileProc.stdout.on("data", (chunk) => {
+//       pdfBuffers.push(chunk);
+//     });
+
+//     compileProc.stderr.on("data", (data) => {
+//       reject(data.toString());
+//     });
+
+//     compileProc.on("close", async (code) => {
+//       await fs.unlink(tmpFile).catch(console.error);
+//       if (code !== 0) reject(`Compiler exited with code ${code}`);
+//       resolve(Buffer.concat(pdfBuffers));
+//     });
+//   });
+// };
+
+// export default class ReportsController {
+//   async getData(): Promise<Archive[]> {
+//     const archiveData = Archive.all();
+//     return archiveData as Promise<Archive[]>;
+//   }
+//   async generateDummy({ response }: HttpContext) {
+//     // make a temporary typst file with .typ extension
+//     const tmpFile = path.join(dirname, "report.typ");
+//     try {
+//       const reusableData = await this.getData();
+//       console.log(reusableData);
+//       // add data from db to typst doc
+//       const query = Archive.query();
+
+//       // filter by property names
+//       query.whereHas("gensetProperty", (propertyQuery) => {
+//         propertyQuery.whereIn("propertyName", ["engOilPress"]);
+//       });
+
+//       // preload
+//       query.preload("gensetProperty", (preloadQuery) => {
+//         preloadQuery.preload("physicalQuantity");
+//       });
+
+//       // latest first
+//       query.orderBy("timestamp", "desc");
+
+//       const propertyData = await query.exec();
+
+//       // const xs = propertyData.map((value, index) => DateTime.fromJSDate(value.timestamp));
+
+//       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp.toJSDate()).toMillis());
+//       const ys = propertyData.map((value) => value.propertyValue);
+
+//       // console.log(xs);
+//       // console.log(ys);
+
+//       const generateTypstBarChart = (xValues: string[] | number[], yValues: number[]) => {
+//         return `
+//         #let xs = ( ${xValues.map((value) => value).join(", ")} )
+//         #let ys = ( ${yValues.map((value) => `${value}`).join(", ")} )
+
+//         #lq.diagram(
+//           lq.bar(xs, ys, label: [Engine Oil Pressure])
+//         )
+//      `;
+//       };
+
+//       const typstDoc = typstBase + generateTypstBarChart(xs, ys);
+//       // console.log(typstDoc);
+
+//       await fs.writeFile(tmpFile, typstDoc);
+//       const pdfBuffer = await compilePdf(tmpFile);
+//       response.header("Content-Type", "application/pdf");
+//       response.header("Content-Disposition", "attachment; filename=report.pdf");
+//       // serve the compiled pdf
+//       return response.send(pdfBuffer);
+//       // delete the temporary typst file (?)
+//     } catch (err) {
+//       // await fs.unlink(tmpFile).catch(console.error);
+//       console.error("Error:", err);
+//       return response.status(500).send(err);
+//     }
+//   }
+// >>>>>>> 903961179e1d6005e168ec08e49c1b40e5f20388
+// }
