@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build",
+    "build": "node ace build && cp .env ./build/.env",
     "clean": "rm -rf build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",

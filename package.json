@@ -27,16 +27,37 @@
     "test": "pnpm --recursive --parallel run test",
     "fresh": "pnpm run clean:deps && pnpm install && pnpm run build"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/AccurateIC/Voltaic.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AccurateIC/Voltaic.git"
+  },
   "author": "Swarnim Barapatre",
   "license": "ISC",
-  "bugs": { "url": "https://github.com/AccurateIC/Voltaic/issues" },
-  "homepage": "https://github.com/AccurateIC/Voltaic#readme",
-  "resolutions": { "strtok3": "8.0.1" },
-  "pnpm": {
-    "overrides": { "strtok3": "8.0.1" },
-    "onlyBuiltDependencies": ["@swc/core", "@tailwindcss/oxide", "core-js", "esbuild"]
+  "bugs": {
+    "url": "https://github.com/AccurateIC/Voltaic/issues"
   },
-  "devDependencies": { "@types/node": "^24.0.13", "prettier": "^3.6.2", "typescript": "~5.8.3" },
-  "engines": { "node": ">=22.14.0", "pnpm": ">=10.12.4" }
+  "homepage": "https://github.com/AccurateIC/Voltaic#readme",
+  "resolutions": {
+    "strtok3": "8.0.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "strtok3": "8.0.1"
+    },
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "core-js",
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3"
+  },
+  "engines": {
+    "node": ">=22.14.0",
+    "pnpm": ">=10.12.4"
+  }
 }
