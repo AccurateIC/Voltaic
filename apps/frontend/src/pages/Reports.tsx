@@ -254,21 +254,13 @@ export const Reports = () => {
         }),
       });
 
-     
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`Server error: ${response.status} - ${errorText}`)
-       
-        toast.error("Report Export Failed!", {
-          description: `Server responded with status ${response.status}: ${errorText}`,
-        })
-        return 
-      }
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+
       const blob = await response.blob();
       saveAs(blob, "GeneratorReport.pdf");
     } catch (error) {
       console.error("Failed to export report:", error);
-     
+      alert("Failed to export report. Please try again.");
     }
   };
 

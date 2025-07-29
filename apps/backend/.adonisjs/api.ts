@@ -239,7 +239,7 @@ type PdmDeleteDelete = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/pdm_controller.ts').default['delete'], false>
 }
-type ReportsGeneratedummyGetHead = {
+type ReportsGeneratedummyPost = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/reports_controller.ts').default['generateDummy'], false>
 }
@@ -614,8 +614,7 @@ export interface ApiDefinition {
     'generateDummy': {
       '$url': {
       };
-      '$get': ReportsGeneratedummyGetHead;
-      '$head': ReportsGeneratedummyGetHead;
+      '$post': ReportsGeneratedummyPost;
     };
   };
 }

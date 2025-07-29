@@ -1,13 +1,15 @@
 
+
+
+
 import { getRulPrediction } from "../utils/rul_api.js"; // path to your fetch logic (make sure it's correct!)
 import { propertyStatsValidator } from "#validators/archive";
-import type { HttpContext } from "@adonisjs/core/http";
 
 export class RulService {
   static async fetchPrediction({ request }: HttpContext) {
-     const data = await request.validateUsing(propertyStatsValidator);
+    const data = await request.validateUsing(propertyStatsValidator);
     
-    const rulParameters = {
+    const service = {
       Time_Hours: 210,
       RPM_Deviation_Percentage: 0.067,
       Oil_Pressure: 1.88,
@@ -15,8 +17,30 @@ export class RulService {
       Inverse_Fuel_Consumption: 0.825,
     };
 
-    const prediction = await getRulPrediction(rulParameters);
+    const prediction = await getRulPrediction(service);
     // console.log("prediction", prediction);
     return prediction;
   }
 }
+
+// import { getRulPrediction } from "../utils/rul_api.js"; // path to your fetch logic (make sure it's correct!)
+// import { propertyStatsValidator } from "#validators/archive";
+// import type { HttpContext } from "@adonisjs/core/http";
+
+// export class RulService {
+//   static async fetchPrediction({ request }: HttpContext) {
+//      const data = await request.validateUsing(propertyStatsValidator);
+    
+//     const rulParameters = {
+//       Time_Hours: 210,
+//       RPM_Deviation_Percentage: 0.067,
+//       Oil_Pressure: 1.88,
+//       Power_Output_kW: 0.924,
+//       Inverse_Fuel_Consumption: 0.825,
+//     };
+
+//     const prediction = await getRulPrediction(rulParameters);
+//     // console.log("prediction", prediction);
+//     return prediction;
+//   }
+// }
