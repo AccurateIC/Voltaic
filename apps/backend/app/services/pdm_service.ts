@@ -22,7 +22,7 @@ export class PdmService {
       // console.log("reqBody PDM", reqBody);
 
       timezone = reqBody.headers.timezone;
-      timeDuration = reqBody.timeDuration;
+      timeDuration = reqBody.timeDuration as DateTimeUnit;
     }
     // Case 2: Called programmatically with timezone + timeDuration
     else {
@@ -34,8 +34,8 @@ export class PdmService {
     if (!timeDuration) throw new Error("No time duration provided");
 
     const now = DateTime.now().setZone(timezone);
-    const start = now.startOf(timeDuration).toUTC();
-    const end = now.endOf(timeDuration).toUTC();
+    const start = now.startOf(timeDuration).toUTC().toJSDate();
+    const end = now.endOf(timeDuration).toUTC().toJSDate();
 
     const query = MaintenanceNotification.query().whereBetween("timestamp", [start, end]);
 

@@ -15,7 +15,7 @@ export const Modules = {
 
   ANOMALY: "http://127.0.0.1:5003",
   RUL: "http://127.0.0.1:5001",
-  PDM: "http://127.0.0.1:5002",
+  PDM: "http://127.0.0.1:5000",
 };
 
 

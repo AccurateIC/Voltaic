@@ -260,7 +260,7 @@ export const Reports = () => {
       saveAs(blob, "GeneratorReport.pdf");
     } catch (error) {
       console.error("Failed to export report:", error);
-      alert("Failed to export report. Please try again.");
+      //  throw new Error("No RUL prediction data available for this request.");
     }
   };
 

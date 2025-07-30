@@ -10,6 +10,7 @@ import { PdmService } from "#services/pdm_service";
 import { RulService } from "../../app/services/rul_service.js";
 import { filteredHealthIndexData } from "./filteredHealthIndex.js";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -171,7 +172,7 @@ export default class ReportsController {
 
     try {
       // Extract request parameters
-      const { properties, anomaliesCount, anomaliesByProperty, pdm, rul } = request.body();
+      const { anomaliesCount, anomaliesByProperty, pdm, rul } = request.body();
       const requestBody = request.body();
       const selectedPropertyNames = requestBody.properties || [];
 
@@ -191,22 +192,22 @@ export default class ReportsController {
       }));
 
       // Get property data
-      const resultData = await ArchiveService.getPropertyStatistics({ request });
+      const resultData = await ArchiveService.getPropertyStatistics({ request, response } as HttpContext);
+      if (!resultData) throw new Error("No result data");
+      
       const durationTime = resultData?.meta.timeDuration;
-
-      // Helper function to get week range
-      function getWeekRange(week: number, month: number, year: number) {
+     
+      function getWeekRange(week: number, year: number) {
         const start = DateTime.fromObject({ weekYear: year, weekNumber: week, weekday: 1 });
         return { start, end: start.endOf("week") };
       }
 
-      // Helper function to format date labels
       function formatLabel(entry: any): string {
         switch (durationTime) {
           case "year":
             return DateTime.fromObject({ year: entry.year, month: entry.month, day: 1 }).toFormat("LLL");
           case "month": {
-            const { start, end } = getWeekRange(entry.week, entry.month, entry.year);
+            const { start, end } = getWeekRange(entry.week, entry.year);
             return `${start.toFormat("MMM d")} - ${end.toFormat("MMM d")}`;
           }
           case "week":
@@ -216,7 +217,6 @@ export default class ReportsController {
         }
       }
 
-      // Function to generate time period information - modify this function
       function getTimePeriodInfo(durationTime: string, resultData: any) {
         const currentDate = new Date();
         let title = "";
@@ -316,18 +316,16 @@ export default class ReportsController {
       }
 
       // Group data by property ID
-      const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry) => {
+      const groupedData = resultData.data.reduce<Record<number, typeof resultData.data>>((acc, entry: any) => {
         const key = entry.genset_property_id;
         (acc[key] ||= []).push(entry);
         return acc;
       }, {});
 
-      console.log("groupedData", groupedData);
-      // Function to generate bar chart for property data with new layout
       const generateTypstBarChart = (
         title: string,
-        xs: object[],
-        ys: object[],
+        xs: string[],
+        ys: number[],
         durationTime: string,
         timePeriodInfo: any
       ) => {
@@ -345,6 +343,7 @@ export default class ReportsController {
           description = "This chart presents monthly performance trends for the selected year period.";
         }
 
+        // const average = (ys as number[]).reduce((a, b) => a + b, 0) / ys.length;
         const average = (ys as number[]).reduce((a, b) => a + b, 0) / ys.length;
         const maximum = Math.max(...(ys as number[]));
         const minimum = Math.min(...(ys as number[]));
@@ -439,10 +438,11 @@ export default class ReportsController {
 `;
       };
 
-      // Function to generate anomaly bar chart with new layout
-      const generateAnomalyBarChart = (xsl: object[], ysl: object[]) => {
-        const totalAnomalies = (ysl as number[]).reduce((a, b) => a + b, 0);
-
+      //total anomaly bar 
+      const generateAnomalyBarChart = (xsl: string[], ysl: number[]) => {
+        // const totalAnomalies = (ysl as number[]).reduce((a, b) => a + b, 0);
+        const yslNumbers = ysl.map((entry: any) => Number(entry)).filter((v) => !isNaN(v));
+        const totalAnomalies = yslNumbers.reduce((a, b) => a + b, 0);
         return `
 = Anomaly Detection Analysis
 
@@ -526,8 +526,8 @@ This section presents the results of machine learning-based anomaly detection al
 `;
       };
 
-      // Function to generate property anomaly chart with new layout
-      const generatePropertyAnomalyChart = (propertynm, totalAnomaly) => {
+      // property anomaly chart 
+      const generatePropertyAnomalyChart = (propertynm: string[], totalAnomaly: number[]) => {
         return `
 == Anomaly Distribution by Property
 #v(0.5cm)
@@ -606,9 +606,11 @@ This section presents the results of machine learning-based anomaly detection al
 `;
       };
 
-      // Function to generate PDM bar chart with new layout
-      const generatePDMBarChart = (xs: object[], counts: object[]) => {
-        const totalNotifications = (counts as number[]).reduce((a, b) => a + b, 0);
+      //PDM bar chart t
+      const generatePDMBarChart = (xs: string[], counts: number[]) => {
+        // const totalNotifications = (counts as number[]).reduce((a, b) => a + b, 0);
+        const countsNumbers = counts.map((v: any) => Number(v)).filter((v) => !isNaN(v));
+        const totalNotifications = countsNumbers.reduce((a, b) => a + b, 0);
         const isSingle = counts.length === 1;
         const xsFixed = isSingle ? [...xs, ""] : xs;
         const countsFixed = isSingle ? [...counts, 0] : counts;
@@ -628,14 +630,14 @@ This section presents predictive maintenance notifications generated by machine 
       xlabel: [Time Period],
       ylabel: [Maintenance Notifications],
       xaxis: (
-        ticks: (${xsFixed.map((v) => `"${v}"`).join(", ")},)
+        ticks: (${xsFixed.map((v) => `"${v}"`).join(", ")})
           .map(rotate.with(-45deg, reflow: true))
           .map(align.with(right))
           .enumerate(),
       ),
       lq.bar(
         range(${countsFixed.length}),
-        (${countsFixed.join(", ")},),
+        (${countsFixed.join(", ")}),
         fill: rgb("#7c3aed"),
         width: ${barWidth}
       )
@@ -698,7 +700,7 @@ This section presents predictive maintenance notifications generated by machine 
 `;
       };
 
-      // Function to generate RUL line chart with new layout
+      // RUL line chart 
       const rulLineChart = (timeHours: number[], predictiveHealthIndex: number[]) => {
         const currentHealthIndex =
           filteredHealthIndexData[filteredHealthIndexData.length - 1]?.Predicted_Health_Index || 0;
@@ -831,7 +833,13 @@ This section provides advanced analytics on equipment health trends and remainin
       - Track degradation patterns
 
       *Risk Assessment:*
-      ${currentHealthIndex.toFixed(2) < 0.4 ? "Critical - Immediate action required" : currentHealthIndex.toFixed(2) < 0.6 ? "Moderate - Plan maintenance soon" : "Low - Continue monitoring"}
+      ${
+        Number(currentHealthIndex.toFixed(2)) < 0.4
+          ? "Critical - Immediate action required"
+          : Number(currentHealthIndex.toFixed(2)) < 0.6
+            ? "Moderate - Plan maintenance soon"
+            : "Low - Continue monitoring"
+      }
     ]
   )
 ]
@@ -841,73 +849,40 @@ This section provides advanced analytics on equipment health trends and remainin
 `;
       };
 
-      // Get data from services
-      const timezone = request.header("timezone");
-      const anomalyResult = await ArchiveService.getAnomalyStatistics(timezone);
-      const pdmData = await PdmService.maintenanceNotificationStatistics({ request });
-      const rulPrediction = await RulService.fetchPrediction({ request });
+      const timezone = request.header("timezone") || "UTC";
+       const ctx = { request, response } as HttpContext;
 
+      const anomalyResult = await ArchiveService.getAnomalyStatistics(timezone);
       const xsl = Object.entries(anomalyResult.overall).map(([key, _]) => key);
       const ysl = Object.entries(anomalyResult.overall).map(([_, value]) => value);
       const propertynm = anomalyResult.byProperty.map((item) => item.readablePropertyName);
       const totalAnomaly = anomalyResult.byProperty.map((item) => item.total);
 
-      const counts = pdmData.data.map((entry) => Number(entry.count));
-      const xs = pdmData.data.map(formatLabel);
-
-      const predictiveHealthIndex = rulPrediction.Future_Predictions.map((data) => data.Predicted_Health_Index);
-      const timeHours = rulPrediction.Future_Predictions.map((data) => data.Time_Hours);
-
-      // After getting the time period info, replace the template placeholders:
-      // Get time period information
       const timePeriodInfo = getTimePeriodInfo(durationTime, resultData);
+
       // Generate property charts
       let allChartsTypstCode = ""; // Initialize here, outside the loop
       if (Object.keys(groupedData).length > 0) {
         allChartsTypstCode += `
-= Generator Performance Metrics
+      = Generator Performance Metrics
 
-This section provides detailed analysis of key generator performance parameters monitored during the reporting period. Each chart represents statistical analysis of sensor data collected at regular intervals.
+      This section provides detailed analysis of key generator performance parameters monitored during the reporting period. Each chart represents statistical analysis of sensor data collected at regular intervals.
 
 
 `;
 
-        // for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
-        //   if (!Array.isArray(entries)) {
-        //     console.warn(`Skipping non-array entry for propertyId: ${propertyIdStr}`);
-        //     continue;
-        //   }
-
-        //   console.log("hello")
-        //   const xs = entries.map(formatLabel);
-        //   const ys = entries.map((entry) => entry.avg);
-        //   const propertyId = Number(propertyIdStr);
-        //   const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
-
-        //   if (!matched) continue;
-
-        //   const title = matched.readablePropertyName;
-        //   allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime, timePeriodInfo);
-        // }
         for (const [propertyIdStr, entries] of Object.entries(groupedData)) {
           if (!Array.isArray(entries)) {
             console.warn(`Skipping non-array entry for propertyId: ${propertyIdStr}`);
             continue;
           }
-
           const xs = entries.map(formatLabel);
-          const ys = entries.map((entry) => entry.avg);
+          const ys = entries.map((entry: any) => entry.avg);
+          const propertyId = propertyIdStr;
 
-          // not Old — converting UUID to number
-          // const propertyId = Number(propertyIdStr);
+          const matched = propertyStats.find((p) => p.gensetPropertyId === propertyId);
 
-          //  New — use UUID string directly
-          const matched = propertyStats.find((p) => p.gensetPropertyId === propertyIdStr);
-
-          if (!matched) {
-            console.warn(` No match found in propertyStats for propertyId: ${propertyIdStr}`);
-            continue;
-          }
+          if (!matched) continue;
 
           const title = matched.readablePropertyName;
           allChartsTypstCode += generateTypstBarChart(title, xs, ys, durationTime, timePeriodInfo);
@@ -928,18 +903,33 @@ This section provides detailed analysis of key generator performance parameters 
         typstDoc += generatePropertyAnomalyChart(propertynm, totalAnomaly);
       }
 
-      // Declare the variable before using it
-
       if (allChartsTypstCode) {
         typstDoc += allChartsTypstCode;
       }
 
       if (pdm) {
-        typstDoc += generatePDMBarChart(xs, counts);
+        const pdmData = await PdmService.maintenanceNotificationStatistics(ctx);
+        if (pdmData.data && pdmData.data.length > 0) {
+          console.log("Got PDM data:", pdmData);
+          const counts = pdmData.data.map((entry: any) => Number(entry.count));
+          const xs = pdmData.data.map(formatLabel);
+           typstDoc += generatePDMBarChart(xs, counts);
+        } else {
+          console.log("Skipping PDM chart: no data available.");
+        }
       }
 
       if (rul) {
-        typstDoc += rulLineChart(timeHours, predictiveHealthIndex);
+        const rulPrediction = await RulService.fetchPrediction();
+        if (rulPrediction) {
+          const predictiveHealthIndex =
+            rulPrediction.Future_Predictions.map((data: any) => data.Predicted_Health_Index) ?? [];
+          const timeHours = rulPrediction.Future_Predictions.map((data: any) => data.Time_Hours) ?? [];
+
+          typstDoc += rulLineChart(timeHours, predictiveHealthIndex);
+        } else {
+          console.log("Skipping RUL chart: no data available.");
+        }
       }
 
       // Add conclusion
@@ -1003,160 +993,3 @@ This comprehensive analysis of generator performance data provides valuable insi
     }
   }
 }
-// =======
-// import { fileURLToPath } from "node:url";
-// import { spawn } from "node:child_process";
-// import Archive from "#models/archive";
-
-// import { DateTime } from "luxon";
-
-// const filename = fileURLToPath(import.meta.url);
-// const dirname = path.dirname(filename);
-
-// const typstBase = `
-// // packages
-// #import "@preview/lilaq:0.2.0" as lq
-
-// // set doc metadata
-// #set document(author: "NeuroGen", title: "NeuroGen Report")
-
-// // font style
-// #set text(font: "New Computer Modern", size: 10pt, lang: "en", ligatures: false)
-
-// // page properties
-// #set page(margin: 0.5in, paper: "a4")
-
-// // Small caps for section titles
-// #show heading.where(level: 2): it => [
-//   #pad(top: 0pt, bottom: -10pt, [#smallcaps(it.body)])
-//   #line(length: 100%, stroke: 0.1pt)
-// ]
-
-// // Name will be aligned left, bold and big
-// #show heading.where(level: 1): it => [
-//   #set align(center)
-//   #set text(weight: 500, size: 24pt)
-//   #pad([#smallcaps(it.body)])
-// ]
-
-// = Swarnim Barapatre
-
-// // personal info
-// #pad(top: 0.25em, align(center)[
-//   +91 8149 833 469 |
-//   Pune |
-//   #link("mailto:swarnim335@gmail.com") |
-//   #link("https://github.com/swarnimcodes/")[github/swarnimcodes] |
-//   #link(
-//     "https://www.linkedin.com/in/swarnimbarapatre/",
-//   )[linkedin/swarnimbarapatre]
-// ])
-
-// #lq.diagram(
-//   lq.plot(
-//   (0, 1, 2, 3, 4),
-//   (5, 4, 2, 1, 2)
-// ))
-
-// #lq.diagram(
-//   xaxis: (
-//     ticks: ("Apples", "Bananas", "Kiwis", "Mangos", "Papayas")
-//       .map(rotate.with(-45deg, reflow: true))
-//       .map(align.with(right))
-//       .enumerate(),
-//     subticks: none,
-//   ),
-//   lq.bar(
-//     range(5),
-//     (5, 3, 4, 2, 1),
-//   )
-// )
-// `;
-
-// const compilePdf = (tmpFile: string): Promise<Buffer> => {
-//   return new Promise((resolve, reject) => {
-//     const compileProc = spawn("typst", ["compile", tmpFile, "-"]);
-//     const pdfBuffers: Buffer[] = [];
-
-//     compileProc.stdout.on("data", (chunk) => {
-//       pdfBuffers.push(chunk);
-//     });
-
-//     compileProc.stderr.on("data", (data) => {
-//       reject(data.toString());
-//     });
-
-//     compileProc.on("close", async (code) => {
-//       await fs.unlink(tmpFile).catch(console.error);
-//       if (code !== 0) reject(`Compiler exited with code ${code}`);
-//       resolve(Buffer.concat(pdfBuffers));
-//     });
-//   });
-// };
-
-// export default class ReportsController {
-//   async getData(): Promise<Archive[]> {
-//     const archiveData = Archive.all();
-//     return archiveData as Promise<Archive[]>;
-//   }
-//   async generateDummy({ response }: HttpContext) {
-//     // make a temporary typst file with .typ extension
-//     const tmpFile = path.join(dirname, "report.typ");
-//     try {
-//       const reusableData = await this.getData();
-//       console.log(reusableData);
-//       // add data from db to typst doc
-//       const query = Archive.query();
-
-//       // filter by property names
-//       query.whereHas("gensetProperty", (propertyQuery) => {
-//         propertyQuery.whereIn("propertyName", ["engOilPress"]);
-//       });
-
-//       // preload
-//       query.preload("gensetProperty", (preloadQuery) => {
-//         preloadQuery.preload("physicalQuantity");
-//       });
-
-//       // latest first
-//       query.orderBy("timestamp", "desc");
-
-//       const propertyData = await query.exec();
-
-//       // const xs = propertyData.map((value, index) => DateTime.fromJSDate(value.timestamp));
-
-//       const xs = propertyData.map((value) => DateTime.fromJSDate(value.timestamp.toJSDate()).toMillis());
-//       const ys = propertyData.map((value) => value.propertyValue);
-
-//       // console.log(xs);
-//       // console.log(ys);
-
-//       const generateTypstBarChart = (xValues: string[] | number[], yValues: number[]) => {
-//         return `
-//         #let xs = ( ${xValues.map((value) => value).join(", ")} )
-//         #let ys = ( ${yValues.map((value) => `${value}`).join(", ")} )
-
-//         #lq.diagram(
-//           lq.bar(xs, ys, label: [Engine Oil Pressure])
-//         )
-//      `;
-//       };
-
-//       const typstDoc = typstBase + generateTypstBarChart(xs, ys);
-//       // console.log(typstDoc);
-
-//       await fs.writeFile(tmpFile, typstDoc);
-//       const pdfBuffer = await compilePdf(tmpFile);
-//       response.header("Content-Type", "application/pdf");
-//       response.header("Content-Disposition", "attachment; filename=report.pdf");
-//       // serve the compiled pdf
-//       return response.send(pdfBuffer);
-//       // delete the temporary typst file (?)
-//     } catch (err) {
-//       // await fs.unlink(tmpFile).catch(console.error);
-//       console.error("Error:", err);
-//       return response.status(500).send(err);
-//     }
-//   }
-// >>>>>>> 903961179e1d6005e168ec08e49c1b40e5f20388
-// }
