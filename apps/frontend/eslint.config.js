@@ -5,6 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import reactCompiler from "eslint-plugin-react-compiler";
 import typescriptPlugin from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
 
 export default [
   { ignores: ["dist", "node_modules"] },
@@ -18,7 +19,8 @@ export default [
         ecmaVersion: "latest",
         ecmaFeatures: { jsx: true },
         sourceType: "module",
-        project: "./tsconfig.json",
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     settings: { react: { version: "19" } },

@@ -1,27 +1,46 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import BackImage from "../assets/back.svg";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { User } from "../types/auth.types";
 import { SessionStore } from "../lib/SessionStore";
 import { tuyau } from "../lib/Tuyau";
+import DotMatrixBackground from "../components/DotMatrixBackground";
+import { motion, AnimatePresence } from "motion/react";
 
 const InputField = ({ label, type, placeholder, value, onChange }) => (
-  <div className="form-control w-full">
+  <motion.div
+    className="form-control w-full"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, ease: "easeOut" }}
+  >
     <label className="label">
       <span className="label-text text-base-content">{label}</span>
     </label>
-    <input
+    <motion.input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       required
-      className="input input-bordered w-full bg-base-100/50 backdrop-blur-sm text-base-content"
+      className="input w-full text-base-content placeholder:text-base-content/50 focus:outline-none transition-all duration-200"
+      style={{
+        background: "var(--input-bg, rgba(140, 140, 140, 0.05))",
+        border: "1px solid var(--input-border, rgba(140, 140, 140, 0.15))",
+        backdropFilter: "blur(10px)",
+        boxShadow: "var(--input-shadow, none)",
+      }}
+      whileFocus={{
+        scale: 1.02,
+        "--input-bg": "rgba(140, 140, 140, 0.1)",
+        "--input-border": "rgba(65, 105, 225, 0.3)",
+        "--input-shadow": "0 0 0 2px rgba(65, 105, 225, 0.1)",
+      }}
+      transition={{ duration: 0.2 }}
     />
-  </div>
+  </motion.div>
 );
 
 const Login = () => {
@@ -140,54 +159,78 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex relative bg-base-300">
-      {/* Left Panel */}
-      <div className="hidden md:flex w-full bg-primary/10 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-90"
-          style={{ backgroundImage: `url(${BackImage})` }}
-        />
-        <div className="relative z-10 w-full flex flex-col justify-center items-center p-8">
-          <div className="max-w-md text-center"></div>
-        </div>
-      </div>
+    <div className="min-h-screen w-full relative bg-base-300">
+      {/* Full-screen dot matrix background */}
+      <DotMatrixBackground />
 
-      {/* Right Panel - Login Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4">
-        <div className="card w-full max-w-md bg-base-200 shadow-xl">
+      {/* Content overlay */}
+      <div className="relative z-20 min-h-screen flex items-center justify-center p-4">
+        {/* Centered Login Form */}
+        <motion.div
+          className="card w-full max-w-md bg-base-200/30 backdrop-blur-md shadow-lg border border-base-content/10"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{
+            background: "rgba(26, 26, 26, 0.15)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(140, 140, 140, 0.1)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+          }}
+        >
           <div className="card-body gap-4">
             {/* Logo */}
-            <div className="flex items-center gap-2 justify-center">
-              <LiaConnectdevelop size={56} />
+            <motion.div
+              className="flex items-center gap-2 justify-center"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <motion.div whileHover={{ rotate: 360, scale: 1.1 }} transition={{ duration: 0.6 }}>
+                <LiaConnectdevelop size={56} />
+              </motion.div>
               <span className="text-3xl">NeuroGen</span>
-              {/* <img src={Logo} alt="AccurateIC Logo" className="w-48 h-auto" /> */}
-            </div>
+            </motion.div>
 
             {/* Title */}
-            <h2 className="card-title text-2xl text-base-content font-bold text-center justify-center">
+            <motion.h2
+              className="card-title text-2xl text-base-content font-bold text-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               {isSignUp ? "Create Account" : "Welcome Back"}
-            </h2>
+            </motion.h2>
 
             {/* Form */}
             <form onSubmit={handleAuth} className="space-y-4">
-              {isSignUp && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField
-                    label="First Name"
-                    type="text"
-                    placeholder="John"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                  <InputField
-                    label="Last Name"
-                    type="text"
-                    placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {isSignUp && (
+                  <motion.div
+                    key="signup-fields"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <InputField
+                      label="First Name"
+                      type="text"
+                      placeholder="John"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
+                    <InputField
+                      label="Last Name"
+                      type="text"
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <InputField
                 label="Email"
@@ -206,17 +249,20 @@ const Login = () => {
               />
 
               {/* Submit Button */}
-              <button
+              <motion.button
                 type="submit"
-                //  className="btn w-full mt-6 bg-success/25 hover:bg-success/30 transition-all duration-300 text-base-content"
-                className="btn btn-success w-full mt-6"
+                className="btn w-full mt-6 text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10"
+                style={{ backdropFilter: "blur(10px)", boxShadow: "var(--btn-shadow, 0 4px 16px rgba(0, 0, 0, 0.1))" }}
+                whileHover={{ scale: 1.01, y: -1, "--btn-shadow": "0 6px 20px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 {isSignUp ? "Sign Up" : "Sign In"}
-              </button>
+              </motion.button>
             </form>
 
             {/* Switch between SignUp and SignIn */}
-            <div className="divider text-base-content">OR</div>
+            <div className="divider text-base-content/60 opacity-50">OR</div>
 
             {/* Social Login */}
             <div className="flex flex-col gap-3">
@@ -229,22 +275,39 @@ const Login = () => {
               </button>
               */}
 
-              <button onClick={handleGoogleSignIn} className="btn btn-soft">
+              <motion.button
+                onClick={handleGoogleSignIn}
+                className="btn w-full text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10"
+                style={{
+                  backdropFilter: "blur(10px)",
+                  boxShadow: "var(--google-shadow, 0 4px 16px rgba(0, 0, 0, 0.1))",
+                }}
+                whileHover={{ scale: 1.01, "--google-shadow": "0 6px 20px rgba(0, 0, 0, 0.15)" }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+              >
                 <div className="flex flex-row gap-2 items-center justify-center">
                   <FaGoogle size={22} />
                   <span>Login with Google</span>
                 </div>
-              </button>
+              </motion.button>
             </div>
 
             {/* Account Switch Link */}
             <div className="text-center mt-4">
-              <button onClick={() => setIsSignUp(!isSignUp)} className="link link-primary">
+              <motion.button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-base-content/90 hover:text-base-content font-medium underline-offset-4 hover:underline transition-all duration-200"
+                style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)" }}
+                whileHover={{}}
+                whileTap={{}}
+                transition={{ duration: 0.2 }}
+              >
                 {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
-              </button>
+              </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
