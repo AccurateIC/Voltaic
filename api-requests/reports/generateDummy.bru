@@ -4,8 +4,27 @@ meta {
   seq: 1
 }
 
-get {
-  url: {{BASE_URL}}/reports/generateDummy
-  body: none
+post {
+  url: {{BASE_URL}}/reports/generateDummy?timeDuration=week
+  body: json
   auth: inherit
+}
+
+params:query {
+  timeDuration: week
+}
+
+headers {
+  timezone: Asia/Kolkata
+}
+
+body:json {
+  {
+    "properties": [ "engChargeAltVolts", "genTotalVA", "engTemp"],
+    "anomaliesCount": true,
+    "anomaliesByProperty": true,
+    "pdm": false,
+    "rul": false
+  }
+  
 }

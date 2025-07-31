@@ -12,6 +12,7 @@ import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 import React from "react";
 import { FaFilter } from "react-icons/fa6";
+import { saveAs } from "file-saver";
 import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
 import { GensetPropertyName } from "../types/gensetProperty.types";
@@ -20,14 +21,16 @@ import { useQuery } from "@tanstack/react-query";
 export const Reports = () => {
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - NO CONDITIONAL RETURNS BEFORE THIS
   const { getRulPrediction } = useRulPrediction();
-  const { data: loggedInUserData, error: loggedInUserError, isLoading } = useQuery({
-    queryKey: ["logged-in-user"],
-    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
-  });
+  const {
+    data: loggedInUserData,
+    error: loggedInUserError,
+    isLoading,
+  } = useQuery({ queryKey: ["logged-in-user"], queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap() });
 
   //state
   const [count, setCount] = useState(0);
-  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("month");
+  const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("week");
+
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
   const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
 
@@ -237,6 +240,30 @@ export const Reports = () => {
     );
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`http://localhost:3333/reports/generateDummy?timeDuration=${timeDuration}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        body: JSON.stringify({
+          properties: selectedCharts,
+          anomaliesCount: selectedCharts.includes("anomaliesCount"),
+          anomaliesByProperty: selectedCharts.includes("anomaliesByProperty"),
+          pdm: selectedCharts.includes("pdm"),
+          rul: selectedCharts.includes("rul"),
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+
+      const blob = await response.blob();
+      saveAs(blob, "GeneratorReport.pdf");
+    } catch (error) {
+      console.error("Failed to export report:", error);
+      //  throw new Error("No RUL prediction data available for this request.");
+    }
+  };
+
   return (
     <div>
       <div className="p-2">
@@ -248,7 +275,10 @@ export const Reports = () => {
             <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
             <SelectChartsDropdown />
           </div>
-          {/* <button className="btn">Export</button> */}
+
+          <button className="btn" onClick={handleExport}>
+            Export
+          </button>
         </div>
       </div>
 

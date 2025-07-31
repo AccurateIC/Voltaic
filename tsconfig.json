@@ -17,10 +17,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "@voltaic/*": [
-        "packages/*/src"
-      ]
-    }
-  },
+    "paths": { "@voltaic/*": ["packages/*/src"] }
+  }
 }

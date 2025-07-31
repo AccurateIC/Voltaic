@@ -187,8 +187,18 @@ router
   .prefix("pdm");
 
 // Reports
+// router
+//   .group(() => {
+//     router.post("generateDummy", "#controllers/reports_controller.generateDummy");
+//     router.get("getPropertyStatistic", "#controllers/reports_controller.getPropertyStatistic");
+
+//   })
+//   .prefix("reports");
+
 router
   .group(() => {
-    router.get("generateDummy", "#controllers/reports_controller.generateDummy");
+    router.post("generateDummy", "#controllers/reports_controller.generateDummy");
+    // router.get("generateDummy", "#controllers/reports_controller.generateDummy"); // add this line
+    router.get("getPropertyStatistic", "#controllers/reports_controller.getPropertyStatistic");
   })
   .prefix("reports");

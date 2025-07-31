@@ -19,7 +19,7 @@ export const rulApi = {
       throw new Error("Failed to fetch RUL prediction");
     }
     const rulData = await response.json();
-    console.log("RUL", rulData);
+    // console.log("RUL", rulData);
     return rulData as Promise<RulResponse>;
   },
 

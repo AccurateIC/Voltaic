@@ -1,3 +1,4 @@
+
 # Frontend - React 19 SPA
 
 Generator set monitoring dashboard with real-time data visualization.
