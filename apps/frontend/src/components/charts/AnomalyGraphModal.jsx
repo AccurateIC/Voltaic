@@ -56,24 +56,10 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
         position: "bottom",
         // min: DateTime.now().minus({ minutes: 20 }).toMillis(),
         // max: DateTime.now().toMillis(),
-        title: {
-          display: true,
-          text: "Timestamp",
-          color: "#fff",
-        },
-        ticks: {
-          color: "#fff",
-        },
-        grid: {
-          color: "#444",
-        },
-        time: {
-          unit: "second",
-          tooltipFormat: "HH:mm:ss",
-          displayFormats: {
-            second: "yyyy-mm-dd HH:mm:ss",
-          },
-        },
+        title: { display: true, text: "Timestamp", color: "#fff" },
+        ticks: { color: "#fff" },
+        grid: { color: "#444" },
+        time: { unit: "second", tooltipFormat: "HH:mm:ss", displayFormats: { second: "yyyy-mm-dd HH:mm:ss" } },
       },
       y: {
         beginAtZero: true,
@@ -84,25 +70,13 @@ const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) =
           })`,
           color: "#fff",
         },
-        ticks: {
-          color: "#fff",
-        },
-        grid: {
-          color: "#444",
-        },
+        ticks: { color: "#fff" },
+        grid: { color: "#444" },
       },
     },
     plugins: {
-      legend: {
-        labels: {
-          color: "#fff",
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => `Value: ${context.raw}`,
-        },
-      },
+      legend: { labels: { color: "#fff" } },
+      tooltip: { callbacks: { label: (context) => `Value: ${context.raw}` } },
     },
   };
 

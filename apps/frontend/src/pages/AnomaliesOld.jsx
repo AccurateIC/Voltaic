@@ -16,15 +16,21 @@ import { tuyau } from "../lib/Tuyau";
 
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
-    icon === "FaExclamationTriangle" ? FaExclamationTriangle : icon === "FaCalendarWeek" ? FaCalendarWeek : FaCalendarAlt;
+    icon === "FaExclamationTriangle"
+      ? FaExclamationTriangle
+      : icon === "FaCalendarWeek"
+        ? FaCalendarWeek
+        : FaCalendarAlt;
 
   return (
     <div
       onClick={onClick}
       className="flex flex-row items-center justify-center h-16 gap-5 p-6 rounded-lg shadow-md cursor-pointer"
       style={{
-        backgroundColor: icon === "FaExclamationTriangle" ? "#ef4444" : icon === "FaCalendarWeek" ? "#60a5fa" : "#B1D5BD",
-      }}>
+        backgroundColor:
+          icon === "FaExclamationTriangle" ? "#ef4444" : icon === "FaCalendarWeek" ? "#60a5fa" : "#B1D5BD",
+      }}
+    >
       <div>
         <IconComponent className="text-2xl" />
       </div>
@@ -40,7 +46,11 @@ export const TimeRangeSelector = ({ value, onChange }) => {
   return (
     <div className="flex flex-row items-center gap-2">
       <label className="">Time Range:</label>
-      <select className="rounded px-2 py-1 text-sm bg-base-100" value={value} onChange={(e) => onChange(e.target.value)}>
+      <select
+        className="rounded px-2 py-1 text-sm bg-base-100"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
         <option value="1d">1 Day</option>
         <option value="1w">1 Week</option>
         <option value="1m">1 Month</option>
@@ -202,10 +212,7 @@ const Anomalies = () => {
       fromDate = now;
     }
 
-    return {
-      from: fromDate.toISOString(),
-      to: now.toISOString(),
-    };
+    return { from: fromDate.toISOString(), to: now.toISOString() };
   };
 
   const groupAnomalies = (filteredAnomalies, range) => {
@@ -273,11 +280,7 @@ const Anomalies = () => {
         const clippedStart = weekStart < firstDayOfMonth ? new Date(firstDayOfMonth) : weekStart;
         const clippedEnd = weekEnd > lastDayOfMonth ? new Date(lastDayOfMonth) : weekEnd;
 
-        weeks.push({
-          start: clippedStart,
-          end: clippedEnd,
-          count: 0,
-        });
+        weeks.push({ start: clippedStart, end: clippedEnd, count: 0 });
 
         // Move to next week
         current.setDate(current.getDate() + 7);
@@ -303,10 +306,7 @@ const Anomalies = () => {
         const label = `${week.start.toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
-        })} - ${week.end.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })}`;
+        })} - ${week.end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
         labels.push(label);
         groupedData[label] = week.count;
       });
@@ -400,9 +400,7 @@ const Anomalies = () => {
   const fetchAnomaliesData = async (from, to) => {
     try {
       setIsLoading(true);
-      const { data, error } = await tuyau.archive.getBetween.$get({
-        query: { from, to }
-      });
+      const { data, error } = await tuyau.archive.getBetween.$get({ query: { from, to } });
       if (error) {
         throw new Error("Failed to fetch archive data");
       }
@@ -600,7 +598,8 @@ const Anomalies = () => {
     <div
       className={
         "bg-base-300 text-base-content p-2 top-0 h-full w-full flex flex-col transition-all duration-300 overflow-y-auto"
-      }>
+      }
+    >
       {/* Stats Cards */}
       <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 text-center ">
         <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />

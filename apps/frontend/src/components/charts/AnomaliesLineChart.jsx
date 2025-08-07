@@ -1,6 +1,15 @@
 import React, { useEffect } from "react";
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, Title } from "chart.js";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  Title,
+} from "chart.js";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, Title);
 
@@ -62,10 +71,7 @@ const AnomaliesLineChart = ({ value }) => {
         display: true,
         text: `${yAxisTitle} Monitor`,
         color: "rgba(255, 255, 255, 0.8)",
-        font: {
-          weight: "bold",
-          size: 22,
-        },
+        font: { weight: "bold", size: 22 },
       },
       tooltip: {
         callbacks: {
@@ -79,28 +85,12 @@ const AnomaliesLineChart = ({ value }) => {
     },
     scales: {
       y: {
-        title: {
-          color: "rgba(255, 255, 255, 0.5)",
-          display: true,
-          text: yAxisTitle,
-          font: {
-            size: 16,
-          },
-        },
-        ticks: {
-          color: "rgba(255, 255, 255, 0.5)",
-          font: { size: 10 },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.05)",
-        },
+        title: { color: "rgba(255, 255, 255, 0.5)", display: true, text: yAxisTitle, font: { size: 16 } },
+        ticks: { color: "rgba(255, 255, 255, 0.5)", font: { size: 10 } },
+        grid: { color: "rgba(255, 255, 255, 0.05)" },
       },
       x: {
-        title: {
-          color: "rgba(255, 255, 255, 0.5)",
-          display: true,
-          text: "Date & Time",
-        },
+        title: { color: "rgba(255, 255, 255, 0.5)", display: true, text: "Date & Time" },
         ticks: {
           color: "rgba(255, 255, 255, 0.5)",
           font: { size: 10 },
@@ -108,9 +98,7 @@ const AnomaliesLineChart = ({ value }) => {
           maxRotation: 60,
           minRotation: 45,
         },
-        grid: {
-          color: "rgba(255, 255, 255, 0.05)",
-        },
+        grid: { color: "rgba(255, 255, 255, 0.05)" },
       },
     },
   };

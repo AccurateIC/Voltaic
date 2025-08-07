@@ -2,12 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const EVENTS = {
-  CONNECTED: "connected",
-  DISCONNECTED: "disconnected",
-  MESSAGE: "message",
-  ERROR: "error",
-};
+const EVENTS = { CONNECTED: "connected", DISCONNECTED: "disconnected", MESSAGE: "message", ERROR: "error" };
 
 const webSocketUrl = import.meta.env.VITE_DATA_WEBSOCKET_SERVER_URL;
 console.log(webSocketUrl);
@@ -144,8 +139,5 @@ export const useWebSocket = (onMessage) => {
     sendMessage(message);
   }, []);
 
-  return {
-    send,
-    isConnected,
-  };
+  return { send, isConnected };
 };

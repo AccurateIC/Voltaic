@@ -34,32 +34,19 @@ export const PDMLineChart = ({ value }) => {
           },
         },
       },
-      title: {
-        display: true,
-        text: "Vibration Data",
-        color: "#fff",
-        font: { size: 18, weight: "normal" },
-      },
+      title: { display: true, text: "Vibration Data", color: "#fff", font: { size: 18, weight: "normal" } },
     },
     scales: {
       x: {
         type: "time",
         position: "bottom",
-        title: {
-          display: true,
-          text: "Time ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
         // min: DateTime.now().minus({ hours: 1 }).toISO(),
         // max: DateTime.now().toISO(),
       },
       y: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Vibration Acceleration (G-Units) ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Vibration Acceleration (G-Units) ⟶", font: { size: 18, weight: "normal" } },
       },
     },
   };
@@ -69,10 +56,7 @@ export const PDMLineChart = ({ value }) => {
       {
         fill: false,
         label: "Vibration Data",
-        data: value.map((item) => ({
-          x: DateTime.fromISO(item.timestamp),
-          y: item.actual,
-        })),
+        data: value.map((item) => ({ x: DateTime.fromISO(item.timestamp), y: item.actual })),
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
         pointStyle: "circle",

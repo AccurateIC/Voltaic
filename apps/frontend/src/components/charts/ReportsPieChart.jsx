@@ -1,11 +1,6 @@
 import React from "react";
 import { Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import ChartBox from "./Chartbox";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -29,22 +24,10 @@ const ReportsPieChart = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          color: "white",
-          font: {
-            size: 12,
-          },
-        },
-      },
-      tooltip: {
-        enabled: true,
-      },
+      legend: { position: "bottom", labels: { color: "white", font: { size: 12 } } },
+      tooltip: { enabled: true },
     },
-    layout: {
-      padding: 20,
-    },
+    layout: { padding: 20 },
   };
 
   return (

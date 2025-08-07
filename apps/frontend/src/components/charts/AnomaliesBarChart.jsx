@@ -23,15 +23,7 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      title: {
-        display: true,
-        text: "Anomaly Count",
-        color: "white",
-        font: {
-          weight: "bold",
-          size: 22,
-        },
-      },
+      title: { display: true, text: "Anomaly Count", color: "white", font: { weight: "bold", size: 22 } },
       tooltip: {
         callbacks: {
           label: function (context) {
@@ -39,9 +31,7 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
           },
         },
       },
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
     },
     scales: {
       x: {
@@ -50,42 +40,15 @@ export const AnomaliesBarChart = ({ labels, dataset }) => {
           text: "Time Range ⟶",
           maxBarThickness: 40,
           color: "white",
-          font: {
-            weight: "bold",
-            size: 14,
-          },
+          font: { weight: "bold", size: 14 },
         },
-        ticks: {
-          color: "white",
-          font: {
-            weight: "bold",
-            size: 12,
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.1)",
-        },
+        ticks: { color: "white", font: { weight: "bold", size: 12 } },
+        grid: { color: "rgba(255, 255, 255, 0.1)" },
       },
       y: {
-        title: {
-          display: true,
-          text: "Anomalies Counts ⟶",
-          color: "white",
-          font: {
-            weight: "bold",
-            size: 14,
-          },
-        },
-        ticks: {
-          beginAtZero: true,
-          color: "white",
-          font: {
-            weight: "bold",
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.1)",
-        },
+        title: { display: true, text: "Anomalies Counts ⟶", color: "white", font: { weight: "bold", size: 14 } },
+        ticks: { beginAtZero: true, color: "white", font: { weight: "bold" } },
+        grid: { color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };

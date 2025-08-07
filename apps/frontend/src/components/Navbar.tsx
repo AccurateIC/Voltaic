@@ -78,7 +78,6 @@ const Navbar = () => {
     };
   }, []);
 
-
   // Subscribe to real-time notifications
   useEffect(() => {
     const transmit = transmitConnection;
@@ -237,8 +236,12 @@ const Navbar = () => {
                   >
                     {primaryTab.ANOMALIES}
                   </p>
-                  {(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0) > 0 && (
-                    <span className="ml-2 badge badge-sm badge-primary">{(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0)}</span>
+                  {(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0) >
+                    0 && (
+                    <span className="ml-2 badge badge-sm badge-primary">
+                      {(resolvedAnomalyNotificationsData?.length || 0) +
+                        (unresolvedAnomalyNotificationsData?.length || 0)}
+                    </span>
                   )}
                 </button>
                 <button

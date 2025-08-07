@@ -23,23 +23,13 @@ const ReportsOilPressure = () => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: true },
-    },
+    plugins: { legend: { display: true } },
     scales: {
-      x: {
-        ticks: { color: "#fff", font: { size: 12 } },
-        grid: { color: "#888", lineWidth: 0.3 },
-      },
+      x: { ticks: { color: "#fff", font: { size: 12 } }, grid: { color: "#888", lineWidth: 0.3 } },
       y: {
         min: 1,
         max: 5,
-        ticks: {
-          color: "#fff",
-          font: { size: 12 },
-          stepSize: 1,
-          callback: (value) => `${value} Bar`,
-        },
+        ticks: { color: "#fff", font: { size: 12 }, stepSize: 1, callback: (value) => `${value} Bar` },
         grid: { color: "#888", lineWidth: 0.3 },
       },
     },

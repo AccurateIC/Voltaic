@@ -24,21 +24,10 @@ const ReportsRulChart = () => {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      x: {
-        reverse: true,
-        ticks: { color: "#fff" },
-        grid: { color: "#888" },
-      },
-      y: {
-        min: 0.1,
-        max: 1,
-        ticks: { color: "#fff" },
-        grid: { color: "#888" },
-      },
+      x: { reverse: true, ticks: { color: "#fff" }, grid: { color: "#888" } },
+      y: { min: 0.1, max: 1, ticks: { color: "#fff" }, grid: { color: "#888" } },
     },
-    plugins: {
-      legend: { display: true },
-    },
+    plugins: { legend: { display: true } },
   };
 
   return (

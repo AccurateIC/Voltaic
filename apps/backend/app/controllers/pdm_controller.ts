@@ -90,7 +90,7 @@ export default class PdmController {
     transmit.broadcast("pdm", "new pdm data");
 
     // 1: if maintenance is needed, add to maintenance_notifications table
-    let maintenanceNotificationId = undefined;
+    let maintenanceNotificationId;
     if (data.maintenance_needed === true) {
       const maintenanceNotification = await MaintenanceNotification.create({
         predictedDominantFrequency: data.predicted_dominant_frequency,

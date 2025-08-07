@@ -22,9 +22,7 @@ export const EngineSpeedLineChart = ({ value }) => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: true,
-      },
+      legend: { display: true },
       tooltip: {},
       title: {
         display: true,
@@ -38,11 +36,7 @@ export const EngineSpeedLineChart = ({ value }) => {
       x: {
         type: "timeseries",
         position: "bottom",
-        title: {
-          display: true,
-          text: "Time ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
         max: DateTime.now().toISO(),
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
@@ -50,11 +44,7 @@ export const EngineSpeedLineChart = ({ value }) => {
       },
       y: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Engine Speed (RPM) ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Engine Speed (RPM) ⟶", font: { size: 18, weight: "normal" } },
         min: 0,
         max: 3000,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },

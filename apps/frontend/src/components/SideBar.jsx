@@ -23,7 +23,8 @@ const SideBarLink = ({ to, name, Icon }) => {
             `${isActive ? "bg-base-content text-base-100 rounded-md hover:text-base-content" : "text-base-content"}`
           )
         }
-        end>
+        end
+      >
         <Icon className="text-xl" />
         <span className="hidden md:inline ml-3">{name}</span>
       </NavLink>
@@ -54,7 +55,8 @@ const SideBarGroup = ({ name, Icon, defaultOpen = false, children, routes = [] }
           "flex items-center justify-between cursor-pointer duration-200 transition-all ",
           "hover:bg-base-content/20 rounded p-4 m-2 font-semibold text-lg text-base-content"
         )}
-        onClick={() => setIsOpen(!isOpen)}>
+        onClick={() => setIsOpen(!isOpen)}
+      >
         <div className="flex items-center">
           <Icon className="text-xl" />
           <span className="hidden md:inline ml-3">{name}</span>

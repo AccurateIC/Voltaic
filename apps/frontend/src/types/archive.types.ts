@@ -14,7 +14,7 @@ export interface TimerangeStatistics {
   today: number;
   week: number;
   month: number;
-  year: number,
+  year: number;
   total: number;
 }
 

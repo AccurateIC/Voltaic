@@ -115,11 +115,7 @@ export const LiveData = () => {
     const emptyDataPoints = [];
     for (let i = 0; i < missingMinutes; i++) {
       const emptyTime = new Date(startTime.getTime() + i * 60 * 1000);
-      emptyDataPoints.push({
-        propertyValue: 0,
-        timestamp: emptyTime.toISOString(),
-        isAnomaly: false,
-      });
+      emptyDataPoints.push({ propertyValue: 0, timestamp: emptyTime.toISOString(), isAnomaly: false });
     }
 
     return [...emptyDataPoints, ...sortedData];
@@ -154,10 +150,7 @@ export const LiveData = () => {
     }
 
     const toDate = new Date(now);
-    return {
-      from: fromDate.toISOString(),
-      to: toDate.toISOString(),
-    };
+    return { from: fromDate.toISOString(), to: toDate.toISOString() };
   };
 
   const getReportData = async () => {
@@ -168,9 +161,7 @@ export const LiveData = () => {
     // const { from, to } = calculateTimeRange(selectedTimeRange);
 
     try {
-      const { data, error } = await tuyau.archive.getBetween.$get({
-        query: { from, to }
-      });
+      const { data, error } = await tuyau.archive.getBetween.$get({ query: { from, to } });
       if (!error) {
         const l1Voltage = generateEmptyDataPoints(
           data
@@ -245,19 +236,13 @@ export const LiveData = () => {
         const engineSpeed = generateEmptyDataPoints(
           data
             .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
-            .map((item) => ({
-              timestamp: item.timestamp,
-              propertyValue: item.propertyValue,
-            }))
+            .map((item) => ({ timestamp: item.timestamp, propertyValue: item.propertyValue }))
         );
 
         const oilPress = generateEmptyDataPoints(
           data
             .filter((item) => item.gensetProperty.propertyName === "engOilPress")
-            .map((item) => ({
-              timestamp: item.timestamp,
-              propertyValue: item.propertyValue,
-            }))
+            .map((item) => ({ timestamp: item.timestamp, propertyValue: item.propertyValue }))
         );
 
         const batteryVolts = generateEmptyDataPoints(
@@ -514,38 +499,50 @@ export const LiveData = () => {
       <div className="py-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
           {selectedProperties.includes("Engine Fuel Level") && (
-            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("fuelLevel")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("fuelLevel")}
+            >
               <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
             </div>
           )}
           {selectedProperties.includes("Engine Speed") && (
-            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("engineSpeed")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("engineSpeed")}
+            >
               <EngineSpeedLineChart value={engineSpeedData} />
             </div>
           )}
           {selectedProperties.includes("Generator Current") && (
             <div
               className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("generatorCurrent")}>
+              onClick={() => handleChartClick("generatorCurrent")}
+            >
               <GeneratorCurrentLineChart value={currentData} />
             </div>
           )}
           {selectedProperties.includes("Generator Voltage") && (
             <div
               className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("generatorVoltage")}>
+              onClick={() => handleChartClick("generatorVoltage")}
+            >
               <GeneratorVoltageLineChart value={voltageData} />
             </div>
           )}
           {selectedProperties.includes("Oil Pressure") && (
-            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("oilPressure")}>
+            <div
+              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
+              onClick={() => handleChartClick("oilPressure")}
+            >
               <OilPressureLineChart value={oilPressureData} />
             </div>
           )}
           {selectedProperties.includes("Battery Charge") && (
             <div
               className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("batteryCharge")}>
+              onClick={() => handleChartClick("batteryCharge")}
+            >
               <BatteryChargeLineChart value={batteryData} />
             </div>
           )}

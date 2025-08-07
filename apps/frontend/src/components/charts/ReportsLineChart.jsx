@@ -1,14 +1,6 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend } from "chart.js";
 import ChartBox from "./Chartbox";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
@@ -30,29 +22,10 @@ const ReportsLineChart = () => {
 
   const options = {
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-    },
+    plugins: { legend: { display: false } },
     scales: {
-      y: {
-        ticks: {
-          color: "#fff",
-          callback: (value) => `${value} Rpm`,
-        },
-        grid: {
-          color: "#fff",
-          lineWidth: 0.5,
-        },
-      },
-      x: {
-        ticks: {
-          color: "#fff",
-        },
-        grid: {
-          color: "#fff",
-          lineWidth: 0.5,
-        },
-      },
+      y: { ticks: { color: "#fff", callback: (value) => `${value} Rpm` }, grid: { color: "#fff", lineWidth: 0.5 } },
+      x: { ticks: { color: "#fff" }, grid: { color: "#fff", lineWidth: 0.5 } },
     },
   };
 

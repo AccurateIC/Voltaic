@@ -1,5 +1,1 @@
-export const TransmitChannels = {
-  ARCHIVE: "archive",
-  NOTIFICATION: "notification",
-  PDM: "pdm",
-};
+export const TransmitChannels = { ARCHIVE: "archive", NOTIFICATION: "notification", PDM: "pdm" };

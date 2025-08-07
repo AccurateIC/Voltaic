@@ -1,13 +1,6 @@
 import React from "react";
 
-export const GaugeChart = ({
-  value = 0,
-  min = 0,
-  max = 100,
-  title = "",
-  size = 300,
-  primaryColor = "#82ca9d",
-}) => {
+export const GaugeChart = ({ value = 0, min = 0, max = 100, title = "", size = 300, primaryColor = "#82ca9d" }) => {
   const range = max - min;
   const percentage = (value - min) / range;
   const rotationAngle = -90 + percentage * 180;
@@ -23,32 +16,20 @@ export const GaugeChart = ({
       const innerRadius = isLongTick ? size * 0.35 : size * 0.38;
       const outerRadius = size * 0.4;
 
-      const startX =
-        size / 2 + innerRadius * Math.cos((tickAngle * Math.PI) / 180);
-      const startY =
-        size / 2 + innerRadius * Math.sin((tickAngle * Math.PI) / 180);
-      const endX =
-        size / 2 + outerRadius * Math.cos((tickAngle * Math.PI) / 180);
-      const endY =
-        size / 2 + outerRadius * Math.sin((tickAngle * Math.PI) / 180);
+      const startX = size / 2 + innerRadius * Math.cos((tickAngle * Math.PI) / 180);
+      const startY = size / 2 + innerRadius * Math.sin((tickAngle * Math.PI) / 180);
+      const endX = size / 2 + outerRadius * Math.cos((tickAngle * Math.PI) / 180);
+      const endY = size / 2 + outerRadius * Math.sin((tickAngle * Math.PI) / 180);
 
       let label = null;
       if (isLongTick) {
         const labelValue = min + (i * range) / numTicks;
         const labelRadius = size * 0.32;
-        const labelX =
-          size / 2 + labelRadius * Math.cos((tickAngle * Math.PI) / 180);
-        const labelY =
-          size / 2 + labelRadius * Math.sin((tickAngle * Math.PI) / 180);
+        const labelX = size / 2 + labelRadius * Math.cos((tickAngle * Math.PI) / 180);
+        const labelY = size / 2 + labelRadius * Math.sin((tickAngle * Math.PI) / 180);
 
         label = (
-          <text
-            x={labelX}
-            y={labelY}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="text-xs fill-gray-600"
-          >
+          <text x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle" className="text-xs fill-gray-600">
             {Math.round(labelValue)}
           </text>
         );
@@ -56,14 +37,7 @@ export const GaugeChart = ({
 
       ticks.push(
         <g key={i}>
-          <line
-            x1={startX}
-            y1={startY}
-            x2={endX}
-            y2={endY}
-            stroke="#666"
-            strokeWidth="2"
-          />
+          <line x1={startX} y1={startY} x2={endX} y2={endY} stroke="#666" strokeWidth="2" />
           {label}
         </g>
       );
@@ -96,51 +70,26 @@ export const GaugeChart = ({
           stroke={primaryColor}
           strokeWidth={size * 0.08}
           strokeLinecap="round"
-          style={{
-            transformOrigin: `${size / 2}px ${size / 2}px`,
-            transform: `rotate(${rotationAngle}deg)`,
-          }}
+          style={{ transformOrigin: `${size / 2}px ${size / 2}px`, transform: `rotate(${rotationAngle}deg)` }}
         />
 
         {/* Tick marks */}
         {generateTicks()}
 
         {/* Needle */}
-        <g
-          style={{
-            transformOrigin: `${size / 2}px ${size / 2}px`,
-            transform: `rotate(${percentage * 180 - 90}deg)`,
-          }}
-        >
-          <line
-            x1={size / 2}
-            y1={size / 2}
-            x2={size * 0.85}
-            y2={size / 2}
-            stroke="red"
-            strokeWidth="2"
-          />
+        <g style={{ transformOrigin: `${size / 2}px ${size / 2}px`, transform: `rotate(${percentage * 180 - 90}deg)` }}>
+          <line x1={size / 2} y1={size / 2} x2={size * 0.85} y2={size / 2} stroke="red" strokeWidth="2" />
           <circle cx={size / 2} cy={size / 2} r={size * 0.04} fill="red" />
         </g>
 
         {/* Value text */}
-        <text
-          x={size / 2}
-          y={size * 0.7}
-          textAnchor="middle"
-          className="text-2xl font-bold"
-        >
+        <text x={size / 2} y={size * 0.7} textAnchor="middle" className="text-2xl font-bold">
           {Math.round(value)}
         </text>
 
         {/* Title text */}
         {title && (
-          <text
-            x={size / 2}
-            y={size * 0.8}
-            textAnchor="middle"
-            className="text-sm fill-gray-600"
-          >
+          <text x={size / 2} y={size * 0.8} textAnchor="middle" className="text-sm fill-gray-600">
             {title}
           </text>
         )}

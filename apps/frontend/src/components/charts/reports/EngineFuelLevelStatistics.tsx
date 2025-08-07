@@ -72,10 +72,7 @@ export const EngineFuelLevelStatistics = ({ chartData }) => {
     datasets: [
       {
         label: "Fuel Level (L)",
-        data: chartData.map((value) => ({
-          x: DateTime.fromISO(value.timestamp).toJSDate(),
-          y: value.propertyValue,
-        })),
+        data: chartData.map((value) => ({ x: DateTime.fromISO(value.timestamp).toJSDate(), y: value.propertyValue })),
         borderColor: "rgba(54, 162, 235, 1)",
         backgroundColor: "rgba(54, 162, 235, 0.1)",
       },

@@ -46,11 +46,7 @@ export const PropertyBarChart = ({ labels, dataset }) => {
         display: true,
         text: "Anomaly Count by Property",
         color: "White",
-        font: {
-          color: "red",
-          weight: "bold",
-          size: 22,
-        },
+        font: { color: "red", weight: "bold", size: 22 },
       },
       tooltip: {
         callbacks: {
@@ -59,31 +55,13 @@ export const PropertyBarChart = ({ labels, dataset }) => {
           },
         },
       },
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: "Properties ⟶",
-          color: "white",
-          font: {
-            weight: "bold",
-            size: 18,
-          },
-        },
-        ticks: {
-          color: "white",
-          autoSkip: false,
-          font: {
-            size: 12,
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.1)",
-        },
+        title: { display: true, text: "Properties ⟶", color: "white", font: { weight: "bold", size: 18 } },
+        ticks: { color: "white", autoSkip: false, font: { size: 12 } },
+        grid: { color: "rgba(255, 255, 255, 0.1)" },
       },
       y: {
         title: {
@@ -91,21 +69,10 @@ export const PropertyBarChart = ({ labels, dataset }) => {
           text: "No. of Anomalies ⟶",
           color: "rgba(255, 255, 255, 0.7)",
           // color: "white",
-          font: {
-            weight: "bold",
-            size: 14,
-          },
+          font: { weight: "bold", size: 14 },
         },
-        ticks: {
-          color: "white",
-          beginAtZero: true,
-          font: {
-            size: 12,
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.1)",
-        },
+        ticks: { color: "white", beginAtZero: true, font: { size: 12 } },
+        grid: { color: "rgba(255, 255, 255, 0.1)" },
       },
     },
   };

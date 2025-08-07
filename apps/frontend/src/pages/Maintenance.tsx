@@ -128,39 +128,17 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData, maintenanceNotificationTim
           },
         },
       },
-      title: {
-        display: true,
-        text: "Vibration Sensor Data",
-        color: "#fff",
-        font: {
-          size: 18,
-          weight: "normal",
-        },
-      },
+      title: { display: true, text: "Vibration Sensor Data", color: "#fff", font: { size: 18, weight: "normal" } },
     },
     scales: {
       x: {
         type: "time",
         position: "bottom",
-        title: {
-          display: true,
-          text: "Timestamp",
-          font: {
-            size: 18,
-            weight: "normal",
-          },
-        },
+        title: { display: true, text: "Timestamp", font: { size: 18, weight: "normal" } },
       },
       y: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Vibration Acceleration (g-units)",
-          font: {
-            size: 18,
-            weight: "normal",
-          },
-        },
+        title: { display: true, text: "Vibration Acceleration (g-units)", font: { size: 18, weight: "normal" } },
       },
     },
   };
@@ -171,10 +149,7 @@ const PdmGraph = ({ actualPdmData, forecastedPdmData, maintenanceNotificationTim
       {
         fill: false,
         label: "Actual Vibration Data",
-        data: actualPdmData.map((item) => ({
-          x: DateTime.fromISO(item.timestamp),
-          y: item.value,
-        })),
+        data: actualPdmData.map((item) => ({ x: DateTime.fromISO(item.timestamp), y: item.value })),
         borderColor: "rgba(255, 246, 39, 0.65)",
         backgroundColor: "rgba(255, 246, 39, 0.5)",
         pointStyle: "circle",
@@ -369,7 +344,8 @@ const Maintenance = () => {
                     className={cn(
                       "text-xl",
                       actualPdmData[0]?.confidenceScorePercentage >= 75 ? "text-success" : "text-error"
-                    )}>
+                    )}
+                  >
                     {actualPdmData[0]?.confidenceScorePercentage}%
                   </p>
                 </>

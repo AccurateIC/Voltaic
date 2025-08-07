@@ -25,22 +25,13 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
     plugins: {
       legend: { position: "top", align: "center" },
       tooltip: {},
-      title: {
-        display: true,
-        text: "Engine Fuel Level Monitor",
-        color: "#fff",
-        font: { size: 18, weight: "normal" },
-      },
+      title: { display: true, text: "Engine Fuel Level Monitor", color: "#fff", font: { size: 18, weight: "normal" } },
     },
     scales: {
       x: {
         type: "timeseries",
         position: "bottom",
-        title: {
-          display: true,
-          text: "Time ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
         max: DateTime.now().toISO(),
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
@@ -48,11 +39,7 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
       },
       y: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Fuel Level (Liter) ⟶ ",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Fuel Level (Liter) ⟶ ", font: { size: 18, weight: "normal" } },
         min: 0,
         max: 80,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },

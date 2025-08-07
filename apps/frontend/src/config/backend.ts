@@ -2,6 +2,7 @@
 
 export const BACKEND_BASE_URL = "http://localhost:3333"; // dev
 // export const BACKEND_BASE_URL = "http://127.0.0.1:3333"; // prod
+// export const BACKEND_BASE_URL = "https://aiserver-desktop.tailaf2c38.ts.net:3334"; // prod
 export const ROUTES = {
   /* AUTH */
   AUTH_USER_REGISTER: BACKEND_BASE_URL + "/auth" + "/register",

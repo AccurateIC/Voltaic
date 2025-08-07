@@ -21,25 +21,13 @@ const ReportsBarChart = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      datalabels: {
-        color: "#fff",
-        anchor: "end",
-        align: "end",
-        font: { size: 14 },
-        formatter: (value) => value,
-      },
+      datalabels: { color: "#fff", anchor: "end", align: "end", font: { size: 14 }, formatter: (value) => value },
     },
     scales: {
-      x: {
-        ticks: { color: "#fff", font: { size: 12, weight: "bold" } },
-        grid: { display: false },
-      },
+      x: { ticks: { color: "#fff", font: { size: 12, weight: "bold" } }, grid: { display: false } },
       y: {
         beginAtZero: true,
-        ticks: {
-          color: "#fff",
-          font: { size: 12, weight: "bold" },
-        },
+        ticks: { color: "#fff", font: { size: 12, weight: "bold" } },
         grid: { color: "#333", lineWidth: 0.5 },
       },
     },

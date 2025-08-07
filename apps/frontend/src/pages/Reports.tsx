@@ -20,10 +20,11 @@ import { useQuery } from "@tanstack/react-query";
 export const Reports = () => {
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - NO CONDITIONAL RETURNS BEFORE THIS
   const { getRulPrediction } = useRulPrediction();
-  const { data: loggedInUserData, error: loggedInUserError, isLoading } = useQuery({
-    queryKey: ["logged-in-user"],
-    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
-  });
+  const {
+    data: loggedInUserData,
+    error: loggedInUserError,
+    isLoading,
+  } = useQuery({ queryKey: ["logged-in-user"], queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap() });
 
   //state
   const [count, setCount] = useState(0);

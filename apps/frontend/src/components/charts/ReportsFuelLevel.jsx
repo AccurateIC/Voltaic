@@ -21,22 +21,13 @@ const ReportsFuelLevel = () => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: true },
-    },
+    plugins: { legend: { display: true } },
     scales: {
-      x: {
-        ticks: { color: "#fff", font: { size: 12 } },
-        grid: { color: "#888", lineWidth: 0.3 },
-      },
+      x: { ticks: { color: "#fff", font: { size: 12 } }, grid: { color: "#888", lineWidth: 0.3 } },
       y: {
         min: 0,
         max: 40,
-        ticks: {
-          color: "#fff",
-          font: { size: 12 },
-          callback: (value) => `${value} Ltr`,
-        },
+        ticks: { color: "#fff", font: { size: 12 }, callback: (value) => `${value} Ltr` },
         grid: { color: "#888", lineWidth: 0.3 },
       },
     },

@@ -36,8 +36,5 @@ export const getWeekRange = (weekNumber: WeekNumbers, month: MonthNumbers, year:
   const monthStart: DateTime = DateTime.fromObject({ year, month }).startOf("month");
   const monthEnd: DateTime = monthStart.endOf("month");
 
-  return {
-    start: DateTime.max(firstDayOfWeek, monthStart),
-    end: DateTime.min(lastDayOfWeek, monthEnd),
-  };
+  return { start: DateTime.max(firstDayOfWeek, monthStart), end: DateTime.min(lastDayOfWeek, monthEnd) };
 };

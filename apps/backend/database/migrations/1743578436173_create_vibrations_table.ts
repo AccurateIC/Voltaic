@@ -17,7 +17,6 @@ export default class extends BaseSchema {
       table.decimal("confidence_score_percentage");
       table
         .uuid("maintenance_notification_id")
-        .notNullable()
         .references("id")
         .inTable("maintenance_notifications")
         .onDelete("RESTRICT");

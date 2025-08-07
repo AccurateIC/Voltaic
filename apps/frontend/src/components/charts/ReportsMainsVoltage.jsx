@@ -1,6 +1,15 @@
 import React from "react";
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend);
 
@@ -56,30 +65,16 @@ const chartOptions = {
   maintainAspectRatio: false,
   responsive: true,
   plugins: {
-    title: {
-      display: true,
-      text: "",
-      color: "#fff",
-      font: { size: 14, weight: "bold" },
-    },
-    legend: {
-      labels: { color: "#fff", font: { size: 12 } },
-    },
+    title: { display: true, text: "", color: "#fff", font: { size: 14, weight: "bold" } },
+    legend: { labels: { color: "#fff", font: { size: 12 } } },
     customBackground: backgroundPlugin,
   },
   scales: {
-    x: {
-      ticks: { color: "#fff", maxRotation: 0, minRotation: 0 },
-      grid: { color: "#888", lineWidth: 0.5 },
-    },
+    x: { ticks: { color: "#fff", maxRotation: 0, minRotation: 0 }, grid: { color: "#888", lineWidth: 0.5 } },
     y: {
       min: 240,
       max: 244,
-      ticks: {
-        color: "#fff",
-        stepSize: 1,
-        callback: (value) => `${value} V`,
-      },
+      ticks: { color: "#fff", stepSize: 1, callback: (value) => `${value} V` },
       grid: { color: "#888", lineWidth: 0.5 },
     },
   },

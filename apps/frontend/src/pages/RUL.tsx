@@ -64,10 +64,11 @@ const fetchRulPrediction = async (
 const RUL = () => {
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL
   const { getRulPrediction } = useRulPrediction();
-  const { data: loggedInUserData, error: loggedInUserError, isLoading } = useQuery({
-    queryKey: ["logged-in-user"],
-    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
-  });
+  const {
+    data: loggedInUserData,
+    error: loggedInUserError,
+    isLoading,
+  } = useQuery({ queryKey: ["logged-in-user"], queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap() });
 
   // state
   const initialRulState = { Predicted_Health_Index: 0, Remaining_Useful_Life: 0, User: "", Time_Hours: 0 };

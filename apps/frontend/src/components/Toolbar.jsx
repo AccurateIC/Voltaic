@@ -25,7 +25,8 @@ export function Toolbar() {
           <a
             className={`tooltip tooltip-bottom ${editable ? "menu-active" : ""}`}
             data-tip="Edit layout"
-            onClick={onEditClick}>
+            onClick={onEditClick}
+          >
             <Pencil />
           </a>
         </li>

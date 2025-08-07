@@ -37,11 +37,7 @@ export const BatteryChargeLineChart = ({ value }) => {
       x: {
         type: "timeseries",
         position: "bottom",
-        title: {
-          display: true,
-          text: "Time ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
         min: DateTime.now().minus({ hours: 1 }).toISO(),
         max: DateTime.now().toISO(),
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
@@ -49,11 +45,7 @@ export const BatteryChargeLineChart = ({ value }) => {
       },
       y: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Voltage (V) ⟶",
-          font: { size: 18, weight: "normal" },
-        },
+        title: { display: true, text: "Voltage (V) ⟶", font: { size: 18, weight: "normal" } },
         min: 0,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },

@@ -1,6 +1,6 @@
 {
   "name": "voltaic",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Monorepo for Voltaic Web (Gen Set)",
   "scripts": {
     "dev": "pnpm run build:packages && pnpm --recursive --parallel run dev",

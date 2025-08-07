@@ -30,31 +30,31 @@ createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <Toaster richColors={true} />
         <Routes>
-        <Route index element={<Login />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="engine" element={<Engine />} />
-          <Route path="generator" element={<Generator />} />
-          <Route path="mains" element={<Mains />} />
-          <Route path="live-data" element={<LiveData />} />
-          <Route path="anomalies-old" element={<AnomaliesOld />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="alarms" element={<Alarms />} />
-          <Route path="predictive-maintenance" element={<Maintenance />} />
-          <Route path="rul" element={<RUL />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="archive" element={<Archive />} />
-          <Route path="anomalies" element={<Anomalies />} />
-        </Route>
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    </BrowserRouter>
+          <Route index element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="engine" element={<Engine />} />
+            <Route path="generator" element={<Generator />} />
+            <Route path="mains" element={<Mains />} />
+            <Route path="live-data" element={<LiveData />} />
+            <Route path="anomalies-old" element={<AnomaliesOld />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="alarms" element={<Alarms />} />
+            <Route path="predictive-maintenance" element={<Maintenance />} />
+            <Route path="rul" element={<RUL />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="archive" element={<Archive />} />
+            <Route path="anomalies" element={<Anomalies />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>
 );

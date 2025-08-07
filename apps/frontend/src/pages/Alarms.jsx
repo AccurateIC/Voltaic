@@ -18,10 +18,11 @@ const Alarms = () => {
   const [filters, setFilters] = useState({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });
 
   // hooks
-  const { data: gensetProperties, isLoading: isGensetPropertiesLoading, isError: isGensetPropertiesError } = useQuery({
-    queryKey: ["genset-properties"],
-    queryFn: () => tuyau.property.getAll.$get().unwrap(),
-  });
+  const {
+    data: gensetProperties,
+    isLoading: isGensetPropertiesLoading,
+    isError: isGensetPropertiesError,
+  } = useQuery({ queryKey: ["genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap() });
 
   const handleAnomalyFilterChange = (event) => {
     setFilters((prevFilters) => ({ ...prevFilters, anomalyStatus: event.target.value }));

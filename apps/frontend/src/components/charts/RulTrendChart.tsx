@@ -28,29 +28,14 @@ export function RulChart({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "top",
-      },
-      title: {
-        display: true,
-        text: "Health Index Deterioration",
-        color: "#fff",
-        font: {
-          size: 18,
-          weight: "bold",
-        },
-      },
+      legend: { position: "top" },
+      title: { display: true, text: "Health Index Deterioration", color: "#fff", font: { size: 18, weight: "bold" } },
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.8)",
         titleColor: "#ffffff",
-        titleFont: {
-          size: 14,
-          weight: "bold",
-        },
+        titleFont: { size: 14, weight: "bold" },
         bodyColor: "#ffffff",
-        bodyFont: {
-          size: 13,
-        },
+        bodyFont: { size: 13 },
         padding: 12,
         displayColors: true,
         borderColor: "rgba(255, 255, 255, 0.2)",
@@ -70,7 +55,10 @@ export function RulChart({
               case 1: // current rul dataset
                 return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.currentRul)} Hours`];
               case 2: // simulated rul dataset
-                return [`Health Index: ${point.y.toFixed(3)}`, `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`];
+                return [
+                  `Health Index: ${point.y.toFixed(3)}`,
+                  `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`,
+                ];
               default:
                 console.log("unexpected dataset");
             }
@@ -82,9 +70,7 @@ export function RulChart({
 
         position: "nearest",
 
-        animation: {
-          duration: 200,
-        },
+        animation: { duration: 200 },
 
         mode: "nearest",
         intersect: false,
@@ -133,10 +119,7 @@ export function RulChart({
     datasets: [
       {
         label: "Health Index Trend",
-        data: filteredHealthIndexData.map((item) => ({
-          x: item.Time_Hours,
-          y: item.Predicted_Health_Index,
-        })),
+        data: filteredHealthIndexData.map((item) => ({ x: item.Time_Hours, y: item.Predicted_Health_Index })),
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
         pointStyle: "circle",
@@ -144,11 +127,7 @@ export function RulChart({
       {
         label: "Current Health Index",
         data: currentRulPoint?.map((entry, index) => {
-          return {
-            x: entry?.Time_Hours,
-            y: entry?.Predicted_Health_Index,
-            currentRul: entry?.Remaining_Useful_Life,
-          };
+          return { x: entry?.Time_Hours, y: entry?.Predicted_Health_Index, currentRul: entry?.Remaining_Useful_Life };
         }),
         borderColor: "rgb(53, 162, 235)",
         backgroundColor: "rgba(53, 162, 235, 0.5)",
@@ -163,11 +142,7 @@ export function RulChart({
     data.datasets.push({
       label: "Simulated Health Index",
       data: simulatedRulPoint?.map((entry, index) => {
-        return {
-          x: entry?.Time_Hours,
-          y: entry?.Predicted_Health_Index,
-          simulatedRul: entry?.Remaining_Useful_Life,
-        };
+        return { x: entry?.Time_Hours, y: entry?.Predicted_Health_Index, simulatedRul: entry?.Remaining_Useful_Life };
       }),
       borderColor: "rgb(162, 53, 235)",
       backgroundColor: "rgba(162, 53, 235, 0.5)",

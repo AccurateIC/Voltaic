@@ -38,20 +38,10 @@ const ReportsPdmChart = () => {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      x: {
-        ticks: { color: "#fff" },
-        grid: { color: "#888" },
-      },
-      y: {
-        min: -4,
-        max: 4,
-        ticks: { color: "#fff" },
-        grid: { color: "#888" },
-      },
+      x: { ticks: { color: "#fff" }, grid: { color: "#888" } },
+      y: { min: -4, max: 4, ticks: { color: "#fff" }, grid: { color: "#888" } },
     },
-    plugins: {
-      legend: { display: true },
-    },
+    plugins: { legend: { display: true } },
   };
 
   return (

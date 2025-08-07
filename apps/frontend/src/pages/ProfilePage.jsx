@@ -5,10 +5,7 @@ import { tuyau } from "../lib/Tuyau";
 const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUserDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUserDetails((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDeleteAccount = () => {};
@@ -80,7 +77,8 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
         {/* Delete Account */}
         <button
           className="btn btn-error btn-soft"
-          onClick={() => document.getElementById("delete_account_modal").showModal()}>
+          onClick={() => document.getElementById("delete_account_modal").showModal()}
+        >
           Delete Account
         </button>
         <dialog id="delete_account_modal" className="modal text-base-content">
@@ -110,7 +108,8 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
                       }, 1500);
                     }
                   }}
-                  className="btn btn-error">
+                  className="btn btn-error"
+                >
                   Yes, I'm sure
                 </button>
               </form>
@@ -243,7 +242,8 @@ const Profile = () => {
           className="btn btn-soft btn-primary w-full sm:w-auto"
           onClick={() => {
             toast.info("Not implemented yet");
-          }}>
+          }}
+        >
           Update Password
         </button>
       </div>
@@ -307,7 +307,8 @@ const Profile = () => {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round">
+              strokeLinejoin="round"
+            >
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
