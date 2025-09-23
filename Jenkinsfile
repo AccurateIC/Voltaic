@@ -40,6 +40,8 @@ pipeline {
         stage('Build Apps') {
             steps {
                 sh 'pnpm build'
+                sh 'sudo chown -R jenkins:jenkins "$WORKSPACE/apps/backend/build"'
+                sh 'sudo chown -R jenkins:jenkins "$WORKSPACE/apps/frontend/build"'
             }
         }
 
