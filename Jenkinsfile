@@ -47,8 +47,7 @@ pipeline {
 
         stage('Deploy to Local Server') {
             steps {
-                sh 'pm2 start ecosystem.config.js || pm2 restart ecosystem.config.js'
-                sh 'pm2 save,
+                sh 'pm2 start ecosystem.config.js || pm2 restart ecosystem.config.js
             }
         }
     }
