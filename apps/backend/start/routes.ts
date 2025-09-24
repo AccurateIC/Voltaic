@@ -16,7 +16,7 @@ import swagger from "#config/swagger";
 // index route
 router.get("/", async ({ logger }) => {
   logger.info("hello");
-  return { message: "neurogen server is live !!" };
+  return { message: "neurogen server is live !" };
 });
 
 // swagger docs
