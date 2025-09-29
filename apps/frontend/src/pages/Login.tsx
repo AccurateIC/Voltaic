@@ -80,12 +80,28 @@ const Login = () => {
   const handleAuth = async (e) => {
     e.preventDefault();
 
+    // fetch id of role where roleName is 'user'
+    const { data: roleData, error: roleError } = await tuyau.role.getAll.$get();
+    if (roleError) {
+      console.error("error fetching roles", roleError);
+      toast.error("Failed to sign up.");
+      return;
+    }
+
+    const userRole = roleData.find((role) => role.roleName === "user");
+    if (!userRole) {
+      console.error("user role not found", roleError);
+      toast.error("Failed to sign up.");
+      return;
+    }
+    const roleIdForUserRole = userRole.id;
+
     const userData = {
       email: email,
       password: password,
       firstName: firstName,
       lastName: lastName,
-      roleId: roleId,
+      roleId: roleIdForUserRole,
       isActive: true,
     };
 
@@ -97,7 +113,7 @@ const Login = () => {
         if (error) {
           throw new Error(`Registration failed: ${error.status}`);
         }
-        user = data;
+        user = data; // TODO: type the API better so that we get correct type of User in frontend
       } else {
         const { data, error } = await tuyau.auth.login.$post({ email: userData.email, password: userData.password });
         if (error) {
@@ -151,11 +167,11 @@ const Login = () => {
   };
 
   const handleGithubSignIn = () => {
-    window.location.assign("http://localhost:3333/auth/github/redirect");
+    window.location.assign(tuyau.auth.github.redirect.$url());
   };
 
   const handleGoogleSignIn = () => {
-    window.location.assign("http://localhost:3333/auth/google/redirect");
+    window.location.assign(tuyau.auth.google.redirect.$url());
   };
 
   return (

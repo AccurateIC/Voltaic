@@ -1,6 +1,7 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import User from "#models/user";
 import { createUserValidator, loginValidator, updateUserProfileValidator } from "#validators/auth";
+import Role from "#models/role";
 
 export default class AuthController {
   async getLoggedInUser({ auth }: HttpContext): Promise<User> {
@@ -61,8 +62,8 @@ export default class AuthController {
         email: googUser.email,
         password: "12345",
         firstName: googUser.name?.split(" ")[0],
-        roleId: 1,
-        isActive: 1,
+        roleId: (await Role.findByOrFail("roleName", "user"))?.id,
+        isActive: true,
       });
       user = await User.create(userData);
       await auth.use("web").login(user);
@@ -99,8 +100,8 @@ export default class AuthController {
         email: githubUser.email,
         password: "12345",
         firstName: githubUser.name?.split(" ")[0],
-        roleId: 1,
-        isActive: 1,
+        roleId: (await Role.findByOrFail("roleName", "user"))?.id,
+        isActive: true,
       });
       user = await User.create(userData);
       await auth.use("web").login(user);
