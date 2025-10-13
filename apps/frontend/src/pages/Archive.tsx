@@ -12,34 +12,49 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 
 const excelify = (data: Archive[]) => {
-  const excelData = data.map((entry, index) => ({
-    "Sr No": index + 1,
-    ID: entry.id,
-    Timestamp: entry.timestamp,
-    Property: `${entry.gensetProperty.readablePropertyName}`,
-    Value: `${entry.propertyValue}  ${entry.gensetProperty.physicalQuantity.unitSymbol}`,
-  }));
+  if (!data || data.length === 0) {
+    toast.error("No data to export.");
+    return false;
+  }
+
+  const excelData = data.map((entry, index) => {
+    const timestamp = entry?.timestamp ? formatTimestamp(entry.timestamp) : "";
+    const propName = entry?.gensetProperty?.readablePropertyName ?? (entry as any)?.propertyName ?? "";
+    const unit = entry?.gensetProperty?.physicalQuantity?.unitSymbol ?? "";
+    return {
+      "Sr No": index + 1,
+      ID: entry?.id ?? "",
+      Timestamp: timestamp,
+      Property: propName,
+      Value: `${entry?.propertyValue ?? ""} ${unit}`.trim(),
+    };
+  });
 
   const ws = XLSX.utils.json_to_sheet(excelData);
 
-  const columnWidths = [
-    { wch: 5 }, // serial number
-    { wch: 5 }, // id
-    { wch: 30 }, // timestamp
-    { wch: 40 }, // property
-    { wch: 8 }, // value
+  // sensible column widths
+  ws["!cols"] = [
+    { wch: 5 }, // Sr No
+    { wch: 10 }, // ID
+    { wch: 30 }, // Timestamp
+    { wch: 40 }, // Property
+    { wch: 15 }, // Value
   ];
-  ws["!cols"] = columnWidths;
 
-  // create workbook
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Genset Data");
 
-  // generate timestamped file
-  const fileName = `genset_data_${new Date().toISOString().split("T")[0]}.xlsx`;
+  // timestamped filename in UTC: YYYY-MM-DD_HH-mm-ss
+  const fileName = `genset_data_${DateTime.utc().toFormat("yyyy-LL-dd_HH-mm-ss")}.xlsx`;
 
-  // save
-  XLSX.writeFile(wb, fileName);
+  try {
+    XLSX.writeFile(wb, fileName);
+    return true;
+  } catch (err) {
+    console.error("Excel writeFile failed:", err);
+    toast.error("Failed to generate Excel file.");
+    return false;
+  }
 };
 
 // interface Metadata {
@@ -107,11 +122,25 @@ const Archive = () => {
     isError: getPropertyDataBetweenIsError,
     isPending: getPropertyDataBetweenIsPending,
   } = useMutation({
-    mutationKey: [],
-    mutationFn: (params: { from?: string; to?: string; properties?: string[] }) =>
-      tuyau.archive.getPropertyDataBetween.$post(params),
-    onSuccess: () => {},
-    onError: () => {},
+    mutationKey: ["archive", "getPropertyDataBetween"],
+    mutationFn: async (params: { from?: string; to?: string; properties?: string[] }) => {
+      const res = await tuyau.archive.getPropertyDataBetween.$post(params);
+
+      // Normalize common response shapes:
+      // - direct array
+      // - { data: [...] }
+      // - { data: { data: [...] } } (sometimes paginated)
+      if (Array.isArray(res)) return res;
+      if (Array.isArray((res as any)?.data)) return (res as any).data;
+      if (Array.isArray((res as any)?.data?.data)) return (res as any).data.data;
+
+      // fallback - return res as-is (caller will handle)
+      return res;
+    },
+    onError: (err) => {
+      console.error("Export fetch error:", err);
+      toast.error("Failed to fetch export data.");
+    },
   });
 
   // we receive message on this bus if archive table updates
@@ -148,28 +177,72 @@ const Archive = () => {
         <div className="text-2xl text-base-content font-semibold flex items-center mb-2">Historical Genset Data</div>
         <div className="flex gap-2 mb-2">
           <button
-            onClick={() =>
-              mutateGetPropertyDataBetween(
-                {
-                  from: filters.from,
-                  to: filters.to,
-                  properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
-                },
-                {
-                  onError: () => {
-                    console.error(`Failed to get data for the given filters: ${JSON.stringify(filters)}`);
-                  },
-                  onSuccess: (data: Archive[]) => {
-                    excelify(data);
-                    toast.info("Data successfully exported to excel.");
-                  },
+            onClick={() => {
+              const params = {
+                from: filters.from,
+                to: filters.to,
+                properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
+              };
+
+              // Basic validation: if both provided, ensure from <= to
+              if (params.from && params.to) {
+                const fromDate = new Date(params.from);
+                const toDate = new Date(params.to);
+                if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+                  toast.error("Invalid date format for export range.");
+                  return;
                 }
-              )
-            }
+                if (fromDate > toDate) {
+                  toast.error("'From' date must be earlier than or equal to 'To' date.");
+                  return;
+                }
+              }
+
+              mutateGetPropertyDataBetween(params, {
+                onError: (err) => {
+                  console.error(`Failed to get data for the given filters: ${JSON.stringify(params)}`, err);
+                },
+                onSuccess: (rawData: any) => {
+                  // Normalize data shapes returned by mutationFn just in case:
+                  let data: Archive[] = [];
+                  if (Array.isArray(rawData)) data = rawData;
+                  else if (Array.isArray(rawData?.data)) data = rawData.data;
+                  else if (Array.isArray(rawData?.data?.data)) data = rawData.data.data;
+                  else if (Array.isArray(rawData?.items))
+                    data = rawData.items; // fallback possibilities
+                  else if (Array.isArray(rawData?.results)) data = rawData.results;
+                  else {
+                    // try to coerce single-object -> array
+                    if (rawData && typeof rawData === "object" && Object.keys(rawData).length > 0) {
+                      // If object looks like a single Archive, attempt to export it
+                      data = [rawData as Archive];
+                    } else {
+                      data = [];
+                    }
+                  }
+
+                  if (!data || data.length === 0) {
+                    toast.error("No data found to export!");
+                    return;
+                  }
+
+                  try {
+                    const ok = excelify(data);
+                    if (ok !== false) {
+                      toast.success("Data successfully exported to Excel.");
+                    }
+                  } catch (e) {
+                    console.error("Excel export failed:", e);
+                    toast.error("Excel export failed.");
+                  }
+                },
+              });
+            }}
             className="btn btn-primary"
           >
             Export to Excel
           </button>
+
           <button onClick={handleResetFilters} className="btn btn-primary">
             Reset Filters
           </button>
