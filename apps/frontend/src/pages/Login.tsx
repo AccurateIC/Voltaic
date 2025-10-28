@@ -18,7 +18,7 @@ const InputField = ({ label, type, placeholder, value, onChange }) => (
   >
     <label className="label">
       <span className="label-text text-base-content">{label}</span>
-    </label>
+    </label>                
     <motion.input
       type={type}
       value={value}
