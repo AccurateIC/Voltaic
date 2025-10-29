@@ -205,50 +205,50 @@ const Profile = () => {
   };
 
   // Password change component (placeholder for now)
-  const ChangePassword = () => (
-    <fieldset className="fieldset flex flex-col h-full bg-base-200 text-base-content p-4 rounded-box w-full gap-6">
-      <div>
-        <label htmlFor="currentPassword" className="fieldset-label text-base-content block mb-2">
-          Current Password
-        </label>
-        <input
-          id="currentPassword"
-          type="password"
-          className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
-        />
-      </div>
-      <div>
-        <label htmlFor="newPassword" className="fieldset-label text-base-content block mb-2">
-          New Password
-        </label>
-        <input
-          id="newPassword"
-          type="password"
-          className="input w-full bg-base-200 border border-primary/50 focus:border-primary focus:outline-none"
-        />
-      </div>
-      <div>
-        <label htmlFor="confirmPassword" className="fieldset-label text-base-content block mb-2">
-          Confirm New Password
-        </label>
-        <input
-          id="confirmPassword"
-          type="password"
-          className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
-        />
-      </div>
-      <div className="mt-4">
-        <button
-          className="btn btn-soft btn-primary w-full sm:w-auto"
-          onClick={() => {
-            toast.info("Not implemented yet");
-          }}
-        >
-          Update Password
-        </button>
-      </div>
-    </fieldset>
-  );
+  // const ChangePassword = () => (
+  //   <fieldset className="fieldset flex flex-col h-full bg-base-200 text-base-content p-4 rounded-box w-full gap-6">
+  //     <div>
+  //       <label htmlFor="currentPassword" className="fieldset-label text-base-content block mb-2">
+  //         Current Password
+  //       </label>
+  //       <input
+  //         id="currentPassword"
+  //         type="password"
+  //         className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label htmlFor="newPassword" className="fieldset-label text-base-content block mb-2">
+  //         New Password
+  //       </label>
+  //       <input
+  //         id="newPassword"
+  //         type="password"
+  //         className="input w-full bg-base-200 border border-primary/50 focus:border-primary focus:outline-none"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label htmlFor="confirmPassword" className="fieldset-label text-base-content block mb-2">
+  //         Confirm New Password
+  //       </label>
+  //       <input
+  //         id="confirmPassword"
+  //         type="password"
+  //         className="input w-full bg-base-200 text-base-content border border-primary/50 focus:border-primary focus:outline-none"
+  //       />
+  //     </div>
+  //     <div className="mt-4">
+  //       <button
+  //         className="btn btn-soft btn-primary w-full sm:w-auto"
+  //         onClick={() => {
+  //           toast.info("Not implemented yet");
+  //         }}
+  //       >
+  //         Update Password
+  //       </button>
+  //     </div>
+  //   </fieldset>
+  // );
 
   useEffect(() => {
     getUserDetails();
@@ -271,11 +271,11 @@ const Profile = () => {
                 Basic Details
               </a>
             </li>
-            <li className="w-full">
+            {/* <li className="w-full">
               <a className={activeTab === "password" ? "menu-active" : ""} onClick={() => setActiveTab("password")}>
                 Change Password
               </a>
-            </li>
+            </li> */}
           </ul>
         </div>
 
