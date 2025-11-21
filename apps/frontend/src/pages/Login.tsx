@@ -205,7 +205,7 @@ const Login = () => {
               <motion.div whileHover={{ rotate: 360, scale: 1.1 }} transition={{ duration: 0.6 }}>
                 <LiaConnectdevelop size={56} />
               </motion.div>
-              <span className="text-3xl">NeuroGen</span>
+              <span className="text-3xl">Neurogen</span>
             </motion.div>
 
             {/* Title */}
