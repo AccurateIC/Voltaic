@@ -56,6 +56,12 @@
     "prettier": "^3.6.2",
     "typescript": "~5.8.3"
   },
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0"
+   }
+ }
   "engines": {
     "node": ">=22.14.0",
     "pnpm": ">=10.12.4"
