@@ -1,6 +1,6 @@
 // src/config/backend.ts
-
-export const BACKEND_BASE_URL = "http://localhost:3333"; // dev
+export const BACKEND_BASE_URL = "https://neurogen.neubodhi.in:3334"; // production
+// export const BACKEND_BASE_URL = "http://localhost:3333"; // dev
 // export const BACKEND_BASE_URL = "http://127.0.0.1:3333"; // prod
 // export const BACKEND_BASE_URL = "https://aiserver-desktop.tailaf2c38.ts.net:3334"; // prod
 export const ROUTES = {
