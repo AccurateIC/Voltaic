@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { useMessageBus } from "../lib/MessageBus.js";
 import { VoltageStatCard } from "../components/VoltageStatCard.js";
-import Archive from "../../../backend/app/models/archive.js";
-import { tuyau } from "../lib/Tuyau.js";
+import { useLatestArchiveData } from "../hooks/useLatestArchiveData";
 
 const HalfCircleSpeedometer = ({ value, maxValue, color }) => {
   const percentage = (value / maxValue) * 100;
@@ -46,9 +44,7 @@ const SemiCircularStatCard = ({ value, maxValue, title, units, color }) => {
 };
 
 export const Mains = () => {
-  const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { latestData, isLoading, errorMessage } = useLatestArchiveData();
 
   const [stats, setStats] = useState({
     mainsl1Voltage: 0,
@@ -59,40 +55,9 @@ export const Mains = () => {
     mainsl3Current: 0,
   });
 
-  const getData = async (
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const { data, error } = await tuyau.archive.getLatest.$get();
-
-      if (error) {
-        setArchiveData([]);
-        setError("Unable to load data. Please try again later.");
-        return;
-      }
-      setArchiveData(data);
-    } catch (err) {
-      setError("Unable to load data. Please try again later.");
-      setArchiveData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    // Load initial data
-    (async () => {
-      await getData(setIsLoading, setArchiveData, setError);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!archiveData.length) return;
-    const getVal = (name) => archiveData.find((item) => item.gensetProperty.propertyName === name)?.propertyValue || 0;
+    if (!latestData.length) return;
+    const getVal = (name) => latestData.find((item) => item.gensetProperty.propertyName === name)?.propertyValue || 0;
     setStats({
       mainsl1Voltage: getVal("mainsL1Volts"),
       mainsl2Voltage: getVal("mainsL2Volts"),
@@ -101,20 +66,13 @@ export const Mains = () => {
       mainsl2Current: getVal("mainsL2Current"),
       mainsl3Current: getVal("mainsL3Current"),
     });
-  }, [archiveData]);
-
-  useMessageBus("archive", (msg) => {
-    // Update data when new archive message received
-    (async () => {
-      await getData(setIsLoading, setArchiveData, setError);
-    })();
-  });
+  }, [latestData]);
 
   // if (isLoading) {
   //   return <div className="flex justify-center items-center h-full">Loading...</div>;
   // }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="flex justify-center items-center h-full text-red-500">
         Unable to load data. Please try again later.
@@ -124,12 +82,12 @@ export const Mains = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
-      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl1Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L2 Voltage"} value={stats.mainsl2Voltage} />
-      <VoltageStatCard kind="voltage" name={"Mains L3 Voltage"} value={stats.mainsl3Voltage} />
-      <VoltageStatCard kind="current" name={"Mains L1 Current"} value={stats.mainsl1Current} />
-      <VoltageStatCard kind="current" name={"Mains L2 Current"} value={stats.mainsl2Current} />
-      <VoltageStatCard kind="current" name={"Mains L3 Current"} value={stats.mainsl3Current} />
+      <VoltageStatCard kind="voltage" name={"Mains L1 Voltage"} value={stats.mainsl1Voltage} isLoading={isLoading} />
+      <VoltageStatCard kind="voltage" name={"Mains L2 Voltage"} value={stats.mainsl2Voltage} isLoading={isLoading} />
+      <VoltageStatCard kind="voltage" name={"Mains L3 Voltage"} value={stats.mainsl3Voltage} isLoading={isLoading} />
+      <VoltageStatCard kind="current" name={"Mains L1 Current"} value={stats.mainsl1Current} isLoading={isLoading} />
+      <VoltageStatCard kind="current" name={"Mains L2 Current"} value={stats.mainsl2Current} isLoading={isLoading} />
+      <VoltageStatCard kind="current" name={"Mains L3 Current"} value={stats.mainsl3Current} isLoading={isLoading} />
     </div>
   );
 };

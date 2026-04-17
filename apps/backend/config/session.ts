@@ -21,7 +21,7 @@ const sessionConfig = defineConfig({
    * Configuration for session cookie and the
    * cookie store
    */
-  cookie: { path: "/", httpOnly: true, secure: true, sameSite: "none" },
+  cookie: { path: "/", httpOnly: false, secure: false, sameSite: "lax" },
 
   /**
    * The store to use. Make sure to validate the environment

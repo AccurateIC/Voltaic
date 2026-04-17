@@ -35,7 +35,7 @@ const formatDateTime12Hour = (timestamp) => {
 
 const AnomaliesLineChart = ({ value }) => {
   useEffect(() => {
-    console.log(value);
+    
   }, [value]);
 
   if (!Array.isArray(value) || value.length === 0) return <div>No data available</div>;
@@ -70,8 +70,8 @@ const AnomaliesLineChart = ({ value }) => {
       title: {
         display: true,
         text: `${yAxisTitle} Monitor`,
-        color: "rgba(255, 255, 255, 0.8)",
-        font: { weight: "bold", size: 22 },
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { weight: "bold", size: 18 },
       },
       tooltip: {
         callbacks: {

@@ -1,10 +1,11 @@
 import { DateTime } from "luxon";
 import hash from "@adonisjs/core/services/hash";
 import { compose } from "@adonisjs/core/helpers";
-import { BaseModel, column, belongsTo, beforeCreate } from "@adonisjs/lucid/orm";
+import { BaseModel, column, belongsTo, beforeCreate, hasMany } from "@adonisjs/lucid/orm";
 import { withAuthFinder } from "@adonisjs/auth/mixins/lucid";
 import Role from "#models/role";
-import type { BelongsTo } from "@adonisjs/lucid/types/relations";
+import ApiToken from "#models/api_token";
+import type { BelongsTo, HasMany } from "@adonisjs/lucid/types/relations";
 import { randomUUID, type UUID } from "node:crypto";
 
 const AuthFinder = withAuthFinder(() => hash.use("scrypt"), { uids: ["email"], passwordColumnName: "password" });
@@ -33,6 +34,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column()
   declare isActive: boolean; // for soft deletion
+
+  @hasMany(() => ApiToken)
+  declare authTokens: HasMany<typeof ApiToken>;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   declare createdAt: DateTime;

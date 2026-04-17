@@ -13,6 +13,9 @@ import { Bar } from "react-chartjs-2";
 import { DateTime } from "luxon";
 import { tuyau } from "../../lib/Tuyau";
 import { useQuery } from "@tanstack/react-query";
+import { useMessageBus } from "../../lib/MessageBus";
+import { TransmitChannels } from "../../lib/TransmitChannels";
+import Skeleton from "../Skeleton";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -22,20 +25,31 @@ interface Props {
 }
 
 export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Props) => {
-  const { data, isLoading, isError } = useQuery({
+  // const { data, isLoading, isError, refetch } = useQuery({
+  //   queryKey: ["archive", "get-anomaly-statistics"],
+  //   queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
+  //   refetchInterval: 5000,
+  // });
+  //---------------here is only one chnage-----
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["archive", "get-anomaly-statistics"],
     queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
+  });
+  //---------------upto here-------------------
+
+  useMessageBus(TransmitChannels.ARCHIVE, () => {
+    // Re-fetch data instantly when a new archive is inserted
+    refetch();
   });
 
   if (isError || data === undefined || data?.data === null || data.data.overall === null)
     return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
-  if (isLoading)
-    return (
-      <div className="h-full flex items-center justify-center">
-        <span className="loading loading-spinner loading-xl"></span>
-      </div>
-    );
+  if (isLoading || !data || !data.data || !data.data.byProperty || data.data.byProperty.length === 0) {
+    return <div className="w-full h-full"><Skeleton type="chart" /></div>;
+  }
 
   if (isError || !data)
     return (
@@ -48,7 +62,7 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
   const filteredData =
     selectedProperties.length > 0
       ? data.data.byProperty.filter((prop) => selectedProperties.includes(prop.readablePropertyName))
-      : data.byProperty;
+      : data.data.byProperty;
 
   let labels: string[] = [];
   let counts: number[] = [];
@@ -66,7 +80,7 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
       }
 
       // Aggregate counts
-      filteredData.forEach((property) => {
+      filteredData.forEach((property: any) => {
         // Here we'd need to modify the API to get monthly breakdowns
         // For now, we'll just show total counts
         monthsData.forEach((_, month) => {
@@ -89,7 +103,7 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
       }
 
       // Aggregate counts
-      filteredData.forEach((property) => {
+      filteredData.forEach((property: any) => {
         const monthlyCount = property.counts.month;
         // Distribute monthly count across weeks (simplified)
         weeksInMonth.forEach((_, week) => {
@@ -115,7 +129,7 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
       }
 
       // Aggregate counts
-      filteredData.forEach((property) => {
+      filteredData.forEach((property: any) => {
         const weeklyCount = property.counts.week;
         // Distribute weekly count across days (simplified)
         daysData.forEach((_, day) => {
@@ -134,15 +148,14 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
     plugins: {
       title: {
         display: true,
-        text: `Anomaly Count Over Time (${
-          timeDuration === "*"
-            ? "All Time"
-            : timeDuration === "1m"
-              ? "This Month"
-              : timeDuration === "1w"
-                ? "This Week"
-                : timeDuration
-        })`,
+        text: `Anomaly Count Over Time (${timeDuration === "*"
+          ? "All Time"
+          : timeDuration === "1m"
+            ? "This Month"
+            : timeDuration === "1w"
+              ? "This Week"
+              : timeDuration
+          })`,
       },
       tooltip: { callbacks: { label: (context) => `Count: ${Math.round(context.parsed.y)}` } },
     },

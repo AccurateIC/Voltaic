@@ -1,285 +1,271 @@
 // src/pages/Reports.tsx
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { AllAnomaliesCount } from "../components/charts/reports/AllAnomaliesCount";
 import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByProperty";
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
 import { DateTimeUnit } from "luxon";
 import { RulChart } from "../components/charts/RulTrendChart";
-import { RulPrediction } from "../types/rul.types";
+import { RulInputData, RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
-import { rulInputData } from "../components/rulData";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
-import React from "react";
-import { FaFilter } from "react-icons/fa6";
 import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
 import { GensetPropertyName } from "../types/gensetProperty.types";
 import { useQuery } from "@tanstack/react-query";
+import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
+
+// 1. Static Definitions outside component to prevent re-creation
+const PROPERTIES: { propertyName: GensetPropertyName; chartTitle: string }[] = [
+  { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
+  { propertyName: "engOilPress", chartTitle: "Engine Oil Pressure (bar)" },
+  { propertyName: "engFuelLevelUnits", chartTitle: "Engine Fuel Level (L)" },
+  { propertyName: "genL1Volts", chartTitle: "Generator Phase 1 Voltage (volts)" },
+  { propertyName: "genL2Volts", chartTitle: "Generator Phase 2 Voltage (volts)" },
+  { propertyName: "genL3Volts", chartTitle: "Generator Phase 3 Voltage (volts)" },
+  { propertyName: "mainsL1Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
+  { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 2 Voltage (volts)" },
+  { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 3 Voltage (volts)" },
+];
+
+const STATIC_CHARTS = [
+  { key: "anomaliesCount", title: "Anomalies Count" },
+  { key: "anomaliesByProperty", title: "Anomalies by Property" },
+  { key: "pdm", title: "PDM Notifications" },
+  { key: "rul", title: "Health Index Deterioration" },
+] as const;
+
+const ALL_CHART_KEYS = [...STATIC_CHARTS.map((c) => c.key), ...PROPERTIES.map((p) => p.propertyName)];
+const TIME_RANGE_OPTIONS: Array<{ value: DateTimeUnit; label: string }> = [
+  { value: "year", label: "Year" },
+  { value: "month", label: "Month" },
+  { value: "week", label: "Week" },
+];
+const CHART_LABELS: Record<string, string> = {
+  ...Object.fromEntries(STATIC_CHARTS.map((chart) => [chart.key, chart.title])),
+  ...Object.fromEntries(PROPERTIES.map((prop) => [prop.propertyName, prop.chartTitle])),
+};
 
 export const Reports = () => {
-  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL - NO CONDITIONAL RETURNS BEFORE THIS
   const { getRulPrediction } = useRulPrediction();
+  const lastSentUserRef = useRef<string | null>(null);
+
+  const {
+    data: rulInputData,
+    isLoading: isRulDataLoading,
+    error: rulDataError,
+  } = useQuery<Record<string, RulInputData[]>>({
+    queryKey: ["rul-data"],
+    queryFn: async () => {
+      const res = await fetch("/data/rulData.json");
+      if (!res.ok) {
+        throw new Error("Failed to load RUL data");
+      }
+      return (await res.json()) as Record<string, RulInputData[]>;
+    },
+    staleTime: Infinity,
+  });
+
+  const { data: filteredHealthIndexData = [], isLoading: isHealthIndexLoading } = useQuery<
+    Array<{ Time_Hours: number; Predicted_Health_Index: number }>
+  >({
+    queryKey: ["filtered-health-index"],
+    queryFn: async () => {
+      const res = await fetch("/data/filteredHealthIndexData.json");
+      if (!res.ok) throw new Error("Failed to load health index trend data");
+      return (await res.json()) as Array<{ Time_Hours: number; Predicted_Health_Index: number }>;
+    },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+
+  // Auth Query
   const {
     data: loggedInUserData,
     error: loggedInUserError,
     isLoading,
-  } = useQuery({ queryKey: ["logged-in-user"], queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap() });
+  } = useQuery({
+    queryKey: ["logged-in-user"],
+    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
+    staleTime: Infinity,
+  });
 
-  //state
-  const [count, setCount] = useState(0);
+  // State
   const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("month");
   const [rulPred, setRulPred] = useState<RulPrediction[]>([]);
-  const [modalContent, setModalContent] = useState<{ component: React.ReactNode; title?: string } | null>(null);
-
-  // Static data definitions
-  const properties: { propertyName: GensetPropertyName; chartTitle: string }[] = [
-    { propertyName: "engSpeedDisplay", chartTitle: "Engine Speed (RPM)" },
-    { propertyName: "engOilPress", chartTitle: "Engine Oil Pressure (bar)" },
-    { propertyName: "engFuelLevelUnits", chartTitle: "Engine Fuel Level (L)" },
-    { propertyName: "genL1Volts", chartTitle: "Generator Phase 1 Voltage (volts)" },
-    { propertyName: "genL2Volts", chartTitle: "Generator Phase 2 Voltage (volts)" },
-    { propertyName: "genL3Volts", chartTitle: "Generator Phase 3 Voltage (volts)" },
-    { propertyName: "mainsL1Volts", chartTitle: "Mains Phase 1 Voltage (volts)" },
-    { propertyName: "mainsL2Volts", chartTitle: "Mains Phase 2 Voltage (volts)" },
-    { propertyName: "mainsL3Volts", chartTitle: "Mains Phase 3 Voltage (volts)" },
-  ];
-  const staticCharts = [
-    { key: "anomaliesCount", title: "Anomalies Count" },
-    { key: "anomaliesByProperty", title: "Anomalies by Property" },
-    { key: "pdm", title: "PDM Notifications" },
-    { key: "rul", title: "Health Index Deterioration" },
-  ] as const;
-
-  const allChartKeys = [...staticCharts.map((c) => c.key), ...properties.map((p) => p.propertyName)];
-  const [selectedCharts, setSelectedCharts] = useState<string[]>(allChartKeys);
+  const [selectedCharts, setSelectedCharts] = useState<string[]>(ALL_CHART_KEYS);
+  const [modalChartKey, setModalChartKey] = useState<string | null>(null);
 
   const loggedInEmail = loggedInUserData?.email;
 
-  // Use useEffect to call fetchRulPrediction when the component mounts
+  // Optimized RUL Fetching
   useEffect(() => {
-    const fetchRulPrediction = async () => {
-      try {
-        // Check if user email exists and has data
-        if (!loggedInEmail || !rulInputData[loggedInEmail]) {
-          console.log("Waiting for user data...");
-          return;
-        }
+    if (!loggedInEmail || !rulInputData?.[loggedInEmail]) return;
 
-        const userDataArray = rulInputData[loggedInEmail];
-        // Use the length of the user's specific data array
-        const entry = userDataArray[count % userDataArray.length];
+    if (lastSentUserRef.current === loggedInEmail) return;
+    lastSentUserRef.current = loggedInEmail;
 
-        if (!entry) {
-          console.error("No entry found for current count");
-          return;
-        }
+    const userDataArray = rulInputData[loggedInEmail];
+    const entry = userDataArray[0];
 
-        const newEntry = {
-          Time_Hours: entry.Time_Hours,
-          RPM_Deviation_Percentage: entry.RPM_Deviation_Percentage,
-          Oil_Pressure: entry.Oil_Pressure,
-          Power_Output_kW: entry.Power_Output_kW,
-          Inverse_Fuel_Consumption: entry.Inverse_Fuel_Consumption,
-        };
+    if (!entry) return;
 
-        getRulPrediction.mutate(newEntry, {
-          onSuccess: (data) => {
-            console.log("RUL data fetched successfully:", data);
-            setRulPred(data?.Future_Predictions);
-            // Don't increment count here to avoid infinite loop
-            // setCount((prevCount) => (prevCount + 1) % userDataArray.length);
-          },
-          onError: (error) => {
-            console.error("Error fetching RUL data:", error);
-          },
-        });
-      } catch (err) {
-        console.error("Error fetching RUL data:", err);
-      }
-    };
+    const newEntry = {
+      email: loggedInEmail,
+      Time_Hours: entry.Time_Hours,
+      RPM_Deviation_Percentage: entry.RPM_Deviation_Percentage,
+      Oil_Pressure: entry.Oil_Pressure,
+      Power_Output_kW: entry.Power_Output_kW,
+      Inverse_Fuel_Consumption: entry.Inverse_Fuel_Consumption,
+    } as any;
 
-    // Only run once when component mounts and email is available
-    if (loggedInEmail) {
-      fetchRulPrediction();
-    }
-  }, [loggedInEmail]); // Only run when loggedInEmail changes
+    getRulPrediction.mutate(newEntry, {
+      onSuccess: (data) => setRulPred(data?.Future_Predictions || []),
+      onError: () => {
+        toast.error("Failed to get RUL prediction");
+      },
+    });
+  }, [loggedInEmail, rulInputData]);
 
-  // Helper functions
-  const openInModal = (component: React.ReactNode) => {
-    setModalContent({ component });
-  };
-
-  const renderGraphCard = (content: React.ReactNode, key?: string | number) => (
-    <div
-      key={key}
-      className="aspect-4/3 bg-base-200 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => openInModal(content)}
-    >
-      {content}
-    </div>
+  const renderGraphCard = useCallback(
+    (content: React.ReactNode, key: string) => (
+      <div
+        key={key}
+        className="aspect-video bg-base-200 cursor-pointer hover:shadow-lg transition-all rounded-lg overflow-hidden border border-base-content/5 shadow-sm"
+        onClick={() => setModalChartKey(key)}
+      >
+        {content}
+      </div>
+    ),
+    []
   );
 
-  // NOW we can do conditional returns after all hooks are called
-  if (loggedInUserError) {
-    toast.error("Failed to get logged in user");
-    // TODO: clear session and log out ther user and redirect to login page
-    return <div className="h-full w-full">N/A</div>;
+  const renderChartByKey = useCallback(
+    (key: string): React.ReactNode => {
+      switch (key) {
+        case "anomaliesCount":
+          return <AllAnomaliesCount />;
+        case "anomaliesByProperty":
+          return <AnomaliesByProperty timeDuration={timeDuration} />;
+        case "pdm":
+          return <PDMNotificationStatistics timeDuration={timeDuration} />;
+        case "rul":
+          return (
+            <RulChart
+              currentRulPoint={rulPred}
+              simulatedRulPoint={[]}
+              filteredHealthIndexData={filteredHealthIndexData}
+              isHealthIndexLoading={isHealthIndexLoading}
+            />
+          );
+        default: {
+          const prop = PROPERTIES.find((p) => p.propertyName === key);
+          if (!prop) return null;
+          return (
+            <GenericPropertyStatisticsBarChart
+              timeDuration={timeDuration}
+              propertyName={prop.propertyName}
+              chartTitle={prop.chartTitle}
+            />
+          );
+        }
+      }
+    },
+    [timeDuration, rulPred, filteredHealthIndexData, isHealthIndexLoading]
+  );
+
+  if (loggedInUserError) return <div className="p-10">Error loading user session.</div>;
+  if (rulDataError) return <div className="p-10">Failed to load RUL data.</div>;
+  if (isLoading || isRulDataLoading || !rulInputData || Object.keys(rulInputData).length === 0) {
+    // We do NOT block the page anymore, individual property charts handle their own loading states
   }
-
-  if (isLoading) {
-    return <div className="h-full w-full flex items-center justify-center">Loading...</div>;
-  }
-
-  const TimeRangeSelector = ({ value, onChange }) => {
-    const options = ["year", "month", "week"];
-
-    return (
-      <div className="flex flex-row items-center gap-2">
-        <label className="text-md text-base-content">Time Range:</label>
-        <div className="dropdown dropdown-start">
-          <div tabIndex={0} role="button" className="btn btn-m bg-base-100 px-10 w-full items-center justify-between">
-            {value.charAt(0).toUpperCase() + value.slice(1)}
-          </div>
-
-          <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 w-full rounded-box z-10">
-            {options.map((option) => (
-              <li key={option} className="hover:bg-base-200 rounded w-full">
-                <a onClick={() => onChange(option)} className="block px-4 py-2 cursor-pointer text-m">
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  };
-
-  const SelectChartsDropdown = () => {
-    const allSelected = selectedCharts.length === allChartKeys.length;
-    const noneSelected = selectedCharts.length === 0;
-
-    const label = allSelected
-      ? "All Charts Selected"
-      : noneSelected
-        ? "Select Charts"
-        : selectedCharts.length <= 2
-          ? [...staticCharts.map((c) => ({ key: c.key, title: c.title })), ...properties]
-              .filter((c) => selectedCharts.includes("key" in c ? c.key : c.propertyName))
-              .map((c) => ("title" in c ? c.title : c.chartTitle))
-              .join(", ")
-          : `${selectedCharts.length} Selected`;
-
-    return (
-      <>
-        <label className="label text-md text-base-content">Select Charts</label>
-        <div className="form-control">
-          <div className="dropdown dropdown-start">
-            <label tabIndex={0} className="btn btn-sm w-full justify-between p-5 px-10">
-              {label}
-              <svg className="ml-2 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M5.25 7.25L10 12.25L14.75 7.25H5.25Z" />
-              </svg>
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu flex flex-row w-80 bg-base-100 shadow rounded-box h-80 overflow-y-scroll p-2 z-10"
-            >
-              <li className="flex flex-row w-full items-center gap-2 cursor-pointer">
-                <label className="w-full">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm"
-                    checked={allSelected}
-                    onChange={() => setSelectedCharts(allSelected ? [] : allChartKeys)}
-                  />
-                  <span className="font-semibold w-full">Select All</span>
-                </label>
-              </li>
-              {staticCharts.map((c) => (
-                <li key={c.key} className="w-full">
-                  <label className="flex flex-row w-full items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm"
-                      checked={selectedCharts.includes(c.key)}
-                      onChange={(e) =>
-                        setSelectedCharts((prev) =>
-                          e.target.checked ? [...prev, c.key] : prev.filter((k) => k !== c.key)
-                        )
-                      }
-                    />
-                    <span className="w-full">{c.title}</span>
-                  </label>
-                </li>
-              ))}
-              {properties.map((p) => (
-                <li key={p.propertyName} className="w-full">
-                  <label className="flex flex-row w-full items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-sm"
-                      checked={selectedCharts.includes(p.propertyName)}
-                      onChange={(e) =>
-                        setSelectedCharts((prev) =>
-                          e.target.checked ? [...prev, p.propertyName] : prev.filter((k) => k !== p.propertyName)
-                        )
-                      }
-                    />
-                    <span>{p.chartTitle}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </>
-    );
-  };
 
   return (
-    <div>
-      <div className="p-2">
-        <h1 className="text-2xl">Reports</h1>
+    <div className="flex flex-col h-full w-full gap-3 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <h1 className="text-xl md:text-2xl font-semibold leading-tight">Reports</h1>
 
-        <div className="flex items-center justify-between mt-2">
-          <div className="text-xl flex items-center gap-4">
-            <FaFilter size={22} className="ml-2" />
-            <TimeRangeSelector value={timeDuration} onChange={setTimeDuration} />
-            <SelectChartsDropdown />
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
+            {/* <div className="flex items-center gap-1 text-primary">
+              <FaFilter size={13} />
+              <span className="text-xs font-semibold uppercase tracking-wide">Filters</span>
+            </div> */}
+            <span className="text-sm font-medium whitespace-nowrap text-base-content/80">Time Range</span>
+            <div className="dropdown dropdown-end">
+              <div
+                tabIndex={0}
+                role="button"
+                className="btn btn-sm btn-outline min-w-[112px] justify-between bg-base-100 normal-case font-medium"
+              >
+                {TIME_RANGE_OPTIONS.find((option) => option.value === timeDuration)?.label ?? "Month"}
+                <span className="text-xs opacity-70">▼</span>
+              </div>
+              <ul tabIndex={0} className="dropdown-content menu p-1 mt-1 shadow-xl bg-base-100 rounded-box w-40 z-[70]">
+                {TIME_RANGE_OPTIONS.map((option) => (
+                  <li key={option.value}>
+                    <button
+                      type="button"
+                      className={timeDuration === option.value ? "active" : ""}
+                      onClick={() => setTimeDuration(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          {/* <button className="btn">Export</button> */}
+
+          <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
+            <span className="text-sm font-medium whitespace-nowrap text-base-content/80">Charts</span>
+            <SelectAllCheckboxPopup<string>
+              trigger={
+                <div tabIndex={0} className="select select-bordered select-sm min-w-[142px] bg-base-100 flex items-center cursor-pointer">
+                  {selectedCharts.length === ALL_CHART_KEYS.length ? "All Charts" : `${selectedCharts.length} Selected`}
+                </div>
+              }
+              widthClassName="w-[min(90vw,24rem)] max-w-[24rem]"
+              selectAllChecked={selectedCharts.length === ALL_CHART_KEYS.length}
+              onToggleSelectAll={(checked) => setSelectedCharts(checked ? ALL_CHART_KEYS : [])}
+              options={ALL_CHART_KEYS.map((key) => ({
+                value: key,
+                label: CHART_LABELS[key] ?? key,
+              }))}
+              getOptionChecked={(value) => selectedCharts.includes(value)}
+              onToggleOption={(value, checked) =>
+                setSelectedCharts((prev) =>
+                  checked ? (prev.includes(value) ? prev : [...prev, value]) : prev.filter((k) => k !== value)
+                )
+              }
+            />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 h-full">
-        {/* Static Charts */}
-        {selectedCharts.includes("anomaliesCount") && renderGraphCard(<AllAnomaliesCount />, "anomaliesCount")}
-        {selectedCharts.includes("anomaliesByProperty") &&
-          renderGraphCard(<AnomaliesByProperty timeDuration={timeDuration} />, "anomaliesByProperty")}
-        {selectedCharts.includes("pdm") &&
-          renderGraphCard(<PDMNotificationStatistics timeDuration={timeDuration} />, "pdm")}
-        {selectedCharts.includes("rul") &&
-          renderGraphCard(<RulChart currentRulPoint={rulPred} simulatedRulPoint={[]} />, "rul")}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {selectedCharts.includes("anomaliesCount") &&
+          modalChartKey !== "anomaliesCount" &&
+          renderGraphCard(renderChartByKey("anomaliesCount"), "anomaliesCount")}
 
-        {/* All Properties Statistics */}
-        {properties.map(
-          (property) =>
-            selectedCharts.includes(property.propertyName) &&
-            renderGraphCard(
-              <GenericPropertyStatisticsBarChart
-                timeDuration={timeDuration}
-                propertyName={property.propertyName}
-                chartTitle={property.chartTitle}
-              />,
-              property.propertyName
-            )
+        {selectedCharts.includes("anomaliesByProperty") &&
+          modalChartKey !== "anomaliesByProperty" &&
+          renderGraphCard(renderChartByKey("anomaliesByProperty"), "anomaliesByProperty")}
+
+        {selectedCharts.includes("pdm") && modalChartKey !== "pdm" && renderGraphCard(renderChartByKey("pdm"), "pdm")}
+
+        {selectedCharts.includes("rul") && modalChartKey !== "rul" && renderGraphCard(renderChartByKey("rul"), "rul")}
+
+        {PROPERTIES.map(
+          (prop) =>
+            selectedCharts.includes(prop.propertyName) &&
+            modalChartKey !== prop.propertyName &&
+            renderGraphCard(renderChartByKey(prop.propertyName), prop.propertyName)
         )}
       </div>
-      {/* Modal */}
-      <GenericAnimatedModal isOpen={modalContent !== null} onClose={() => setModalContent(null)}>
-        {modalContent?.component}
+
+      <GenericAnimatedModal isOpen={modalChartKey !== null} onClose={() => setModalChartKey(null)}>
+        <div className="w-full h-[80vh]">{modalChartKey ? renderChartByKey(modalChartKey) : null}</div>
       </GenericAnimatedModal>
     </div>
   );

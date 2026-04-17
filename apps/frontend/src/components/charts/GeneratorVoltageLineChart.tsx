@@ -29,8 +29,8 @@ export const GeneratorVoltageLineChart = ({ value }) => {
       title: {
         display: true,
         text: "Generator Voltage Monitor",
-        color: "rgba(255, 255, 255, 0.8)",
-        font: { size: 18, weight: "normal" },
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
       },
     },
     scales: {

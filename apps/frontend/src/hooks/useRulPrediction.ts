@@ -13,9 +13,6 @@ export function useRulPrediction() {
     onError: (error) => {
       toast.error(`Failed to fetch RUL prediction: ${error?.message}`);
     },
-    onSuccess: () => {
-      toast.success("RUL prediction fetched successfully");
-    },
   });
 
   const sendLoggedInUser = useMutation({ mutationFn: rulApi.sendLoggedInUser, onError: () => {}, onSuccess: () => {} });

@@ -1,0 +1,10 @@
+{
+  "activeNotifications": [
+    {
+      "startedAt": "2026-03-18T18:30:00.000+00:00",
+      "summary": "Anomaly detected for Generator Power Output",
+      "displayed": true,
+      "finishedAt": null
+    }
+  ]
+}

@@ -1,178 +1,204 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import { FaGithub, FaGoogle } from "react-icons/fa6";
+import { FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
+import { Eye, EyeOff } from "lucide-react";
 import { User } from "../types/auth.types";
-import { SessionStore } from "../lib/SessionStore";
 import { tuyau } from "../lib/Tuyau";
 import DotMatrixBackground from "../components/DotMatrixBackground";
 import { motion, AnimatePresence } from "motion/react";
+import { Modules } from "../config/extern";
+function withTimeout<T>(promise: Promise<T>, ms = 15000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      (timer = setTimeout(() => reject(new Error("Request timed out")), ms))
+    ),
+  ]).finally(() => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  });
+}
+interface InputFieldProps {
+  label: string;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  autoComplete?: string;
+}
 
-const InputField = ({ label, type, placeholder, value, onChange }) => (
-  <motion.div
-    className="form-control w-full"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, ease: "easeOut" }}
-  >
-    <label className="label">
-      <span className="label-text text-base-content">{label}</span>
-    </label>
-    <motion.input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      required
-      className="input w-full text-base-content placeholder:text-base-content/50 focus:outline-none transition-all duration-200"
-      style={{
-        background: "var(--input-bg, rgba(140, 140, 140, 0.05))",
-        border: "1px solid var(--input-border, rgba(140, 140, 140, 0.15))",
-        backdropFilter: "blur(10px)",
-        boxShadow: "var(--input-shadow, none)",
-      }}
-      whileFocus={{
-        scale: 1.02,
-        "--input-bg": "rgba(140, 140, 140, 0.1)",
-        "--input-border": "rgba(65, 105, 225, 0.3)",
-        "--input-shadow": "0 0 0 2px rgba(65, 105, 225, 0.1)",
-      }}
-      transition={{ duration: 0.2 }}
-    />
-  </motion.div>
-);
+const InputField = ({ label, type, placeholder, value, onChange, autoComplete }: InputFieldProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+
+  return (
+    <motion.div
+      className="form-control w-full"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      <label className="label">
+        <span className="label-text text-base-content">{label}</span>
+      </label>
+      <div className="relative">
+        <motion.input
+          type={isPassword ? (showPassword ? "text" : "password") : type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required
+          className="input w-full text-base-content placeholder:text-base-content/50 focus:outline-none transition-all duration-200 pr-10"
+          style={{
+            background: "var(--input-bg, rgba(140, 140, 140, 0.05))",
+            border: "1px solid var(--input-border, rgba(140, 140, 140, 0.15))",
+            backdropFilter: "blur(10px)",
+            boxShadow: "var(--input-shadow, none)",
+          }}
+          whileFocus={{
+            scale: 1.02,
+            "--input-bg": "rgba(140, 140, 140, 0.1)",
+            "--input-border": "rgba(65, 105, 225, 0.3)",
+            "--input-shadow": "0 0 0 2px rgba(65, 105, 225, 0.1)",
+          }}
+          transition={{ duration: 0.2 }}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors z-20 pointer-events-auto"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 const Login = () => {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [roleId, setRoleId] = useState(1);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+const isSubmitting = useRef(false);
   useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        const { data, error } = await tuyau.auth.getLoggedInUser.$get();
+  const checkAuthentication = async () => {
+    // Skip API call entirely if no user stored locally
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
 
-        if (error) {
-          console.error("Error checking authentication:", error);
-          return;
-        }
-
-        if (data) {
-          setIsAuthenticated(true);
-          toast.success("User is already authenticated!");
-          navigate("/engine");
-        }
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-        toast.error("Error checking authentication status.");
+    try {
+      const { data, error } = await tuyau.auth.getLoggedInUser.$get();
+      if (error) return;
+      if (data) {
+        toast.success("User is already authenticated!");
+        navigate("/engine");
       }
-    };
-
-    checkAuthentication();
-  }, [navigate]);
-
-  const handleAuth = async (e) => {
-    e.preventDefault();
-
-    // fetch id of role where roleName is 'user'
-    const { data: roleData, error: roleError } = await tuyau.role.getAll.$get();
-    if (roleError) {
-      console.error("error fetching roles", roleError);
-      toast.error("Failed to sign up.");
-      return;
+    } catch (error) {
+      // silent fail
     }
+  };
 
-    const userRole = roleData.find((role) => role.roleName === "user");
-    if (!userRole) {
-      console.error("user role not found", roleError);
-      toast.error("Failed to sign up.");
-      return;
+  checkAuthentication();
+}, [navigate]);
+
+const handleAuth = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+ if (isLoading || isSubmitting.current) return;
+isSubmitting.current = true;
+setIsLoading(true);
+
+  try {
+    let roleIdForUserRole: string | undefined;
+
+    if (isSignUp) {
+      const { data: roleData, error: roleError } = await tuyau.role.getAll.$get();
+
+      if (roleError) {
+        toast.error("Failed to create account.");
+        return;
+      }
+
+      const userRole = roleData.find((role) => role.roleName === "user");
+      if (!userRole) {
+        toast.error("Failed to create account.");
+        return;
+      }
+
+      roleIdForUserRole = userRole.id;
     }
-    const roleIdForUserRole = userRole.id;
 
     const userData = {
-      email: email,
-      password: password,
-      firstName: firstName,
-      lastName: lastName,
+      email,
+      password,
+      firstName,
+      lastName,
       roleId: roleIdForUserRole,
       isActive: true,
     };
 
-    try {
-      let user: User;
+    let user: User;
 
-      if (isSignUp) {
-        const { data, error } = await tuyau.auth.register.$post(userData);
-        if (error) {
-          throw new Error(`Registration failed: ${error.status}`);
-        }
-        user = data; // TODO: type the API better so that we get correct type of User in frontend
-      } else {
-        const { data, error } = await tuyau.auth.login.$post({ email: userData.email, password: userData.password });
-        if (error) {
-          throw new Error(`Login failed: ${error.status}`);
-        }
-        user = data;
+    if (isSignUp) {
+      const { data, error } = await tuyau.auth.register.$post(userData);
+      if (error) {
+        throw new Error(`Registration failed: ${error.status}`);
       }
-
-      sessionStorage.setItem("user", JSON.stringify(user));
-      // SessionStore.set("user", user);
-
-      console.log(isSignUp ? "User registered:" : "User logged in:", user);
-      toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
-
-      // ##################################################################
-
-      // TEMPORARY: delete data from archive and notification table on login
-      // const delResponse = await fetch(`${import.meta.env.VITE_ADONIS_BACKEND}/archive/deleteAll`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   credentials: "include",
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error(`Failed to reset archive table`);
-      // }
-      //
-      // toast.success("Data Reset");
-
-      // TEMPORARY: send request to ML models to notify which user has logged in
-
-      // ##################################################################
-
-      navigate("/engine");
-
-      // sendLoggedInUser(user, Modules.ANOMALY).then((res) => {
-      //   if (res.error) toast.error("Failed to send user details to Anomaly Server.");
-      // });
-      // sendLoggedInUser(user, Modules.RUL).then((res) => {
-      //   if (res.error) toast.error("Failed to send user details to RUL Server.");
-      // });
-      // sendLoggedInUser(user, Modules.PDM).then((res) => {
-      //   if (res.error) toast.error("Failed to send user details to PDM Server.");
-      // });
-    } catch (error) {
-      console.error(isSignUp ? "Error creating account:" : "Error logging in:", error);
-      // toast.error(error.message || "An error occurred");
+      user = data as unknown as User;
+    } else {
+     const { data, error } = await withTimeout(
+  tuyau.auth.login.$post({
+    email: userData.email,
+    password: userData.password,
+  })
+);
+      if (error) {
+        throw new Error(`Login failed: ${error.status}`);
+      }
+      user = data as unknown as User;
     }
-  };
 
-  const handleGithubSignIn = () => {
-    window.location.assign(tuyau.auth.github.redirect.$url());
-  };
+    localStorage.setItem("user", JSON.stringify(user));
 
-  const handleGoogleSignIn = () => {
-    window.location.assign(tuyau.auth.google.redirect.$url());
-  };
+    toast.success(isSignUp ? "Account created successfully!" : "Logged in successfully!");
+
+    navigate("/engine");
+
+    const notifyPayload = { ...user, logged_in: true };
+
+    fetch(`http://localhost:3333/ml/notify-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notifyPayload),
+    }).then(r => {
+      if (!r.ok) console.error("Failed to notify ML servers");
+    }).catch(e => {
+      console.error("ML notification error:", e?.message);
+    });
+
+  } catch (error) {
+    toast.error(isSignUp ? "Failed to create account." : "Failed to log in.");
+    setIsLoading(false);
+    isSubmitting.current = false;
+  }
+};
+
+ const handleGoogleSignIn = () => {
+  if (isLoading) return;
+  globalThis.location.assign(tuyau.auth.google.redirect.$url());
+};
 
   return (
     <div className="min-h-screen w-full relative bg-base-300">
@@ -235,14 +261,16 @@ const Login = () => {
                       type="text"
                       placeholder="John"
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onChange={(e) => setFirstName((e.target as HTMLInputElement).value)}
+                      autoComplete="given-name"
                     />
                     <InputField
                       label="Last Name"
                       type="text"
                       placeholder="Doe"
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      onChange={(e) => setLastName((e.target as HTMLInputElement).value)}
+                      autoComplete="family-name"
                     />
                   </motion.div>
                 )}
@@ -253,7 +281,8 @@ const Login = () => {
                 type="email"
                 placeholder="example@mail.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                autoComplete="email"
               />
 
               <InputField
@@ -261,19 +290,29 @@ const Login = () => {
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
               />
 
               {/* Submit Button */}
               <motion.button
                 type="submit"
-                className="btn w-full mt-6 text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10"
+                disabled={isLoading}
+                className="btn w-full mt-6 text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10 flex items-center justify-center gap-2"
                 style={{ backdropFilter: "blur(10px)", boxShadow: "var(--btn-shadow, 0 4px 16px rgba(0, 0, 0, 0.1))" }}
                 whileHover={{ scale: 1.01, y: -1, "--btn-shadow": "0 6px 20px rgba(0, 0, 0, 0.15)" }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2 }}
               >
-                {isSignUp ? "Sign Up" : "Sign In"}
+              {isLoading ? (
+  <span className="flex items-center gap-2">
+    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    </svg>
+    {isSignUp ? "Creating account..." : "Signing in..."}
+  </span>
+) : (isSignUp ? "Sign Up" : "Sign In")}
               </motion.button>
             </form>
 
@@ -292,8 +331,9 @@ const Login = () => {
               */}
 
               <motion.button
-                onClick={handleGoogleSignIn}
-                className="btn w-full text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10"
+  onClick={handleGoogleSignIn}
+  disabled={isLoading}
+  className="btn w-full text-base-content font-medium bg-base-300 hover:bg-base-200 border border-base-content/10 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
                   backdropFilter: "blur(10px)",
                   boxShadow: "var(--google-shadow, 0 4px 16px rgba(0, 0, 0, 0.1))",
@@ -312,8 +352,9 @@ const Login = () => {
             {/* Account Switch Link */}
             <div className="text-center mt-4">
               <motion.button
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-base-content/90 hover:text-base-content font-medium underline-offset-4 hover:underline transition-all duration-200"
+  onClick={() => !isLoading && setIsSignUp(!isSignUp)}
+  disabled={isLoading}
+  className="text-base-content/90 hover:text-base-content font-medium underline-offset-4 hover:underline transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)" }}
                 whileHover={{}}
                 whileTap={{}}

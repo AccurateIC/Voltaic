@@ -1,69 +1,118 @@
 // frontend/src/components/Navbar.tsx
 import { useRef } from "react";
 import { useEffect, useState } from "react";
+import { BACKEND_BASE_URL } from "../config/backend";
 import { CiBellOn } from "react-icons/ci";
 import Profile from "./Profile";
 // import Logo from "../assets/accurate.svg";
-import { TransmitChannels } from "../lib/TransmitChannels";
-import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus";
-import transmitConnection from "../lib/TransmitConnection";
-import { cn, formatTimestamp } from "../lib/Utils";
-import { LiaConnectdevelop } from "react-icons/lia";
-import { tuyau } from "../lib/Tuyau";
-import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { toast } from "sonner";
+
+
+import { cn, formatTimestamp } from "../lib/Utils";
+import { tuyau } from "../lib/Tuyau";
+import { MaintenanceModal } from "./MaintenanceModal";
+import { AnomaliesModal } from "./AnomaliesModal";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTransmit } from "../hooks/useTransmit";
 const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as const;
 
 const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
 
 const Navbar = () => {
-  // resolved notifs
-  const {
-    data: resolvedAnomalyNotificationsData,
-    error: resolvedAnomalynotificationsError,
-    isLoading: resolvedAnomalyNotificationsIsLoading,
-  } = useQuery({
-    queryKey: ["anomaly-notification", "resolved"],
-    queryFn: () => tuyau.notification.getResolved.$get().unwrap(),
+  const queryClient = useQueryClient();
+  // ✅ LIGHTWEIGHT COUNT QUERY — self-polls every 10s, tiny 50-byte response.
+  // NOT triggered by SSE invalidation (which caused the same spam bug as summary).
+  // refetchInterval drives the update; staleTime matches so no extra fetches fire.
+  const { data: notificationCount } = useQuery({
+    queryKey: ["notifications-count"],
+    queryFn: async () => {
+      const res = await fetch(`${BACKEND_BASE_URL}/notification/count`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch notification count");
+      return res.json() as Promise<{ anomaly: number; maintenance: number }>;
+    },
+    staleTime: 9000,          // stay fresh for 9s — matches refetchInterval
+    refetchInterval: 10000,   // ✅ polls every 10s — only update trigger
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
   });
 
-  // unresolved notifs
+  // ✅ FULL SUMMARY QUERY — enabled:false means it NEVER auto-fetches.
+  // Only triggered manually via refetchSummary() when the dropdown opens.
   const {
-    data: unresolvedAnomalyNotificationsData,
-    error: unresolvedAnomalynotificationsError,
-    isLoading: unresolvedAnomalyNotificationsIsLoading,
+    data: notificationsSummary,
+    refetch: refetchSummary,
   } = useQuery({
-    queryKey: ["anomaly-notification", "unresolved"],
-    queryFn: () => tuyau.notification.getUnresolved.$get().unwrap(),
+    queryKey: ["notifications-summary"],
+    queryFn: () => tuyau.notification.summary.$get().unwrap(),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+    staleTime: Infinity,
+    enabled: false, // ✅ never auto-fetches — only fetched when dropdown opens
   });
 
-  // resolved pdm notifications
-  const {
-    data: pdmResolvedNotifications = [],
-    error: pdmResolvedNotificationsError,
-    isLoading: pdmResolvedNotificationsIsLoading,
-  } = useQuery({
-    queryKey: ["pdm", "notification", "resolved"],
-    queryFn: () => tuyau.pdm.notification.getResolved.$get().unwrap(),
-  });
+  const resolvedAnomalyNotificationsData = notificationsSummary?.anomaly?.resolved ?? [];
+  const unresolvedAnomalyNotificationsData = notificationsSummary?.anomaly?.unresolved ?? [];
+  const pdmResolvedNotifications = notificationsSummary?.maintenance?.resolved ?? [];
+  const pdmUnresolvedNotifications = notificationsSummary?.maintenance?.unresolved ?? [];
 
-  // unresolved pdm notifications
-  const {
-    data: pdmUnresolvedNotifications = [],
-    error: pdmUnresolvedNotificationsError,
-    isLoading: pdmUnresolvedNotificationsIsLoading,
-  } = useQuery({
-    queryKey: ["pdm", "notification", "unresolved"],
-    queryFn: () => tuyau.pdm.notification.getUnresolved.$get().unwrap(),
-  });
+  // ✅ Bell badge counts: prefer real-time count query; fall back to summary array length
+  // This ensures the badge updates every 5 seconds via SSE even without opening the dropdown
+  const unresolvedAnomalyCount = notificationCount?.anomaly ?? unresolvedAnomalyNotificationsData.length;
+  const unresolvedMaintenanceCount = notificationCount?.maintenance ?? pdmUnresolvedNotifications.length;
+
+  // ✅ CORRECT: Call mutations at top level (not in event handlers!)
+const markNotificationAsReadMutation = useMutation({
+  mutationKey: ["anomaly", "notification", "read"],
+  mutationFn: (notificationId: string) => tuyau.notification.read({ id: notificationId }).$patch(),
+  onSuccess: (_, notificationId) => {
+    queryClient.setQueryData(["notifications-summary"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        anomaly: {
+          ...old.anomaly,
+          unresolved: old.anomaly.unresolved.filter((n: any) => n.id !== notificationId),
+          resolved: [...old.anomaly.resolved, 
+            old.anomaly.unresolved.find((n: any) => n.id === notificationId)
+          ].filter(Boolean),
+        },
+      };
+    });
+  },
+});
+
+  const markPdmNotificationAsReadMutation = useMutation({
+  mutationKey: ["pdm", "notification", "read"],
+  mutationFn: (pdmNotificationId: string) => tuyau.pdm.notification.read({ id: pdmNotificationId }).$patch(),
+  onSuccess: (_, pdmNotificationId) => {
+    queryClient.setQueryData(["notifications-summary"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        maintenance: {
+          ...old.maintenance,
+          unresolved: old.maintenance.unresolved.filter((n: any) => n.id !== pdmNotificationId),
+          resolved: [...old.maintenance.resolved,
+            old.maintenance.unresolved.find((n: any) => n.id === pdmNotificationId)
+          ].filter(Boolean),
+        },
+      };
+    });
+  },
+});
 
   const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
   const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.UNRESOLVED);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [showAnomaliesModal, setShowAnomaliesModal] = useState(false);
 
-  const archiveMessageBus = useMessageBus(TransmitChannels.ARCHIVE);
-  const notificationMessageBus = useMessageBus(TransmitChannels.NOTIFICATION);
-  const pdmMessageBus = useMessageBus(TransmitChannels.PDM);
+  
+ 
   const detailsRef = useRef(null); // used to close notification dropdown when clicking outside
 
   useEffect(() => {
@@ -78,144 +127,158 @@ const Navbar = () => {
     };
   }, []);
 
-  // Subscribe to real-time notifications
-  useEffect(() => {
-    const transmit = transmitConnection;
-    const notificationSubscription = transmit.subscription(TransmitChannels.NOTIFICATION);
-    const archiveSubscription = transmit.subscription(TransmitChannels.ARCHIVE);
-    const pdmSubscription = transmit.subscription(TransmitChannels.PDM);
-
-    (async () => {
-      await notificationSubscription.create();
-      console.log("Subscribed to notification channel");
-      await archiveSubscription.create();
-      console.log("Subscribed to archive channel");
-      await pdmSubscription.create();
-      console.log("Subscribed to pdm channel");
-    })();
-
-    // re fetch data when new data is inserted in db
-    const notificationUnsubscribe = notificationSubscription.onMessage(async () => {
-      // React Query will automatically refetch when data changes
+  
+  const handleMarkPdmNotificationAsRead = (pdmNotificationId: string) => {
+    markPdmNotificationAsReadMutation.mutate(pdmNotificationId, {
+      onSuccess: () => {
+        toast.success("Maintenance alert resolved!");
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || `Failed to resolve notification`);
+      },
     });
+  };
 
-    const archiveUnsubscribe = archiveSubscription.onMessage(async () => {
-      try {
-        archiveMessageBus({ time: Date.now(), message: "data inserted in archive table" });
-      } catch (error) {
-        console.error(error);
-        toast.error("Error updating archive");
-      }
+  const handleMarkNotificationAsRead = (notificationId: string) => {
+    markNotificationAsReadMutation.mutate(notificationId, {
+      onSuccess: () => {
+        toast.success("Anomaly resolved!");
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || `Failed to resolve notification`);
+      },
     });
+  };
+  // ✅ NEW: Resolve all unresolved anomalies
+  const handleResolveAllAnomalies = async () => {
+    if (!unresolvedAnomalyNotificationsData || unresolvedAnomalyNotificationsData.length === 0) {
+      toast.info("No unresolved anomalies");
+      return;
+    }
 
-    const pdmUnsubscribe = pdmSubscription.onMessage(async (message) => {
-      try {
-        console.log("::::new pdm data:::", message);
-        // React Query will automatically refetch when data changes
-        pdmMessageBus({ time: Date.now(), message: "new pdm data recieved" });
-      } catch (err) {
-        console.error(err);
-      }
-    });
-
-    return () => {
-      notificationUnsubscribe();
-      console.log("Unsubscribed from notification channel");
-      archiveUnsubscribe();
-      console.log("Unsubscribed from archive channel");
-      pdmUnsubscribe();
-      console.log("Unsubscribed from pdm channel");
-    };
-  }, [archiveMessageBus, notificationMessageBus, pdmMessageBus]);
-
-  const handleMarkPdmNotificationAsRead = async (pdmNotificationId: string) => {
     try {
-      // make req to backend to mark notification as read
-      const { mutate, data, isError, error } = useMutation({
-        mutationKey: ["pdm", "notification", "read"],
-        mutationFn: (pdmNotificationId: string) => tuyau.pdm.notification.read({ id: pdmNotificationId }).$patch(),
-      });
+      toast.loading(`Resolving ${unresolvedAnomalyNotificationsData.length} anomalies...`);
 
-      mutate(pdmNotificationId);
-
-      if (isError) {
-        toast.error(error.message || `Failed to resolve pdm notification`);
-        return;
+      for (const notification of unresolvedAnomalyNotificationsData) {
+        await new Promise((resolve) => {
+          markNotificationAsReadMutation.mutate(notification.id, {
+            onSuccess: () => resolve(null),
+            onError: () => resolve(null),
+          });
+        });
       }
 
-      // send message on the notification bus to inform other components
-      notificationMessageBus({
-        time: Date.now(),
-        message: "pdm notification marked as read",
-        notificationId: pdmNotificationId,
-      });
-
-      // React Query will automatically refetch when data changes
-    } catch (err) {
-      console.error("Error resolving notification:", err);
-      toast.error(`Failed to resolve notification: ${err?.message}`);
+   toast.success("All anomalies resolved!");
+      refetchSummary(); // only refetch once after ALL are done, not per notification
+    } catch (error: any) {
+      toast.error("Failed to resolve all anomalies");
     }
   };
 
-  const handleMarkNotificationAsRead = async (notificationId: string) => {
+  // ✅ NEW: Resolve all unresolved PDM notifications
+  const handleResolveAllPdm = async () => {
+    if (!pdmUnresolvedNotifications || pdmUnresolvedNotifications.length === 0) {
+      toast.info("No unresolved maintenance alerts");
+      return;
+    }
+
     try {
-      // make req to backend to mark notification as read
-      const { mutate, data, isError, isLoading, error } = useMutation({
-        mutationKey: ["anomaly", "notification", "read"],
-        mutationFn: (notificationId: string) => tuyau.notification.read({ id: notificationId }).$patch(),
+      toast.loading(`Resolving ${pdmUnresolvedNotifications.length} maintenance alerts...`);
+
+      for (const notification of pdmUnresolvedNotifications) {
+        await new Promise((resolve) => {
+          markPdmNotificationAsReadMutation.mutate(notification.id, {
+            onSuccess: () => resolve(null),
+            onError: () => resolve(null),
+          });
+        });
+      }
+
+      toast.success("All maintenance alerts resolved!");
+      refetchSummary(); // only refetch once after ALL are done
+    } catch (error: any) {
+      toast.error("Failed to resolve all maintenance alerts");
+    }
+  };
+
+  // ✅ NEW: Clear resolved anomaly records by period
+  const handleClearAnomalyRecords = async (period: string) => {
+    try {
+      const toastId = toast.loading(`Clearing anomaly records from last ${period}...`);
+
+      // API call to clear records
+      const response = await fetch(`http://localhost:3333/notification/clear`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ period }),
       });
 
-      mutate(notificationId);
+      if (response.ok) {
+        toast.success(`Cleared anomaly records from last ${period}!`, { id: toastId });
+        refetchSummary();
+        setShowAnomaliesModal(false);
+      } else {
+        toast.error("Failed to clear records", { id: toastId });
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error?.message}`);
+    }
+  };
 
-      // The mutation will automatically trigger a refetch of the queries
-      // No need to manually refetch
+  // ✅ NEW: Clear resolved maintenance records by period
+  const handleClearMaintenanceRecords = async (period: string) => {
+    try {
+      const toastId = toast.loading(`Clearing records from last ${period}...`);
 
-      notificationMessageBus({
-        time: Date.now(),
-        message: "notification marked as read",
-        notificationId: notificationId,
+      // API call to clear records
+      const response = await fetch(`http://localhost:3333/pdm/notification/clear`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ period }),
       });
-    } catch (err) {
-      console.error("Error resolving notification:", err);
-      // Toast error is handled by the mutation
+
+      if (response.ok) {
+        toast.success(`Cleared records from last ${period}!`, { id: toastId });
+        refetchSummary();
+        setShowMaintenanceModal(false);
+      } else {
+        toast.error("Failed to clear records", { id: toastId });
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error?.message}`);
     }
   };
 
   return (
-    <nav className="bg-base-200 px-4 py-2 flex justify-between items-center">
-      {/* navigate to engine page */}
-      <div
-        className="flex items-center justify-center space-x-2 w-50 cursor-pointer"
-        onClick={() => window.location.replace("/engine")}
-      >
-        {/* <img src={Logo} alt="AccurateIC Logo" className="w-40" /> */}
-        <LiaConnectdevelop size={40} />
-        <span className="text-2xl">NeuroGen</span>
-      </div>
-
+    <nav className="bg-base-200 px-2 py-3 flex justify-end items-center sticky top-0 z-50 shadow-sm">
       <div className="flex items-center space-x-3">
         {/* --- DaisyUI Dropdown Structure --- */}
-        <details ref={detailsRef} className="dropdown dropdown-end">
+        <details
+          ref={detailsRef}
+          className="dropdown dropdown-end"
+          onToggle={(e) => {
+            // ✅ Fetch full summary ONLY when dropdown opens — never on SSE events
+            if ((e.target as HTMLDetailsElement).open) {
+              refetchSummary();
+            }
+          }}
+        >
           <summary className="btn btn-ghost btn-circle relative">
-            <CiBellOn size={38} />
-            {(resolvedAnomalyNotificationsData?.length || 0) +
-              (unresolvedAnomalyNotificationsData?.length || 0) +
-              pdmResolvedNotifications.length +
-              pdmUnresolvedNotifications.length >
-              0 && (
+            <CiBellOn size={24} className="md:w-[32px] md:h-[32px]" />
+            {/* ✅ Badge uses real-time count query (updated every 5s via SSE) */}
+            {unresolvedAnomalyCount + unresolvedMaintenanceCount > 0 && (
               <div className="badge badge-sm badge-primary absolute top-0 right-4">
-                {(resolvedAnomalyNotificationsData?.length || 0) +
-                  (unresolvedAnomalyNotificationsData?.length || 0) +
-                  pdmResolvedNotifications.length +
-                  pdmUnresolvedNotifications.length}
+                {unresolvedAnomalyCount + unresolvedMaintenanceCount}
               </div>
             )}
           </summary>
-          <div className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100">
+          <div className="dropdown-content w-[92vw] sm:w-96 shadow-2xl rounded-box bg-base-100 z-50">
             {/* Dropdown Content */}
             <div
               tabIndex={0}
-              className="dropdown-content w-96 shadow-2xl rounded-box bg-base-100"
+              className="dropdown-content w-full shadow-2xl rounded-box bg-base-100"
               onClick={(e) => e.stopPropagation()}
               data-modal="true"
             >
@@ -226,6 +289,7 @@ const Navbar = () => {
                     activeTab === primaryTab.ANOMALIES ? "tab-active " : ""
                   }`}
                   onClick={() => setActiveTab(primaryTab.ANOMALIES)}
+                  onDoubleClick={() => setShowAnomaliesModal(true)}
                 >
                   <p
                     className={` ${
@@ -236,20 +300,21 @@ const Navbar = () => {
                   >
                     {primaryTab.ANOMALIES}
                   </p>
-                  {(resolvedAnomalyNotificationsData?.length || 0) + (unresolvedAnomalyNotificationsData?.length || 0) >
-                    0 && (
+                  {unresolvedAnomalyCount > 0 && (
                     <span className="ml-2 badge badge-sm badge-primary">
-                      {(resolvedAnomalyNotificationsData?.length || 0) +
-                        (unresolvedAnomalyNotificationsData?.length || 0)}
+                      {unresolvedAnomalyCount}
                     </span>
                   )}
                 </button>
                 <button
-                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === primaryTab.MAINTENANCE ? "tab-active" : ""}`}
+                  className={`tab tab-lifted flex-1 text-base-content ${
+                    activeTab === primaryTab.MAINTENANCE ? "tab-active" : ""
+                  }`}
                   onClick={() => {
                     setActiveTab(primaryTab.MAINTENANCE);
                     setActiveSecondaryTab(secondaryTab.UNRESOLVED);
                   }}
+                  onDoubleClick={() => setShowMaintenanceModal(true)}
                 >
                   <p
                     className={` ${
@@ -260,9 +325,9 @@ const Navbar = () => {
                   >
                     {primaryTab.MAINTENANCE}
                   </p>
-                  {pdmResolvedNotifications.length + pdmUnresolvedNotifications.length > 0 && (
+                  {unresolvedMaintenanceCount > 0 && (
                     <span className="ml-2 badge badge-sm badge-error">
-                      {pdmResolvedNotifications.length + pdmUnresolvedNotifications.length}
+                      {unresolvedMaintenanceCount}
                     </span>
                   )}
                 </button>
@@ -301,41 +366,57 @@ const Navbar = () => {
                           <p>No new unresolved anomalies</p>
                         </div>
                       ) : (
-                        unresolvedAnomalyNotificationsData.map((notification) => (
-                          <div
-                            key={notification.id}
-                            className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors"
-                          >
-                            <div className="card-body">
-                              <div className="flex flex-col justify-between items-start gap-2">
-                                <div>
-                                  <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
-                                  <p className="text-xs text-base-content/70 mt-1">
-                                    {formatTimestamp(notification.startedAt)}
-                                  </p>
-                                  <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
-                                </div>
-                                <div className="w-full flex">
-                                  {notification.shouldBeDisplayed ? (
-                                    <button
-                                      onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                      className="btn btn-xs w-full btn-error"
-                                    >
-                                      Resolve
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleMarkNotificationAsRead(notification.id)}
-                                      className="btn btn-xs w-full btn-disabled"
-                                    >
-                                      Resolved
-                                    </button>
-                                  )}
+                        <>
+                          {/* ✅ NEW: Resolve All button */}
+                          <div className="mb-3">
+                            <button
+                              onClick={handleResolveAllAnomalies}
+                              disabled={markNotificationAsReadMutation.isPending}
+                              className="btn btn-sm btn-warning w-full"
+                            >
+                              {markNotificationAsReadMutation.isPending
+                                ? "Resolving..."
+                                : "Resolve All Anomalies"}
+                            </button>
+                          </div>
+
+                          {unresolvedAnomalyNotificationsData.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className="card card-compact bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                            >
+                              <div className="card-body">
+                                <div className="flex flex-col justify-between items-start gap-2">
+                                  <div>
+                                    <h4 className="card-title text-sm text-base-content">{notification.summary}</h4>
+                                    <p className="text-xs text-base-content/70 mt-1">
+                                      {formatTimestamp(notification.startedAt)}
+                                    </p>
+                                    <p className="text-sm mt-2 text-base-content/90">{notification.message}</p>
+                                  </div>
+                                  <div className="w-full flex">
+                                    {notification.shouldBeDisplayed ? (
+                                      <button
+                                        onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                        disabled={markNotificationAsReadMutation.isPending}
+                                        className="btn btn-xs w-full btn-error"
+                                      >
+                                        {markNotificationAsReadMutation.isPending ? "..." : "Resolve"}
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleMarkNotificationAsRead(notification.id)}
+                                        className="btn btn-xs w-full btn-disabled"
+                                      >
+                                        Resolved
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))
+                          ))}
+                        </>
                       )}
                     </div>
                   ) : (
@@ -388,59 +469,73 @@ const Navbar = () => {
                   <div className="p-2">
                     {pdmUnresolvedNotifications.length === 0 ? (
                       <div className="text-center py-8 text-base-content/70">
-                        <p>No new resolved maintenance alerts</p>
+                        <p>No new unresolved maintenance alerts</p>
                       </div>
                     ) : (
-                      pdmUnresolvedNotifications.map((pdmNotif) => (
-                        <div
-                          key={pdmNotif.id}
-                          className="card card-compact w-full bg-base-200 mb-2 hover:bg-base-300 transition-colors"
-                        >
-                          <div className="card-body w-full">
-                            <div className="flex flex-col w-full gap-2">
-                              <div className="w-full">
-                                <h4 className="card-title text-sm text-base-content">Maintenance Prediction Alert</h4>
-                                <p className="text-xs text-base-content/70 mt-1">
-                                  {formatTimestamp(pdmNotif.timestamp)}
-                                </p>
-                                <p className="text-sm mt-2 break-words text-base-content/90">
-                                  {pdmNotif.maintenanceReason?.accel_x}
-                                </p>
-                                <p className="flex flex-row gap-2">
-                                  <span className="font-semibold">Predicted Dominant Frequency:</span>
-                                  <span>{pdmNotif.predictedDominantFrequency} Hz</span>
-                                </p>
-                                <p className="w-full">
-                                  <span className="font-semibold">Normal Frequency:</span> 0.1 ± 0.005 Hz
-                                </p>
-                                <p>
-                                  <span className="font-semibold">Predicted Dominant Amplitude:</span>
-                                  {pdmNotif.predictedDominantAmplitude} G units
-                                </p>
-                                <p className="w-full">
-                                  <span className="font-semibold">Normal Amplitude Range:</span> -2 to +2 G units
-                                </p>
+                      <>
+                        {/* ✅ NEW: Resolve All button */}
+                        <div className="mb-3">
+                          <button
+                            onClick={handleResolveAllPdm}
+                            disabled={markPdmNotificationAsReadMutation.isPending}
+                            className="btn btn-sm btn-warning w-full"
+                          >
+                            {markPdmNotificationAsReadMutation.isPending ? "Resolving..." : "Resolve All Maintenance"}
+                          </button>
+                        </div>
+
+                        {pdmUnresolvedNotifications.map((pdmNotif) => (
+                          <div
+                            key={pdmNotif.id}
+                            className="card card-compact w-full bg-base-200 mb-2 hover:bg-base-300 transition-colors"
+                          >
+                            <div className="card-body w-full">
+                              <div className="flex flex-col w-full gap-2">
+                                <div className="w-full">
+                                  <h4 className="card-title text-sm text-base-content">Maintenance Prediction Alert</h4>
+                                  <p className="text-xs text-base-content/70 mt-1">
+                                    {formatTimestamp(pdmNotif.timestamp)}
+                                  </p>
+                                  <p className="text-sm mt-2 break-words text-base-content/90">
+                                    {pdmNotif.maintenanceReason?.accel_x}
+                                  </p>
+                                  <p className="flex flex-row gap-2">
+                                    <span className="font-semibold">Predicted Dominant Frequency:</span>
+                                    <span>{pdmNotif.predictedDominantFrequency} Hz</span>
+                                  </p>
+                                  <p className="w-full">
+                                    <span className="font-semibold">Normal Frequency:</span> 0.1 ± 0.005 Hz
+                                  </p>
+                                  <p>
+                                    <span className="font-semibold">Predicted Dominant Amplitude:</span>
+                                    {pdmNotif.predictedDominantAmplitude} G units
+                                  </p>
+                                  <p className="w-full">
+                                    <span className="font-semibold">Normal Amplitude Range:</span> -2 to +2 G units
+                                  </p>
+                                </div>
+                                {pdmNotif.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                    disabled={markPdmNotificationAsReadMutation.isPending}
+                                    className="btn btn-xs btn-error w-full"
+                                  >
+                                    {markPdmNotificationAsReadMutation.isPending ? "..." : "Resolve"}
+                                  </button>
+                                )}
+                                {!pdmNotif.shouldBeDisplayed && (
+                                  <button
+                                    onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
+                                    className="btn btn-xs btn-disabled w-full"
+                                  >
+                                    Resolved
+                                  </button>
+                                )}
                               </div>
-                              {pdmNotif.shouldBeDisplayed && (
-                                <button
-                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-error w-full"
-                                >
-                                  Resolve
-                                </button>
-                              )}
-                              {!pdmNotif.shouldBeDisplayed && (
-                                <button
-                                  onClick={() => handleMarkPdmNotificationAsRead(pdmNotif.id)}
-                                  className="btn btn-xs btn-disabled w-full"
-                                >
-                                  Resolved
-                                </button>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </>
                     )}
                   </div>
                 ) : (
@@ -505,16 +600,30 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-              {/* Footer */}
-              {/* <div className="bg-base-200 rounded-b-box p-2 border-t border-base-300">
-              <button className="btn btn-ghost btn-sm w-full">View all notifications</button>
-            </div> */}
             </div>
           </div>
         </details>
 
         <Profile />
       </div>
+
+      {/* Anomalies Modal */}
+      <AnomaliesModal
+        isOpen={showAnomaliesModal}
+        unresolved={(unresolvedAnomalyNotificationsData || []).length}
+        resolved={(resolvedAnomalyNotificationsData || []).length}
+        onClose={() => setShowAnomaliesModal(false)}
+        onClear={handleClearAnomalyRecords}
+      />
+
+      {/* Maintenance Modal */}
+      <MaintenanceModal
+        isOpen={showMaintenanceModal}
+        unresolved={pdmUnresolvedNotifications.length}
+        resolved={pdmResolvedNotifications.length}
+        onClose={() => setShowMaintenanceModal(false)}
+        onClear={handleClearMaintenanceRecords}
+      />
     </nav>
   );
 };

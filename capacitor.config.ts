@@ -1,15 +1,17 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const config = {
+const config: CapacitorConfig = {
   appId: 'com.accurate.voltaic',
   appName: 'Voltaic',
   webDir: 'apps/frontend/dist',
-  bundledWebRuntime: false,
- server: {
-    cleartext: false,                   // ✅ Because you're using HTTPS
-    androidScheme: 'https'             // ✅ Must be 'https', not a full URL
+  server: {
+    hostname: '192.168.10.69',
+    cleartext: true,
+    androidScheme: 'http'
   },
   android: {
-    allowMixedContent: false           // 🔐 Disallow HTTP API calls from an HTTPS app
+    allowMixedContent: false
   }
 };
+
+export default config;

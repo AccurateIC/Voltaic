@@ -27,8 +27,8 @@ export const OilPressureLineChart = ({ value }) => {
       title: {
         display: true,
         text: "Oil Pressure (bar)",
-        color: "rgba(255, 255, 255, 0.8)",
-        font: { size: 18, weight: "normal" },
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
       },
     },
 
@@ -52,20 +52,48 @@ export const OilPressureLineChart = ({ value }) => {
     },
   };
 
-  const chartData = value.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
+  // Create single dataset with conditional point colors
+  const chartData = value.map((item) => ({ 
+    x: item.timestamp, 
+    y: item.propertyValue
+  }));
+
+  // Create point colors array - red for anomalies, blue for normal
+  const pointColors = value.map((item) => 
+    item.isAnomaly ? 'rgba(255, 0, 0, 1)' : 'rgba(82, 120, 209, 1)'
+  );
+
+  // Create point background colors array
+  const pointBgColors = value.map((item) => 
+    item.isAnomaly ? 'rgba(255, 0, 0, 0.8)' : 'rgba(82, 120, 209, 0.5)'
+  );
+
+  // Create point styles array - triangle for anomalies, circle for normal
+  const pointStyles = value.map((item) => 
+    item.isAnomaly ? 'triangle' : 'circle'
+  );
+
+  // Create point radius array - larger for anomalies
+  const pointRadius = value.map((item) => 
+    item.isAnomaly ? 6 : 3
+  );
+
   const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
         label: "Oil Pressure (bar)",
         data: chartData,
-        borderColor: "rgba(82, 120, 209, 1)",
+        borderColor: "rgba(82, 120, 209, 1)", // Keep line blue
         backgroundColor: "rgba(82, 120, 209, 0.5)",
-        pointStyle: "circle",
-        pointRadius: 3,
+        pointBackgroundColor: pointBgColors,
+        pointBorderColor: pointColors,
+        pointStyle: pointStyles,
+        pointRadius: pointRadius,
         pointHoverRadius: 5,
         pointHitRadius: 10,
         borderWidth: 2,
+        tension: 0.1,
       },
     ],
   };

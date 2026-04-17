@@ -29,8 +29,8 @@ export const GeneratorCurrentLineChart = ({ value }) => {
       title: {
         display: true,
         text: "Generator Current Monitor",
-        color: "rgba(255, 255, 255, 0.8)",
-        font: { size: 18, weight: "normal" },
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
       },
     },
     scales: {
@@ -57,7 +57,7 @@ export const GeneratorCurrentLineChart = ({ value }) => {
   const l2Data = value.map((item) => ({ x: item.timestamp, y: item.L2 }));
   const l3Data = value.map((item) => ({ x: item.timestamp, y: item.L3 }));
 
-  console.log("LLLLLL", l1Data, l2Data, l3Data);
+  
 
   const data: ChartData<"line"> = {
     datasets: [

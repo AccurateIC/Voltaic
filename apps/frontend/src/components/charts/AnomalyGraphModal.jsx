@@ -18,7 +18,7 @@ import { GenericAnimatedModal } from "../GenericAnimatedModal";
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale);
 
 const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) => {
-  console.log("graph data", graphData);
+
   if (!isOpen || graphData.length === 0) return null;
 
   const sortedData = useMemo(() => {

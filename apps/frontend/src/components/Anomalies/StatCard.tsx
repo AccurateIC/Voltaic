@@ -1,16 +1,18 @@
+import Skeleton from "../Skeleton";
+
 export const StatCard = ({ title, data, isLoading }: { title: string; data: number; isLoading: boolean }) => {
+  if (isLoading || data === undefined || data === null) {
+    return (
+      <div className="w-full h-full min-h-[120px]">
+        <Skeleton type="stat" />
+      </div>
+    );
+  }
+
   return (
-    <div className="card card-border bg-base-100 w-96 shadow rounded-lg">
+    <div className="card card-border bg-base-100 w-full min-w-0 shadow rounded-lg">
       <div className="card-body">
         <h2 className="card-title">{title}</h2>
-        {/* Loading State */}
-        {isLoading && (
-          <div className="h-full flex items-center justify-center">
-            <span className="loading loading-spinner loading-xl"></span>
-          </div>
-        )}
-
-        {/* Data Available State */}
         <p className="text-xl">{data}</p>
       </div>
     </div>

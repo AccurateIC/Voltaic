@@ -8,7 +8,8 @@ import SensorProperty from "#models/sensor_property";
 import { DateTime, DateTimeUnit } from "luxon";
 import { PdmService } from "#services/pdm_service";
 import { Exception } from "@adonisjs/core/exceptions";
-
+import logger from "@adonisjs/core/services/logger";
+import env from "#start/env";
 export default class PdmController {
   async markNotificationRead({ params }: HttpContext) {
     const pdmNotification = await MaintenanceNotification.findOrFail(params.id);
@@ -45,48 +46,59 @@ export default class PdmController {
     return latestPdmNotification;
   }
 
-  async getRecentActual({}: HttpContext) {
-    const pdmVibrationData = await Vibration.query()
-      .preload("sensorProperty")
-      .preload("pdmDataKind")
-      .whereHas("pdmDataKind", (kindQuery) => {
-        kindQuery.where("kind", "actual");
-      })
-      .orderBy("timestamp", "desc")
-      .limit(60 * 20);
+  // ✅ replace both with — use last 30 minutes as shared time window
+async getRecentActual({}: HttpContext) {
+  const cutoff = DateTime.now().minus({ minutes: 30 }).toSQL();
+  const pdmVibrationData = await Vibration.query()
+    .preload("sensorProperty")
+    .preload("pdmDataKind")
+    .whereHas("pdmDataKind", (kindQuery) => {
+      kindQuery.where("kind", "actual");
+    })
+    .where("timestamp", ">=", cutoff)
+    .orderBy("timestamp", "asc");
+  return pdmVibrationData;
+}
 
-    return pdmVibrationData;
-  }
-
-  async getRecentForecasted({}: HttpContext) {
-    const pdmVibrationData = await Vibration.query()
-      .preload("sensorProperty")
-      .preload("pdmDataKind")
-      .whereHas("pdmDataKind", (kindQuery) => {
-        kindQuery.where("kind", "forecasted");
-      })
-      .preload("maintenanceNotification")
-      .orderBy("timestamp", "desc")
-      .limit(60 * 20);
-    return pdmVibrationData;
-  }
+async getRecentForecasted({}: HttpContext) {
+  const cutoff = DateTime.now().minus({ minutes: 30 }).toSQL();
+  const pdmVibrationData = await Vibration.query()
+    .preload("sensorProperty")
+    .preload("pdmDataKind")
+    .whereHas("pdmDataKind", (kindQuery) => {
+      kindQuery.where("kind", "forecasted");
+    })
+    .preload("maintenanceNotification")
+    .where("timestamp", ">=", cutoff)
+    .orderBy("timestamp", "asc");
+  return pdmVibrationData;
+}
 
   async getLatestEntry({}: HttpContext) {
     const pdmVibrationEntry = await Vibration.query().orderBy("timestamp", "desc").limit(1);
     return pdmVibrationEntry;
   }
 
-  async getRecent({}: HttpContext) {
+async getRecent({ request }: HttpContext) {
+    const page = request.input('page', 1);
+    const limit = request.input('limit', 50);
+    
     const pdmVibrationData = await Vibration.query()
       .preload("sensorProperty")
       .preload("pdmDataKind")
-      .limit(60 * 60 * 2); // 1 hour
+      .orderBy("timestamp", "desc")
+      .paginate(page, limit);
+    
     return pdmVibrationData;
   }
 
-  async create({ request }: HttpContext) {
+  async create({ request, response }: HttpContext) {
+    const apiKey = request.header("x-api-key");
+    if (apiKey !== env.get("ML_API_KEY")) {
+      return response.status(401).json({ message: "Unauthorized" });
+    }
     const data = await request.validateUsing(createPdmValidator);
-    console.log(data);
+  logger.info({ data }, "Received PDM data");
     transmit.broadcast("pdm", "new pdm data");
 
     // 1: if maintenance is needed, add to maintenance_notifications table
@@ -216,4 +228,50 @@ export default class PdmController {
     await MaintenanceNotification.query().delete();
     return vibrationData;
   }
+
+  // ✅ NEW: CLEAR RESOLVED MAINTENANCE RECORDS BY PERIOD
+  // ✅ NEW: CLEAR RESOLVED MAINTENANCE RECORDS BY PERIOD
+async clearRecords({ request, response }: HttpContext) {
+  try {
+    const { period } = request.only(['period']);
+    
+    let daysToDelete = 1;
+    if (period === '1week') daysToDelete = 7;
+    if (period === '1month') daysToDelete = 30;
+    
+    const cutoffDate = DateTime.now().minus({ days: daysToDelete });
+    
+    // Find notifications to delete
+    const notifications = await MaintenanceNotification.query()
+      .where('shouldBeDisplayed', false)
+      .where('resolvedAt', '<=', cutoffDate.toSQL());
+    
+    const notificationIds = notifications.map(n => n.id);
+    
+    if (notificationIds.length > 0) {
+      // 1. Null out references in vibrations table to satisfy RESTRICT constraint
+      await Vibration.query()
+        .whereIn('maintenance_notification_id', notificationIds)
+        .update({ maintenanceNotificationId: null });
+      
+      // 2. Delete the notifications
+      await MaintenanceNotification.query()
+        .whereIn('id', notificationIds)
+        .delete();
+    }
+    
+    const result = notificationIds.length;
+    
+    return response.ok({ 
+      success: true, 
+      deleted: result,
+      message: `Deleted ${result} maintenance records from last ${period}`
+    });
+  } catch (error) {
+    return response.internalServerError({ 
+      error: error.message,
+      message: 'Failed to clear records'
+    });
+  }
+}
 }

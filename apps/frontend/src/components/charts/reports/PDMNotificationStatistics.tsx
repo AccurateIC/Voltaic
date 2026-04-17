@@ -19,6 +19,7 @@ import { getWeekRange } from "../../../lib/DateTimeUtils";
 import { useMutation } from "@tanstack/react-query";
 import { tuyau } from "../../../lib/Tuyau";
 import { useEffect } from "react";
+import Skeleton from "../../Skeleton";
 
 export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: DateTimeUnit }) => {
   //hooks
@@ -31,9 +32,9 @@ export const PDMNotificationStatistics = ({ timeDuration }: { timeDuration: Date
   useEffect(() => {
     mutate(timeDuration);
   }, [timeDuration]); // Removed mutate from dependencies to prevent infinite loop
-  if (isPending) return <div className="skeleton h-full w-full"></div>;
-  if (isError || !data || data.data.length === 0)
-    return <div className="h-full w-full flex items-center justify-center">N/A</div>;
+  if (isPending || !data || !data.data || data.data.length === 0) {
+    return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;
+  }
 
   let xs = [];
   let ys: number[] = [];

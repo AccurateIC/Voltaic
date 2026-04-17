@@ -60,8 +60,8 @@ router
     router.post("login", "#controllers/auth_controller.login");
     router.patch("update", "#controllers/auth_controller.update").use([middleware.auth()]);
     router.post("logout", "#controllers/auth_controller.logout").use([middleware.auth()]);
-    router.patch("activate/:id", "#controllers/auth_controller.activate");
-    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate"); // soft delete
+   router.patch("activate/:id", "#controllers/auth_controller.activate").use([middleware.auth()]);
+    router.patch("deactivate/:id", "#controllers/auth_controller.deactivate").use([middleware.auth()]); // soft delete
     router.delete("hardDelete/:id", "#controllers/auth_controller.destroy"); // really really delete xD
   })
   .prefix("auth");
@@ -107,10 +107,10 @@ router
 
     // TODO: maybe add bearer token authorization here so that not anyone can post data to this endpoint.
     //       if not added, this api endpoint can be overwhelmed by bad actors and crash the application (potentially)
-    router.post("create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
+router.post("create", "#controllers/archive_controller.create"); // processed data from ML models ought to be posted here
 
-    // probably not having an option to delete the telemetry data might be a good idea instead
-    router.delete("delete/:id", "#controllers/archive_controller.delete").use([middleware.auth()]);
+   // delete selected one or multiple archive records
+   router.post("delete", "#controllers/archive_controller.delete").use([middleware.auth()]);
 
     // endpoint to get data between two timestamps
     router.get("getBetween", "#controllers/archive_controller.getBetween").use([middleware.auth()]);
@@ -127,7 +127,7 @@ router
     router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);
 
     // delete all entries in the `archive` table
-    router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
+  router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
 
     router.get("/getAnomalyStatistics", "#controllers/archive_controller.getAnomalyStatistics");
   })
@@ -145,10 +145,10 @@ router
 // notification type apis
 router
   .group(() => {
-    router.get("getAll", "#controllers/notification_type_controller.getAll");
-    router.post("create", "#controllers/notification_type_controller.create");
-    router.patch("update/:id", "#controllers/notification_type_controller.update");
-    router.delete("delete/:id", "#controllers/notification_type_controller.delete");
+router.get("getAll", "#controllers/notification_type_controller.getAll").use([middleware.auth()]);
+    router.post("create", "#controllers/notification_type_controller.create").use([middleware.auth()]);
+    router.patch("update/:id", "#controllers/notification_type_controller.update").use([middleware.auth()]);
+    router.delete("delete/:id", "#controllers/notification_type_controller.delete").use([middleware.auth()]);
   })
   .prefix("notificationType");
 
@@ -158,34 +158,47 @@ router
     router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
     router.get("getResolved", "#controllers/notification_controller.getResolved").use([middleware.auth()]);
     router.get("getUnresolved", "#controllers/notification_controller.getUnresolved").use([middleware.auth()]);
+    router.get("summary", "#controllers/notification_controller.summary").use([middleware.auth()]);
+    // ✅ NEW: Lightweight unresolved counts only — used by Navbar bell badge
+    router.get("count", "#controllers/notification_controller.count").use([middleware.auth()]);
     router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
+  
 
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
+    router.post("resolveMultiple", "#controllers/notification_controller.resolveMultiple").use([middleware.auth()]);
+    // ✅ NEW: Clear resolved anomaly records by period
+    router.post("clear", "#controllers/notification_controller.clearRecords");
   })
   .prefix("notification");
 
 // PDM
 router
   .group(() => {
-    router.post("create", "#controllers/pdm_controller.create");
+router.post("create", "#controllers/pdm_controller.create");
 
-    router.get("getRecent", "#controllers/pdm_controller.getRecent");
-    router.get("getLatestEntry", "#controllers/pdm_controller.getLatestEntry");
-    router.get("getRecentActual", "#controllers/pdm_controller.getRecentActual");
-    router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted");
+    router.get("getRecent", "#controllers/pdm_controller.getRecent").use([middleware.auth()]);
+    router.get("getLatestEntry", "#controllers/pdm_controller.getLatestEntry").use([middleware.auth()]);
+    router.get("getRecentActual", "#controllers/pdm_controller.getRecentActual").use([middleware.auth()]);
+    router.get("getRecentForecasted", "#controllers/pdm_controller.getRecentForecasted").use([middleware.auth()]);
 
-    router.get("notification/getResolved", "#controllers/pdm_controller.getResolved");
-    router.get("notification/getAll", "#controllers/pdm_controller.getAllNotifications");
-    router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved");
-    router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification");
-    router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead");
-    router.post("notification/getStatistics", "#controllers/pdm_controller.getStatistics");
-
+    router.get("notification/getResolved", "#controllers/pdm_controller.getResolved").use([middleware.auth()]);
+    router.get("notification/getAll", "#controllers/pdm_controller.getAllNotifications").use([middleware.auth()]);
+    router.get("notification/getUnresolved", "#controllers/pdm_controller.getUnresolved").use([middleware.auth()]);
+    router.get("notification/getLatestUnresolved", "#controllers/pdm_controller.getLatestUnresolvedNotification").use([middleware.auth()]);
+    router.patch("notification/read/:id", "#controllers/pdm_controller.markNotificationRead").use([middleware.auth()]);
+    router.post("notification/getStatistics", "#controllers/pdm_controller.getStatistics").use([middleware.auth()]);
+    router.post("notification/clear", "#controllers/pdm_controller.clearRecords");
     router.delete("delete", "#controllers/pdm_controller.delete");
   })
   .prefix("pdm");
 
+// ML Server Notifications
+router
+  .group(() => {
+    router.post("notify-login", "#controllers/ml_controller.notifyLogin");
+  })
+  .prefix("ml");
 // Reports
 router
   .group(() => {

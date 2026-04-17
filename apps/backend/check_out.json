@@ -1,0 +1,91 @@
+{
+  "archives": [
+    {
+      "time": "2026-03-18T05:31:36.481Z",
+      "prop": "engOilPress",
+      "val": 4.1
+    },
+    {
+      "time": "2026-03-18T05:31:28.142Z",
+      "prop": "engOilPress",
+      "val": 4.1
+    },
+    {
+      "time": "2026-03-18T05:30:50.584Z",
+      "prop": "engSpeedDisplay",
+      "val": 0
+    },
+    {
+      "time": "2026-03-18T05:30:46.414Z",
+      "prop": "engSpeedDisplay",
+      "val": 0
+    },
+    {
+      "time": "2026-03-18T05:30:38.101Z",
+      "prop": "engOilPress",
+      "val": 4.1
+    }
+  ],
+  "notifications": [
+    {
+      "startedAt": "2026-03-17T10:35:48.245+00:00",
+      "summary": "Anomaly detected for Generator Power Output",
+      "displayed": false,
+      "finishedAt": "2026-03-17T10:35:49.575+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T11:03:24.734+00:00",
+      "summary": "Anomaly detected for Generator Power Output",
+      "displayed": false,
+      "finishedAt": "2026-03-17T11:03:25.385+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T10:48:56.136+00:00",
+      "summary": "Anomaly detected for Engine Oil Pressure",
+      "displayed": false,
+      "finishedAt": "2026-03-17T10:48:59.009+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T11:11:16.845+00:00",
+      "summary": "Anomaly detected for Engine Oil Pressure",
+      "displayed": false,
+      "finishedAt": "2026-03-17T11:11:17.462+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T09:40:28.228+00:00",
+      "summary": "Anomaly detected for Generator Phase 1 Current",
+      "displayed": false,
+      "finishedAt": "2026-03-17T09:40:32.557+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T11:08:59.354+00:00",
+      "summary": "Anomaly detected for Engine Oil Pressure",
+      "displayed": false,
+      "finishedAt": "2026-03-17T11:09:04.122+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T09:35:02.370+00:00",
+      "summary": "Anomaly detected for Engine Speed",
+      "displayed": false,
+      "finishedAt": "2026-03-17T09:35:11.009+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T07:50:26.646+00:00",
+      "summary": "Anomaly detected for Engine Oil Pressure",
+      "displayed": false,
+      "finishedAt": "2026-03-17T07:50:28.461+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T11:19:20.138+00:00",
+      "summary": "Anomaly detected for Engine Oil Pressure",
+      "displayed": false,
+      "finishedAt": "2026-03-17T11:19:22.077+00:00"
+    },
+    {
+      "startedAt": "2026-03-17T10:48:21.472+00:00",
+      "summary": "Anomaly detected for Generator Phase 1 Current",
+      "displayed": false,
+      "finishedAt": "2026-03-17T10:48:24.288+00:00"
+    }
+  ]
+}

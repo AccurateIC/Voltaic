@@ -21,7 +21,7 @@ export default class Notification extends BaseModel {
   @belongsTo(() => Archive)
   declare archive: BelongsTo<typeof Archive>;
 
-  @column()
+  @column({ columnName: 'should_be_displayed' })
   declare shouldBeDisplayed: boolean;
 
   @column()
@@ -30,10 +30,10 @@ export default class Notification extends BaseModel {
   @belongsTo(() => NotificationType)
   declare notificationType: BelongsTo<typeof NotificationType>;
 
-  @column()
+  @column.dateTime({ columnName: 'started_at' })
   declare startedAt: DateTime;
 
-  @column()
+  @column.dateTime({ columnName: 'finished_at' })
   declare finishedAt: DateTime | null;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })

@@ -19,6 +19,7 @@ import { getWeekRange } from "../../../lib/DateTimeUtils";
 import { GensetPropertyName } from "../../../types/gensetProperty.types";
 import { useQuery } from "@tanstack/react-query";
 import { tuyau } from "../../../lib/Tuyau";
+import Skeleton from "../../Skeleton";
 
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, BarElement, Title, Tooltip, Legend);
 
@@ -83,9 +84,9 @@ export const GenericPropertyStatisticsBarChart = ({
         .$get({ query: { propertyName: propertyName, timeDuration: timeDuration } })
         .unwrap(),
   });
-  if (isError || data === undefined || data.data.length === 0)
-    return <div className="flex h-full items-center justify-center">N/A</div>;
-  if (isLoading) return <div className="skeleton h-full w-full"></div>;
+  if (isLoading || data === undefined || !data.data || data.data.length === 0) {
+    return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;
+  }
   const now = DateTime.now();
 
   switch (timeDuration) {

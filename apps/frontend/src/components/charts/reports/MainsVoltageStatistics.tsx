@@ -18,7 +18,7 @@ import { DateTime } from "luxon";
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const MainsVoltageStatistics = ({ chartData }) => {
-  console.log("cd", chartData);
+ 
   if (!chartData) return <div className="flex items-center justify-center">N/A</div>;
 
   // chart options

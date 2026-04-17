@@ -1,13 +1,12 @@
 import { Navigate, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import Loader from "./Loader";
+import Skeleton from "./Skeleton";
 import { toast } from "sonner";
 import { tuyau } from "../lib/Tuyau";
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const checkIfAuthenticated = async () => {
-  await sleep(1500);
+  // Fast client-side gate: if local auth state is cleared, block immediately.
+  if (!localStorage.getItem("user")) return false;
   const { data, error } = await tuyau.auth.getLoggedInUser.$get();
   if (error) return false;
   return true;
@@ -23,8 +22,7 @@ const ProtectedRoute = ({ children }) => {
       try {
         setIsAuthenticated(await checkIfAuthenticated());
       } catch (err) {
-        console.log(`Error while checking is user is authenticated: ${err}`);
-        setIsAuthenticated(false);
+  setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -32,10 +30,9 @@ const ProtectedRoute = ({ children }) => {
   }, []);
 
   if (isLoading) {
-    // loading spinner
     return (
-      <div className="h-screen opacity-90 w-full flex items-center justify-center bg-base-200">
-        <Loader />
+      <div className="h-screen opacity-90 w-full flex items-center justify-center p-8 bg-base-200">
+        <Skeleton type="card" />
       </div>
     );
   }

@@ -1,11 +1,22 @@
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-// Register required components with Chart.js
+// Register required components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const PropertyBarChart = ({ labels, dataset }) => {
-  // Define an array of colors for each bar
+  // 🎯 Dynamic max calculation (rounded to 10)
+  const maxValue = Math.max(...(dataset?.length ? dataset : [0]), 10);
+  const roundedMax = Math.ceil(maxValue / 10) * 10;
+
   const backgroundColors = [
     "#FF6384",
     "#36A2EB",
@@ -19,19 +30,18 @@ export const PropertyBarChart = ({ labels, dataset }) => {
     "#F06292",
   ];
 
-  // If you have more bars than colors, cycle through the colors
   const getBackgroundColor = (index) => {
     return backgroundColors[index % backgroundColors.length];
   };
 
   const data = {
-    labels: labels,
+    labels: labels?.length ? labels : ["No Data"],
     datasets: [
       {
-        label: "Property Data",
-        data: dataset,
-        backgroundColor: labels.map((_, index) => getBackgroundColor(index)),
-        borderColor: labels.map((_, index) => getBackgroundColor(index)),
+        label: "Anomaly Count",
+        data: dataset?.length ? dataset : [0],
+        backgroundColor: labels?.map((_, i) => getBackgroundColor(i)),
+        borderColor: labels?.map((_, i) => getBackgroundColor(i)),
         borderWidth: 1,
         maxBarThickness: 40,
       },
@@ -45,34 +55,44 @@ export const PropertyBarChart = ({ labels, dataset }) => {
       title: {
         display: true,
         text: "Anomaly Count by Property",
-        color: "White",
-        font: { color: "red", weight: "bold", size: 22 },
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { weight: "bold", size: 18 },
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            return `Count: ${context.raw}`;
-          },
+          label: (context) => `Count: ${context.raw}`,
         },
       },
       legend: { display: false },
     },
     scales: {
       x: {
-        title: { display: true, text: "Properties ⟶", color: "white", font: { weight: "bold", size: 18 } },
-        ticks: { color: "white", autoSkip: false, font: { size: 12 } },
-        grid: { color: "rgba(255, 255, 255, 0.1)" },
+        title: {
+          display: true,
+          text: "Properties ⟶",
+          color: "white",
+          font: { weight: "bold", size: 16 },
+        },
+        ticks: {
+          color: "white",
+          autoSkip: false,
+        },
+        grid: { color: "rgba(255,255,255,0.1)" },
       },
       y: {
+        min: 0,
+        max: roundedMax,
+        ticks: {
+          stepSize: 10,
+          color: "white",
+        },
         title: {
           display: true,
           text: "No. of Anomalies ⟶",
-          color: "rgba(255, 255, 255, 0.7)",
-          // color: "white",
+          color: "rgba(255,255,255,0.7)",
           font: { weight: "bold", size: 14 },
         },
-        ticks: { color: "white", beginAtZero: true, font: { size: 12 } },
-        grid: { color: "rgba(255, 255, 255, 0.1)" },
+        grid: { color: "rgba(255,255,255,0.1)" },
       },
     },
   };

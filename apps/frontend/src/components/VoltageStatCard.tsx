@@ -1,6 +1,10 @@
 import { SemiCircleGauge } from "./SemiCircleGauge";
+import Skeleton from "./Skeleton";
 
-export const VoltageStatCard = ({ value, name, kind }) => {
+export const VoltageStatCard = ({ value, name, kind, isLoading }) => {
+  if (isLoading || value === undefined || value === null) {
+    return <div className="w-full h-full min-h-[200px]"><Skeleton type="gauge" /></div>;
+  }
   // const [displayValue, setDisplayValue] = useState(value);
 
   // useEffect(() => {

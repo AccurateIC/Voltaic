@@ -6,6 +6,7 @@ import { Pie } from "react-chartjs-2";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { tuyau } from "../../../lib/Tuyau";
+import Skeleton from "../../Skeleton";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -17,17 +18,18 @@ export const AnomaliesByProperty = ({ timeDuration }) => {
   });
 
   // state
-  console.log("timeDuration", timeDuration);
+  
   // const [chartTimeRange, setChartTimeRange] = useState<"today" | "week" | "month" | "total">("total");
   const [chartTimeRange, setChartTimeRange] = useState(timeDuration);
 
-  console.log("chartTimeRange", chartTimeRange);
+  
   useEffect(() => {
     setChartTimeRange(timeDuration);
   }, [timeDuration]);
 
-  if (isLoading) return <div className="skeleton h-full w-full"></div>;
-  if (isError || !data) return <div className="h-full w-full flex items-center justify-center">N/A</div>;
+  if (isLoading || !data || !data.byProperty || data.byProperty.length === 0) {
+    return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;
+  }
 
   const labels = data.byProperty.map((value) => value.readablePropertyName);
   const pieData = data.byProperty.map((value) => value[chartTimeRange]);

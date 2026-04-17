@@ -20,9 +20,11 @@ import { errors } from "@vinejs/vine";
 import ValidationException from "#exceptions/validation_exception";
 import { catchErrTyped } from "@voltaic/err";
 import NotificationType from "#models/notification_type";
+import Role from "#models/role";
 import { UUID } from "node:crypto";
 import { ModelPaginatorContract } from "@adonisjs/lucid/types/model";
-
+import logger from "@adonisjs/core/services/logger";
+import env from "#start/env";
 interface PaginatedArchiveResponse {
   data: Archive[];
   meta: {
@@ -68,14 +70,19 @@ export default class ArchiveController {
     }
   }
 
-  async getAll({}: HttpContext) {
-    const archiveData = await Archive.query().preload("gensetProperty", (query) => query.preload("physicalQuantity"));
-    return archiveData;
-  }
+async getAll({}: HttpContext) {
+  // Safety wrapper — was previously unlimited, now capped at 50 records
+  logger.warn("archive/getAll called — returning first 50 records only. Use getPaginated instead.");
+  const archiveData = await Archive.query()
+    .preload("gensetProperty", (query) => query.preload("physicalQuantity"))
+    .orderBy("timestamp", "desc")
+    .limit(50);
+  return archiveData;
+}
 
   async getPaginated({ request }: HttpContext): Promise<PaginatedArchiveResponse> {
     const requestData = await request.validateUsing(getPaginatedDataValidator);
-    console.log(requestData);
+    logger.info({ requestData }, "Paginated request data");
 
     // start building the select query
     const archiveQuery = Archive.query();
@@ -112,25 +119,60 @@ export default class ArchiveController {
     // order by timestamp descending (most recent first)
     archiveQuery.orderBy("timestamp", "desc");
 
-    // pagination
     const archiveData: ModelPaginatorContract<Archive> = await archiveQuery.paginate(requestData.page);
 
     const serialized = archiveData.serialize();
     return { data: serialized.data as Archive[], meta: serialized.meta };
   }
 
-  async getBetween({ request }: HttpContext) {
-    // console.log(request.qs());
+ async getBetween({ request }: HttpContext) {
     const queryParams = request.qs();
-    // console.log(queryParams);
+    // Add page and loadAll parameters
+    const page = parseInt(queryParams.page || "1");
+    const loadAll = queryParams.loadAll === "true";
+    
     const data = await getArchiveDataBetweenValidator.validate(queryParams);
-    // console.log("Data", data);
-    // const data = await request.qs().validateUsing(getArchiveDataBetweenValidator);
-    const archiveData = await Archive.query()
+    
+    const query = Archive.query()
       .whereBetween("timestamp", [data.from, data.to])
-      .preload("gensetProperty", (query) => query.preload("physicalQuantity"));
-    return archiveData;
-  }
+      .select("id", "timestamp", "propertyValue", "isAnomaly", "gensetPropertyId")
+      .orderBy("timestamp", "desc")
+      .preload("gensetProperty", (q) => q.preload("physicalQuantity"));
+
+    // MODE 1: Load 1000 records only (FAST) ✅
+    if (!loadAll) {
+      const pageSize = 1000;
+      const offset = (page - 1) * pageSize;
+      
+      const archiveData = await query.limit(pageSize).offset(offset);
+      
+      // Get total count
+      const countQuery = Archive.query()
+        .whereBetween("timestamp", [data.from, data.to]);
+      const totalResult = await countQuery.count("* as total");
+      const total = totalResult[0]?.total || 0;
+      
+      return {
+        data: archiveData,
+        mode: "limited",
+        pagination: {
+          total: total,
+          page: page,
+          pageSize: pageSize,
+          pages: Math.ceil(total / pageSize)
+        }
+      };
+    }
+    
+    // MODE 2: Load ALL records (SLOW but complete) ⚠️
+    const allData = await query;
+    return {
+      data: allData,
+      mode: "all",
+      total: allData.length,
+      warning: "This may take 30-60 seconds"
+    };
+}
 
   async getPropertyDataBetween({ request }: HttpContext) {
     try {
@@ -145,7 +187,7 @@ export default class ArchiveController {
       if (data.from && data.to) {
         query.whereBetween("timestamp", [data.from, data.to]);
       } else {
-        console.log("unexpected");
+       logger.warn("Unexpected case: missing from/to in getPropertyDataBetween");
       }
 
       // filter by property names
@@ -163,6 +205,7 @@ export default class ArchiveController {
 
       // latest first
       query.orderBy("timestamp", "desc");
+      query.limit(1000);
 
       const propertyData = await query.exec();
 
@@ -179,9 +222,28 @@ export default class ArchiveController {
     return ArchiveService.getLatestEntries();
   }
 
-  async create({ request }: HttpContext) {
-    const payload = await request.validateUsing(createArchiveValidator);
-    const timestamp = DateTime.fromJSDate(payload.timestamp);
+async create({ request, response }: HttpContext) {
+  const apiKey = request.header("x-api-key");
+
+if (apiKey !== env.get("ML_API_KEY")) {
+    return response.status(401).json({ message: "Unauthorized" });
+  }
+  const payload = await request.validateUsing(createArchiveValidator);
+    // Convert timestamp properly - if it's an ISO string with timezone, keep it as is
+    let timestamp: DateTime;
+    if (typeof payload.timestamp === 'string') {
+      // Parse the ISO string directly to preserve the timezone
+      timestamp = DateTime.fromISO(payload.timestamp);
+    } else {
+      // Fallback for Date objects
+      timestamp = DateTime.fromJSDate(payload.timestamp);
+    }
+    
+    logger.info(
+  { original: payload.timestamp, parsed: timestamp.toISO() },
+  "Received timestamp"
+);
+    
     const data = payload.data;
 
     const alertNotificationType = await NotificationType.findByOrFail("type", "alert");
@@ -189,6 +251,7 @@ export default class ArchiveController {
     // begin db transaction
     const trxResult = await db.transaction(async (trx) => {
       try {
+        
         // fetch all genset properties
         const propertyNames: string[] = data.map((element) => element.property);
         const gensetProperties = await GensetProperty.query({ client: trx })
@@ -238,19 +301,21 @@ export default class ArchiveController {
         });
 
         // process each archive entry for notifications
-        for (const archive of insertedArchives) {
-          const property = propertyMap.get(data[insertedArchives.indexOf(archive)].property)!;
+        for (let i = 0; i < insertedArchives.length; i++) {
+          const archive = insertedArchives[i];
+          const property = propertyMap.get(data[i].property)!;
           const activeNotification = activeNotificationMap.get(property.propertyName);
-
-          // console.log("ARCHIVE", archive);
-          // console.log("PROPERTY", property);
 
           const phyQty = await PhysicalQuantity.find(property.physicalQuantityId);
           const unit = phyQty?.unitSymbol;
 
+          // DEBUGGING
+          // console.log(`Checking property ${property.propertyName}: isAnomaly=${archive.isAnomaly}, hasActive=${!!activeNotification}`);
+
           if (archive.isAnomaly) {
             if (!activeNotification) {
-              newNotifications.push({
+              // Add to activeNotificationMap to avoid duplicate notifications in the same batch
+              const newNotif = {
                 summary: `Anomaly detected for ${property.readablePropertyName}`,
                 message: `Property value: ${archive.propertyValue}${unit}`,
                 archiveId: archive.id,
@@ -258,11 +323,15 @@ export default class ArchiveController {
                 notificationTypeId: alertNotificationType.id,
                 startedAt: timestamp,
                 finishedAt: null,
-              });
+              };
+              newNotifications.push(newNotif);
+              activeNotificationMap.set(property.propertyName, newNotif);
             }
-          } else if (activeNotification) {
-            // close
+          } else if (activeNotification && activeNotification.id) {
+            // close by setting finishedAt, but KEEP shouldBeDisplayed: true
+            // so the user has to manually resolve it
             notificationUpdates.push({ id: activeNotification.id, finishedAt: timestamp });
+            activeNotificationMap.delete(property.propertyName);
           }
         }
 
@@ -277,7 +346,7 @@ export default class ArchiveController {
         for (const update of notificationUpdates) {
           await Notification.query({ client: trx })
             .where("id", update.id)
-            .update({ finishedAt: update.finishedAt, shouldBeDisplayed: false });
+            .update({ finishedAt: update.finishedAt });
           // transmit.broadcast("notification", {
           //   message: "notification table updated",
           // });
@@ -286,14 +355,18 @@ export default class ArchiveController {
         return { insertedArchives, newNotifications, notificationUpdates };
       } catch (error) {
         // Log the error for debugging
-        console.error("Transaction failed:", error);
+       logger.error({ err: error }, "Transaction failed");
         throw error; // Re-throw to trigger rollback
       }
     });
 
     // broadcast after transaction completes
-    // Broadcast event
-    transmit.broadcast("archive", { message: "new entry created" });
+    // Broadcast event with anomaly info for real-time chart updates
+    transmit.broadcast("archive", {
+      message: "new entry created",
+      anomalyCount: trxResult.newNotifications.length,
+      hasAnomalies: trxResult.newNotifications.length > 0,
+    });
     transmit.broadcast("notification", { message: "notification table updated" });
     if (trxResult.newNotifications.length > 0 || trxResult.notificationUpdates.length > 0) {
     }
@@ -361,13 +434,90 @@ export default class ArchiveController {
     };
   }
 
-  async delete({ response }: HttpContext) {
-    response.status(400).send({ message: "Not Implemented" });
+  async delete({ request, response }: HttpContext) {
+  const { ids } = request.body();
+
+  // validation
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return response.status(400).send({
+      success: false,
+      message: "No record ids provided",
+    });
   }
 
-  async deleteAll({}: HttpContext) {
-    await Notification.query().delete();
-    const archive = await Archive.query().delete();
-    return archive;
+  try {
+    const deletedCount = await db.transaction(async (trx) => {
+      // first delete related notifications
+      await Notification.query({ client: trx })
+        .whereIn("archiveId", ids)
+        .delete();
+
+      // then delete selected archive records
+      const deletedRows = await Archive.query({ client: trx })
+        .whereIn("id", ids)
+        .delete();
+
+      return deletedRows;
+    });
+
+    transmit.broadcast("archive", {
+      message: "archive records deleted",
+    });
+
+    transmit.broadcast("notification", {
+      message: "notification table updated",
+    });
+
+    return response.status(200).send({
+      success: true,
+      message: "Selected records deleted successfully",
+      deletedCount,
+    });
+  } catch (error) {
+   logger.error({ err: error }, "Error deleting all archive records");
+
+    return response.status(500).send({
+      success: false,
+      message: "Failed to delete selected records",
+    });
   }
+}
+ async deleteAll({ response, auth }: HttpContext) {
+    const loggedInUser = await auth.authenticate();
+    if (loggedInUser.roleId !== (await Role.findByOrFail("roleName", "admin")).id) {
+      return response.status(403).json({ message: "Forbidden: Admins only" });
+    }
+  try {
+    const deletedCount = await db.transaction(async (trx) => {
+      // first delete all related notifications
+      await Notification.query({ client: trx }).delete();
+
+      // then delete all archive records
+      const deletedRows = await Archive.query({ client: trx }).delete();
+
+      return deletedRows;
+    });
+
+    transmit.broadcast("archive", {
+      message: "all archive records deleted",
+    });
+
+    transmit.broadcast("notification", {
+      message: "notification table updated",
+    });
+
+    return response.status(200).send({
+      success: true,
+      message: "All archive records deleted successfully",
+      deletedCount,
+    });
+  } catch (error) {
+   logger.error({ err: error }, "Error deleting selected archive records");
+
+    return response.status(500).send({
+      success: false,
+      message: "Failed to delete all archive records",
+    });
+  }
+}
 }

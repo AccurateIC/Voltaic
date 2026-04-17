@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,24 +12,38 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { tuyau } from "../../lib/Tuyau";
+import { useQuery } from "@tanstack/react-query";
+import { useMessageBus } from "../../lib/MessageBus";
+import { TransmitChannels } from "../../lib/TransmitChannels";
+import Skeleton from "../Skeleton";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const AnomalyCountByPropertyChart = ({ timeDuration }: { timeDuration: "1d" | "1w" | "1m" | "*" }) => {
-  const { data, isLoading, isError } = useQuery({
+  // const { data, isLoading, isError, refetch } = useQuery({
+  //   queryKey: ["archive", "get-anomaly-statistics"],
+  //   queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
+  //   refetchInterval: 5000,
+  // });
+  //-------here is 1st chnage ------------------------------
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["archive", "get-anomaly-statistics"],
     queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
+  });
+  //---------------upto here-------------------
+  useMessageBus(TransmitChannels.ARCHIVE, () => {
+    // Re-fetch data instantly when a new archive is inserted
+    refetch();
   });
 
   if (isError || data === undefined || data?.data === null || data.data.overall === null)
     return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
-  if (isLoading)
-    return (
-      <div className="h-full flex items-center justify-center">
-        <span className="loading loading-spinner loading-xl"></span>
-      </div>
-    );
+  if (isLoading || !data || !data.data || !data.data.byProperty || data.data.byProperty.length === 0) {
+    return <div className="w-full h-full"><Skeleton type="chart" /></div>;
+  }
 
   if (isError || !data)
     return (
@@ -43,20 +57,20 @@ export const AnomalyCountByPropertyChart = ({ timeDuration }: { timeDuration: "1
 
   switch (timeDuration) {
     case "*":
-      labels = data.data?.byProperty.map((entry) => entry.readablePropertyName);
-      counts = data.data.byProperty.map((entry) => entry.counts.total);
+      labels = data.data?.byProperty.map((entry: any) => entry.readablePropertyName);
+      counts = data.data.byProperty.map((entry: any) => entry.counts.total);
       break;
     case "1d":
-      labels = data.data?.byProperty.map((entry) => entry.readablePropertyName) || [];
-      counts = data.data.byProperty.map((entry) => entry.counts.today);
+      labels = data.data?.byProperty.map((entry: any) => entry.readablePropertyName) || [];
+      counts = data.data.byProperty.map((entry: any) => entry.counts.today);
       break;
     case "1w":
-      labels = data.data?.byProperty.map((entry) => entry.readablePropertyName) || [];
-      counts = data.data.byProperty.map((entry) => entry.counts.week);
+      labels = data.data?.byProperty.map((entry: any) => entry.readablePropertyName) || [];
+      counts = data.data.byProperty.map((entry: any) => entry.counts.week);
       break;
     case "1m":
-      labels = data.data?.byProperty.map((entry) => entry.readablePropertyName) || [];
-      counts = data.data.byProperty.map((entry) => entry.counts.month);
+      labels = data.data?.byProperty.map((entry: any) => entry.readablePropertyName) || [];
+      counts = data.data.byProperty.map((entry: any) => entry.counts.month);
       break;
     default:
       labels = [];
@@ -66,7 +80,7 @@ export const AnomalyCountByPropertyChart = ({ timeDuration }: { timeDuration: "1
   const options: ChartOptions<"bar"> = {
     responsive: true,
     plugins: {
-      title: { display: true, text: `Anomaly Count By Property (${timeDuration === "*" ? "All Time" : timeDuration})` },
+      title: { display: true, text: `Anomaly Coundsdt By Property (${timeDuration === "*" ? "All Time" : timeDuration})` },
     },
   };
 

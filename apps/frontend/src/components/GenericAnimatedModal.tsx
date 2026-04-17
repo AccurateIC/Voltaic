@@ -13,10 +13,10 @@ export const GenericAnimatedModal = ({ isOpen, onClose, children }: GraphModalPr
       if (event.key === "Escape" && isOpen) onClose();
     };
 
-    window.addEventListener("keydown", handleEsc);
+    (window as any).addEventListener("keydown", handleEsc);
 
     return () => {
-      window.removeEventListener("keydown", handleEsc);
+      (window as any).removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
@@ -30,7 +30,7 @@ export const GenericAnimatedModal = ({ isOpen, onClose, children }: GraphModalPr
             animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 cursor-pointer"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[120] cursor-pointer"
           />
 
           {/* Modal */}
@@ -38,7 +38,7 @@ export const GenericAnimatedModal = ({ isOpen, onClose, children }: GraphModalPr
             initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.6 }}
-            className="fixed inset-4 z-50 bg-base-200 rounded-lg overflow-hidden m-20"
+            className="fixed inset-2 md:inset-10 lg:inset-20 z-[130] bg-base-200 rounded-lg overflow-hidden flex flex-col"
           >
             <button onClick={onClose} className="absolute top-4 right-4 btn btn-circle btn-ghost">
               ✕

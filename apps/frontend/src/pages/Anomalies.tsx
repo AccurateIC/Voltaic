@@ -7,6 +7,9 @@ import { AnomalyCountByTimeChart } from "../components/Anomalies/AnomalyCountByT
 import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import Skeleton from "../components/Skeleton";
+import { useMessageBus } from "../lib/MessageBus";
+import { TransmitChannels } from "../lib/TransmitChannels";
 
 // types
 type TimeRange = "*" | "1d" | "1w" | "1m";
@@ -27,15 +30,18 @@ const AnomalyCombinedFilter = ({
   selectedProperties,
   setSelectedProperties,
 }: AnomalyCombinedFilterProps) => {
-  console.log(allGensetProperties);
+ 
   return (
-    <div className="flex items-center justify-center gap-4">
-      <FaFilter size={24} />
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 w-full">
+      <div className="flex items-center gap-2">
+        <FaFilter size={16} className="md:w-[20px]" />
+        <span className="sm:hidden font-bold">Filters</span>
+      </div>
 
       {/* Time Filter */}
-      <div className="flex flex-row items-center justify-center">
-        <span className="">Time Range: </span>
-        <select value={timeRange} onChange={(e) => setTimeRangeFilter(e.target.value as TimeRange)} className="select">
+      <div className="flex flex-row items-center justify-center w-full sm:w-auto gap-2">
+        <span className="whitespace-nowrap">Time: </span>
+        <select value={timeRange} onChange={(e) => setTimeRangeFilter((e.target as any).value as TimeRange)} className="select select-sm md:select-md flex-1">
           <option disabled={true}>Choose a Time Frame</option>
           <option value="1d">Last Day</option>
           <option value="1w">Last Week</option>
@@ -45,16 +51,16 @@ const AnomalyCombinedFilter = ({
       </div>
 
       {/* Property Filter */}
-      <div className="dropdown">
-        <label tabIndex={0} className="btn">
-          Select Properties
-          <span className="badge ml-2">{selectedProperties.length}</span>
+      <div className="dropdown w-full sm:w-auto">
+        <label tabIndex={0} className="btn btn-sm md:btn-md w-full">
+          Properties
+          <span className="badge badge-sm ml-2">{selectedProperties.length}</span>
         </label>
         {/* className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-72 max-h-60 overflow-y-auto"> */}
 
         <ul
           tabIndex={0}
-          className="dropdown-content z-10 menu shadow bg-base-200 rounded h-72 flex flex-row overflow-y-scroll"
+          className="dropdown-content z-10 menu shadow bg-base-200 rounded h-72 w-64 flex flex-row overflow-y-scroll"
         >
           {allGensetProperties?.length > 0 &&
             allGensetProperties.map((property, index) => (
@@ -65,7 +71,7 @@ const AnomalyCombinedFilter = ({
                     className="checkbox"
                     checked={selectedProperties.includes(property)}
                     onChange={(e) => {
-                      if (e.target.checked) {
+                      if ((e.target as any).checked) {
                         setSelectedProperties([...selectedProperties, property]);
                       } else {
                         setSelectedProperties(selectedProperties.filter((p) => p !== property));
@@ -82,102 +88,91 @@ const AnomalyCombinedFilter = ({
   );
 };
 
-const Loader = () => {
-  return (
-    <div className="w-full h-full flex items-center justify-center">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        className="animate-spin"
-      >
-        <path d="M12 2v4" />
-        <path d="m16.2 7.8 2.9-2.9" />
-        <path d="M18 12h4" />
-        <path d="m16.2 16.2 2.9 2.9" />
-        <path d="M12 18v4" />
-        <path d="m4.9 19.1 2.9-2.9" />
-        <path d="M2 12h4" />
-        <path d="m4.9 4.9 2.9 2.9" />
-      </svg>
-    </div>
-  );
-};
 
-export const Anomalies = async () => {
+
+export const Anomalies = () => {
   const {
     data: anomalyStatisticsData,
     isLoading: anomalyStatisticsIsLoading,
     isError: anomalyStatisticsIsError,
-  } = useQuery({ queryKey: ["anomaly-statistics"], queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap() });
+    refetch: anomalyStatisticsRefetch,
+  } = useQuery({ queryKey: ["anomaly-statistics"], queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(), refetchInterval: 5000, refetchIntervalInBackground: false });
 
-  if (anomalyStatisticsIsError) {
-    toast.error("Failed to fetch anomaly statistics");
-    return <div className="h-full w-full">N/A</div>;
-  }
+  // Instantly refetch stats when backend broadcasts a new archive entry
+  // Charts have their own useMessageBus(ARCHIVE, refetch) subscriptions
+  useMessageBus(TransmitChannels.ARCHIVE, () => {
+    anomalyStatisticsRefetch();
+  });
+const {
+  data: allGensetPropertiesData,
+  isLoading: allGensetPropertiesIsLoading,
+  isError: allGensetPropertiesIsError,
+} = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap(), refetchInterval: 30000 });
 
-  if (anomalyStatisticsIsLoading) {
-    return <Loader />;
-  }
+const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRange>("*");
+const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
 
-  const {
-    data: allGensetPropertiesData,
-    isLoading: allGensetPropertiesIsLoading,
-    isError: allGensetPropertiesIsError,
-  } = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap() });
+// --- guards AFTER all hooks ---
+if (anomalyStatisticsIsError || allGensetPropertiesIsError) {
+  toast.error("Failed to fetch data");
+  return <div className="h-full w-full">N/A</div>;
+}
 
-  if (allGensetPropertiesIsError) {
-    toast.error("Failed to fetch anomaly statistics");
-    return <div className="h-full w-full">N/A</div>;
-  }
-
-  if (allGensetPropertiesIsLoading) {
-    return <Loader />;
-  }
-
-  // state
-  const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRange>("*");
-  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+if (anomalyStatisticsIsLoading || allGensetPropertiesIsLoading || !anomalyStatisticsData || !allGensetPropertiesData) {
+  return (
+    <div className="flex flex-col gap-4 min-h-full p-2 w-full">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+         <Skeleton type="stat" />
+         <Skeleton type="stat" />
+         <Skeleton type="stat" />
+         <Skeleton type="stat" />
+      </div>
+      <div className="flex flex-col md:flex-row gap-4 flex-1">
+        <div className="w-full md:w-1/2 flex flex-col gap-4">
+          <Skeleton type="chart" />
+          <Skeleton type="chart" />
+        </div>
+        <div className="w-full md:w-1/2">
+          <Skeleton type="table" rows={6} columns={4} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
   const count = [1, 2, 3, 4, 5];
   return (
     <div className="flex flex-col gap-4 min-h-full">
       <section>
-        <div className="h-1/8 w-full">
-          <StatGroup overallStatistics={anomalyStatisticsData} isLoading={anomalyStatisticsIsLoading} />
+        <div className="h-auto w-full">
+          <StatGroup overallStatistics={anomalyStatisticsData || { timezone: "", overall: { today: 0, week: 0, month: 0, year: 0, total: 0 }, byProperty: [] }} isLoading={anomalyStatisticsIsLoading} />
         </div>
       </section>
 
-      <section className="flex-none h-12 bg-base-200 w-full shadow">
-        <div className="h-full flex items-center px-4">
+      <section className="flex-none h-auto bg-base-200 w-full shadow rounded-lg p-2 sm:p-3">
+        <div className="h-full flex items-center px-1 sm:px-2">
           <AnomalyCombinedFilter
             setTimeRangeFilter={setTimeRangeFilter}
             timeRange={timeRangeFilter}
             selectedProperties={selectedProperties}
             setSelectedProperties={setSelectedProperties}
-            allGensetProperties={allGensetPropertiesData?.map((entry, index) => entry.readablePropertyName)}
+            allGensetProperties={allGensetPropertiesData?.map((entry) => entry.readablePropertyName) || []}
           />
         </div>
       </section>
 
-      <section className="flex-none h-192 w-full gap-4 flex flex-row">
-        <div className="w-1/2 gap-4 shadow rounded-lg flex flex-col">
-          <div className="w-full bg-base-200 h-1/2 rounded-lg">
+      <section className="flex-none h-auto md:h-192 w-full gap-4 flex flex-col md:flex-row">
+        <div className="w-full md:w-1/2 gap-4 flex flex-col">
+          <div className="w-full bg-base-200 h-[250px] md:h-1/2 rounded-lg shadow min-h-[200px]">
             <AnomalyCountByPropertyChart timeDuration={timeRangeFilter} />
           </div>
-          <div className="w-full bg-base-200 h-1/2 rounded-lg">
+          <div className="w-full bg-base-200 h-[250px] md:h-1/2 rounded-lg shadow min-h-[200px]">
             <AnomalyCountByTimeChart timeDuration={timeRangeFilter} selectedProperties={selectedProperties} />
           </div>
         </div>
 
         {/* Anomaly Notifications Table */}
-        <div className="w-1/2 bg-base-200 shadow rounded-lg h-full flex flex-col">
+        <div className="w-full md:w-1/2 bg-base-200 shadow rounded-lg h-[400px] md:h-full flex flex-col">
           <AnomalyNotificationTable />
         </div>
       </section>

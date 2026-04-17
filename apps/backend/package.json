@@ -6,8 +6,8 @@
   "license": "MIT",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build && cp .env ./build/.env",
-    "clean": "rm -rf build",
+    "build": "node ace build && powershell -Command \"Copy-Item -Path .env -Destination build/.env -Force\"",
+    "clean": "powershell -Command \"Remove-Item -Path build -Recurse -Force -ErrorAction SilentlyContinue\"",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "migrate-fresh": "node ace migration:fresh",

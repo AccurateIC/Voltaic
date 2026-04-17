@@ -37,8 +37,8 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
     setForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
   };
 
-  const fetchRulData = async (e) => {
-    console.log("curr form", form);
+  const fetch = async (e) => {
+    
     e.preventDefault();
     getRulPrediction.mutate(form, {
       onSuccess: (data) => {
@@ -51,7 +51,7 @@ export const SimulationSidebar = ({ setSimulatedRul, simulatedRul }: SimulationP
     <div className="w-96 flex flex-col justify-center bg-base-200 p-4 shadow-lg">
       <fieldset className="fieldset">
         <legend className="fieldset-legend text-2xl">Simulate RUL</legend>
-        <form onSubmit={fetchRulData} className="flex flex-col gap-4">
+        <form onSubmit={fetch} className="flex flex-col gap-4">
           {/* Running Hours */}
           <div className="form-control w-full">
             <label className="fieldset-label my-2">

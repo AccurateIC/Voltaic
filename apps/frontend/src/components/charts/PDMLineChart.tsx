@@ -14,11 +14,20 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
+interface VibrationDataPoint {
+  timestamp: string;
+  value: number;
+  actual: number | null;
+  forecast: number | null;
+  sensorProperty: string;
+  unit: string;
+  hasNotification?: boolean;
+}
 
 // Register ChartJS components
 ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export const PDMLineChart = ({ value }) => {
+export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
   // const value = value.slice(-2000);
 
   const options: ChartOptions<"line"> = {
@@ -30,11 +39,17 @@ export const PDMLineChart = ({ value }) => {
         callbacks: {
           label: (context) => `Vibration: ${context.parsed.y}`,
           title: (tooltipItems) => {
-            return DateTime.fromISO(tooltipItems[0].raw.x).toFormat("HH:mm:ss");
+            const dataPoint = tooltipItems[0].raw as { x: DateTime; y: number };
+            return dataPoint.x.toFormat("HH:mm:ss");
           },
         },
       },
-      title: { display: true, text: "Vibration Data", color: "#fff", font: { size: 18, weight: "normal" } },
+      title: {
+        display: true,
+        text: "Vibration Data",
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
+      },
     },
     scales: {
       x: {
@@ -56,15 +71,32 @@ export const PDMLineChart = ({ value }) => {
       {
         fill: false,
         label: "Vibration Data",
-        data: value.map((item) => ({ x: DateTime.fromISO(item.timestamp), y: item.actual })),
+        data: value.map((item) => ({
+          x: DateTime.fromISO(item.timestamp).toISO(),
+          y: item.actual
+        })) as any,  // ✅ Move 'as any' here
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
         pointStyle: "circle",
         pointHoverRadius: 5,
         pointRadius: 0,
         pointHitRadius: 10,
-        // tension: 0.1,
         spanGaps: true,
+      },
+      {
+        label: "Maintenance Alert",
+        data: value
+          .filter((item) => item.hasNotification)
+          .map((item) => ({
+            x: DateTime.fromISO(item.timestamp).toISO(),
+            y: item.actual
+          })) as any,
+        borderColor: "rgba(255, 0, 0, 1)",
+        backgroundColor: "rgba(255, 0, 0, 1)",
+        pointStyle: "circle",
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        showLine: false,
       },
     ],
   };

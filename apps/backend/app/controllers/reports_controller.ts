@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import Archive from "#models/archive";
-
+import logger from "@adonisjs/core/services/logger";
 import { DateTime } from "luxon";
 
 const filename = fileURLToPath(import.meta.url);
@@ -87,7 +87,9 @@ const compilePdf = (tmpFile: string): Promise<Buffer> => {
     });
 
     compileProc.on("close", async (code) => {
-      await fs.unlink(tmpFile).catch(console.error);
+     await fs.unlink(tmpFile).catch((err) => {
+  logger.error({ err, tmpFile }, "Failed to delete temporary typst file");
+});
       if (code !== 0) reject(`Compiler exited with code ${code}`);
       resolve(Buffer.concat(pdfBuffers));
     });
@@ -104,7 +106,7 @@ export default class ReportsController {
     const tmpFile = path.join(dirname, "report.typ");
     try {
       const reusableData = await this.getData();
-      console.log(reusableData);
+     logger.info({ reusableData }, "Fetched reusable report data");
       // add data from db to typst doc
       const query = Archive.query();
 
@@ -154,7 +156,7 @@ export default class ReportsController {
       // delete the temporary typst file (?)
     } catch (err) {
       // await fs.unlink(tmpFile).catch(console.error);
-      console.error("Error:", err);
+      logger.error({ err }, "Error generating dummy report");
       return response.status(500).send(err);
     }
   }

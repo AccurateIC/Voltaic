@@ -1,21 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { FaFilter } from "react-icons/fa6";
-import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
-import * as XLSX from "xlsx";
 import "cally";
 import { type Archive } from "../types/archive.types";
 import { tuyau } from "../lib/Tuyau";
+import Skeleton from "../components/Skeleton.jsx";
+import DynamicTable, { type DynamicTableColumn } from "../components/DynamicTable";
+import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DateTime } from "luxon";
+import type { CalendarRangeProps, CalendarMonthProps } from "cally";
 
-const excelify = (data: Archive[]) => {
+type MapEvents<T> = { [K in keyof T as K extends `on${infer E}` ? `on${Lowercase<E>}` : K]: T[K] };
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "calendar-month": MapEvents<CalendarMonthProps> & React.HTMLAttributes<HTMLElement>;
+      "calendar-range": MapEvents<CalendarRangeProps> & React.HTMLAttributes<HTMLElement>;
+    }
+  }
+}
+
+const excelify = async (data: Archive[]) => {
   if (!data || data.length === 0) {
     toast.error("No data to export.");
     return false;
   }
+
+  const XLSX = await import("xlsx");
 
   const excelData = data.map((entry, index) => {
     const timestamp = entry?.timestamp ? formatTimestamp(entry.timestamp) : "";
@@ -31,43 +46,20 @@ const excelify = (data: Archive[]) => {
   });
 
   const ws = XLSX.utils.json_to_sheet(excelData);
-
-  // sensible column widths
-  ws["!cols"] = [
-    { wch: 5 }, // Sr No
-    { wch: 10 }, // ID
-    { wch: 30 }, // Timestamp
-    { wch: 40 }, // Property
-    { wch: 15 }, // Value
-  ];
+  ws["!cols"] = [{ wch: 5 }, { wch: 10 }, { wch: 30 }, { wch: 40 }, { wch: 15 }];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Genset Data");
-
-  // timestamped filename in UTC: YYYY-MM-DD_HH-mm-ss
   const fileName = `genset_data_${DateTime.utc().toFormat("yyyy-LL-dd_HH-mm-ss")}.xlsx`;
 
   try {
     XLSX.writeFile(wb, fileName);
     return true;
-  } catch (err) {
-    console.error("Excel writeFile failed:", err);
+  } catch {
     toast.error("Failed to generate Excel file.");
     return false;
   }
 };
-
-// interface Metadata {
-//   total: number;
-//   perPage: 20;
-//   currentPage: 1;
-//   lastPage: 3;
-//   firstPage: 1;
-//   firstPageUrl: "/?page=1";
-//   lastPageUrl: "/?page=3";
-//   nextPageUrl: "/?page=2";
-//   previousPageUrl: null;
-// }
 
 interface GetPaginatedArchiveDataFilters {
   from?: string;
@@ -78,16 +70,21 @@ interface GetPaginatedArchiveDataFilters {
 }
 
 const Archive = () => {
-  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL
-  const {
-    data: allGensetPropertiesData,
-    isLoading: allGensetPropertiesIsLoading,
-    isError: allGensetPropertiesIsError,
-  } = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap() });
+  const confirmAction = (message: string): boolean => {
+    return (globalThis as any).confirm?.(message) ?? false;
+  };
 
-  // state
-  const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [paginationMetadata, setPaginationMetadata] = useState();
+  const { data: allGensetPropertiesData, isLoading: allGensetPropertiesIsLoading, isError: allGensetPropertiesIsError } =
+    useQuery({
+      queryKey: ["genset-properties"],
+      queryFn: () => tuyau.property.getAll.$get().unwrap(),
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    });
+
+  const [archiveData, setArchiveData] = useState<Archive[] | null>(null);
+  const [paginationMetadata, setPaginationMetadata] = useState<any>();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filters, setFilters] = useState<GetPaginatedArchiveDataFilters>({
     page: 1,
     propertyNames: [],
@@ -96,95 +93,318 @@ const Archive = () => {
     to: undefined,
   });
 
-  const {
-    mutate: mutatePaginatedData,
-    data: paginatedData,
-    isError,
-    isPending,
-  } = useMutation({
+  const { mutate: mutatePaginatedData, isError, isPending } = useMutation({
     mutationKey: ["archive", "get-paginated"],
-    mutationFn: (filters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(filters),
+    mutationFn: (requestFilters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(requestFilters),
     onSuccess: (paginatedData) => {
-      setArchiveData(paginatedData.data.data);
-      setPaginationMetadata(paginatedData.data.meta);
+      if (paginatedData?.data) {
+        setArchiveData(paginatedData.data.data as unknown as Archive[]);
+        setPaginationMetadata(paginatedData.data.meta);
+      }
     },
   });
 
-  // re-fetch paginated data on filter change
+  const { mutate: deleteArchive } = useMutation({
+    mutationKey: ["archive", "delete"],
+    mutationFn: (ids: string[]) => tuyau.archive.delete.$post({ ids }),
+    onSuccess: () => {
+      toast.success("Deleted successfully");
+      mutatePaginatedData(filters);
+      setSelectedIds([]);
+    },
+    onError: () => {
+      toast.error("Delete failed");
+    },
+  });
+
+  const { mutate: deleteAllArchive } = useMutation({
+    mutationKey: ["archive", "delete-all"],
+    mutationFn: () => tuyau.archive.deleteAll.$delete(),
+    onSuccess: () => {
+      toast.success("All data deleted successfully");
+      setArchiveData([]);
+      setSelectedIds([]);
+      setFilters((prev) => ({ ...prev, page: 1 }));
+      mutatePaginatedData({ ...filters, page: 1 });
+    },
+    onError: () => {
+      toast.error("Delete all failed");
+    },
+  });
+
   useEffect(() => {
     mutatePaginatedData(filters);
-  }, [filters]);
+    setSelectedIds([]);
+  }, [filters, mutatePaginatedData]);
 
-  // Export data mutation
-  const {
-    mutate: mutateGetPropertyDataBetween,
-    data: getPropertyDataBetweenData,
-    isError: getPropertyDataBetweenIsError,
-    isPending: getPropertyDataBetweenIsPending,
-  } = useMutation({
+  useEffect(() => {
+    if (allGensetPropertiesIsError) toast.error("Failed to fetch genset properties");
+  }, [allGensetPropertiesIsError]);
+
+  useEffect(() => {
+    if (isError) toast.error("Failed to fetch archive data");
+  }, [isError]);
+
+  const { mutate: mutateGetPropertyDataBetween } = useMutation({
     mutationKey: ["archive", "getPropertyDataBetween"],
     mutationFn: async (params: { from?: string; to?: string; properties?: string[] }) => {
       const res = await tuyau.archive.getPropertyDataBetween.$post(params);
-
-      // Normalize common response shapes:
-      // - direct array
-      // - { data: [...] }
-      // - { data: { data: [...] } } (sometimes paginated)
       if (Array.isArray(res)) return res;
       if (Array.isArray((res as any)?.data)) return (res as any).data;
       if (Array.isArray((res as any)?.data?.data)) return (res as any).data.data;
-
-      // fallback - return res as-is (caller will handle)
       return res;
     },
-    onError: (err) => {
-      console.error("Export fetch error:", err);
+    onError: () => {
       toast.error("Failed to fetch export data.");
     },
   });
 
-  // we receive message on this bus if archive table updates
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useMessageBus("archive", () => {
-    mutatePaginatedData(filters);
+    if (timeoutRef.current) return;
+    timeoutRef.current = setTimeout(() => {
+      mutatePaginatedData(filters);
+      timeoutRef.current = null;
+    }, 2000);
   });
 
   const handleResetFilters = () => {
     setFilters({ page: 1, propertyNames: [], isAnomaly: undefined, from: undefined, to: undefined });
   };
 
-  // Handle loading and error states AFTER all hooks are called
-  if (allGensetPropertiesIsLoading || isPending) {
-    return (
-      <div className="h-full w-full flex items-center justify-center">
-        <span className="loading loading-spinner loading-md"></span>
+  const handleDeleteSelected = () => {
+    if (selectedIds.length === 0) {
+      toast.error("No rows selected");
+      return;
+    }
+    const confirmed = confirmAction(`Are you sure you want to delete ${selectedIds.length} record(s)? This action cannot be undone.`);
+    if (confirmed) deleteArchive(selectedIds);
+  };
+
+  const handleDeleteAllData = () => {
+    const confirmed = confirmAction("Are you sure you want to delete ALL records? This action cannot be undone.");
+    if (confirmed) deleteAllArchive();
+  };
+
+  const isGensetPropsLoading = allGensetPropertiesIsLoading || !allGensetPropertiesData;
+  const showArchiveError = isError;
+  const showGensetPropsError = allGensetPropertiesIsError;
+
+  const timestampFilter = (
+    <div className="dropdown dropdown-bottom">
+      <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
+        <FaFilter size={24} />
       </div>
-    );
-  }
+      <div className="dropdown-content card bg-base-100 shadow">
+        <calendar-range
+          value={
+            filters.from && filters.to
+              ? `${DateTime.fromISO(filters.from).toFormat("yyyy-MM-dd")}/${DateTime.fromISO(filters.to).toFormat("yyyy-MM-dd")}`
+              : ""
+          }
+          max={DateTime.now().toFormat("yyyy-MM-dd")}
+          className="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
+          onchange={(event: Event) => {
+            const value = ((event.target as unknown as { value?: string })?.value ?? "");
+            if (!value) return;
+            const [from, to] = value.split("/");
+            if (!from || !to) return;
+            const fromDT = DateTime.fromISO(from);
+            const toDT = DateTime.fromISO(to);
+            if (!fromDT.isValid || !toDT.isValid) return;
+            setFilters((prev) => ({
+              ...prev,
+              from: fromDT.startOf("day").toISO()!,
+              to: toDT.endOf("day").toISO()!,
+              page: 1,
+            }));
+          }}
+        >
+          <calendar-month />
+        </calendar-range>
+      </div>
+    </div>
+  );
 
-  if (allGensetPropertiesIsError || !allGensetPropertiesData) {
-    toast.error("Failed to fetch genset properties");
-    return <div className="h-full w-full">N/A</div>;
-  }
+  const propertyOptions = (allGensetPropertiesData ?? []).map((property) => ({
+    value: property.propertyName,
+    label: property.readablePropertyName,
+  }));
 
-  if (isError) {
-    toast.error("Failed to fetch archive data");
-    return <div className="h-full w-full">Error loading archive data</div>;
-  }
+  const isPropertySelectAll = (filters.propertyNames?.length ?? 0) === 0;
+  const propertySet = new Set(filters.propertyNames ?? []);
+
+  const propertyFilter = (
+    <SelectAllCheckboxPopup
+      trigger={
+        <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
+          <FaFilter size={24} />
+        </div>
+      }
+      widthClassName="w-auto"
+      selectAllLabel="Select All"
+      selectAllChecked={isPropertySelectAll}
+      onToggleSelectAll={(checked) => {
+        setFilters((prev) => ({
+          ...prev,
+          page: 1,
+          propertyNames: checked ? [] : propertyOptions.map((p) => p.value),
+        }));
+      }}
+      options={propertyOptions}
+      getOptionChecked={(value) => isPropertySelectAll || propertySet.has(value)}
+      onToggleOption={(value, checked) => {
+        const allValues = propertyOptions.map((p) => p.value);
+
+        setFilters((prev) => {
+          const prevAll = (prev.propertyNames?.length ?? 0) === 0;
+          const currentSet = new Set(prev.propertyNames ?? []);
+
+          // In "all mode" (empty array), UI shows everything checked.
+          // Unchecking one option should switch to explicit selection = all except the unchecked one.
+          if (prevAll) {
+            if (checked) return { ...prev, page: 1, propertyNames: [] };
+            return { ...prev, page: 1, propertyNames: allValues.filter((v) => v !== value) };
+          }
+
+          if (checked) currentSet.add(value);
+          else currentSet.delete(value);
+
+          const nextValues = Array.from(currentSet);
+
+          // Backend treats empty as "no filtering" => all.
+          if (nextValues.length === 0 || nextValues.length === allValues.length) {
+            return { ...prev, page: 1, propertyNames: [] };
+          }
+
+          return { ...prev, page: 1, propertyNames: nextValues };
+        });
+      }}
+    />
+  );
+
+  const anomalyOptions = [
+    { value: "anomalous" as const, label: "Anomalous" },
+    { value: "nonAnomalous" as const, label: "Non-Anomalous" },
+  ];
+
+  type AnomalyOptionValue = (typeof anomalyOptions)[number]["value"];
+
+  const anomalousChecked = filters.isAnomaly !== false; // true OR undefined
+  const nonAnomalousChecked = filters.isAnomaly !== true; // false OR undefined
+  const isAnomalySelectAll = filters.isAnomaly === undefined;
+
+  const anomalyFilter = (
+    <SelectAllCheckboxPopup<AnomalyOptionValue>
+      trigger={
+        <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
+          <FaFilter size={24} />
+        </div>
+      }
+      widthClassName="w-64"
+      selectAllLabel="Select All"
+      selectAllChecked={isAnomalySelectAll}
+      onToggleSelectAll={(checked) => {
+        setFilters((prev) => ({ ...prev, page: 1, isAnomaly: checked ? undefined : true }));
+      }}
+      options={anomalyOptions}
+      getOptionChecked={(value) => (value === "anomalous" ? anomalousChecked : nonAnomalousChecked)}
+      onToggleOption={(value, checked) => {
+        const nextAnomalous = value === "anomalous" ? checked : anomalousChecked;
+        const nextNonAnomalous = value === "nonAnomalous" ? checked : nonAnomalousChecked;
+
+        const nextIsAnomaly =
+          nextAnomalous && nextNonAnomalous
+            ? undefined
+            : nextAnomalous
+              ? true
+              : nextNonAnomalous
+                ? false
+                : undefined; // unselecting everything => select-all semantics
+
+        setFilters((prev) => ({ ...prev, page: 1, isAnomaly: nextIsAnomaly }));
+      }}
+    />
+  );
+
+  const columns = useMemo<DynamicTableColumn<Archive>[]>(
+    () => [
+      {
+        key: "serial",
+        header: "Sr No",
+        cell: (_, index) => (filters.page - 1) * (paginationMetadata?.perPage ?? 20) + index + 1,
+      },
+      { key: "id", header: "ID", cell: (entry) => entry.id },
+      { key: "timestamp", header: "Timestamp", filter: timestampFilter, cell: (entry) => formatTimestamp(entry.timestamp) },
+      { key: "property", header: "Property", filter: propertyFilter, cell: (entry) => entry.gensetProperty.readablePropertyName },
+      {
+        key: "value",
+        header: "Value",
+        cell: (entry) => `${entry.propertyValue} ${entry.gensetProperty.physicalQuantity.unitSymbol}`,
+      },
+      { key: "anomaly", header: "Anomaly", filter: anomalyFilter, cell: (entry) => (entry.isAnomaly ? "Yes" : "No") },
+    ],
+    [filters.page, paginationMetadata?.perPage, timestampFilter, propertyFilter, anomalyFilter]
+  );
+
+  const errorContent = (
+    <div className="flex flex-col items-center justify-center gap-6" style={{ minHeight: "60vh" }}>
+      <div className="w-24 h-24 rounded-full bg-base-300 flex items-center justify-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="opacity-30">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <line x1="9" y1="15" x2="15" y2="15" />
+        </svg>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-base-content font-semibold text-xl">Failed to load data</p>
+        <p className="text-base-content opacity-40 text-base text-center max-w-md">
+          {showGensetPropsError ? "Failed to load available properties for filtering." : "Failed to load archive data."}
+        </p>
+      </div>
+    </div>
+  );
+
+  const emptyContent = (
+    <div className="flex flex-col items-center justify-center gap-6" style={{ minHeight: "60vh" }}>
+      <div className="w-24 h-24 rounded-full bg-base-300 flex items-center justify-center">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="opacity-30">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <line x1="9" y1="15" x2="15" y2="15" />
+        </svg>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-base-content font-semibold text-xl">No records found</p>
+        <p className="text-base-content opacity-40 text-base text-center max-w-md">
+          {filters.from || filters.to
+            ? "No data was recorded for the selected date range. Try a different date or reset the filters."
+            : "No archive data is currently available."}
+        </p>
+      </div>
+      <button onClick={handleResetFilters} className="btn btn-outline btn-md">
+        Reset Filters
+      </button>
+    </div>
+  );
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="flex items-center justify-between">
-        <div className="text-2xl text-base-content font-semibold flex items-center mb-2">Historical Genset Data</div>
-        <div className="flex gap-2 mb-2">
+    <DynamicTable
+      title="Historical Genset Data"
+      actions={
+        <>
           <button
-            onClick={() => {
+            onClick={async () => {
               const params = {
                 from: filters.from,
                 to: filters.to,
                 properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
               };
 
-              // Basic validation: if both provided, ensure from <= to
               if (params.from && params.to) {
                 const fromDate = new Date(params.from);
                 const toDate = new Date(params.to);
@@ -199,42 +419,22 @@ const Archive = () => {
               }
 
               mutateGetPropertyDataBetween(params, {
-                onError: (err) => {
-                  console.error(`Failed to get data for the given filters: ${JSON.stringify(params)}`, err);
-                },
-                onSuccess: (rawData: any) => {
-                  // Normalize data shapes returned by mutationFn just in case:
-                  let data: Archive[] = [];
-                  if (Array.isArray(rawData)) data = rawData;
-                  else if (Array.isArray(rawData?.data)) data = rawData.data;
-                  else if (Array.isArray(rawData?.data?.data)) data = rawData.data.data;
-                  else if (Array.isArray(rawData?.items))
-                    data = rawData.items; // fallback possibilities
-                  else if (Array.isArray(rawData?.results)) data = rawData.results;
-                  else {
-                    // try to coerce single-object -> array
-                    if (rawData && typeof rawData === "object" && Object.keys(rawData).length > 0) {
-                      // If object looks like a single Archive, attempt to export it
-                      data = [rawData as Archive];
-                    } else {
-                      data = [];
-                    }
-                  }
+                onSuccess: async (rawData: any) => {
+                  const data: Archive[] = Array.isArray(rawData)
+                    ? rawData
+                    : Array.isArray(rawData?.data)
+                      ? rawData.data
+                      : Array.isArray(rawData?.data?.data)
+                        ? rawData.data.data
+                        : [];
 
-                  if (!data || data.length === 0) {
+                  if (!data.length) {
                     toast.error("No data found to export!");
                     return;
                   }
 
-                  try {
-                    const ok = excelify(data);
-                    if (ok !== false) {
-                      toast.success("Data successfully exported to Excel.");
-                    }
-                  } catch (e) {
-                    console.error("Excel export failed:", e);
-                    toast.error("Excel export failed.");
-                  }
+                  const ok = await excelify(data);
+                  if (ok !== false) toast.success("Data successfully exported to Excel.");
                 },
               });
             }}
@@ -242,183 +442,39 @@ const Archive = () => {
           >
             Export to Excel
           </button>
-
           <button onClick={handleResetFilters} className="btn btn-primary">
             Reset Filters
           </button>
-        </div>
-      </div>
-      {/* Notification Table */}
-      <div className="flex-1 rounded-box shadow-lg bg-base-200 text-base-200 overflow-hidden">
-        <div className="overflow-y-auto h-full">
-          <table className="table table-pin-rows">
-            <thead className="">
-              <tr className="bg-base-100 text-base-content">
-                <th>ID</th>
-                {/* NEW TS BEGINS */}
-                <th className="gap-2">
-                  Timestamp
-                  <div className="dropdown dropdown-bottom">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
-                      <FaFilter size={24} />
-                    </div>
-                    <div className="dropdown-content card bg-base-100 shadow">
-                      <calendar-range
-                        value={filters.from !== null && filters.to !== null ? `${filters.from}/${filters.to}` : ""}
-                        class="cally bg-base-100 border border-base-300 shadow-lg rounded-box"
-                        onchange={(event) => {
-                          const val = event.target.value;
-
-                          setFilters((prevFilters) => ({
-                            ...prevFilters,
-                            from: val.split("/")[0],
-                            to: val.split("/")[1],
-                          }));
-                        }}
-                      >
-                        <calendar-month />
-                      </calendar-range>
-                    </div>
-                  </div>
-                </th>
-
-                {/* NEW TS ENDS */}
-                <th className="flex gap-2 relative">
-                  Property
-                  <div className="dropdown dropdown-bottom">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
-                      <FaFilter size={24} />
-                    </div>
-                    <div
-                      tabIndex={0}
-                      className="dropdown-content z-10 max-h-64 w-56 overflow-y-auto bg-base-100 rounded-box shadow-lg"
-                    >
-                      <ul className="menu menu-compact p-2">
-                        <li>
-                          <a
-                            onClick={() =>
-                              setFilters((prevFilters) => ({ ...prevFilters, page: 1, propertyNames: [] }))
-                            }
-                          >
-                            Select All
-                          </a>
-                        </li>
-                        {allGensetPropertiesData.map((property, index) => (
-                          <li key={index} className="flex flex-row items-center p-1">
-                            <input
-                              id={property?.propertyName}
-                              type="checkbox"
-                              className="checkbox checkbox-sm checkbox-primary"
-                              checked={filters.propertyNames.includes(property.propertyName)}
-                              onChange={() => {
-                                setFilters((prevFilters) => {
-                                  const currentProperties = prevFilters.propertyNames;
-                                  const propertyIndex = currentProperties.indexOf(property.propertyName);
-
-                                  let updatedProperties;
-
-                                  if (propertyIndex === -1) {
-                                    updatedProperties = [...currentProperties, property.propertyName];
-                                  } else {
-                                    updatedProperties = currentProperties.filter(
-                                      (name) => name !== property.propertyName
-                                    );
-                                  }
-
-                                  return { ...prevFilters, propertyNames: updatedProperties, page: 1 };
-                                });
-                              }}
-                            />
-                            <div
-                              onClick={() =>
-                                setFilters((prevFilters) => ({ ...prevFilters, propertyName: property.propertyName }))
-                              }
-                            >
-                              {property.readablePropertyName}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </th>
-                <th>Value</th>
-                <th>
-                  Anomaly
-                  <div className="dropdown">
-                    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
-                      <FaFilter size={24} />
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu bg-base-200 text-base-content rounded-box z-10 w-52 p-2 shadow-sm"
-                    >
-                      <li>
-                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: null }))}>
-                          Select all
-                        </a>
-                      </li>
-
-                      <li>
-                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: true }))}>
-                          Anomalous
-                        </a>
-                      </li>
-                      <li>
-                        <a onClick={() => setFilters((prevFilters) => ({ ...prevFilters, isAnomaly: false }))}>
-                          Non-Anomalous
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-base-200 text-base-content">
-              {archiveData &&
-                archiveData.length > 0 &&
-                archiveData?.map((entry, index) => (
-                  <tr key={index}>
-                    <th>{entry.id}</th>
-                    <td>{formatTimestamp(entry.timestamp)}</td>
-                    <td>{entry.gensetProperty.readablePropertyName}</td>
-                    <td>
-                      {entry.propertyValue} {entry.gensetProperty.physicalQuantity.unitSymbol}
-                    </td>
-                    <td>{entry.isAnomaly ? "Yes" : "No"}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Pagination */}
-      <div className="join flex justify-between items-center m-2">
-        <div></div>
-        <div className="join-item text-base-content">
-          Page {filters.page} / {paginationMetadata?.lastPage}
-        </div>
-        <div className="join gap-3">
-          <button
-            onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page - 1 }))}
-            className={`join-item btn rounded-r-none rounded-l-lg ${
-              paginationMetadata?.firstPage === filters.page ? "btn-disabled" : "text-base-content"
-            } `}
-          >
-            <MdKeyboardArrowLeft size={24} />
+          <button onClick={handleDeleteSelected} className="btn btn-error" disabled={selectedIds.length === 0}>
+            Delete Selected ({selectedIds.length})
           </button>
-          <button
-            onClick={() => setFilters((prevFilters) => ({ ...prevFilters, page: prevFilters.page + 1 }))}
-            className={`join-item btn rounded-l-none rounded-r-lg ${
-              paginationMetadata?.lastPage === filters.page ? "btn-disabled" : "text-base-content"
-            } `}
-          >
-            <MdKeyboardArrowRight size={24} />
+          <button onClick={handleDeleteAllData} className="btn btn-error btn-outline">
+            Delete All Data
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      columns={columns}
+      data={archiveData ?? []}
+      isLoading={!showArchiveError && (!showGensetPropsError && (isGensetPropsLoading || isPending || archiveData === null))}
+      loadingContent={<Skeleton type="table" rows={10} columns={7} />}
+      emptyContent={showArchiveError || showGensetPropsError ? errorContent : emptyContent}
+      enableRowSelection
+      selectedRowIds={selectedIds}
+      onSelectedRowIdsChange={setSelectedIds}
+      getRowId={(row) => String(row.id)}
+      pagination={
+        paginationMetadata
+          ? {
+              currentPage: filters.page,
+              totalPages: paginationMetadata?.lastPage ?? 1,
+              onPageChange: (page) => setFilters((prev) => ({ ...prev, page })),
+              totalRecords: paginationMetadata?.total ?? 0,
+              itemsPerPage: paginationMetadata?.perPage ?? 20,
+              isLoading: isPending,
+            }
+          : undefined
+      }
+    />
   );
 };
 

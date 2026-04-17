@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart.tsx";
 import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart.tsx";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart.tsx";
@@ -10,6 +10,8 @@ import { FaFilter } from "react-icons/fa";
 import { PDMLineChart } from "../components/charts/PDMLineChart.tsx";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal.tsx";
 import { tuyau } from "../lib/Tuyau";
+import Skeleton from "../components/Skeleton";
+import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
 
 export const LiveData = () => {
   const [stats, setStats] = useState({
@@ -36,21 +38,13 @@ export const LiveData = () => {
     chargeAltVoltsIsAnomaly: true,
   });
 
-  const [selectedTimeRange, setSelectedTimeRange] = useState();
   const [pdmData, setPdmData] = useState([]);
-  const [pdmDataForGraph, setPdmDataForGraph] = useState([]);
-  const [isPdmLoading, setIsPdmLoading] = useState(true);
-  const [isPdmError, setIsPdmError] = useState(false);
+  
   const [pdmErrorMessage, setPdmErrorMessage] = useState("");
 
-  const [batteryData, setBatteryData] = useState([]);
-  const [currentData, setCurrentData] = useState([]);
-  const [voltageData, setVoltageData] = useState([]);
-  const [fuelLevelData, setFuelLevelData] = useState([]);
-  const [engineSpeedData, setEngineSpeedData] = useState([]);
-  const [oilPressureData, setOilPressureData] = useState([]);
-
-  const [showGraph, setShowGraph] = useState(false);
+  const archiveTimeoutRef = useRef(null);
+  const pdmTimeoutRef = useRef(null);
+  const [isInitialArchiveLoad, setIsInitialArchiveLoad] = useState(true);
 
   const [selectedChart, setSelectedChart] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -75,344 +69,327 @@ export const LiveData = () => {
     setIsModalOpen(false);
   };
 
-  const generateEmptyDataPoints = (data, timeRange) => {
-    if (data.length === 0) return [];
+ const generateEmptyDataPoints = (data) => {
+  if (data.length === 0) return [];
 
-    const now = new Date();
-    let startTime;
+  const now = new Date();
+  const startTime = new Date(now - 15 * 60 * 1000);
 
-    switch (timeRange) {
-      case "15 Minutes":
-        startTime = new Date(now - 15 * 60 * 1000);
-        break;
-      case "30 Minutes":
-        startTime = new Date(now - 30 * 60 * 1000);
-        break;
-      case "01 Hour":
-        startTime = new Date(now - 60 * 60 * 1000);
-        break;
-      case "24 Hours":
-        startTime = new Date(now - 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startTime = new Date(now - 15 * 60 * 1000);
-    }
+  const sortedData = [...data].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    // Sort data by timestamp (oldest first)
-    const sortedData = [...data].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const earliestDataTime = new Date(sortedData[0].timestamp);
 
-    //check if all timerange data  available
-    const earliestDataTime = new Date(sortedData[0].timestamp);
+  if (earliestDataTime <= startTime) {
+    return sortedData;
+  }
 
-    if (earliestDataTime <= startTime) {
-      return sortedData;
-    }
+  const missingMinutes = Math.ceil((earliestDataTime - startTime) / (60 * 1000));
 
-    // Calculate how many minutes are missing at the beginning
-    const missingMinutes = Math.ceil((earliestDataTime - startTime) / (60 * 1000));
+  const emptyDataPoints = [];
+  for (let i = 0; i < missingMinutes; i++) {
+    const emptyTime = new Date(startTime.getTime() + i * 60 * 1000);
+    emptyDataPoints.push({
+      propertyValue: 0,
+      timestamp: emptyTime.toISOString(),
+      isAnomaly: false,
+    });
+  }
 
-    // Generate empty data points for the missing period
-    const emptyDataPoints = [];
-    for (let i = 0; i < missingMinutes; i++) {
-      const emptyTime = new Date(startTime.getTime() + i * 60 * 1000);
-      emptyDataPoints.push({ propertyValue: 0, timestamp: emptyTime.toISOString(), isAnomaly: false });
-    }
-
-    return [...emptyDataPoints, ...sortedData];
-  };
-
+  return [...emptyDataPoints, ...sortedData];
+};
   useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
-    (async () => {
-      await getReportData();
-    })();
+    if (!msg) return;
+
+    if (archiveTimeoutRef.current) clearTimeout(archiveTimeoutRef.current);
+
+    archiveTimeoutRef.current = setTimeout(() => {
+      getArchiveReportData();
+      archiveTimeoutRef.current = null;
+    }, 2000);
   });
 
-  const calculateTimeRange = (timeRange) => {
-    const now = new Date();
-    let fromDate;
-    switch (timeRange) {
-      case "15 Minutes":
-        fromDate = new Date(now - 15 * 60 * 1000);
-        break;
-      case "30 Minutes":
-        fromDate = new Date(now - 30 * 60 * 1000);
-        break;
-      case "01 Hour":
-        fromDate = new Date(now - 60 * 60 * 1000);
-        break;
-      case "24 Hours":
-        fromDate = new Date(now - 3600 * 24 * 1000);
-        break;
-      default:
-        fromDate = new Date(now - 15 * 60 * 1000);
-        break;
-    }
+  useMessageBus("pdm", (msg) => {
+    if (!msg) return;
 
-    const toDate = new Date(now);
-    return { from: fromDate.toISOString(), to: toDate.toISOString() };
+    if (pdmTimeoutRef.current) clearTimeout(pdmTimeoutRef.current);
+
+    pdmTimeoutRef.current = setTimeout(() => {
+      getPdmReportData();
+      pdmTimeoutRef.current = null;
+    }, 3000);
+  });
+
+  // ✅ HELPER: Ensure data is always an array
+  const ensureArray = (data) => {
+    if (Array.isArray(data)) return data;
+    if (data?.records && Array.isArray(data.records)) return data.records;
+    if (data?.data && Array.isArray(data.data)) return data.data;
+    return [];
   };
+const mergeUniqueByTimestamp = (oldData, newData) => {
+  const mergedMap = new Map();
 
-  const getReportData = async () => {
-    const now = new Date();
-    const hours = 2;
-    const from = new Date(now - hours * 60 * 60 * 1000).toISOString();
-    const to = now.toISOString();
-    // const { from, to } = calculateTimeRange(selectedTimeRange);
+  oldData.forEach((item) => {
+    mergedMap.set(item.timestamp, item);
+  });
 
-    try {
-      const { data, error } = await tuyau.archive.getBetween.$get({ query: { from, to } });
-      if (!error) {
-        const l1Voltage = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+  newData.forEach((item) => {
+    mergedMap.set(item.timestamp, item);
+  });
 
-        const l2Voltage = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+  return Array.from(mergedMap.values()).sort(
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+  );
+};
+const getArchiveReportData = async () => {
+const now = new Date();
 
-        const l3Voltage = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL3Volts")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+let from;
+if (isInitialArchiveLoad) {
+  from = new Date(now - 60 * 60 * 1000).toISOString(); // first load: last 1 hour only
+} else {
+  from = new Date(now - 2 * 60 * 1000).toISOString(); // live update: last 2 minutes
+}
 
-        const l1Current = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL1Current")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+const to = now.toISOString();
+  try {
+    const { data, error } = await tuyau.archive.getBetween.$get({ query: { from, to } });
+    if (!error) {
+      const records = ensureArray(data);
 
-        const l2Current = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL2Current")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+      const l1Voltage = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const l3Current = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "genL3Current")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+      const l2Voltage = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const engineFuelLevel = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "engFuelLevelUnits")
-            .map((item) => ({
-              timestamp: item.timestamp,
-              propertyValue: item.propertyValue,
-              isAnomaly: item.isAnomaly,
-            }))
-        );
+      const l3Voltage = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL3Volts")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const engineSpeed = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
-            .map((item) => ({ timestamp: item.timestamp, propertyValue: item.propertyValue }))
-        );
+      const l1Current = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL1Current")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const oilPress = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "engOilPress")
-            .map((item) => ({ timestamp: item.timestamp, propertyValue: item.propertyValue }))
-        );
+      const l2Current = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL2Current")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const batteryVolts = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "engBatteryVolts")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            })),
-          selectedTimeRange
-        );
+      const l3Current = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "genL3Current")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        const chargeAltVolts = generateEmptyDataPoints(
-          data
-            .filter((item) => item.gensetProperty.propertyName === "engChargeAltVolts")
-            .map((item) => ({
-              propertyValue: item.propertyValue,
-              timestamp: item.timestamp,
-              isAnomaly: item.isAnomaly,
-            })),
-          selectedTimeRange
-        );
+      const engineFuelLevel = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "engFuelLevelUnits")
+          .map((item) => ({
+            timestamp: item.timestamp,
+            propertyValue: item.propertyValue,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
 
-        setStats({
-          l1Voltage,
-          l2Voltage,
-          l3Voltage,
-          l1Current,
-          l2Current,
-          l3Current,
-          engineFuelLevel,
-          engineSpeed,
-          oilPress,
-          batteryVolts,
-          chargeAltVolts,
-        });
-      }
-    } catch (error) {
-      console.log("Error fetching data", error);
+      const engineSpeed = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
+          .map((item) => ({
+            timestamp: item.timestamp,
+            propertyValue: item.propertyValue,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
+
+      const oilPress = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "engOilPress")
+          .map((item) => ({
+            timestamp: item.timestamp,
+            propertyValue: item.propertyValue,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
+
+      const batteryVolts = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "engBatteryVolts")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
+
+      const chargeAltVolts = generateEmptyDataPoints(
+        records
+          .filter((item) => item.gensetProperty.propertyName === "engChargeAltVolts")
+          .map((item) => ({
+            propertyValue: item.propertyValue,
+            timestamp: item.timestamp,
+            isAnomaly: item.isAnomaly,
+          }))
+      );
+
+     if (isInitialArchiveLoad) {
+  setStats((prev) => ({
+    ...prev,
+    l1Voltage,
+    l2Voltage,
+    l3Voltage,
+    l1Current,
+    l2Current,
+    l3Current,
+    engineFuelLevel,
+    engineSpeed,
+    oilPress,
+    batteryVolts,
+    chargeAltVolts,
+  }));
+
+  setIsInitialArchiveLoad(false);
+} else {
+  setStats((prev) => ({
+    ...prev,
+    l1Voltage: mergeUniqueByTimestamp(prev.l1Voltage, l1Voltage),
+    l2Voltage: mergeUniqueByTimestamp(prev.l2Voltage, l2Voltage),
+    l3Voltage: mergeUniqueByTimestamp(prev.l3Voltage, l3Voltage),
+    l1Current: mergeUniqueByTimestamp(prev.l1Current, l1Current),
+    l2Current: mergeUniqueByTimestamp(prev.l2Current, l2Current),
+    l3Current: mergeUniqueByTimestamp(prev.l3Current, l3Current),
+    engineFuelLevel: mergeUniqueByTimestamp(prev.engineFuelLevel, engineFuelLevel),
+    engineSpeed: mergeUniqueByTimestamp(prev.engineSpeed, engineSpeed),
+    oilPress: mergeUniqueByTimestamp(prev.oilPress, oilPress),
+    batteryVolts: mergeUniqueByTimestamp(prev.batteryVolts, batteryVolts),
+    chargeAltVolts: mergeUniqueByTimestamp(prev.chargeAltVolts, chargeAltVolts),
+  }));
+}
+    } else {
+     
     }
-    try {
-      const { data, error } = await tuyau.pdm.getRecentActual.$get();
-      if (error) {
-        console.log("Error fetching PDM data", error);
-        return;
-      }
-      setPdmData(data);
-    } catch (error) {
-      console.log("Error fetching data", error);
-    }
-  };
+  } catch (error) {
+  
+  }
+};
 
-  useEffect(() => {
-    console.log("pdm data changed", pdmData);
-
-    // transform data for plotting graph
-    const formattedData = pdmData.map((item) => {
-      return {
-        timestamp: item.timestamp,
-        value: item.value,
-        actual: item.pdmDataKind.kind === "actual" ? item.value : null,
-        forecast: item.pdmDataKind.kind === "forecasted" ? item.value : null,
-        sensorProperty: item.sensorProperty.propertyName,
-        unit: item.sensorProperty.unit,
-      };
+const getPdmReportData = async (page = 1) => {
+  try {
+    const { data, error } = await tuyau.pdm.getRecentActual.$get({
+      query: { page, limit: 500 },
     });
-    // formattedData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    setPdmDataForGraph(formattedData);
-
-    setIsPdmLoading(false);
-  }, [pdmData]);
-
-  useEffect(() => {
-    console.log("Engine page mount effect running");
-    (async () => {
-      await getReportData();
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (
-      Array.isArray(stats.batteryVolts) &&
-      stats.batteryVolts.length > 0 &&
-      Array.isArray(stats.chargeAltVolts) &&
-      stats.chargeAltVolts.length > 0
-    ) {
-      const newData = stats.batteryVolts.map((batteryItem) => {
-        const chargeAltItem = stats.chargeAltVolts.find((item) => item.timestamp === batteryItem.timestamp);
-        const time = new Date(batteryItem.timestamp);
-        return {
-          timestamp: batteryItem.timestamp,
-          batteryVolts: batteryItem.propertyValue,
-          chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
-        };
-      });
-
-      setBatteryData(newData);
+    if (error) {
+      return;
     }
-    if (
-      Array.isArray(stats.l1Current) &&
-      stats.l1Current.length > 0 &&
-      Array.isArray(stats.l2Current) &&
-      stats.l2Current.length > 0 &&
-      Array.isArray(stats.l3Current) &&
-      stats.l3Current.length > 0
-    ) {
-      const newDataCurrent = stats.l1Current.map((l1Item) => {
-        const l2Item = stats.l2Current.find((item) => item.timestamp === l1Item.timestamp);
-        const l3Item = stats.l3Current.find((item) => item.timestamp === l1Item.timestamp);
-        return {
-          timestamp: l1Item.timestamp,
-          L1: l1Item.propertyValue,
-          L2: l2Item ? l2Item.propertyValue : null,
-          L3: l3Item ? l3Item.propertyValue : null,
-        };
-      });
-      setCurrentData(newDataCurrent);
-    }
+    const pdmRecords = ensureArray(data);
+    setPdmData(pdmRecords);
+  } catch (error) {
+   
+  }
+};
 
-    if (
-      Array.isArray(stats.l1Voltage) &&
-      stats.l1Voltage.length > 0 &&
-      Array.isArray(stats.l2Voltage) &&
-      stats.l2Voltage.length > 0 &&
-      Array.isArray(stats.l3Voltage) &&
-      stats.l3Voltage.length > 0
-    ) {
-      const newDataVoltage = stats.l1Voltage.map((l1Item) => {
-        const l2Item = stats.l2Voltage.find((item) => item.timestamp === l1Item.timestamp);
-        const l3Item = stats.l3Voltage.find((item) => item.timestamp === l1Item.timestamp);
+ const pdmDataForGraph = useMemo(() => {
+  return pdmData.map((item) => ({
+    timestamp: item.timestamp,
+    value: item.value,
+    actual: item.pdmDataKind.kind === "actual" ? item.value : null,
+    forecast: item.pdmDataKind.kind === "forecasted" ? item.value : null,
+    sensorProperty: item.sensorProperty.propertyName,
+    unit: item.sensorProperty.unit,
+    hasNotification: item.maintenanceNotificationId ? true : false,
+  }));
+}, [pdmData]);
 
-        return {
-          timestamp: l1Item.timestamp,
-          L1: l1Item.propertyValue,
-          L2: l2Item ? l2Item.propertyValue : null,
-          L3: l3Item ? l3Item.propertyValue : null,
-        };
-      });
+useEffect(() => {
+  (async () => {
+    await getArchiveReportData();
+    await getPdmReportData();
+  })();
+}, []);
 
-      setVoltageData(newDataVoltage);
-    }
-    if (Array.isArray(stats.engineFuelLevel) && stats.engineFuelLevel.length > 0) {
-      setFuelLevelData(stats.engineFuelLevel);
-    }
+const batteryData = useMemo(() => {
+  if (!stats.batteryVolts.length || !stats.chargeAltVolts.length) return [];
+  const chargeAltMap = new Map(stats.chargeAltVolts.map((item) => [item.timestamp, item]));
+  return stats.batteryVolts.map((batteryItem) => {
+    const chargeAltItem = chargeAltMap.get(batteryItem.timestamp);
+    return {
+      timestamp: batteryItem.timestamp,
+      batteryVolts: batteryItem.propertyValue,
+      chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
+    };
+  });
+}, [stats.batteryVolts, stats.chargeAltVolts]);
 
-    if (Array.isArray(stats.engineSpeed) && stats.engineSpeed.length > 0) {
-      setEngineSpeedData(stats.engineSpeed);
-    }
+const currentData = useMemo(() => {
+  if (!stats.l1Current.length || !stats.l2Current.length || !stats.l3Current.length) return [];
+  const l2CurrentMap = new Map(stats.l2Current.map((item) => [item.timestamp, item]));
+  const l3CurrentMap = new Map(stats.l3Current.map((item) => [item.timestamp, item]));
+  return stats.l1Current.map((l1Item) => {
+    const l2Item = l2CurrentMap.get(l1Item.timestamp);
+    const l3Item = l3CurrentMap.get(l1Item.timestamp);
+    return {
+      timestamp: l1Item.timestamp,
+      L1: l1Item.propertyValue,
+      L2: l2Item ? l2Item.propertyValue : null,
+      L3: l3Item ? l3Item.propertyValue : null,
+    };
+  });
+}, [stats.l1Current, stats.l2Current, stats.l3Current]);
 
-    if (Array.isArray(stats.oilPress) && stats.oilPress.length > 0) {
-      setOilPressureData(stats.oilPress);
-    }
-  }, [
-    stats.batteryVolts,
-    stats.chargeAltVolts,
-    stats.l1Current,
-    stats.l2Current,
-    stats.l3Current,
-    stats.l1Voltage,
-    stats.l2Voltage,
-    stats.l3Voltage,
-    stats.engineFuelLevel,
-    stats.engineSpeed,
-    stats.oilPress,
-  ]);
+const voltageData = useMemo(() => {
+  if (!stats.l1Voltage.length || !stats.l2Voltage.length || !stats.l3Voltage.length) return [];
+  const l2VoltageMap = new Map(stats.l2Voltage.map((item) => [item.timestamp, item]));
+  const l3VoltageMap = new Map(stats.l3Voltage.map((item) => [item.timestamp, item]));
+  return stats.l1Voltage.map((l1Item) => {
+    const l2Item = l2VoltageMap.get(l1Item.timestamp);
+    const l3Item = l3VoltageMap.get(l1Item.timestamp);
+    return {
+      timestamp: l1Item.timestamp,
+      L1: l1Item.propertyValue,
+      L2: l2Item ? l2Item.propertyValue : null,
+      L3: l3Item ? l3Item.propertyValue : null,
+    };
+  });
+}, [stats.l1Voltage, stats.l2Voltage, stats.l3Voltage]);
 
-  useEffect(() => {
-    getReportData();
-  }, [selectedTimeRange]);
+const fuelLevelData = useMemo(() => stats.engineFuelLevel, [stats.engineFuelLevel]);
+const engineSpeedData = useMemo(() => stats.engineSpeed, [stats.engineSpeed]);
+const oilPressureData = useMemo(() => stats.oilPress, [stats.oilPress]);
 
   const propertyOptions = [
     { value: "Engine Fuel Level", label: "Engine Fuel Level" },
@@ -442,44 +419,50 @@ export const LiveData = () => {
     }
   };
 
-  return (
-    <div className="overflow-y-auto h-[calc(100vh-100px)]">
-      <div className="flex flex-wrap gap-4">
-        {/* Property Filter */}
-        <div className="flex items-center">
-          <div className="font-semibold tex-md">Properties: </div>
-          <div className="dropdown dropdown-bottom">
-            <div tabIndex={0} role="button" className="btn btn-neutral w-56">
-              <FaFilter className="mr-2" />
-              {selectedProperties.length > 0 ? `${selectedProperties.length} Property selected` : "Select properties"}
-            </div>
-            <div tabIndex={0} className="dropdown-content bg-black z-[1] menu p-2 shadow rounded-box w-56">
-              <div className="form-control">
-                <label className="label cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-primary "
-                    checked={selectedProperties.length === propertyOptions.length}
-                    onChange={toggleSelectAll}
-                  />
-                  <span className="label-text">Select All</span>
-                </label>
-              </div>
-              {propertyOptions.map((option) => (
-                <div key={option.value} className="form-control">
-                  <label className="label cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-primary"
-                      checked={selectedProperties.includes(option.value)}
-                      onChange={() => handlePropertyChange(option.value)}
-                    />
-                    <span className="label-text">{option.label}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
+  const chartCardClass =
+    "min-h-[320px] md:min-h-[410px] bg-base-200 rounded-lg cursor-pointer flex flex-col overflow-hidden";
+
+  const renderChartCard = (propertyLabel, chartType, data, chartNode, dependsOnArchiveLoad = true) => {
+    if (!selectedProperties.includes(propertyLabel)) return null;
+
+    const hasData = Array.isArray(data) && data.length > 0;
+    const showLoading = dependsOnArchiveLoad ? isInitialArchiveLoad || !hasData : !hasData;
+    const canOpenModal = dependsOnArchiveLoad ? !isInitialArchiveLoad && hasData : hasData;
+
+    return (
+      <div className={chartCardClass} onClick={() => canOpenModal && handleChartClick(chartType)}>
+        {showLoading ? (
+          <div className="flex-1 w-full p-2">
+            <Skeleton type="chart" />
           </div>
+        ) : (
+          <div className="flex-1 min-h-0">{chartNode}</div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="h-full w-full flex flex-col gap-3 overflow-x-hidden overflow-y-auto">
+      <div className="flex flex-wrap gap-3 justify-end">
+        <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
+          <div className="font-semibold text-sm whitespace-nowrap text-base-content/80">Properties</div>
+          <SelectAllCheckboxPopup
+            trigger={
+              <div tabIndex={0} role="button" className="btn btn-sm btn-outline min-w-[220px] justify-between">
+                <span className="flex items-center gap-2">
+                  <FaFilter />
+                  {selectedProperties.length > 0 ? `${selectedProperties.length} selected` : "Select properties"}
+                </span>
+              </div>
+            }
+            widthClassName="w-[min(90vw,24rem)] max-w-[24rem]"
+            selectAllChecked={selectedProperties.length === propertyOptions.length}
+            onToggleSelectAll={toggleSelectAll}
+            options={propertyOptions}
+            getOptionChecked={(value) => selectedProperties.includes(value)}
+            onToggleOption={(value) => handlePropertyChange(value)}
+          />
         </div>
         {/* <div className="flex items-center">
           <div className="w-25 font-semibold tex-md">Time:</div>
@@ -496,61 +479,35 @@ export const LiveData = () => {
         </div> */}
       </div>
 
-      <div className="py-5">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-[calc(97vh-100px)]">
-          {selectedProperties.includes("Engine Fuel Level") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("fuelLevel")}
-            >
-              <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
-            </div>
+      <div className="pb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {renderChartCard(
+            "Engine Fuel Level",
+            "fuelLevel",
+            fuelLevelData,
+            <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />
           )}
-          {selectedProperties.includes("Engine Speed") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("engineSpeed")}
-            >
-              <EngineSpeedLineChart value={engineSpeedData} />
-            </div>
+          {renderChartCard("Engine Speed", "engineSpeed", engineSpeedData, <EngineSpeedLineChart value={engineSpeedData} />)}
+          {renderChartCard(
+            "Generator Current",
+            "generatorCurrent",
+            currentData,
+            <GeneratorCurrentLineChart value={currentData} />
           )}
-          {selectedProperties.includes("Generator Current") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("generatorCurrent")}
-            >
-              <GeneratorCurrentLineChart value={currentData} />
-            </div>
+          {renderChartCard(
+            "Generator Voltage",
+            "generatorVoltage",
+            voltageData,
+            <GeneratorVoltageLineChart value={voltageData} />
           )}
-          {selectedProperties.includes("Generator Voltage") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("generatorVoltage")}
-            >
-              <GeneratorVoltageLineChart value={voltageData} />
-            </div>
+          {renderChartCard("Oil Pressure", "oilPressure", oilPressureData, <OilPressureLineChart value={oilPressureData} />)}
+          {renderChartCard(
+            "Battery Charge",
+            "batteryCharge",
+            batteryData,
+            <BatteryChargeLineChart value={batteryData} />
           )}
-          {selectedProperties.includes("Oil Pressure") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("oilPressure")}
-            >
-              <OilPressureLineChart value={oilPressureData} />
-            </div>
-          )}
-          {selectedProperties.includes("Battery Charge") && (
-            <div
-              className="h-[410px] bg-base-200 rounded-lg cursor-pointer"
-              onClick={() => handleChartClick("batteryCharge")}
-            >
-              <BatteryChargeLineChart value={batteryData} />
-            </div>
-          )}
-          {selectedProperties.includes("PDM") && (
-            <div className="h-[410px] bg-base-200 rounded-lg cursor-pointer" onClick={() => handleChartClick("pdm")}>
-              <PDMLineChart value={pdmDataForGraph} />
-            </div>
-          )}
+          {renderChartCard("PDM", "pdm", pdmDataForGraph, <PDMLineChart value={pdmDataForGraph} />, false)}
         </div>
       </div>
 

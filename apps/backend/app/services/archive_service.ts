@@ -1,7 +1,7 @@
 import Archive from "#models/archive";
 import { DateTime, DateTimeUnit, DayNumbers, MonthNumbers, WeekNumbers } from "luxon";
 import { type UUID } from "node:crypto";
-
+import logger from "@adonisjs/core/services/logger";
 export interface PropertyStatisticsData {
   day?: DayNumbers;
   week?: WeekNumbers;
@@ -97,7 +97,7 @@ export class ArchiveService {
   }
 
   static async getAnomalyCount(timezone?: string, timeDuration?: DateTimeUnit, properties?: string[]): Promise<number> {
-    console.log(timezone);
+   logger.info({ timezone }, "getAnomalyCount timezone");
     const query = Archive.query() //
       .where("isAnomaly", true);
 
@@ -119,4 +119,60 @@ export class ArchiveService {
     const count: string = res[0].$extras.count;
     return Number.parseInt(count);
   }
+  // ============================================================================
+  // 🚀 TASK 4.1: NEW OPTIMIZED METHOD
+  // ============================================================================
+  static async getAllAnomalyStatistics(timezone: string) {
+    const now = DateTime.now().setZone(timezone);
+    const startOfDay = now.startOf("day").toUTC().toJSDate();
+    const startOfWeek = now.startOf("week").toUTC().toJSDate();
+    const startOfMonth = now.startOf("month").toUTC().toJSDate();
+    const startOfYear = now.startOf("year").toUTC().toJSDate();
+
+    // Single query — fetch all anomaly archives with their property info
+    const anomalies = await Archive.query()
+      .where("isAnomaly", true)
+      .preload("gensetProperty")
+      .orderBy("timestamp", "desc");
+
+    // Build counts in-memory (one loop instead of 30+ queries)
+    const byProperty = new Map<string, {
+      propertyName: string;
+      readablePropertyName: string;
+      gensetPropertyId: string;
+      today: number; 
+      week: number; 
+      month: number; 
+      year: number; 
+      total: number;
+    }>();
+
+    const overall = { today: 0, week: 0, month: 0, year: 0, total: 0 };
+
+    for (const entry of anomalies) {
+      const ts = entry.timestamp.toJSDate ? entry.timestamp.toJSDate() : entry.timestamp;
+      const propName = entry.gensetProperty.propertyName;
+
+      if (!byProperty.has(propName)) {
+        byProperty.set(propName, {
+          propertyName: propName,
+          readablePropertyName: entry.gensetProperty.readablePropertyName,
+          gensetPropertyId: entry.gensetPropertyId,
+          today: 0, week: 0, month: 0, year: 0, total: 0,
+        });
+      }
+
+      const prop = byProperty.get(propName)!;
+      prop.total++;
+      overall.total++;
+
+      if (ts >= startOfYear) { prop.year++; overall.year++; }
+      if (ts >= startOfMonth) { prop.month++; overall.month++; }
+      if (ts >= startOfWeek) { prop.week++; overall.week++; }
+      if (ts >= startOfDay) { prop.today++; overall.today++; }
+    }
+
+    return { overall, byProperty: Array.from(byProperty.values()) };
+  }
 }
+

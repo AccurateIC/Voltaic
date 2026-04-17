@@ -1,7 +1,7 @@
 import { DateTime, type WeekNumbers, type DayNumbers, type MonthNumbers } from "luxon";
 import { BaseModel, beforeCreate, beforeSave, column } from "@adonisjs/lucid/orm";
 import { type UUID } from "node:crypto";
-
+import logger from "@adonisjs/core/services/logger";
 interface MaintenanceReason {
   accel_x?: string;
   accel_y?: string;
@@ -12,7 +12,7 @@ export default class MaintenanceNotification extends BaseModel {
   @column({ isPrimary: true })
   declare id: UUID;
 
-  @column()
+  @column.dateTime()
   declare timestamp: DateTime;
 
   @column()
@@ -36,11 +36,11 @@ export default class MaintenanceNotification extends BaseModel {
   @column()
   declare predictedDominantAmplitude: number;
 
-  @column()
+  @column({ columnName: 'should_be_displayed' })
   declare shouldBeDisplayed: boolean;
 
-  @column()
-  declare resolvedAt: DateTime;
+  @column.dateTime({ columnName: 'resolved_at' })
+  declare resolvedAt: DateTime | null;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   declare createdAt: DateTime;
@@ -62,7 +62,10 @@ export default class MaintenanceNotification extends BaseModel {
    */
   @beforeSave()
   static setTimeComponents(maintenanceNotification: MaintenanceNotification) {
-    console.log("TSSS", maintenanceNotification);
+    logger.info(
+  { maintenanceNotification },
+  "Setting time components for maintenance notification"
+);
     if (maintenanceNotification.timestamp) {
       const ts = maintenanceNotification.timestamp;
       maintenanceNotification.day = ts.day as DayNumbers;

@@ -10,8 +10,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "prebuild": "rm -rf dist",
-    "clean": "rm -rf dist",
+    "prebuild": "node -e \"const fs = require('fs'); try { fs.rmSync('dist', {recursive: true, force: true}); } catch(e) {}\"",
+    "clean": "powershell -Command \"Remove-Item -Path dist -Recurse -Force -ErrorAction SilentlyContinue\"",
     "dev": "tsup --watch",
     "type-check": "tsc --noEmit"
   },

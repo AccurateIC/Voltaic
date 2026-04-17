@@ -1,55 +1,71 @@
 // frontend/src/pages/Engine.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { type Archive } from "../types/archive.types";
 import GaugeComponent from "react-gauge-component";
 import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
-import { PanelResizeHandle, PanelGroup, Panel } from "react-resizable-panels";
-import { toast } from "sonner";
-import { useMessageBus } from "../lib/MessageBus";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 import { cn } from "../lib/Utils";
-import { Modules } from "../config/extern";
-import { User } from "../types/auth.types";
-import { SessionStore } from "../lib/SessionStore";
 import { tuyau } from "../lib/Tuyau";
-import Archive from "../../../backend/app/models/archive";
-import { catchErrTyped, ExternalServerError, Result } from "@voltaic/err";
+import { BACKEND_BASE_URL } from "../config/backend";
+import Skeleton from "../components/Skeleton";
+import { useLatestArchiveData } from "../hooks/useLatestArchiveData";
 
-const EngineRPM = ({ engineRpmDetails }) => {
+const EngineRPM = ({ engineRpmDetails, isLoading }) => {
+  if (isLoading || !engineRpmDetails || engineRpmDetails.length === 0) {
+    return <div className="w-full h-full min-h-[300px]"><Skeleton type="gauge" /></div>;
+  }
   let engineRpm;
-  if (!engineRpmDetails[0]) engineRpm = 0;
-  else engineRpm = engineRpmDetails[0].propertyValue;
+  let isAnomaly = false;
+  if (!engineRpmDetails[0]) {
+    engineRpm = 0;
+    isAnomaly = false;
+  } else {
+    engineRpm = engineRpmDetails[0].propertyValue;
+    isAnomaly = engineRpmDetails[0].isAnomaly;
+  }
   const unit = engineRpmDetails[0]?.gensetProperty?.physicalQuantity?.unitSymbol;
-  if (unit) console.log(unit.toUpperCase());
+
+  // Change arc colors based on anomaly state
+  const arcColors = isAnomaly ? [
+    { limit: 2500, color: "#EA4228", showTick: true } // Red when anomaly
+  ] : [
+    { limit: 500, color: "#5BE12C", showTick: true },
+    { limit: 1000, color: "#F5CD19", showTick: true },
+    { limit: 1500, color: "#F58B19", showTick: true },
+    { limit: 2000, color: "#EA4228", showTick: true },
+    { limit: 2500, color: "#EA4228", showTick: true },
+  ];
 
   return (
-    <div className="card bg-base-200 h-full w-full flex flex-col">
-      <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col">
-        <h2 className="card-title text-base-content">
+    <div className={cn(
+      "card h-full w-full flex flex-col shadow-sm transition-all duration-300",
+      isAnomaly ? "bg-red-900 border-2 border-red-500" : "bg-base-200"
+    )}>
+      <div className="card-body p-4 md:p-6 min-h-0 min-w-0 overflow-auto flex flex-col">
+        <h2 className={cn(
+          "card-title text-lg md:text-2xl",
+          isAnomaly ? "text-red-100" : "text-base-content"
+        )}>
           {engineRpmDetails[0]?.gensetProperty?.readablePropertyName || "Engine Speed"}
+          {isAnomaly && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded">ANOMALY</span>}
         </h2>
-        <div className="flex items-center justify-center h-full w-full">
+        <div className="flex items-center justify-center grow w-full py-2">
           <GaugeComponent
             minValue={0}
             maxValue={2500}
             arc={{
-              subArcs: [
-                { limit: 500, color: "#5BE12C", showTick: true },
-                { limit: 1000, color: "#F5CD19", showTick: true },
-                { limit: 1500, color: "#F58B19", showTick: true },
-                { limit: 2000, color: "#EA4228", showTick: true },
-                { limit: 2500, color: "#EA4228", showTick: true },
-              ],
+              subArcs: arcColors,
             }}
             labels={{
               valueLabel: {
-                style: { color: "#000" },
+                style: { color: isAnomaly ? "#fff" : "#000", fontSize: "24px" },
                 formatTextValue: (value) => `${value} ${unit?.toUpperCase() || "RPM"} `,
-              }, // For the central value
-              tickLabels: { defaultTickValueConfig: { style: { fill: "#6a7282" } } }, // For the tick labels (500, 1000, etc)
+              },
+              tickLabels: { defaultTickValueConfig: { style: { fill: isAnomaly ? "#fff" : "#6a7282" } } },
             }}
             value={engineRpm}
-            style={{ width: "100%", maxWidth: "85%", maxHeight: "100%", height: "auto" }}
+            style={{ width: "100%", height: "100%" }}
           />
         </div>
       </div>
@@ -57,72 +73,74 @@ const EngineRPM = ({ engineRpmDetails }) => {
   );
 };
 
-const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
+const VerticalFuelLevelIndicator = ({ fuelDetails, isLoading }) => {
+  if (isLoading || !fuelDetails || fuelDetails.length === 0) {
+    return <div className="w-full h-full min-h-[400px]"><Skeleton type="fuel" /></div>;
+  }
   let fuelLevel;
-  if (!fuelDetails[0]) fuelLevel = 0;
-  else fuelLevel = fuelDetails[0].propertyValue;
+  let isAnomaly = false;
+  if (!fuelDetails[0]) {
+    fuelLevel = 0;
+    isAnomaly = false;
+  } else {
+    fuelLevel = fuelDetails[0].propertyValue;
+    isAnomaly = fuelDetails[0].isAnomaly;
+  }
 
-  const maxFuelLevel = 60; // Changed to 60L
+  const maxFuelLevel = 60;
   const fuelLevelPercentage = (fuelLevel / maxFuelLevel) * 100;
 
-  // Get fuel status color
   const getFuelStatusColor = () => {
+    if (isAnomaly) return "bg-red-500";
     if (fuelLevel >= 40) return "bg-success";
     if (fuelLevel >= 20) return "bg-warning";
-    return "bg-error"; // critical
+    return "bg-error";
   };
 
-  // Generate measurement marks
   const measurementMarks = [...Array(7)].map((_, index) => {
-    const level = (6 - index) * 10; // Will create marks at 60, 50, 40, 30, 20, 10, 0
+    const level = (6 - index) * 10;
     return (
       <div
         key={level}
         className="absolute w-full flex items-center"
-        // style={{ bottom: `${(level / maxFuelLevel) * 100}%` }}
         style={{
-          // Added a 10px offset to shift marks down and adjusted calculation
-          bottom: `calc(${(level / maxFuelLevel) * 100}% - 10px)`,
-          left: "60px",
+          bottom: `calc(${(level / maxFuelLevel) * 100}% - 8px)`,
+          left: "45px",
         }}
       >
-        {/* Line mark */}
-        <div className="w-3 h-[2px] bg-base-content"></div>
-        {/* Level number */}
-        <span className="text-xs text-base-content ml-1">{level}L</span>
+        <div className="w-2 h-[1px] bg-base-content/50"></div>
+        <span className="text-[10px] text-base-content/70 ml-1">{level}L</span>
       </div>
     );
   });
 
   return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0 overflow-auto flex flex-col items-center">
-        <h2 className="card-title text-base-content mb-4">Fuel Level</h2>
-
-        {/* Fuel gauge container with padding for marks */}
-        <div className="relative h-full flex items-center">
-          {/* Measurement marks container */}
-          <div className="relative w-24 h-full flex items-center">
-            {/* Beaker/pill container */}
-            <div className="relative w-16 h-full bg-base-200 rounded-full border-2 border-base-content mx-auto">
-              {/* Measurement marks */}
-              <div className="">{measurementMarks}</div>
-
-              {/* Fuel level indicator */}
+    <div className={cn(
+      "card h-full w-full shadow-sm transition-all duration-300",
+      isAnomaly ? "bg-red-900 border-2 border-red-500" : "bg-base-200"
+    )}>
+      <div className="card-body p-4 md:p-6 min-h-0 min-w-0 overflow-auto flex flex-col items-center">
+        <h2 className={cn(
+          "card-title text-lg md:text-2xl mb-2",
+          isAnomaly ? "text-red-100" : "text-base-content"
+        )}>
+          Fuel Level
+          {isAnomaly && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded">ANOMALY</span>}
+        </h2>
+        <div className="relative grow flex items-center py-4">
+          <div className="relative w-24 h-64 md:h-80 flex items-center">
+  <div className={cn("relative w-14 md:w-16 h-full bg-base-300 rounded-full border border-base-content/20 mx-auto overflow-hidden transition-all duration-300",
+              isAnomaly && "border-red-400"
+            )}>
               <div
                 className={cn(
-                  `absolute bottom-0 w-full rounded-b-full transition-all duration-300 ease-in-out`,
+                  `absolute bottom-0 w-full transition-all duration-300 ease-in-out`,
                   getFuelStatusColor()
                 )}
                 style={{ height: `${fuelLevelPercentage}%` }}
               />
-
-              {/* Current fuel level text
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-base-content font-bold text-lg">{fuelLevel}L</span>
-              </div>
-                */}
             </div>
+            <div className="absolute inset-0 z-10">{measurementMarks}</div>
           </div>
         </div>
       </div>
@@ -130,197 +148,178 @@ const VerticalFuelLevelIndicator = ({ fuelDetails }) => {
   );
 };
 
-const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit }) => {
+const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit, isAnomaly, isLoading }) => {
+  if (isLoading || propertyValue === undefined || propertyValue === null) {
+    return <div className="w-full h-full min-h-[200px]"><Skeleton type="stat" /></div>;
+  }
   return (
-    <div className="card bg-base-200 h-full w-full">
-      <div className="card-body min-h-0 min-w-0">
-        <h2 className="card-title text-base-content">{propertyName}</h2>
-        <div className="flex flex-col items-center justify-center h-full">
+    <div className={cn(
+      "card h-full w-full shadow-sm transition-all duration-300",
+      isAnomaly ? "bg-red-900 border-2 border-red-500" : "bg-base-200"
+    )}>
+      <div className="card-body p-4 md:p-6 min-h-0 min-w-0 flex flex-col">
+        <h2 className={cn(
+          "card-title text-sm md:text-xl opacity-80",
+          isAnomaly ? "text-red-100" : "text-base-content"
+        )}>
+          {propertyName}
+          {isAnomaly && <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded">ANOMALY</span>}
+        </h2>
+        <div className="flex flex-col items-center justify-center grow py-2">
           {PropertyIcon && (
-            <div className="text-success/75 text-9xl mb-10 flex items-center justify-center">
+            <div className={cn(
+              "text-6xl md:text-8xl mb-3 md:mb-5 flex items-center justify-center transition-all duration-300",
+              isAnomaly ? "text-red-400" : "text-success/75"
+            )}>
               <PropertyIcon className="w-full h-full" />
             </div>
           )}
-          <div className="text-base-content font-semibold text-4xl">
-            {propertyValue} {propertyUnit && <span>{propertyUnit}</span>}
+          <div className={cn(
+            "font-bold text-3xl md:text-5xl text-cente",
+            isAnomaly ? "text-red-100" : "text-base-content"
+          )}>
+            {propertyValue} <span className="text-lg md:text-2xl font-normal block md:inline">{propertyUnit}</span>
           </div>
         </div>
       </div>
     </div>
-  );
-};
-
-const sendLoggedInUser = async (user: User, url: string): Promise<Result<void, ExternalServerError>> => {
-  return catchErrTyped(
-    fetch(`${url}/user`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...user, logged_in: true }),
-    }).then(async (response) => {
-      toast.success(url);
-      if (!response.ok) {
-        toast.error(url);
-        const errorData = await response.json();
-        throw new ExternalServerError(`Failed to send user details: ${JSON.stringify(errorData)}`);
-      }
-      // implicit void return
-    }),
-    [ExternalServerError]
   );
 };
 
 const Engine = () => {
-  const [archiveData, setArchiveData] = useState<Archive[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isError, setIsError] = useState<Object>({});
+  const { latestData, isLoading } = useLatestArchiveData();
 
-  const fetchLatestArchiveData = async (
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-    setArchiveData: React.Dispatch<React.SetStateAction<Archive[]>>,
-    setIsError: React.Dispatch<React.SetStateAction<Object>>
-  ) => {
-    setIsLoading(true);
-    const { data, error } = await tuyau.archive.getLatest.$get();
-    if (error) {
-      setArchiveData([]);
-      setIsError(error.value);
-      throw new Error(`Failed to fetch latest archive entry. Status Code: ${error.status}`);
+  // ✅ 7.1 — single Map instead of 6 separate .filter() calls
+  const dataMap = useMemo(() => {
+    const map = new Map<string, Archive>();
+    if (!latestData) return map;
+    for (const entry of latestData) {
+      map.set(entry.gensetProperty.propertyName, entry);
     }
-    setArchiveData(data);
-    setIsLoading(false);
+    return map;
+  }, [latestData]);
+
+  const engineRpmData   = useMemo(() => { const e = dataMap.get("engSpeedDisplay");    return e ? [e] : []; }, [dataMap]);
+  const powerOutputData = useMemo(() => { const e = dataMap.get("genTotalVA");          return e ? [e] : []; }, [dataMap]);
+  const oilPressureData = useMemo(() => { const e = dataMap.get("engOilPress");         return e ? [e] : []; }, [dataMap]);
+  const altVoltageData  = useMemo(() => { const e = dataMap.get("engChargeAltVolts");   return e ? [e] : []; }, [dataMap]);
+  const batteryVoltageData = useMemo(() => { const e = dataMap.get("engBatteryVolts");  return e ? [e] : []; }, [dataMap]);
+  const fuelLevelData   = useMemo(() => { const e = dataMap.get("engFuelLevelUnits");   return e ? [e] : []; }, [dataMap]);
+  const notifyMlServersOnLogin = async () => {
+    try {
+      const { data: user, error } = await tuyau.auth.getLoggedInUser.$get();
+      if (error || !user) return;
+
+      await fetch(`${BACKEND_BASE_URL}/ml/notify-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ ...user, logged_in: true }),
+      });
+    } catch {
+      // ML servers being down must never break the Engine page
+    }
   };
-  const user = SessionStore.get("user");
-
-  // notify ML modules about the login event
-  useEffect(() => {
-    if (!SessionStore.get("mlNotified") && user) {
-      sendLoggedInUser(user, Modules.RUL);
-      sendLoggedInUser(user, Modules.PDM);
-      sendLoggedInUser(user, Modules.ANOMALY);
-      SessionStore.set("mlNotified", "1");
-    }
-  }, [user]);
-
-  useMessageBus("archive", (msg) => {
-    console.log(`Message Received: ${JSON.stringify(msg, null, 2)}`);
-    (async () => {
-      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
-    })();
-  });
 
   useEffect(() => {
-    console.log("Engine page mount effect running");
-    (async () => {
-      await fetchLatestArchiveData(setIsLoading, setArchiveData, setIsError);
-    })();
+    notifyMlServersOnLogin();
   }, []);
 
+  // Removed isLoading early return so that individual components show their proper skeletons
+
   return (
-    <div className="h-full w-full min-h-0 min-w-0">
-      <PanelGroup direction="horizontal" className="gap-1">
-        <Panel defaultSize={80}>
-          <PanelGroup direction="vertical" className="gap-1">
-            <Panel defaultSize={50}>
-              <PanelGroup direction="horizontal" className="gap-1">
-                <Panel defaultSize={50}>
-                  <EngineRPM
-                    engineRpmDetails={archiveData.filter(
-                      (entry) => entry.gensetProperty.propertyName === "engSpeedDisplay"
-                    )}
-                  />
-                </Panel>
-                <PanelResizeHandle />
-                <Panel defaultSize={50}>
-                  <PropertyCard
-                    propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
-                        ?.gensetProperty?.readablePropertyName || "Generator Power Output"
-                    }
-                    propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
-                        ?.propertyValue
-                    }
-                    PropertyIcon={MdEnergySavingsLeaf}
-                    propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "genTotalVA")[0]
-                        ?.gensetProperty.physicalQuantity.unitSymbol
-                    }
-                  />
-                </Panel>
-              </PanelGroup>
-            </Panel>
-            <PanelResizeHandle />
-            <Panel>
-              <PanelGroup direction="horizontal" className="gap-1">
-                <Panel>
-                  {/* Engine Oil Pressure */}
-                  <PropertyCard
-                    propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
-                        ?.gensetProperty?.readablePropertyName || "Engine Oil Pressure"
-                    }
-                    propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
-                        ?.propertyValue
-                    }
-                    PropertyIcon={FaOilCan}
-                    propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engOilPress")[0]
-                        ?.gensetProperty.physicalQuantity.unitSymbol
-                    }
-                  />
-                </Panel>
-                <PanelResizeHandle />
-                <Panel>
-                  {/* Charge Alt Voltage */}
-                  <PropertyCard
-                    propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
-                        ?.gensetProperty?.readablePropertyName || "Engine Charging Alternator Voltage"
-                    }
-                    propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
-                        ?.propertyValue
-                    }
-                    PropertyIcon={GiElectric}
-                    propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engChargeAltVolts")[0]
-                        ?.gensetProperty.physicalQuantity.unitSymbol
-                    }
-                  />
-                </Panel>
-                <PanelResizeHandle />
-                <Panel>
-                  {/* Battery Voltage */}
-                  <PropertyCard
-                    propertyName={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
-                        ?.gensetProperty?.readablePropertyName || "Engine Battery Voltage"
-                    }
-                    propertyValue={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
-                        ?.propertyValue
-                    }
-                    PropertyIcon={FaBatteryThreeQuarters}
-                    propertyUnit={
-                      archiveData.filter((entry) => entry.gensetProperty.propertyName === "engBatteryVolts")[0]
-                        ?.gensetProperty.physicalQuantity.unitSymbol
-                    }
-                  />
-                </Panel>
-              </PanelGroup>
-            </Panel>
-          </PanelGroup>
-        </Panel>
-
-        <PanelResizeHandle />
-
-        <Panel>
-          <VerticalFuelLevelIndicator
-            fuelDetails={archiveData.filter((entry) => entry.gensetProperty.propertyName === "engFuelLevelUnits")}
+    <div className="h-full w-full overflow-y-auto overflow-x-hidden p-4">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-auto md:h-full">
+        {/* Main Gauges Area */}
+       <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Top Row */}
+          <EngineRPM
+            engineRpmDetails={engineRpmData}
+            isLoading={isLoading}
           />
-        </Panel>
-      </PanelGroup>
+          <PropertyCard
+            propertyName={
+              powerOutputData[0]
+                ?.gensetProperty?.readablePropertyName || "Generator Power Output"
+            }
+            propertyValue={
+              powerOutputData[0]
+                ?.propertyValue
+            }
+            PropertyIcon={MdEnergySavingsLeaf}
+            propertyUnit={
+              powerOutputData[0]
+                ?.gensetProperty.physicalQuantity.unitSymbol
+            }
+            isAnomaly={powerOutputData[0]?.isAnomaly || false}
+            isLoading={isLoading}
+          />
+
+          {/* Bottom Row - 3 small cards on desktop, 1 column on mobile */}
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <PropertyCard
+              propertyName={
+                oilPressureData[0]
+                  ?.gensetProperty?.readablePropertyName || "Oil Pressure"
+              }
+              propertyValue={
+                oilPressureData[0]
+                  ?.propertyValue
+              }
+              PropertyIcon={FaOilCan}
+              propertyUnit={
+                oilPressureData[0]
+                  ?.gensetProperty.physicalQuantity.unitSymbol
+              }
+              isAnomaly={oilPressureData[0]?.isAnomaly || false}
+              isLoading={isLoading}
+            />
+            <PropertyCard
+              propertyName={
+                altVoltageData[0]
+                  ?.gensetProperty?.readablePropertyName || "Alt Voltage"
+              }
+              propertyValue={
+                altVoltageData[0]
+                  ?.propertyValue
+              }
+              PropertyIcon={GiElectric}
+              propertyUnit={
+                altVoltageData[0]
+                  ?.gensetProperty.physicalQuantity.unitSymbol
+              }
+              isAnomaly={altVoltageData[0]?.isAnomaly || false}
+              isLoading={isLoading}
+            />
+            <PropertyCard
+              propertyName={
+                batteryVoltageData[0]
+                  ?.gensetProperty?.readablePropertyName || "Battery Volts"
+              }
+              propertyValue={
+                batteryVoltageData[0]
+                  ?.propertyValue
+              }
+              PropertyIcon={FaBatteryThreeQuarters}
+              propertyUnit={
+                batteryVoltageData[0]
+                  ?.gensetProperty.physicalQuantity.unitSymbol
+              }
+              isAnomaly={batteryVoltageData[0]?.isAnomaly || false}
+              isLoading={isLoading}
+            />
+          </div>
+
+        </div>
+
+        {/* Side Area for Fuel */}
+        <div className="md:col-span-1">
+          <VerticalFuelLevelIndicator
+            fuelDetails={fuelLevelData}
+            isLoading={isLoading}
+          />
+        </div>
+      </div>
     </div>
   );
 };

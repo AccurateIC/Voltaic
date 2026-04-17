@@ -1,4 +1,4 @@
-export const SemiCircleGauge = ({ value, maxValue }) => {
+export const SemiCircleGauge = ({ value, maxValue }: { value: number; maxValue: number }) => {
   const percentage = (value / maxValue) * 100;
   const degree = (percentage * 180) / 100;
   const circumference = Math.PI * 90;
@@ -20,7 +20,7 @@ export const SemiCircleGauge = ({ value, maxValue }) => {
         strokeWidth="10"
         strokeDasharray={`${arcLength} ${circumference - arcLength}`}
         strokeDashoffset="0"
-        transform="rotate(-90,50)"
+        transform="rotate(-90 50 50)"
       />
     </svg>
   );

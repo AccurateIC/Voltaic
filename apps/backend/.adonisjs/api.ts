@@ -123,7 +123,7 @@ type ArchiveCreatePost = {
   request: MakeTuyauRequest<InferInput<typeof import('../app/validators/archive.ts')['createArchiveValidator']>>
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/archive_controller.ts').default['create'], true>
 }
-type ArchiveDeleteIdDelete = {
+type ArchiveDeletePost = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/archive_controller.ts').default['delete'], false>
 }
@@ -179,6 +179,10 @@ type NotificationGetunresolvedGetHead = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['getUnresolved'], false>
 }
+type NotificationSummaryGetHead = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['summary'], false>
+}
 type NotificationReadIdPatch = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['read'], false>
@@ -190,6 +194,14 @@ type NotificationCreateGetHead = {
 type NotificationUpdatePatch = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['update'], false>
+}
+type NotificationResolvemultiplePost = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['resolveMultiple'], false>
+}
+type NotificationClearPost = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['clearRecords'], false>
 }
 type PdmCreatePost = {
   request: MakeTuyauRequest<InferInput<typeof import('../app/validators/pdm.ts')['createPdmValidator']>>
@@ -235,9 +247,17 @@ type PdmNotificationGetstatisticsPost = {
   request: MakeTuyauRequest<InferInput<typeof import('../app/validators/pdm.ts')['getPdmStatisticsValidator']>>
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/pdm_controller.ts').default['getStatistics'], true>
 }
+type PdmNotificationClearPost = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/pdm_controller.ts').default['clearRecords'], false>
+}
 type PdmDeleteDelete = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/pdm_controller.ts').default['delete'], false>
+}
+type MlNotifyloginPost = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/ml_controller.ts').default['notifyLogin'], false>
 }
 type ReportsGeneratedummyGetHead = {
   request: unknown
@@ -431,11 +451,9 @@ export interface ApiDefinition {
       '$post': ArchiveCreatePost;
     };
     'delete': {
-      ':id': {
-        '$url': {
-        };
-        '$delete': ArchiveDeleteIdDelete;
+      '$url': {
       };
+      '$post': ArchiveDeletePost;
     };
     'getBetween': {
       '$url': {
@@ -517,6 +535,12 @@ export interface ApiDefinition {
       '$get': NotificationGetunresolvedGetHead;
       '$head': NotificationGetunresolvedGetHead;
     };
+    'summary': {
+      '$url': {
+      };
+      '$get': NotificationSummaryGetHead;
+      '$head': NotificationSummaryGetHead;
+    };
     'read': {
       ':id': {
         '$url': {
@@ -534,6 +558,16 @@ export interface ApiDefinition {
       '$url': {
       };
       '$patch': NotificationUpdatePatch;
+    };
+    'resolveMultiple': {
+      '$url': {
+      };
+      '$post': NotificationResolvemultiplePost;
+    };
+    'clear': {
+      '$url': {
+      };
+      '$post': NotificationClearPost;
     };
   };
   'pdm': {
@@ -603,11 +637,23 @@ export interface ApiDefinition {
         };
         '$post': PdmNotificationGetstatisticsPost;
       };
+      'clear': {
+        '$url': {
+        };
+        '$post': PdmNotificationClearPost;
+      };
     };
     'delete': {
       '$url': {
       };
       '$delete': PdmDeleteDelete;
+    };
+  };
+  'ml': {
+    'notify-login': {
+      '$url': {
+      };
+      '$post': MlNotifyloginPost;
     };
   };
   'reports': {

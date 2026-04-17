@@ -13,8 +13,6 @@ class MessageBus {
     }
 
     this.subscribers.get(channel).add(callback);
-    console.log(`Subscriber added for channel ${channel} with callback func ${callback}`);
-    console.log(`Subscribers: `, this.subscribers);
 
     return () => {
       const channelSubscribers = this.subscribers.get(channel);
@@ -31,10 +29,6 @@ class MessageBus {
     if (!channel || !this.subscribers.has(channel)) return;
     const channelSubscribers = this.subscribers.get(channel);
     if (channelSubscribers) {
-      console.log("Publishing");
-      console.log("Channel: ", channel);
-      console.log("Data: ", data);
-      console.log("Channel Subscribers: ", channelSubscribers);
       channelSubscribers.forEach((callback) => callback(data));
     }
   }
@@ -46,12 +40,27 @@ class MessageBus {
 
 export const messageBus = new MessageBus();
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export const useMessageBus = (channel, callback) => {
+  const callbackRef = useRef(callback);
+
   useEffect(() => {
-    if (callback) return messageBus.subscribe(channel, callback);
-  }, [channel, callback]);
+    callbackRef.current = callback;
+  }, [callback]);
+
+  useEffect(() => {
+    let unsubscribe;
+    if (callbackRef.current) {
+      const handler = (data) => {
+        if (callbackRef.current) callbackRef.current(data);
+      };
+      unsubscribe = messageBus.subscribe(channel, handler);
+    }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [channel]);
 
   return useCallback((data) => messageBus.publish(channel, data), [channel]);
 };

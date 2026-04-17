@@ -2,7 +2,8 @@ import type { HttpContext } from "@adonisjs/core/http";
 import User from "#models/user";
 import { createUserValidator, loginValidator, updateUserProfileValidator } from "#validators/auth";
 import Role from "#models/role";
-
+import logger from "@adonisjs/core/services/logger";
+import env from "#start/env";
 export default class AuthController {
   async getLoggedInUser({ auth }: HttpContext): Promise<User> {
     const user = await auth.authenticate();
@@ -21,7 +22,7 @@ export default class AuthController {
   async register({ request, auth }: HttpContext) {
     const data = await request.validateUsing(createUserValidator);
     const user = await User.create(data);
-    console.log(user.$isPersisted);
+   logger.info({ isPersisted: user.$isPersisted }, "User persisted status");
     await auth.use("web").login(user);
     return user.serialize();
   }
@@ -45,7 +46,7 @@ export default class AuthController {
     if (goog.hasError()) return goog.getError();
 
     const googUser = await goog.user();
-    console.log("GOOGLE", googUser);
+   logger.info({ googUser }, "Google OAuth user data");
 
     // save user data to database and
     // navigate to login page
@@ -60,7 +61,7 @@ export default class AuthController {
     } else {
       const userData = await createUserValidator.validate({
         email: googUser.email,
-        password: "12345",
+       password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12),
         firstName: googUser.name?.split(" ")[0],
         roleId: (await Role.findByOrFail("roleName", "user"))?.id,
         isActive: true,
@@ -68,7 +69,7 @@ export default class AuthController {
       user = await User.create(userData);
       await auth.use("web").login(user);
     }
-    return response.redirect("http://localhost:5173/engine");
+   return response.redirect(`${env.get("FRONTEND_URL")}/engine`);
   }
 
   async githubRedirect({ ally }: HttpContext) {
@@ -83,7 +84,7 @@ export default class AuthController {
     if (gh.hasError()) return gh.getError();
 
     const githubUser = await gh.user();
-    console.log("GITHUB", githubUser);
+  logger.info({ githubUser }, "GitHub OAuth user data");
 
     // save user data to database and
     // navigate to login page
@@ -98,7 +99,7 @@ export default class AuthController {
     } else {
       const userData = await createUserValidator.validate({
         email: githubUser.email,
-        password: "12345",
+        password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12),
         firstName: githubUser.name?.split(" ")[0],
         roleId: (await Role.findByOrFail("roleName", "user"))?.id,
         isActive: true,
@@ -129,17 +130,23 @@ export default class AuthController {
     await auth.use("web").logout();
   }
 
-  async activate({ params }: HttpContext) {
+  async activate({ params, auth, response }: HttpContext) {
+    const loggedInUser = await auth.authenticate();
+    if (loggedInUser.roleId !== (await Role.findByOrFail("roleName", "admin")).id) {
+      return response.status(403).json({ message: "Forbidden: Admins only" });
+    }
     const user = await User.findOrFail(params.id);
-    // set user to inactive so they will not be fetched in the list of active users
     user.isActive = true;
     await user.save();
     return user.serialize();
   }
 
-  async deactivate({ params }: HttpContext) {
+  async deactivate({ params, auth, response }: HttpContext) {
+    const loggedInUser = await auth.authenticate();
+    if (loggedInUser.roleId !== (await Role.findByOrFail("roleName", "admin")).id) {
+      return response.status(403).json({ message: "Forbidden: Admins only" });
+    }
     const user = await User.findOrFail(params.id);
-    // set user to inactive so they will not be fetched in the list of active users
     user.isActive = false;
     await user.save();
     return user.serialize();

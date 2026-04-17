@@ -9,9 +9,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { filteredHealthIndexData } from "../filteredHealthIndexData";
 import { RulPrediction } from "../../types/rul.types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -19,17 +19,27 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 export function RulChart({
   currentRulPoint,
   simulatedRulPoint,
+  filteredHealthIndexData,
+  isHealthIndexLoading,
 }: {
   currentRulPoint: RulPrediction[];
   simulatedRulPoint: RulPrediction[];
+  filteredHealthIndexData: Array<{ Time_Hours: number; Predicted_Health_Index: number }>;
+  isHealthIndexLoading?: boolean;
 }) {
-  console.log("RUL", currentRulPoint);
+  if (isHealthIndexLoading) return null;
+
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { position: "top" },
-      title: { display: true, text: "Health Index Deterioration", color: "#fff", font: { size: 18, weight: "bold" } },
+      title: {
+        display: true,
+        text: "Health Index Deterioration",
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
+      },
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.8)",
         titleColor: "#ffffff",
@@ -47,7 +57,7 @@ export function RulChart({
           },
           label: (tooltipItems) => {
             const dataset = tooltipItems.datasetIndex;
-            const point = tooltipItems.raw;
+            const point = tooltipItems.raw as any;
 
             switch (dataset) {
               case 0: // trend line dataset
@@ -60,7 +70,8 @@ export function RulChart({
                   `Remaining Life: ${parseInt(point?.simulatedRul)} Hours`,
                 ];
               default:
-                console.log("unexpected dataset");
+                
+                return [];
             }
           },
         },
@@ -115,33 +126,34 @@ export function RulChart({
     },
   };
 
-  const data: ChartOptions<"line"> = {
-    datasets: [
-      {
-        label: "Health Index Trend",
-        data: filteredHealthIndexData.map((item) => ({ x: item.Time_Hours, y: item.Predicted_Health_Index })),
-        borderColor: "rgb(255, 99, 132)",
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-        pointStyle: "circle",
-      },
-      {
-        label: "Current Health Index",
-        data: currentRulPoint?.map((entry, index) => {
-          return { x: entry?.Time_Hours, y: entry?.Predicted_Health_Index, currentRul: entry?.Remaining_Useful_Life };
-        }),
-        borderColor: "rgb(53, 162, 235)",
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
-        // pointRadius: 8,
-        // pointStyle: "circle",
-        showLine: true,
-      },
-    ],
-  };
+  const datasets: any[] = [
+    {
+      label: "Health Index Trend",
+      data: (filteredHealthIndexData ?? []).map((item: any) => ({
+        x: item.Time_Hours,
+        y: item.Predicted_Health_Index,
+      })),
+      borderColor: "rgb(255, 99, 132)",
+      backgroundColor: "rgba(255, 99, 132, 0.5)",
+      pointStyle: "circle",
+    },
+    {
+      label: "Current Health Index",
+      data: currentRulPoint?.map((entry) => {
+        return { x: entry?.Time_Hours, y: entry?.Predicted_Health_Index, currentRul: entry?.Remaining_Useful_Life };
+      }),
+      borderColor: "rgb(53, 162, 235)",
+      backgroundColor: "rgba(53, 162, 235, 0.5)",
+      // pointRadius: 8,
+      // pointStyle: "circle",
+      showLine: true,
+    },
+  ];
 
   if (simulatedRulPoint) {
-    data.datasets.push({
+    datasets.push({
       label: "Simulated Health Index",
-      data: simulatedRulPoint?.map((entry, index) => {
+      data: simulatedRulPoint?.map((entry) => {
         return { x: entry?.Time_Hours, y: entry?.Predicted_Health_Index, simulatedRul: entry?.Remaining_Useful_Life };
       }),
       borderColor: "rgb(162, 53, 235)",
@@ -149,7 +161,7 @@ export function RulChart({
     });
   }
 
-  data.datasets.push({
+  datasets.push({
     label: "Failure Threshold",
     data: [
       { x: 0, y: 0.2 },
@@ -161,5 +173,9 @@ export function RulChart({
     borderDash: [10, 5],
   });
 
-  return <Line options={options} data={data} />;
+  const chartData: ChartData<"line"> = {
+    datasets,
+  };
+
+  return <Line options={options} data={chartData} />;
 }

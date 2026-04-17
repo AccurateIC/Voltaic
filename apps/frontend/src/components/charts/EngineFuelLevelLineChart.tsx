@@ -25,7 +25,12 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
     plugins: {
       legend: { position: "top", align: "center" },
       tooltip: {},
-      title: { display: true, text: "Engine Fuel Level Monitor", color: "#fff", font: { size: 18, weight: "normal" } },
+      title: {
+        display: true,
+        text: "Engine Fuel Level Monitor",
+        color: "rgba(255, 255, 255, 0.6)",
+        font: { size: 18, weight: "bold" },
+      },
     },
     scales: {
       x: {
@@ -47,22 +52,48 @@ export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
     },
   };
 
-  const chartData = fuelLevelData.map((item) => ({ x: item.timestamp, y: item.propertyValue }));
+  // Create single dataset with conditional point colors
+  const chartData = fuelLevelData.map((item) => ({ 
+    x: item.timestamp, 
+    y: item.propertyValue
+  }));
+
+  // Create point colors array - red for anomalies, blue for normal
+  const pointColors = fuelLevelData.map((item) => 
+    item.isAnomaly ? 'rgba(255, 0, 0, 1)' : 'rgba(82, 120, 209, 1)'
+  );
+
+  // Create point background colors array
+  const pointBgColors = fuelLevelData.map((item) => 
+    item.isAnomaly ? 'rgba(255, 0, 0, 0.8)' : 'rgba(82, 120, 209, 0.5)'
+  );
+
+  // Create point styles array - triangle for anomalies, circle for normal
+  const pointStyles = fuelLevelData.map((item) => 
+    item.isAnomaly ? 'triangle' : 'circle'
+  );
+
+  // Create point radius array - larger for anomalies
+  const pointRadius = fuelLevelData.map((item) => 
+    item.isAnomaly ? 6 : 3
+  );
 
   const data: ChartData<"line"> = {
     datasets: [
       {
         fill: false,
         label: "Fuel Level",
-        // data: fuelLevelData.map((item) => item.engineFuelLevel),
         data: chartData,
-        borderColor: "rgba(82, 120, 209, 1)",
+        borderColor: "rgba(82, 120, 209, 1)", // Keep line blue
         backgroundColor: "rgba(82, 120, 209, 0.5)",
-        pointStyle: "circle",
-        pointRadius: 3,
+        pointBackgroundColor: pointBgColors,
+        pointBorderColor: pointColors,
+        pointStyle: pointStyles,
+        pointRadius: pointRadius,
         pointHoverRadius: 5,
         pointHitRadius: 10,
         borderWidth: 2,
+        tension: 0.1,
       },
     ],
   };

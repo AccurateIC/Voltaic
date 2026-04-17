@@ -15,6 +15,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors);
 import { Bar } from "react-chartjs-2";
 import { tuyau } from "../../../lib/Tuyau";
+import Skeleton from "../../Skeleton";
 
 export const AllAnomaliesCount = () => {
   //hooks
@@ -23,11 +24,11 @@ export const AllAnomaliesCount = () => {
     queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(),
   });
 
-  if (isLoading) return <div className="skeleton h-full w-full"></div>;
-  if (isError || !data || !data.overall)
-    return <div className="h-full w-full flex items-center justify-center">N/A</div>;
+  if (isLoading || !data || !data.overall || Object.keys(data.overall).length === 0) {
+    return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;
+  }
 
-  console.log(data.overall);
+  
   const xs = Object.keys(data.overall);
   const ys = Object.values(data.overall) as number[];
 
