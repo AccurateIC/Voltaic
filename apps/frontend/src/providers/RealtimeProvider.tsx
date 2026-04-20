@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import transmitConnection from "../lib/TransmitConnection";
 import { TransmitChannels } from "../lib/TransmitChannels";
+import { messageBus } from "../lib/MessageBus";
 
 export const RealtimeProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
@@ -18,18 +19,18 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
     })();
 
     const unsub1 = archiveSub.onMessage(() => {
+      messageBus.publish(TransmitChannels.ARCHIVE, { source: "sse" });
       queryClient.invalidateQueries({ queryKey: ["archive"] });
     });
-    // ✅ FIX: Only invalidate the lightweight count query (50 bytes), NOT the full summary (500kB).
-    // The full summary is fetched only when the user opens the notification dropdown.
     const unsub2 = notifSub.onMessage(() => {
-      // notifications-count is NOT invalidated here — it self-polls every 10s.
-      // Invalidating it from SSE would cause the SAME spam bug as notifications-summary.
+      messageBus.publish(TransmitChannels.NOTIFICATION, { source: "sse" });
+      queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
     });
 
     const unsub3 = pdmSub.onMessage(() => {
+      messageBus.publish(TransmitChannels.PDM, { source: "sse" });
       queryClient.invalidateQueries({ queryKey: ["pdm"] });
-      // notifications-count is NOT invalidated here — it self-polls every 10s.
+      queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
     });
 
     return () => {

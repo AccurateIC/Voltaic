@@ -10,11 +10,13 @@ import { toast } from "sonner";
 
 
 import { cn, formatTimestamp } from "../lib/Utils";
+import { LiaConnectdevelop } from "react-icons/lia";
 import { tuyau } from "../lib/Tuyau";
 import { MaintenanceModal } from "./MaintenanceModal";
 import { AnomaliesModal } from "./AnomaliesModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTransmit } from "../hooks/useTransmit";
+import { useMessageBus } from "../lib/MessageBus";
+import { TransmitChannels } from "../lib/TransmitChannels";
 const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as const;
 
 const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
@@ -55,10 +57,10 @@ const Navbar = () => {
     enabled: false, // ✅ never auto-fetches — only fetched when dropdown opens
   });
 
-  const resolvedAnomalyNotificationsData = notificationsSummary?.anomaly?.resolved ?? [];
-  const unresolvedAnomalyNotificationsData = notificationsSummary?.anomaly?.unresolved ?? [];
-  const pdmResolvedNotifications = notificationsSummary?.maintenance?.resolved ?? [];
-  const pdmUnresolvedNotifications = notificationsSummary?.maintenance?.unresolved ?? [];
+ const resolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.resolved ?? []).slice(0, 20);
+const unresolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.unresolved ?? []).slice(0, 20);
+const pdmResolvedNotifications = (notificationsSummary?.maintenance?.resolved ?? []).slice(0, 20);
+const pdmUnresolvedNotifications = (notificationsSummary?.maintenance?.unresolved ?? []).slice(0, 20);
 
   // ✅ Bell badge counts: prefer real-time count query; fall back to summary array length
   // This ensures the badge updates every 5 seconds via SSE even without opening the dropdown
@@ -113,11 +115,26 @@ const markNotificationAsReadMutation = useMutation({
 
   
  
-  const detailsRef = useRef(null); // used to close notification dropdown when clicking outside
+  const detailsRef = useRef<HTMLDetailsElement | null>(null); // used to close notification dropdown when clicking outside
+
+  useMessageBus(TransmitChannels.NOTIFICATION, () => {
+    queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
+    if (detailsRef.current?.open) {
+      refetchSummary();
+    }
+  });
+
+  useMessageBus(TransmitChannels.PDM, () => {
+    queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
+    if (detailsRef.current?.open) {
+      refetchSummary();
+    }
+  });
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (detailsRef.current && !detailsRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const eventTarget = event.target as Node | null;
+      if (detailsRef.current && eventTarget && !detailsRef.current.contains(eventTarget)) {
         detailsRef.current.removeAttribute("open");
       }
     };
@@ -127,8 +144,26 @@ const markNotificationAsReadMutation = useMutation({
     };
   }, []);
 
-  
-  const handleMarkPdmNotificationAsRead = (pdmNotificationId: string) => {
+ const handleMarkPdmNotificationAsRead = (pdmNotificationId: string) => {
+    // ✅ instantly remove from UI
+    queryClient.setQueryData(["notifications-summary"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        maintenance: {
+          ...old.maintenance,
+          unresolved: old.maintenance.unresolved.filter((n: any) => n.id !== pdmNotificationId),
+        },
+      };
+    });
+    // ✅ instantly decrease count
+    queryClient.setQueryData(["notifications-count"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        maintenance: Math.max(0, old.maintenance - 1),
+      };
+    });
     markPdmNotificationAsReadMutation.mutate(pdmNotificationId, {
       onSuccess: () => {
         toast.success("Maintenance alert resolved!");
@@ -138,8 +173,26 @@ const markNotificationAsReadMutation = useMutation({
       },
     });
   };
-
-  const handleMarkNotificationAsRead = (notificationId: string) => {
+const handleMarkNotificationAsRead = (notificationId: string) => {
+    // ✅ instantly remove from UI
+    queryClient.setQueryData(["notifications-summary"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        anomaly: {
+          ...old.anomaly,
+          unresolved: old.anomaly.unresolved.filter((n: any) => n.id !== notificationId),
+        },
+      };
+    });
+    // ✅ instantly decrease count
+    queryClient.setQueryData(["notifications-count"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        anomaly: Math.max(0, old.anomaly - 1),
+      };
+    });
     markNotificationAsReadMutation.mutate(notificationId, {
       onSuccess: () => {
         toast.success("Anomaly resolved!");
@@ -149,16 +202,23 @@ const markNotificationAsReadMutation = useMutation({
       },
     });
   };
-  // ✅ NEW: Resolve all unresolved anomalies
-  const handleResolveAllAnomalies = async () => {
+ const handleResolveAllAnomalies = async () => {
     if (!unresolvedAnomalyNotificationsData || unresolvedAnomalyNotificationsData.length === 0) {
       toast.info("No unresolved anomalies");
       return;
     }
 
-    try {
-      toast.loading(`Resolving ${unresolvedAnomalyNotificationsData.length} anomalies...`);
+    const count = unresolvedAnomalyNotificationsData.length;
 
+    // ✅ Optimistically clear UI and badge count immediately
+   // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
+    queryClient.setQueryData(["notifications-count"], (old: any) => {
+      if (!old) return old;
+      return { ...old, anomaly: Math.max(0, old.anomaly - count) };
+    });
+
+    try {
+      const toastId = toast.loading(`Resolving ${count} anomalies...`);
       for (const notification of unresolvedAnomalyNotificationsData) {
         await new Promise((resolve) => {
           markNotificationAsReadMutation.mutate(notification.id, {
@@ -168,7 +228,8 @@ const markNotificationAsReadMutation = useMutation({
         });
       }
 
-   toast.success("All anomalies resolved!");
+   toast.dismiss(toastId);
+toast.success("All anomalies resolved!");
       refetchSummary(); // only refetch once after ALL are done, not per notification
     } catch (error: any) {
       toast.error("Failed to resolve all anomalies");
@@ -176,15 +237,23 @@ const markNotificationAsReadMutation = useMutation({
   };
 
   // ✅ NEW: Resolve all unresolved PDM notifications
-  const handleResolveAllPdm = async () => {
+ const handleResolveAllPdm = async () => {
     if (!pdmUnresolvedNotifications || pdmUnresolvedNotifications.length === 0) {
       toast.info("No unresolved maintenance alerts");
       return;
     }
 
-    try {
-      toast.loading(`Resolving ${pdmUnresolvedNotifications.length} maintenance alerts...`);
+    const count = pdmUnresolvedNotifications.length;
 
+    // ✅ Optimistically clear UI and badge count immediately
+  // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
+    queryClient.setQueryData(["notifications-count"], (old: any) => {
+      if (!old) return old;
+      return { ...old, maintenance: Math.max(0, old.maintenance - count) };
+    });
+
+    try {
+      const toastId = toast.loading(`Resolving ${count} maintenance alerts...`);
       for (const notification of pdmUnresolvedNotifications) {
         await new Promise((resolve) => {
           markPdmNotificationAsReadMutation.mutate(notification.id, {
@@ -194,7 +263,8 @@ const markNotificationAsReadMutation = useMutation({
         });
       }
 
-      toast.success("All maintenance alerts resolved!");
+ toast.dismiss(toastId);
+toast.success("All maintenance alerts resolved!");  
       refetchSummary(); // only refetch once after ALL are done
     } catch (error: any) {
       toast.error("Failed to resolve all maintenance alerts");
@@ -252,7 +322,11 @@ const markNotificationAsReadMutation = useMutation({
   };
 
   return (
-    <nav className="bg-base-200 px-2 py-3 flex justify-end items-center sticky top-0 z-50 shadow-sm">
+  <nav className="bg-base-200 px-2 md:px-4 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+  <div /> {/* empty spacer to keep bell + profile on the right */}
+      {/* navigate to engine page */}
+     
+
       <div className="flex items-center space-x-3">
         {/* --- DaisyUI Dropdown Structure --- */}
         <details
@@ -356,6 +430,31 @@ const markNotificationAsReadMutation = useMutation({
               </div>
 
               {/* Notifications Content */}
+         {/* ✅ Sticky Resolve button — outside scrollable area so it never scrolls away */}
+              {activeSecondaryTab === secondaryTab.UNRESOLVED && (
+                <div className="px-2 pb-2">
+                  {activeTab === primaryTab.ANOMALIES && unresolvedAnomalyNotificationsData.length > 0 && (
+                    <button
+                      onClick={handleResolveAllAnomalies}
+                      disabled={markNotificationAsReadMutation.isPending}
+                      className="btn btn-sm btn-warning w-full"
+                    >
+                      {markNotificationAsReadMutation.isPending ? "Resolving..." : "Resolve Latest 20 Anomalies"}
+                    </button>
+                  )}
+                  {activeTab === primaryTab.MAINTENANCE && pdmUnresolvedNotifications.length > 0 && (
+                    <button
+                      onClick={handleResolveAllPdm}
+                      disabled={markPdmNotificationAsReadMutation.isPending}
+                      className="btn btn-sm btn-warning w-full"
+                    >
+                      {markPdmNotificationAsReadMutation.isPending ? "Resolving..." : "Resolve Latest 20 Maintenance"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Notifications Content */}
               <div className="max-h-[400px] overflow-y-auto">
                 {activeTab === primaryTab.ANOMALIES ? (
                   activeSecondaryTab === secondaryTab.UNRESOLVED ? (
@@ -367,19 +466,7 @@ const markNotificationAsReadMutation = useMutation({
                         </div>
                       ) : (
                         <>
-                          {/* ✅ NEW: Resolve All button */}
-                          <div className="mb-3">
-                            <button
-                              onClick={handleResolveAllAnomalies}
-                              disabled={markNotificationAsReadMutation.isPending}
-                              className="btn btn-sm btn-warning w-full"
-                            >
-                              {markNotificationAsReadMutation.isPending
-                                ? "Resolving..."
-                                : "Resolve All Anomalies"}
-                            </button>
-                          </div>
-
+                          {/* REMOVED the button from here */}
                           {unresolvedAnomalyNotificationsData.map((notification) => (
                             <div
                               key={notification.id}
@@ -472,18 +559,8 @@ const markNotificationAsReadMutation = useMutation({
                         <p>No new unresolved maintenance alerts</p>
                       </div>
                     ) : (
-                      <>
-                        {/* ✅ NEW: Resolve All button */}
-                        <div className="mb-3">
-                          <button
-                            onClick={handleResolveAllPdm}
-                            disabled={markPdmNotificationAsReadMutation.isPending}
-                            className="btn btn-sm btn-warning w-full"
-                          >
-                            {markPdmNotificationAsReadMutation.isPending ? "Resolving..." : "Resolve All Maintenance"}
-                          </button>
-                        </div>
-
+         <>
+                        {/* Button moved outside scrollable div above */}
                         {pdmUnresolvedNotifications.map((pdmNotif) => (
                           <div
                             key={pdmNotif.id}

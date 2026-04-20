@@ -200,11 +200,18 @@ const AnomaliesTable = ({
 };
 
 const Anomalies = () => {
-  const [anomalyData, setAnomalyData] = useState({ today: [], week: [], month: [] });
-  const [filteredNotifications, setFilteredNotifications] = useState([]);
+const [anomalyData, setAnomalyData] = useState({
+  today: 0,
+  week: 0,
+  month: 0,
+});
   const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+ const [notifications, setNotifications] = useState([]);
+const [notificationCounts, setNotificationCounts] = useState({
+  anomaly: 0,
+  maintenance: 0,
+});
   const [isLoading, setIsLoading] = useState(true);
   const isFetchingRef = useRef(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -237,6 +244,7 @@ const Anomalies = () => {
   const [engOilPress, setEngOilPress] = useState([]);
   const [genL1Current, setGenL1Volts] = useState([]);
   const [genTotalVA, setGenTotalVA] = useState([]);
+  const realtimeNotificationTimeoutRef = useRef(null);
 
   const getAnomalyDataByPeriod = (notificationsList) => {
     const now = DateTime.local();
@@ -289,18 +297,20 @@ const Anomalies = () => {
     setLabels(labels);
     setDataset(data);
   };
-
-  const fetchNotifications = async (showLoading = true) => {
+  const fetchNotifications = async (page = 1, showLoading = true) => {
     try {
       if (showLoading) setIsLoading(true);
-      const { data, error } = await tuyau.notification.getAll.$get({ query: { page: 1, limit: 10000 } });
+
+      const { data, error } = await tuyau.notification.paginate.$get({
+        query: { page, limit: 50, includeResolved: false },
+      });
+
       if (error) throw new Error(error.message || "Failed to fetch notification data");
+
       const notificationsArray = data.data || [];
       setNotifications(notificationsArray);
-      if (notificationsArray.length > 0) {
-        const anomalyStats = getAnomalyDataByPeriod(notificationsArray);
-        setAnomalyData(anomalyStats);
-      }
+      setPaginationInfo(data.pagination);
+      setCurrentPage(data?.pagination?.page || page);
     } catch (error) {
       toast.error("Error fetching notification data");
     } finally {
@@ -308,12 +318,55 @@ const Anomalies = () => {
       setIsInitialLoading(false);
     }
   };
+  const fetchAnomalyStatsCount = async () => {
+  try {
+    const response = await fetch(`${BACKEND_BASE_URL}/notification/anomalyStatsCount`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    setAnomalyData({
+      today: data?.today || 0,
+      week: data?.week || 0,
+      month: data?.month || 0,
+    });
+  } catch (error) {
+    console.error("Failed to fetch anomaly stats count:", error);
+  }
+};
+  const fetchNotificationCount = async () => {
+  try {
+    const response = await fetch(`${BACKEND_BASE_URL}/notification/count`, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    setNotificationCounts({
+      anomaly: data?.anomaly || 0,
+      maintenance: data?.maintenance || 0,
+    });
+  } catch (error) {
+    console.error("Failed to fetch notification count:", error);
+  }
+};
 
   const fetchAnomaliesDatas = async (from, to, selectedPropertiesList, showLoading = true) => {
     // Important: when the user deselects all properties, clear chart series too.
     // Otherwise previously fetched chart data stays visible even though selection is empty.
     if (selectedPropertiesList.length === 0) {
-      setLineEngFuleLavel([]);
+    setLineEngFulLavel([]);
       setEngSpeedDisplay([]);
       setEngOilPress([]);
       setGenL1Volts([]);
@@ -440,89 +493,117 @@ const Anomalies = () => {
       setSelectedProperties(gensetProperties.map((p) => p.propertyName));
     }
   };
+const handleResolveAnomalies = async (notificationId) => {
+  try {
+    setResolvingId(notificationId);
+    const { data, error } = await tuyau.notification.read[notificationId].$patch();
 
-  const handleResolveAnomalies = async (notificationId) => {
-    try {
-      setResolvingId(notificationId);
-      const { data, error } = await tuyau.notification.read[notificationId].$patch();
-      if (!error) {
-        toast.success("Anomaly resolved!");
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, shouldBeDisplayed: false } : n))
-        );
-      } else {
-        toast.error("Failed to resolve anomaly");
-      }
-    } catch (error) {
-      toast.error(`Error: ${error?.message}`);
-    } finally {
-      setResolvingId(null);
-    }
-  };
+    if (!error) {
+      toast.success("Anomaly resolved!");
 
-  const handleResolveAll = async () => {
-    const unresolvedAnomalies = filteredNotifications.filter((notif) => notif.shouldBeDisplayed);
-    if (unresolvedAnomalies.length === 0) {
-      toast.info("No unresolved anomalies to resolve");
-      return;
-    }
-
-    // Dismiss any leftover toasts from previous attempts
-    toast.dismiss();
-
-    setIsResolvingAll(true);
-    setResolveProgress(0);
-
-    const toastId = "resolve-all-toast";
-    toast.loading(`Resolving ${unresolvedAnomalies.length} anomalies...`, { id: toastId });
-
-    try {
-      const notificationIds = unresolvedAnomalies.map((n) => n.id);
-      const response = await fetch(`${BACKEND_BASE_URL}/notification/resolveMultiple`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ notificationIds }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result?.message || "Failed to resolve anomalies");
-
-      setResolveProgress(100);
-      setNotifications((prev) =>
-        prev.map((n) => (notificationIds.includes(n.id) ? { ...n, shouldBeDisplayed: false } : n))
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      setPaginationInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              total: Math.max(0, (prev.total || 0) - 1),
+              pages: Math.max(1, Math.ceil(Math.max(0, (prev.total || 0) - 1) / (prev.limit || 50))),
+            }
+          : prev
       );
 
-      toast.dismiss();
-      toast.success(`Successfully resolved ${result.resolved} anomalies!`, { duration: 2000 });
-
-    } catch (error) {
-      toast.dismiss();
-      toast.error(error?.message || "Error resolving anomalies", { duration: 3000 });
-    } finally {
-      setIsResolvingAll(false);
-      setResolveProgress(0);
+      fetchNotificationCount();
+      fetchAnomalyStatsCount();
+    } else {
+      toast.error("Failed to resolve anomaly");
     }
-  };
+  } catch (error) {
+    toast.error(`Error: ${error?.message}`);
+  } finally {
+    setResolvingId(null);
+  }
+};
+const handleResolveAll = async () => {
+  const unresolvedAnomalies = notifications.filter((notif) => notif.shouldBeDisplayed);
 
-  useMessageBus(TransmitChannels.NOTIFICATION, (newNotification) => {
-    if (!newNotification) return;
-    setNotifications((prev) => {
-      const exists = prev.some((n) => n.id === newNotification.id);
-      if (exists) return prev;
-      const updated = [newNotification, ...prev];
-      const anomalyStats = getAnomalyDataByPeriod(updated);
-      setAnomalyData(anomalyStats);
-      return updated;
+  if (unresolvedAnomalies.length === 0) {
+    toast.info("No unresolved anomalies to resolve");
+    return;
+  }
+
+  toast.dismiss();
+  setIsResolvingAll(true);
+  setResolveProgress(0);
+
+  const toastId = "resolve-all-toast";
+  toast.loading(`Resolving ${unresolvedAnomalies.length} anomalies...`, { id: toastId });
+
+  try {
+    const notificationIds = unresolvedAnomalies.map((n) => n.id);
+
+    const response = await fetch(`${BACKEND_BASE_URL}/notification/resolveMultiple`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ notificationIds }),
     });
-  });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result?.message || "Failed to resolve anomalies");
+
+    setResolveProgress(100);
+
+    setNotifications((prev) => prev.filter((n) => !notificationIds.includes(n.id)));
+
+    if (result?.newCounts) {
+      setNotificationCounts({
+        anomaly: result.newCounts.anomaly || 0,
+        maintenance: result.newCounts.maintenance || 0,
+      });
+    } else {
+      fetchNotificationCount();
+    }
+    fetchAnomalyStatsCount();
+    fetchNotifications(currentPage, false);
+
+    toast.dismiss();
+    toast.success(`Successfully resolved ${result.resolved} anomalies!`, { duration: 2000 });
+  } catch (error) {
+    toast.dismiss();
+    toast.error(error?.message || "Error resolving anomalies", { duration: 3000 });
+  } finally {
+    setIsResolvingAll(false);
+    setResolveProgress(0);
+  }
+};
+
+useMessageBus(TransmitChannels.NOTIFICATION, () => {
+  if (realtimeNotificationTimeoutRef.current) return;
+  realtimeNotificationTimeoutRef.current = setTimeout(() => {
+    fetchNotifications(currentPage, false);
+    realtimeNotificationTimeoutRef.current = null;
+  }, 300);
+  fetchNotificationCount();
+  fetchAnomalyStatsCount();
+});
 
   useMessageBus(TransmitChannels.ARCHIVE, (newArchive) => {
     if (!newArchive || isFetchingRef.current) return;
   });
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+useEffect(() => {
+  fetchNotifications(1);
+  fetchNotificationCount();
+  fetchAnomalyStatsCount();
+}, []);
+
+useEffect(() => {
+  return () => {
+    if (realtimeNotificationTimeoutRef.current) {
+      clearTimeout(realtimeNotificationTimeoutRef.current);
+    }
+  };
+}, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -588,28 +669,21 @@ const Anomalies = () => {
     if (selectedProperties.length > 0) {
       filtered = filtered.filter((notif) => selectedProperties.includes(notif.archive?.gensetProperty?.propertyName));
     }
-    setFilteredNotifications(filtered);
     processChartDataFromNotifications(filtered);
     groupAnomalies(filtered);
   }, [filters, notifications, selectedProperties, timeRange]);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, selectedProperties, timeRange]);
-
-  useEffect(() => {
     fetchPropertyData();
   }, [selectedEntry]);
 
-  const unresolvedCount = filteredNotifications.filter((notif) => notif.shouldBeDisplayed).length;
+ const unresolvedCount = notificationCounts.anomaly;
 
-  const itemsPerPage = 50;
-  const totalRecords = filteredNotifications.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / itemsPerPage));
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentNotifications = filteredNotifications.slice(indexOfFirstItem, indexOfLastItem);
-
+const itemsPerPage = 50;
+const totalRecords = paginationInfo?.total || 0;
+const totalPages = paginationInfo?.pages || Math.max(1, Math.ceil(totalRecords / itemsPerPage));
+const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+const currentNotifications = notifications; // already only current page from backend
   const getLineSeriesForProperty = (propertyName) => {
     switch (propertyName) {
       case "engFuelLevelUnits":
@@ -632,33 +706,33 @@ const Anomalies = () => {
   return (
     <div className="bg-base-300 text-base-content h-full w-full flex flex-col gap-3 overflow-x-hidden">
 
-      {(isInitialLoading || !notifications || notifications.length === 0) ? (
-        <div className="flex flex-col gap-4 w-full h-full p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <Skeleton type="stat" />
-            <Skeleton type="stat" />
-            <Skeleton type="stat" />
-          </div>
-          <div className="flex flex-col md:flex-row gap-4 h-[400px]">
-            <div className="flex flex-col w-full md:w-1/2 gap-4">
-              <Skeleton type="chart" />
-              <Skeleton type="chart" />
-            </div>
-            <div className="w-full md:w-1/2 h-full">
-              <Skeleton type="table" rows={8} columns={6} />
-            </div>
-          </div>
-        </div>
-      ) : (
+     {isInitialLoading ? (
+  <div className="flex flex-col gap-4 w-full h-full p-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <Skeleton type="stat" />
+      <Skeleton type="stat" />
+      <Skeleton type="stat" />
+    </div>
+    <div className="flex flex-col md:flex-row gap-4 h-[400px]">
+      <div className="flex flex-col w-full md:w-1/2 gap-4">
+        <Skeleton type="chart" />
+        <Skeleton type="chart" />
+      </div>
+      <div className="w-full md:w-1/2 h-full">
+        <Skeleton type="table" rows={8} columns={6} />
+      </div>
+    </div>
+  </div>
+) : (
         <>
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-2xl md:text-3xl font-semibold leading-tight text-base-content">Anomalies</h1>
           </div>
           {/* Stats Cards */}
           <div className="items-center text-base-200 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center sm:mb-4 mb-3">
-            <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today.length} />
-            <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomaly" count={anomalyData.week.length} />
-            <AnomalyStatsCard icon="FaCalendarAlt" title="Monthly Anomaly" count={anomalyData.month.length} />
+          <AnomalyStatsCard icon="FaExclamationTriangle" title="Today's Anomaly" count={anomalyData.today} />
+<AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomaly" count={anomalyData.week} />
+<AnomalyStatsCard icon="FaCalendarAlt" title="Monthly Anomaly" count={anomalyData.month} />
           </div>
 
           {/* Filters & Resolve Button */}
@@ -684,7 +758,7 @@ const Anomalies = () => {
                     Resolving...
                   </>
                 ) : (
-                  `Resolve All (${unresolvedCount})`
+                  `Resolve Latest 50 `
                 )}
               </button>
             )}
@@ -745,7 +819,7 @@ const Anomalies = () => {
                     totalPages={totalPages}
                     totalRecords={totalRecords}
                     itemsPerPage={itemsPerPage}
-                    onPageChange={setCurrentPage}
+                   onPageChange={(page) => fetchNotifications(page)}
                   />
                 </div>
               )}
@@ -783,19 +857,19 @@ const Anomalies = () => {
 
             {/* Right: only table */}
             <div className="min-w-0 min-h-0 h-full">
-              <AnomaliesTable
-                data={currentNotifications}
-                onViewClick={handleViewClick}
-                onResolveClick={handleResolveAnomalies}
-                resolvingId={resolvingId}
-                isResolvingAll={isResolvingAll}
-                startIndex={indexOfFirstItem + 1}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalRecords={totalRecords}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-              />
+           <AnomaliesTable
+  data={currentNotifications}
+  onViewClick={handleViewClick}
+  onResolveClick={handleResolveAnomalies}
+  resolvingId={resolvingId}
+  isResolvingAll={isResolvingAll}
+  startIndex={indexOfFirstItem + 1}
+  currentPage={currentPage}
+  totalPages={totalPages}
+  totalRecords={totalRecords}
+  itemsPerPage={itemsPerPage}
+  onPageChange={(page) => fetchNotifications(page)}
+/>
             </div>
           </div>
 

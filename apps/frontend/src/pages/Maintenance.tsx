@@ -340,7 +340,8 @@ const Maintenance = () => {
   const [isPdmLoading, setIsPdmLoading] = useState(true);
   const [pdmError, setPdmError] = useState<MaintenanceNotification | null>(null);
 
-  const pdmVibrationFetchSeqRef = useRef(0);
+ const pdmVibrationFetchSeqRef = useRef(0);
+const isPollingRef = useRef(false);
 
   const latestActualPdm = useMemo(() => {
     if (actualPdmData.length === 0) return null;
@@ -425,80 +426,74 @@ const Maintenance = () => {
   };
 
   // live update when new data received
-  useMessageBus(TransmitChannels.PDM, () => {
-   
-    Promise.all([
+ useMessageBus(TransmitChannels.PDM, async () => {
+  if (isPollingRef.current) return;
+
+  isPollingRef.current = true;
+  try {
+    await Promise.all([
       fetchPdmVibrationData(true),
       fetchLatestPdmNotification(true),
       fetchNotificationTimestamps(),
-      // fetchLatestPdmEntry(true),
     ]);
-  });
+  } finally {
+    isPollingRef.current = false;
+  }
+});
 
-  useEffect(() => {
-    Promise.all([
-      fetchPdmVibrationData(false),
-      fetchLatestPdmNotification(),
-      fetchNotificationTimestamps(),
-      fetchLatestPdmEntry(),
-    ]);
-
-    // Fallback polling every 5 seconds in case SSE events are missed
-    // const interval = setInterval(() => {
-    //   Promise.all([fetchPdmVibrationData(true), fetchNotificationTimestamps()]);
-    // }, 5000);
-    //here i do 1st chnnage .
-    // ✅ Add notification fetch in polling too
-let abortController = new AbortController();
-
-const interval = setInterval(() => {
-  abortController.abort();
-  abortController = new AbortController();
+ useEffect(() => {
   Promise.all([
-    fetchPdmVibrationData(true, abortController.signal),
-    fetchLatestPdmNotification(true),
+    fetchPdmVibrationData(false),
+    fetchLatestPdmNotification(),
     fetchNotificationTimestamps(),
   ]);
-}, 5000);
 
-    return () => {
-      clearInterval(interval);
-      abortController.abort();
-    };
+  const interval = setInterval(async () => {
+    if (isPollingRef.current) return;
 
-
-  }, []);
-  const fetchPdmVibrationData = async (isBackground = false, signal?: AbortSignal) => {
+    isPollingRef.current = true;
     try {
-      if (signal?.aborted) return;
-
-      const seq = ++pdmVibrationFetchSeqRef.current;
-
-      if (!isBackground && actualPdmData.length === 0) setIsPdmLoading(true);
-      // fetch actual data
-      const { data, error } = await tuyau.pdm.getRecentActual.$get();
-      if (signal?.aborted) return;
-      if (error) {
-        throw new Error((error as any).message || `Failed to fetch pdm data`);
-      }
-      if (seq !== pdmVibrationFetchSeqRef.current) return;
-      setActualPdmData(data as any);
-     
-
-      // fetch forecasted data
-      const { data: forecastedData, error: forecastedError } = await tuyau.pdm.getRecentForecasted.$get();
-      if (forecastedError) {
-        throw new Error((forecastedError as any).message || `Failed to fetch pdm data`);
-      }
-      // alert(JSON.stringify(forecastedData, null, 2));
-      if (seq !== pdmVibrationFetchSeqRef.current) return;
-      setForecastedPdmData(forecastedData as any);
-    } catch {
-      if (!isBackground) toast.error(`Failed to fetch vibration data`);
+      await Promise.all([
+        fetchPdmVibrationData(true),
+        fetchLatestPdmNotification(true),
+        fetchNotificationTimestamps(),
+      ]);
     } finally {
-      if (!isBackground) setIsPdmLoading(false);
-    } 
+      isPollingRef.current = false;
+    }
+  }, 5000);
+
+  return () => {
+    clearInterval(interval);
   };
+}, []);
+ const fetchPdmVibrationData = async (isBackground = false) => {
+  try {
+    const seq = ++pdmVibrationFetchSeqRef.current;
+
+    if (!isBackground && actualPdmData.length === 0) setIsPdmLoading(true);
+
+    const { data, error } = await tuyau.pdm.getRecentActual.$get();
+    if (error) {
+      throw new Error((error as any).message || "Failed to fetch recent actual PDM data");
+    }
+    if (seq !== pdmVibrationFetchSeqRef.current) return;
+
+    setActualPdmData(data as any);
+
+    const { data: forecastedData, error: forecastedError } = await tuyau.pdm.getRecentForecasted.$get();
+    if (forecastedError) {
+      throw new Error((forecastedError as any).message || "Failed to fetch recent forecasted PDM data");
+    }
+    if (seq !== pdmVibrationFetchSeqRef.current) return;
+
+    setForecastedPdmData(forecastedData as any);
+  } catch {
+    if (!isBackground) toast.error("Failed to fetch vibration data");
+  } finally {
+    if (!isBackground) setIsPdmLoading(false);
+  }
+};
 
   return (
     <div className="flex flex-col w-full h-full gap-4 overflow-x-hidden">

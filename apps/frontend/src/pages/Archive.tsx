@@ -12,6 +12,8 @@ import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import type { CalendarRangeProps, CalendarMonthProps } from "cally";
+import { TransmitChannels } from "../lib/TransmitChannels";
+import { BACKEND_BASE_URL } from "../config/backend";
 
 type MapEvents<T> = { [K in keyof T as K extends `on${infer E}` ? `on${Lowercase<E>}` : K]: T[K] };
 
@@ -70,10 +72,9 @@ interface GetPaginatedArchiveDataFilters {
 }
 
 const Archive = () => {
-  const confirmAction = (message: string): boolean => {
-    return (globalThis as any).confirm?.(message) ?? false;
-  };
-
+const confirmAction = (message: string): boolean => {
+  return window.confirm(message);
+};
   const { data: allGensetPropertiesData, isLoading: allGensetPropertiesIsLoading, isError: allGensetPropertiesIsError } =
     useQuery({
       queryKey: ["genset-properties"],
@@ -81,10 +82,11 @@ const Archive = () => {
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
     });
-
-  const [archiveData, setArchiveData] = useState<Archive[] | null>(null);
-  const [paginationMetadata, setPaginationMetadata] = useState<any>();
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+const [archiveData, setArchiveData] = useState<Archive[] | null>(null);
+const [paginationMetadata, setPaginationMetadata] = useState<any>();
+const [selectedIds, setSelectedIds] = useState<string[]>([]);
+const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
+  
   const [filters, setFilters] = useState<GetPaginatedArchiveDataFilters>({
     page: 1,
     propertyNames: [],
@@ -93,7 +95,7 @@ const Archive = () => {
     to: undefined,
   });
 
-  const { mutate: mutatePaginatedData, isError, isPending } = useMutation({
+ const { mutate: mutatePaginatedData, isError, isPending } = useMutation({
     mutationKey: ["archive", "get-paginated"],
     mutationFn: (requestFilters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(requestFilters),
     onSuccess: (paginatedData) => {
@@ -101,37 +103,55 @@ const Archive = () => {
         setArchiveData(paginatedData.data.data as unknown as Archive[]);
         setPaginationMetadata(paginatedData.data.meta);
       }
+      setIsBackgroundRefresh(false); // always reset, even if data is empty
     },
   });
 
-  const { mutate: deleteArchive } = useMutation({
-    mutationKey: ["archive", "delete"],
-    mutationFn: (ids: string[]) => tuyau.archive.delete.$post({ ids }),
-    onSuccess: () => {
-      toast.success("Deleted successfully");
-      mutatePaginatedData(filters);
-      setSelectedIds([]);
-    },
-    onError: () => {
-      toast.error("Delete failed");
-    },
-  });
-
-  const { mutate: deleteAllArchive } = useMutation({
-    mutationKey: ["archive", "delete-all"],
-    mutationFn: () => tuyau.archive.deleteAll.$delete(),
-    onSuccess: () => {
-      toast.success("All data deleted successfully");
-      setArchiveData([]);
-      setSelectedIds([]);
-      setFilters((prev) => ({ ...prev, page: 1 }));
-      mutatePaginatedData({ ...filters, page: 1 });
-    },
-    onError: () => {
-      toast.error("Delete all failed");
-    },
-  });
-
+ const { mutate: deleteArchive } = useMutation({
+  mutationKey: ["archive", "delete"],
+  mutationFn: async (ids: string[]) => {
+    const res = await tuyau.archive.delete.$post({ ids });
+    if (res.error) throw res.error;
+    return res.data;
+  },
+  onSuccess: () => {
+    toast.success("Deleted successfully");
+    mutatePaginatedData(filters);
+    setSelectedIds([]);
+  },
+  onError: (error: any) => {
+    console.error("Delete selected error:", error);
+    toast.error(`Delete failed: ${error?.message ?? "Unknown error"}`);
+  },
+});
+const { mutate: deleteAllArchive, isPending: isDeleteAllPending } = useMutation({
+  mutationKey: ["archive", "delete-all"],
+  mutationFn: async () => {
+    const res = await fetch(`${BACKEND_BASE_URL}/archive/deleteAll`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Failed to delete all");
+    }
+    return res.json();
+  },
+  onSuccess: () => {
+    toast.success("All data deleted successfully");
+    setArchiveData([]);
+    setSelectedIds([]);
+    setFilters((prev) => ({ ...prev, page: 1 }));
+    mutatePaginatedData({ ...filters, page: 1 });
+  },
+  onError: (error: any) => {
+    console.error("Delete all error:", error);
+    toast.error(`Delete all failed: ${error?.message ?? "Unknown error"}`);
+  },
+});
   useEffect(() => {
     mutatePaginatedData(filters);
     setSelectedIds([]);
@@ -160,12 +180,13 @@ const Archive = () => {
   });
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useMessageBus("archive", () => {
+ useMessageBus(TransmitChannels.ARCHIVE, () => {
     if (timeoutRef.current) return;
     timeoutRef.current = setTimeout(() => {
+      setIsBackgroundRefresh(true); // flag: this is a silent background update
       mutatePaginatedData(filters);
       timeoutRef.current = null;
-    }, 2000);
+    }, 500);
   });
 
   const handleResetFilters = () => {
@@ -189,8 +210,19 @@ const Archive = () => {
   const isGensetPropsLoading = allGensetPropertiesIsLoading || !allGensetPropertiesData;
   const showArchiveError = isError;
   const showGensetPropsError = allGensetPropertiesIsError;
+const propertyOptions = useMemo(
+  () =>
+    (allGensetPropertiesData ?? []).map((property) => ({
+      value: property.propertyName,
+      label: property.readablePropertyName,
+    })),
+  [allGensetPropertiesData]
+);
 
-  const timestampFilter = (
+const isPropertySelectAll = (filters.propertyNames?.length ?? 0) === 0;
+const propertySet = useMemo(() => new Set(filters.propertyNames ?? []), [filters.propertyNames]);
+const timestampFilter = useMemo(
+  () => (
     <div className="dropdown dropdown-bottom">
       <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
         <FaFilter size={24} />
@@ -224,17 +256,12 @@ const Archive = () => {
         </calendar-range>
       </div>
     </div>
-  );
+  ),
+  [filters.from, filters.to]
+);
 
-  const propertyOptions = (allGensetPropertiesData ?? []).map((property) => ({
-    value: property.propertyName,
-    label: property.readablePropertyName,
-  }));
-
-  const isPropertySelectAll = (filters.propertyNames?.length ?? 0) === 0;
-  const propertySet = new Set(filters.propertyNames ?? []);
-
-  const propertyFilter = (
+  const propertyFilter = useMemo(
+  () => (
     <SelectAllCheckboxPopup
       trigger={
         <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
@@ -255,76 +282,72 @@ const Archive = () => {
       getOptionChecked={(value) => isPropertySelectAll || propertySet.has(value)}
       onToggleOption={(value, checked) => {
         const allValues = propertyOptions.map((p) => p.value);
-
         setFilters((prev) => {
           const prevAll = (prev.propertyNames?.length ?? 0) === 0;
           const currentSet = new Set(prev.propertyNames ?? []);
-
-          // In "all mode" (empty array), UI shows everything checked.
-          // Unchecking one option should switch to explicit selection = all except the unchecked one.
           if (prevAll) {
             if (checked) return { ...prev, page: 1, propertyNames: [] };
             return { ...prev, page: 1, propertyNames: allValues.filter((v) => v !== value) };
           }
-
           if (checked) currentSet.add(value);
           else currentSet.delete(value);
-
           const nextValues = Array.from(currentSet);
-
-          // Backend treats empty as "no filtering" => all.
           if (nextValues.length === 0 || nextValues.length === allValues.length) {
             return { ...prev, page: 1, propertyNames: [] };
           }
-
           return { ...prev, page: 1, propertyNames: nextValues };
         });
       }}
     />
-  );
+  ),
+  [isPropertySelectAll, propertyOptions, propertySet]
+);
 
-  const anomalyOptions = [
-    { value: "anomalous" as const, label: "Anomalous" },
-    { value: "nonAnomalous" as const, label: "Non-Anomalous" },
-  ];
+  const anomalyOptions = useMemo(
+    () => [
+      { value: "anomalous" as const, label: "Anomalous" },
+      { value: "nonAnomalous" as const, label: "Non-Anomalous" },
+    ],
+    []
+  );
 
   type AnomalyOptionValue = (typeof anomalyOptions)[number]["value"];
 
-  const anomalousChecked = filters.isAnomaly !== false; // true OR undefined
-  const nonAnomalousChecked = filters.isAnomaly !== true; // false OR undefined
+  const anomalousChecked = filters.isAnomaly !== false;
+  const nonAnomalousChecked = filters.isAnomaly !== true;
   const isAnomalySelectAll = filters.isAnomaly === undefined;
-
-  const anomalyFilter = (
-    <SelectAllCheckboxPopup<AnomalyOptionValue>
-      trigger={
-        <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
-          <FaFilter size={24} />
-        </div>
-      }
-      widthClassName="w-64"
-      selectAllLabel="Select All"
-      selectAllChecked={isAnomalySelectAll}
-      onToggleSelectAll={(checked) => {
-        setFilters((prev) => ({ ...prev, page: 1, isAnomaly: checked ? undefined : true }));
-      }}
-      options={anomalyOptions}
-      getOptionChecked={(value) => (value === "anomalous" ? anomalousChecked : nonAnomalousChecked)}
-      onToggleOption={(value, checked) => {
-        const nextAnomalous = value === "anomalous" ? checked : anomalousChecked;
-        const nextNonAnomalous = value === "nonAnomalous" ? checked : nonAnomalousChecked;
-
-        const nextIsAnomaly =
-          nextAnomalous && nextNonAnomalous
-            ? undefined
-            : nextAnomalous
-              ? true
-              : nextNonAnomalous
-                ? false
-                : undefined; // unselecting everything => select-all semantics
-
-        setFilters((prev) => ({ ...prev, page: 1, isAnomaly: nextIsAnomaly }));
-      }}
-    />
+const anomalyFilter = useMemo(
+    () => (
+      <SelectAllCheckboxPopup<AnomalyOptionValue>
+        trigger={
+          <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
+            <FaFilter size={24} />
+          </div>
+        }
+        widthClassName="w-64"
+        selectAllLabel="Select All"
+        selectAllChecked={isAnomalySelectAll}
+        onToggleSelectAll={(checked) => {
+          setFilters((prev) => ({ ...prev, page: 1, isAnomaly: checked ? undefined : true }));
+        }}
+        options={anomalyOptions}
+        getOptionChecked={(value) => (value === "anomalous" ? anomalousChecked : nonAnomalousChecked)}
+        onToggleOption={(value, checked) => {
+          const nextAnomalous = value === "anomalous" ? checked : anomalousChecked;
+          const nextNonAnomalous = value === "nonAnomalous" ? checked : nonAnomalousChecked;
+          const nextIsAnomaly =
+            nextAnomalous && nextNonAnomalous
+              ? undefined
+              : nextAnomalous
+                ? true
+                : nextNonAnomalous
+                  ? false
+                  : undefined;
+          setFilters((prev) => ({ ...prev, page: 1, isAnomaly: nextIsAnomaly }));
+        }}
+      />
+    ),
+    [isAnomalySelectAll, anomalyOptions, anomalousChecked, nonAnomalousChecked]
   );
 
   const columns = useMemo<DynamicTableColumn<Archive>[]>(
@@ -448,14 +471,18 @@ const Archive = () => {
           <button onClick={handleDeleteSelected} className="btn btn-error" disabled={selectedIds.length === 0}>
             Delete Selected ({selectedIds.length})
           </button>
-          <button onClick={handleDeleteAllData} className="btn btn-error btn-outline">
-            Delete All Data
-          </button>
+        <button
+  onClick={handleDeleteAllData}
+  className="btn btn-error btn-outline"
+  disabled={isDeleteAllPending}
+>
+  {isDeleteAllPending ? "Deleting..." : "Delete All Data"}
+</button>
         </>
       }
       columns={columns}
       data={archiveData ?? []}
-      isLoading={!showArchiveError && (!showGensetPropsError && (isGensetPropsLoading || isPending || archiveData === null))}
+     isLoading={!showArchiveError && (!showGensetPropsError && (isGensetPropsLoading || (isPending && !isBackgroundRefresh) || archiveData === null))}
       loadingContent={<Skeleton type="table" rows={10} columns={7} />}
       emptyContent={showArchiveError || showGensetPropsError ? errorContent : emptyContent}
       enableRowSelection

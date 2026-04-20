@@ -4,19 +4,26 @@ import { createNotificationValidator } from "#validators/notification";
 import type { HttpContext } from "@adonisjs/core/http";
 import { DateTime } from "luxon";
 import logger from "@adonisjs/core/services/logger";
+import transmit from "@adonisjs/transmit/services/main";
 export default class NotificationController {
   // ✅ STEP 1: GET ALL WITH PAGINATION
   async getAll({ request }: HttpContext) {
-    const page = request.input('page', 1);
-    const limit = request.input('limit', 50);
+    const page = Number(request.input("page", 1));
+    const limit = Number(request.input("limit", 50));
+    const includeResolved = request.input("includeResolved", "false") === "true";
     
-    const notifications = await Notification.query()
+    const query = Notification.query()
       .preload("notificationType")
       .preload("archive", (archiveQuery) =>
         archiveQuery.preload("gensetProperty", (gensetQuery) => gensetQuery.preload("physicalQuantity"))
       )
-      .orderBy("startedAt", "desc")
-      .paginate(page, limit);
+      .orderBy("startedAt", "desc");
+
+    if (!includeResolved) {
+      query.where("shouldBeDisplayed", true);
+    }
+
+    const notifications = await query.paginate(page, limit);
     
     return {
       data: notifications.all(),
@@ -50,10 +57,21 @@ export default class NotificationController {
       
       logger.info({ updated }, "Notifications updated count");
       
+    // After updating, fetch the new count immediately in the same request
+      const [anomalyRows, maintenanceRows] = await Promise.all([
+        Notification.query().where("shouldBeDisplayed", true).count("* as total"),
+        MaintenanceNotification.query().where("shouldBeDisplayed", true).count("* as total"),
+      ]);
+
+      transmit.broadcast("notification", { message: "notification table updated" });
       return response.ok({
         resolved: updated,
         total: notificationIds.length,
-        message: `Successfully resolved ${updated} notifications`
+        message: `Successfully resolved ${updated} notifications`,
+        newCounts: {
+          anomaly: Number(anomalyRows[0].$extras.total),
+          maintenance: Number(maintenanceRows[0].$extras.total),
+        },
       });
     } catch (error) {
      logger.error({ err: error }, "Error resolving notifications");
@@ -92,6 +110,7 @@ export default class NotificationController {
     notification.shouldBeDisplayed = false;
     notification.finishedAt = DateTime.now();
     await notification.save();
+    transmit.broadcast("notification", { message: "notification table updated" });
     return notification;
   }
 
@@ -103,6 +122,7 @@ export default class NotificationController {
       startedAt: DateTime.fromJSDate(data.startedAt),
       finishedAt: data.finishedAt ? DateTime.fromJSDate(data.finishedAt) : null,
     });
+    transmit.broadcast("notification", { message: "notification table updated" });
     return createdNotification;
   }
 
@@ -128,11 +148,13 @@ async clearRecords({ request, response }: HttpContext) {
       .where('finishedAt', '<=', cutoffDate.toSQL())
       .delete();
     
-    return response.ok({ 
-      success: true, 
+    transmit.broadcast("notification", { message: "notification table updated" });
+    return response.ok({
+      success: true,
       deleted: result,
-      message: `Deleted ${result} anomaly records from last ${period}`
+      message: `Deleted ${result} anomaly records from last ${period}`,
     });
+    
   } catch (error) {
     return response.internalServerError({ 
       error: error.message,
@@ -160,22 +182,26 @@ async clearRecords({ request, response }: HttpContext) {
   }
  async summary({}: HttpContext) {
   const [anomalyResolved, anomalyUnresolved, maintenanceResolved, maintenanceUnresolved] = await Promise.all([
-    Notification.query()
-      .where("shouldBeDisplayed", false)
-      .orderBy("startedAt", "desc")
-      .preload("notificationType")
-      .preload("archive", (q) => q.preload("gensetProperty", (q2) => q2.preload("physicalQuantity"))),
-    Notification.query()
-      .where("shouldBeDisplayed", true)
-      .orderBy("startedAt", "desc")
-      .preload("notificationType")
-      .preload("archive", (q) => q.preload("gensetProperty", (q2) => q2.preload("physicalQuantity"))),
-    MaintenanceNotification.query()
-      .where("shouldBeDisplayed", false)
-      .orderBy("timestamp", "desc"),
-    MaintenanceNotification.query()
-      .where("shouldBeDisplayed", true)
-      .orderBy("timestamp", "desc"),
+   Notification.query()
+  .where("shouldBeDisplayed", false)
+  .orderBy("startedAt", "desc")
+  .limit(20)                        // 👈 ADD THIS
+  .preload("notificationType")
+  .preload("archive", (q) => q.preload("gensetProperty", (q2) => q2.preload("physicalQuantity"))),
+Notification.query()
+  .where("shouldBeDisplayed", true)
+  .orderBy("startedAt", "desc")
+  .limit(20)                        // 👈 ADD THIS
+  .preload("notificationType")
+  .preload("archive", (q) => q.preload("gensetProperty", (q2) => q2.preload("physicalQuantity"))),
+MaintenanceNotification.query()
+  .where("shouldBeDisplayed", false)
+  .orderBy("timestamp", "desc")
+  .limit(20),                       // 👈 ADD THIS
+MaintenanceNotification.query()
+  .where("shouldBeDisplayed", true)
+  .orderBy("timestamp", "desc")
+  .limit(20),                       // 👈 ADD THIS
   ]);
 
   return {
@@ -196,4 +222,33 @@ async clearRecords({ request, response }: HttpContext) {
       maintenance: Number(maintenanceRows[0].$extras.total),
     };
   }
+  async anomalyStatsCount({}: HttpContext) {
+  const now = DateTime.local();
+  const todayStart = now.startOf("day").toSQL();
+  const weekStart = now.startOf("week").toSQL();
+  const monthStart = now.startOf("month").toSQL();
+
+  const [todayRows, weekRows, monthRows] = await Promise.all([
+    Notification.query()
+      .where("shouldBeDisplayed", true)
+      .where("startedAt", ">=", todayStart)
+      .count("* as total"),
+
+    Notification.query()
+      .where("shouldBeDisplayed", true)
+      .where("startedAt", ">=", weekStart)
+      .count("* as total"),
+
+    Notification.query()
+      .where("shouldBeDisplayed", true)
+      .where("startedAt", ">=", monthStart)
+      .count("* as total"),
+  ]);
+
+  return {
+    today: Number(todayRows[0].$extras.total),
+    week: Number(weekRows[0].$extras.total),
+    month: Number(monthRows[0].$extras.total),
+  };
+}
 }

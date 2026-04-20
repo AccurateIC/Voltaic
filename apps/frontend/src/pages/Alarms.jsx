@@ -11,6 +11,7 @@ import Skeleton from "../components/Skeleton";
 import DynamicTable from "../components/DynamicTable";
 import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { TransmitChannels } from "../lib/TransmitChannels";
 
 const Alarms = () => {
   const [notifications, setNotifications] = useState([]);
@@ -31,6 +32,7 @@ const [totalRecords, setTotalRecords] = useState(0);
   });
 
   const currentPageRef = useRef(currentPage);
+  const realtimeRefreshTimeoutRef = useRef(null);
 
   useEffect(() => {
     currentPageRef.current = currentPage;
@@ -40,7 +42,9 @@ const [totalRecords, setTotalRecords] = useState(0);
   const fetchNotifications = useCallback(async (page = 1, showLoader = true) => {
     try {
       if (showLoader) setIsLoading(true);
-      const { data, error } = await tuyau.notification.getAll.$get({ query: { page, limit: 50 } });
+      const { data, error } = await tuyau.notification.getAll.$get({
+        query: { page, limit: 50, includeResolved: true },
+      });
       if (error) throw new Error(error.message || "Failed to fetch notification data");
       setNotifications(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
@@ -62,10 +66,22 @@ const [totalRecords, setTotalRecords] = useState(0);
 
 // ✅ 4. messageBus last
   const handleNotification = useCallback(() => {
-    fetchNotifications(currentPage, false);
-  }, [currentPage, fetchNotifications]);
+    if (realtimeRefreshTimeoutRef.current) return;
+    realtimeRefreshTimeoutRef.current = setTimeout(() => {
+      fetchNotifications(currentPageRef.current, false);
+      realtimeRefreshTimeoutRef.current = null;
+    }, 300);
+  }, [fetchNotifications]);
 
-  useMessageBus("notification", handleNotification);
+  useMessageBus(TransmitChannels.NOTIFICATION, handleNotification);
+
+  useEffect(() => {
+    return () => {
+      if (realtimeRefreshTimeoutRef.current) {
+        clearTimeout(realtimeRefreshTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleResetFilters = () => {
     setFilters({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });

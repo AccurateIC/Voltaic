@@ -482,11 +482,8 @@ if (apiKey !== env.get("ML_API_KEY")) {
     });
   }
 }
- async deleteAll({ response, auth }: HttpContext) {
-    const loggedInUser = await auth.authenticate();
-    if (loggedInUser.roleId !== (await Role.findByOrFail("roleName", "admin")).id) {
-      return response.status(403).json({ message: "Forbidden: Admins only" });
-    }
+async deleteAll({ response, auth }: HttpContext) {
+  await auth.authenticate();
   try {
     const deletedCount = await db.transaction(async (trx) => {
       // first delete all related notifications

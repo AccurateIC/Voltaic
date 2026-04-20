@@ -127,7 +127,7 @@ router.post("create", "#controllers/archive_controller.create"); // processed da
     router.post("getPaginated", "#controllers/archive_controller.getPaginated").use([middleware.auth()]);
 
     // delete all entries in the `archive` table
-  router.delete("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
+ router.post("deleteAll", "#controllers/archive_controller.deleteAll").use([middleware.auth()]);
 
     router.get("/getAnomalyStatistics", "#controllers/archive_controller.getAnomalyStatistics");
   })
@@ -153,22 +153,24 @@ router.get("getAll", "#controllers/notification_type_controller.getAll").use([mi
   .prefix("notificationType");
 
 // notification apis
+// NEW - paginate route added
 router
   .group(() => {
     router.get("getAll", "#controllers/notification_controller.getAll").use([middleware.auth()]);
     router.get("getResolved", "#controllers/notification_controller.getResolved").use([middleware.auth()]);
     router.get("getUnresolved", "#controllers/notification_controller.getUnresolved").use([middleware.auth()]);
     router.get("summary", "#controllers/notification_controller.summary").use([middleware.auth()]);
-    // ✅ NEW: Lightweight unresolved counts only — used by Navbar bell badge
     router.get("count", "#controllers/notification_controller.count").use([middleware.auth()]);
-    router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
-  
 
+    // NEW ROUTE FOR TODAY / WEEK / MONTH CARDS
+    router.get("anomalyStatsCount", "#controllers/notification_controller.anomalyStatsCount").use([middleware.auth()]);
+
+    router.patch("read/:id", "#controllers/notification_controller.read").use([middleware.auth()]);
     router.get("create", "#controllers/notification_controller.create").use([middleware.auth()]);
     router.patch("update", "#controllers/notification_controller.update").use([middleware.auth()]);
     router.post("resolveMultiple", "#controllers/notification_controller.resolveMultiple").use([middleware.auth()]);
-    // ✅ NEW: Clear resolved anomaly records by period
     router.post("clear", "#controllers/notification_controller.clearRecords");
+    router.get("paginate", "#controllers/notification_controller.getAll").use([middleware.auth()]);
   })
   .prefix("notification");
 

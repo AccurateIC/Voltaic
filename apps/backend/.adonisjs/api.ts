@@ -143,7 +143,7 @@ type ArchiveGetpaginatedPost = {
   request: MakeTuyauRequest<InferInput<typeof import('../app/validators/archive.ts')['getPaginatedDataValidator']>>
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/archive_controller.ts').default['getPaginated'], true>
 }
-type ArchiveDeleteallDelete = {
+type ArchiveDeleteallPost = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/archive_controller.ts').default['deleteAll'], false>
 }
@@ -183,6 +183,14 @@ type NotificationSummaryGetHead = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['summary'], false>
 }
+type NotificationCountGetHead = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['count'], false>
+}
+type NotificationAnomalystatscountGetHead = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['anomalyStatsCount'], false>
+}
 type NotificationReadIdPatch = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['read'], false>
@@ -202,6 +210,10 @@ type NotificationResolvemultiplePost = {
 type NotificationClearPost = {
   request: unknown
   response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['clearRecords'], false>
+}
+type NotificationPaginateGetHead = {
+  request: unknown
+  response: MakeNonSerializedTuyauResponse<import('../app/controllers/notification_controller.ts').default['getAll'], false>
 }
 type PdmCreatePost = {
   request: MakeTuyauRequest<InferInput<typeof import('../app/validators/pdm.ts')['createPdmValidator']>>
@@ -480,7 +492,7 @@ export interface ApiDefinition {
     'deleteAll': {
       '$url': {
       };
-      '$delete': ArchiveDeleteallDelete;
+      '$post': ArchiveDeleteallPost;
     };
     'getAnomalyStatistics': {
       '$url': {
@@ -541,6 +553,18 @@ export interface ApiDefinition {
       '$get': NotificationSummaryGetHead;
       '$head': NotificationSummaryGetHead;
     };
+    'count': {
+      '$url': {
+      };
+      '$get': NotificationCountGetHead;
+      '$head': NotificationCountGetHead;
+    };
+    'anomalyStatsCount': {
+      '$url': {
+      };
+      '$get': NotificationAnomalystatscountGetHead;
+      '$head': NotificationAnomalystatscountGetHead;
+    };
     'read': {
       ':id': {
         '$url': {
@@ -568,6 +592,12 @@ export interface ApiDefinition {
       '$url': {
       };
       '$post': NotificationClearPost;
+    };
+    'paginate': {
+      '$url': {
+      };
+      '$get': NotificationPaginateGetHead;
+      '$head': NotificationPaginateGetHead;
     };
   };
   'pdm': {
