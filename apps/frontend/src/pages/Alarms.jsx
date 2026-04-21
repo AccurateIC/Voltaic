@@ -1,87 +1,44 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useMessageBus } from "../lib/MessageBus.ts";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { FaFilter } from "react-icons/fa6";
 import { cn, formatTimestamp } from "../lib/Utils.ts";
-import * as XLSX from "xlsx";
 import "cally";
 import { tuyau } from "../lib/Tuyau";
 import Skeleton from "../components/Skeleton";
 import DynamicTable from "../components/DynamicTable";
 import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { TransmitChannels } from "../lib/TransmitChannels";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useGensetPropertiesQuery } from "../hooks/useGensetPropertiesQuery";
+import { useNotificationsPaginatedQuery } from "../hooks/useNotificationsPaginatedQuery";
+import { BACKEND_BASE_URL } from "../config/backend";
 
 const Alarms = () => {
-  const [notifications, setNotifications] = useState([]);
+  const queryClient = useQueryClient();
   const [filteredNotifications, setFilteredNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isResolvingAll, setIsResolvingAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-const [totalRecords, setTotalRecords] = useState(0);
   const [resolveProgress, setResolveProgress] = useState(0);
   const [filters, setFilters] = useState({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });
 
-  const { data: gensetProperties } = useQuery({
-    queryKey: ["genset-properties"],
-    queryFn: () => tuyau.property.getAll.$get().unwrap(),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const { data: gensetProperties } = useGensetPropertiesQuery();
 
-  const currentPageRef = useRef(currentPage);
-  const realtimeRefreshTimeoutRef = useRef(null);
+  const { data: notificationsPayload, isLoading } = useNotificationsPaginatedQuery(currentPage);
 
-  useEffect(() => {
-    currentPageRef.current = currentPage;
-  }, [currentPage]);
+  const notifications = useMemo(() => notificationsPayload?.data ?? [], [notificationsPayload]);
+  const totalPages = notificationsPayload?.pagination?.pages ?? 1;
+  const totalRecords = notificationsPayload?.pagination?.total ?? 0;
 
-// ✅ 2. fetchNotifications second
-  const fetchNotifications = useCallback(async (page = 1, showLoader = true) => {
-    try {
-      if (showLoader) setIsLoading(true);
-      const { data, error } = await tuyau.notification.getAll.$get({
-        query: { page, limit: 50, includeResolved: true },
-      });
-      if (error) throw new Error(error.message || "Failed to fetch notification data");
-      setNotifications(data.data || []);
-      setTotalPages(data.pagination?.pages || 1);
-      setTotalRecords(data.pagination?.total || 0);
-      setCurrentPage(page);
-    } catch (error) {
-      toast.error("Error fetching notification data");
-    } finally {
-      if (showLoader) setIsLoading(false);
-    }
-  }, []);
+  const invalidateNotificationPages = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["notifications", "paginated"] });
+  }, [queryClient]);
 
   const markNotificationAsReadMutation = useMutation({
     mutationFn: (notificationId) => tuyau.notification.read[notificationId].$patch(),
     onSuccess: () => {
-      fetchNotifications(currentPageRef.current, false);
+      invalidateNotificationPages();
     },
   });
-
-// ✅ 4. messageBus last
-  const handleNotification = useCallback(() => {
-    if (realtimeRefreshTimeoutRef.current) return;
-    realtimeRefreshTimeoutRef.current = setTimeout(() => {
-      fetchNotifications(currentPageRef.current, false);
-      realtimeRefreshTimeoutRef.current = null;
-    }, 300);
-  }, [fetchNotifications]);
-
-  useMessageBus(TransmitChannels.NOTIFICATION, handleNotification);
-
-  useEffect(() => {
-    return () => {
-      if (realtimeRefreshTimeoutRef.current) {
-        clearTimeout(realtimeRefreshTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const handleResetFilters = () => {
     setFilters({ fromDate: "", toDate: "", property: "Property", anomalyStatus: "" });
@@ -107,9 +64,6 @@ const [totalRecords, setTotalRecords] = useState(0);
     }
     setFilteredNotifications(filtered);
   }, [filters, notifications]);
-  useEffect(() => {
-    fetchNotifications(1);
-  }, []);
 
   const handleMarkNotificationAsRead = (notificationId) => {
     markNotificationAsReadMutation.mutate(notificationId, {
@@ -138,7 +92,7 @@ const handleResolveAll = async () => {
   try {
     const notificationIds = unresolvedNotifications.map((n) => n.id);
 
-    const response = await fetch("http://localhost:3333/notification/resolveMultiple", {
+    const response = await fetch(`${BACKEND_BASE_URL}/notification/resolveMultiple`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -154,7 +108,7 @@ const handleResolveAll = async () => {
     setResolveProgress(100);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    await fetchNotifications(currentPage, false);
+    invalidateNotificationPages();
 
     toast.success(`Successfully resolved ${result.resolved} anomalies!`, {
       id: toastId,
@@ -176,11 +130,13 @@ const handleResolveAll = async () => {
   }
 };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (filteredNotifications.length === 0) {
       toast.info("No data available for export");
       return;
     }
+
+    const XLSX = await import("xlsx");
 
     const exportData = filteredNotifications.map((entry, index) => ({
       "No.": index + 1,
@@ -425,7 +381,7 @@ const handleResolveAll = async () => {
           pagination={{
             currentPage,
             totalPages,
-            onPageChange: (page) => fetchNotifications(page),
+            onPageChange: (page) => setCurrentPage(page),
             totalRecords,
             itemsPerPage: 50,
             isLoading,

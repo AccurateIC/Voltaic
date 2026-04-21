@@ -4,23 +4,14 @@ import { toast } from "sonner";
 import { DateTime } from "luxon";
 import { useMessageBus } from "../lib/MessageBus";
 import { cn } from "../lib/Utils";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TimeScale,
-  ChartOptions,
-} from "chart.js";
+import { ChartOptions } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-luxon";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { FaRegQuestionCircle } from "react-icons/fa";
+import { useQueryClient } from "@tanstack/react-query";
 import { tuyau } from "../lib/Tuyau";
+import { loggedInUserQueryFn, loggedInUserQueryKey } from "../hooks/useLoggedInUserQuery";
 import { Modules } from "../config/extern";
 import Skeleton from "../components/Skeleton.jsx";
 
@@ -49,17 +40,21 @@ interface VibrationData {
   maintenanceNotification?: any;
 }
 
-ChartJS.register(CategoryScale, TimeScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const ResetPdmDataButton = () => {
+  const queryClient = useQueryClient();
+
   const handleReset = async () => {
-    const { data: user, error: userError } = await tuyau.auth.getLoggedInUser.$get();
-    if (userError) {
+    const user = await queryClient.fetchQuery({
+      queryKey: loggedInUserQueryKey,
+      queryFn: loggedInUserQueryFn,
+    });
+    if (!user) {
       throw new Error("Failed to get logged in user");
     }
 
     // logout
-    
+
     const sendUserToPdmServerResponse = await fetch(Modules.PDM + "/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -425,75 +420,89 @@ const isPollingRef = useRef(false);
     }
   };
 
-  // live update when new data received
- useMessageBus(TransmitChannels.PDM, async () => {
-  if (isPollingRef.current) return;
-
-  isPollingRef.current = true;
-  try {
-    await Promise.all([
-      fetchPdmVibrationData(true),
-      fetchLatestPdmNotification(true),
-      fetchNotificationTimestamps(),
-    ]);
-  } finally {
-    isPollingRef.current = false;
-  }
-});
-
- useEffect(() => {
-  Promise.all([
-    fetchPdmVibrationData(false),
-    fetchLatestPdmNotification(),
-    fetchNotificationTimestamps(),
-  ]);
-
-  const interval = setInterval(async () => {
-    if (isPollingRef.current) return;
-
-    isPollingRef.current = true;
-    try {
-      await Promise.all([
-        fetchPdmVibrationData(true),
-        fetchLatestPdmNotification(true),
-        fetchNotificationTimestamps(),
-      ]);
-    } finally {
-      isPollingRef.current = false;
-    }
-  }, 5000);
-
-  return () => {
-    clearInterval(interval);
-  };
-}, []);
  const fetchPdmVibrationData = async (isBackground = false) => {
   try {
     const seq = ++pdmVibrationFetchSeqRef.current;
 
     if (!isBackground && actualPdmData.length === 0) setIsPdmLoading(true);
 
-    const { data, error } = await tuyau.pdm.getRecentActual.$get();
-    if (error) {
-      throw new Error((error as any).message || "Failed to fetch recent actual PDM data");
+    const [actualRes, forecastRes] = await Promise.all([
+      tuyau.pdm.getRecentActual.$get(),
+      tuyau.pdm.getRecentForecasted.$get(),
+    ]);
+
+    if (actualRes.error) {
+      throw new Error((actualRes.error as any).message || "Failed to fetch recent actual PDM data");
     }
     if (seq !== pdmVibrationFetchSeqRef.current) return;
 
-    setActualPdmData(data as any);
+    setActualPdmData(actualRes.data as any);
 
-    const { data: forecastedData, error: forecastedError } = await tuyau.pdm.getRecentForecasted.$get();
-    if (forecastedError) {
-      throw new Error((forecastedError as any).message || "Failed to fetch recent forecasted PDM data");
+    if (forecastRes.error) {
+      throw new Error((forecastRes.error as any).message || "Failed to fetch recent forecasted PDM data");
     }
     if (seq !== pdmVibrationFetchSeqRef.current) return;
 
-    setForecastedPdmData(forecastedData as any);
+    setForecastedPdmData(forecastRes.data as any);
   } catch {
     if (!isBackground) toast.error("Failed to fetch vibration data");
   } finally {
     if (!isBackground) setIsPdmLoading(false);
   }
 };
+
+  const pdmPollingRef = useRef({
+    fetchPdmVibrationData,
+    fetchLatestPdmNotification,
+    fetchNotificationTimestamps,
+  });
+  pdmPollingRef.current = {
+    fetchPdmVibrationData,
+    fetchLatestPdmNotification,
+    fetchNotificationTimestamps,
+  };
+
+  useEffect(() => {
+    const h = pdmPollingRef.current;
+    void Promise.all([h.fetchPdmVibrationData(false), h.fetchLatestPdmNotification(), h.fetchNotificationTimestamps()]);
+
+    const interval = setInterval(async () => {
+      if (isPollingRef.current) return;
+
+      isPollingRef.current = true;
+      try {
+        const q = pdmPollingRef.current;
+        await Promise.all([
+          q.fetchPdmVibrationData(true),
+          q.fetchLatestPdmNotification(true),
+          q.fetchNotificationTimestamps(),
+        ]);
+      } finally {
+        isPollingRef.current = false;
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  // live update when new data received
+  useMessageBus(TransmitChannels.PDM, async () => {
+    if (isPollingRef.current) return;
+
+    isPollingRef.current = true;
+    try {
+      const q = pdmPollingRef.current;
+      await Promise.all([
+        q.fetchPdmVibrationData(true),
+        q.fetchLatestPdmNotification(true),
+        q.fetchNotificationTimestamps(),
+      ]);
+    } finally {
+      isPollingRef.current = false;
+    }
+  });
 
   return (
     <div className="flex flex-col w-full h-full gap-4 overflow-x-hidden">

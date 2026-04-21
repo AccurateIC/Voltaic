@@ -25,7 +25,6 @@ interface VibrationDataPoint {
 }
 
 // Register ChartJS components
-ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
   // const value = value.slice(-2000);

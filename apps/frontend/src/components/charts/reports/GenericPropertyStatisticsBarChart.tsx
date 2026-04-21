@@ -21,7 +21,6 @@ import { useQuery } from "@tanstack/react-query";
 import { tuyau } from "../../../lib/Tuyau";
 import Skeleton from "../../Skeleton";
 
-ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, BarElement, Title, Tooltip, Legend);
 
 const getChartData = (xs: string[], ys: number[], chartTitle: string): ChartData<"bar"> => {
   return {
@@ -77,12 +76,14 @@ export const GenericPropertyStatisticsBarChart = ({
   propertyName: GensetPropertyName;
   chartTitle: string;
 }) => {
-  const { data, isError, isLoading } = useQuery({
-    queryKey: ["archive", "get-property-statistics"],
+  const { data, isLoading } = useQuery({
+    queryKey: ["archive", "get-property-statistics", propertyName, timeDuration],
     queryFn: () =>
       tuyau.archive.getPropertyStatistics
         .$get({ query: { propertyName: propertyName, timeDuration: timeDuration } })
         .unwrap(),
+    staleTime: 0,
+    refetchOnWindowFocus: false,
   });
   if (isLoading || data === undefined || !data.data || data.data.length === 0) {
     return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;

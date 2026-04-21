@@ -24,6 +24,7 @@ export const getArchiveDataBetweenValidator = vine.compile(
   vine.object({
     from: vine.date({ formats: ["iso8601"] }),
     to: vine.date({ formats: ["iso8601"] }).afterField("from", { compare: "second" }),
+    skipCount: vine.enum(["true", "false"]).optional(),
   })
 );
 

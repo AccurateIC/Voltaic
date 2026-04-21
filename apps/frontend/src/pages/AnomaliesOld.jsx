@@ -1,3 +1,7 @@
+/**
+ * Legacy anomalies UI (route `anomalies-old`). Uses notification/archive-specific
+ * endpoints; the main `Anomalies` page uses shared React Query keys + `getAnomalyStatistics`.
+ */
 import { useState, useEffect, useRef } from "react";
 import { useMessageBus } from "../lib/MessageBus";
 import { toast } from "sonner";

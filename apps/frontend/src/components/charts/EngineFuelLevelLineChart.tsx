@@ -16,7 +16,6 @@ import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
 
 // Register ChartJS components
-ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
   const options: ChartOptions<"line"> = {

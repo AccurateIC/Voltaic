@@ -1,5 +1,4 @@
 import { UUID } from "node:crypto";
-import { useArchive } from "../../hooks/useArchive";
 import { StatCard } from "./StatCard";
 
 export const StatGroup = ({
@@ -22,9 +21,6 @@ export const StatGroup = ({
   };
   isLoading: boolean;
 }) => {
-  // const { getAnomalyStatistics } = useArchive();
-  // const { data, isLoading, isError } = getAnomalyStatistics;
-
   return (
     <div className="w-full grid sm:grid-cols-4 grid-cols-2">
       <StatCard title={"Daily Anomalies"} data={overallStatistics?.overall.today} isLoading={isLoading} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router";
 import { cn } from "../lib/Utils";
 
 import { FaGears } from "react-icons/fa6";
@@ -14,6 +14,7 @@ import { FiLogOut } from "react-icons/fi";
 import { LuMoon } from "react-icons/lu";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { useOptimisticLogout } from "../hooks/useOptimisticLogout";
+import { prefetchRouteChunk } from "../lib/prefetchRouteChunk";
 
 /* ── Tooltip (collapsed mode only) ── */
 const Tooltip = ({ label, collapsed }) => {
@@ -39,6 +40,8 @@ const SideBarLink = ({ to, name, Icon, collapsed }) => (
     <NavLink
       to={to}
       end
+      onMouseEnter={() => prefetchRouteChunk(to)}
+      onFocus={() => prefetchRouteChunk(to)}
       className={({ isActive }) =>
         cn(
           "flex items-center rounded-sm transition-all duration-200",

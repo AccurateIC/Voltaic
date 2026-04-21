@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { prefetchRouteChunk } from "../lib/prefetchRouteChunk";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -6,6 +7,8 @@ const Profile = () => {
   return (
     <button
       type="button"
+      onMouseEnter={() => prefetchRouteChunk("/profile")}
+      onFocus={() => prefetchRouteChunk("/profile")}
       onClick={() => navigate("/profile")}
       className="btn btn-ghost btn-circle avatar"
       aria-label="Open profile page"

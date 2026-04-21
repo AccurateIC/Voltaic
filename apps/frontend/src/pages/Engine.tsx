@@ -1,15 +1,15 @@
 // frontend/src/pages/Engine.tsx
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { type Archive } from "../types/archive.types";
 import GaugeComponent from "react-gauge-component";
 import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
 import { MdEnergySavingsLeaf } from "react-icons/md";
 import { cn } from "../lib/Utils";
-import { tuyau } from "../lib/Tuyau";
 import { BACKEND_BASE_URL } from "../config/backend";
 import Skeleton from "../components/Skeleton";
 import { useLatestArchiveData } from "../hooks/useLatestArchiveData";
+import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
 
 const EngineRPM = ({ engineRpmDetails, isLoading }) => {
   if (isLoading || !engineRpmDetails || engineRpmDetails.length === 0) {
@@ -188,6 +188,8 @@ const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit,
 
 const Engine = () => {
   const { latestData, isLoading } = useLatestArchiveData();
+  const { data: sessionUser } = useLoggedInUserQuery();
+  const mlNotifyOnce = useRef(false);
 
   // ✅ 7.1 — single Map instead of 6 separate .filter() calls
   const dataMap = useMemo(() => {
@@ -205,25 +207,23 @@ const Engine = () => {
   const altVoltageData  = useMemo(() => { const e = dataMap.get("engChargeAltVolts");   return e ? [e] : []; }, [dataMap]);
   const batteryVoltageData = useMemo(() => { const e = dataMap.get("engBatteryVolts");  return e ? [e] : []; }, [dataMap]);
   const fuelLevelData   = useMemo(() => { const e = dataMap.get("engFuelLevelUnits");   return e ? [e] : []; }, [dataMap]);
-  const notifyMlServersOnLogin = async () => {
-    try {
-      const { data: user, error } = await tuyau.auth.getLoggedInUser.$get();
-      if (error || !user) return;
-
-      await fetch(`${BACKEND_BASE_URL}/ml/notify-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ ...user, logged_in: true }),
-      });
-    } catch {
-      // ML servers being down must never break the Engine page
-    }
-  };
-
   useEffect(() => {
-    notifyMlServersOnLogin();
-  }, []);
+    if (!sessionUser || mlNotifyOnce.current) return;
+    mlNotifyOnce.current = true;
+
+    (async () => {
+      try {
+        await fetch(`${BACKEND_BASE_URL}/ml/notify-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ ...sessionUser, logged_in: true }),
+        });
+      } catch {
+        // ML servers being down must never break the Engine page
+      }
+    })();
+  }, [sessionUser]);
 
   // Removed isLoading early return so that individual components show their proper skeletons
 

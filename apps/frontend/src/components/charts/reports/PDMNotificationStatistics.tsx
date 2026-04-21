@@ -12,7 +12,6 @@ import {
   Legend,
   Colors,
 } from "chart.js";
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Colors);
 import { Bar } from "react-chartjs-2";
 import { DateTime, DateTimeUnit } from "luxon";
 import { getWeekRange } from "../../../lib/DateTimeUtils";

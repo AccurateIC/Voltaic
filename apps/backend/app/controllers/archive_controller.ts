@@ -143,15 +143,27 @@ async getAll({}: HttpContext) {
     if (!loadAll) {
       const pageSize = 1000;
       const offset = (page - 1) * pageSize;
-      
+      const skipCount = data.skipCount === "true";
+
       const archiveData = await query.limit(pageSize).offset(offset);
-      
-      // Get total count
-      const countQuery = Archive.query()
-        .whereBetween("timestamp", [data.from, data.to]);
+
+      if (skipCount) {
+        return {
+          data: archiveData,
+          mode: "limited",
+          pagination: {
+            total: 0,
+            page: page,
+            pageSize: pageSize,
+            pages: 0,
+          },
+        };
+      }
+
+      const countQuery = Archive.query().whereBetween("timestamp", [data.from, data.to]);
       const totalResult = await countQuery.count("* as total");
-      const total = totalResult[0]?.total || 0;
-      
+      const total = Number(totalResult[0]?.$extras?.total ?? 0);
+
       return {
         data: archiveData,
         mode: "limited",
@@ -159,8 +171,8 @@ async getAll({}: HttpContext) {
           total: total,
           page: page,
           pageSize: pageSize,
-          pages: Math.ceil(total / pageSize)
-        }
+          pages: Math.ceil(total / pageSize),
+        },
       };
     }
     

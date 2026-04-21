@@ -5,15 +5,15 @@ import { AnomaliesByProperty } from "../components/charts/reports/AnomaliesByPro
 import { PDMNotificationStatistics } from "../components/charts/reports/PDMNotificationStatistics";
 import { DateTimeUnit } from "luxon";
 import { RulChart } from "../components/charts/RulTrendChart";
-import { RulInputData, RulPrediction } from "../types/rul.types";
+import { RulPrediction } from "../types/rul.types";
 import { useRulPrediction } from "../hooks/useRulPrediction";
 import { GenericPropertyStatisticsBarChart } from "../components/charts/reports/GenericPropertyStatisticsBarChart";
 import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
-import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
 import { GensetPropertyName } from "../types/gensetProperty.types";
-import { useQuery } from "@tanstack/react-query";
 import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
+import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
+import { useFilteredHealthIndexJsonQuery, useRulDataJsonQuery } from "../hooks/useRulStaticJsonQueries";
 
 // 1. Static Definitions outside component to prevent re-creation
 const PROPERTIES: { propertyName: GensetPropertyName; chartTitle: string }[] = [
@@ -54,41 +54,15 @@ export const Reports = () => {
     data: rulInputData,
     isLoading: isRulDataLoading,
     error: rulDataError,
-  } = useQuery<Record<string, RulInputData[]>>({
-    queryKey: ["rul-data"],
-    queryFn: async () => {
-      const res = await fetch("/data/rulData.json");
-      if (!res.ok) {
-        throw new Error("Failed to load RUL data");
-      }
-      return (await res.json()) as Record<string, RulInputData[]>;
-    },
-    staleTime: Infinity,
-  });
+  } = useRulDataJsonQuery();
 
-  const { data: filteredHealthIndexData = [], isLoading: isHealthIndexLoading } = useQuery<
-    Array<{ Time_Hours: number; Predicted_Health_Index: number }>
-  >({
-    queryKey: ["filtered-health-index"],
-    queryFn: async () => {
-      const res = await fetch("/data/filteredHealthIndexData.json");
-      if (!res.ok) throw new Error("Failed to load health index trend data");
-      return (await res.json()) as Array<{ Time_Hours: number; Predicted_Health_Index: number }>;
-    },
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
+  const { data: filteredHealthIndexData = [], isLoading: isHealthIndexLoading } = useFilteredHealthIndexJsonQuery();
 
-  // Auth Query
   const {
     data: loggedInUserData,
     error: loggedInUserError,
     isLoading,
-  } = useQuery({
-    queryKey: ["logged-in-user"],
-    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
-    staleTime: Infinity,
-  });
+  } = useLoggedInUserQuery();
 
   // State
   const [timeDuration, setTimeDuration] = useState<DateTimeUnit>("month");
@@ -125,7 +99,7 @@ export const Reports = () => {
         toast.error("Failed to get RUL prediction");
       },
     });
-  }, [loggedInEmail, rulInputData]);
+  }, [loggedInEmail, rulInputData, getRulPrediction]);
 
   const renderGraphCard = useCallback(
     (content: React.ReactNode, key: string) => (

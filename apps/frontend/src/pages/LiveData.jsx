@@ -141,6 +141,75 @@ const mergeUniqueByTimestamp = (oldData, newData) => {
     (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
   );
 };
+  const PROPERTY_NAME_TO_BUCKET = {
+    genL1Volts: "l1Voltage",
+    genL2Volts: "l2Voltage",
+    genL3Volts: "l3Voltage",
+    genL1Current: "l1Current",
+    genL2Current: "l2Current",
+    genL3Current: "l3Current",
+    engFuelLevelUnits: "engineFuelLevel",
+    engSpeedDisplay: "engineSpeed",
+    engOilPress: "oilPress",
+    engBatteryVolts: "batteryVolts",
+    engChargeAltVolts: "chargeAltVolts",
+  };
+
+  const fetchAllArchiveRecordsBetween = async (from, to) => {
+    const merged = [];
+    let page = 1;
+    const pageSize = 1000;
+    for (;;) {
+      const { data, error } = await tuyau.archive.getBetween.$get({
+        query: { from, to, page: String(page), skipCount: "true" },
+      });
+      if (error) {
+        return merged;
+      }
+      const batch = ensureArray(data);
+      if (batch.length === 0) {
+        break;
+      }
+      merged.push(...batch);
+      if (batch.length < pageSize) {
+        break;
+      }
+      page += 1;
+    }
+    return merged;
+  };
+
+  const groupRecordsIntoBuckets = (records) => {
+    const buckets = {
+      l1Voltage: [],
+      l2Voltage: [],
+      l3Voltage: [],
+      l1Current: [],
+      l2Current: [],
+      l3Current: [],
+      engineFuelLevel: [],
+      engineSpeed: [],
+      oilPress: [],
+      batteryVolts: [],
+      chargeAltVolts: [],
+    };
+
+    for (const item of records) {
+      const propertyName = item?.gensetProperty?.propertyName;
+      const bucketKey = PROPERTY_NAME_TO_BUCKET[propertyName];
+      if (!bucketKey) {
+        continue;
+      }
+      buckets[bucketKey].push({
+        propertyValue: item.propertyValue,
+        timestamp: item.timestamp,
+        isAnomaly: item.isAnomaly,
+      });
+    }
+
+    return buckets;
+  };
+
 const getArchiveReportData = async () => {
 const now = new Date();
 
@@ -153,155 +222,53 @@ if (isInitialArchiveLoad) {
 
 const to = now.toISOString();
   try {
-    const { data, error } = await tuyau.archive.getBetween.$get({ query: { from, to } });
-    if (!error) {
-      const records = ensureArray(data);
+    const records = await fetchAllArchiveRecordsBetween(from, to);
+    const buckets = groupRecordsIntoBuckets(records);
 
-      const l1Voltage = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL1Volts")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
+    const l1Voltage = generateEmptyDataPoints(buckets.l1Voltage);
+    const l2Voltage = generateEmptyDataPoints(buckets.l2Voltage);
+    const l3Voltage = generateEmptyDataPoints(buckets.l3Voltage);
+    const l1Current = generateEmptyDataPoints(buckets.l1Current);
+    const l2Current = generateEmptyDataPoints(buckets.l2Current);
+    const l3Current = generateEmptyDataPoints(buckets.l3Current);
+    const engineFuelLevel = generateEmptyDataPoints(buckets.engineFuelLevel);
+    const engineSpeed = generateEmptyDataPoints(buckets.engineSpeed);
+    const oilPress = generateEmptyDataPoints(buckets.oilPress);
+    const batteryVolts = generateEmptyDataPoints(buckets.batteryVolts);
+    const chargeAltVolts = generateEmptyDataPoints(buckets.chargeAltVolts);
 
-      const l2Voltage = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL2Volts")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
+    if (isInitialArchiveLoad) {
+      setStats((prev) => ({
+        ...prev,
+        l1Voltage,
+        l2Voltage,
+        l3Voltage,
+        l1Current,
+        l2Current,
+        l3Current,
+        engineFuelLevel,
+        engineSpeed,
+        oilPress,
+        batteryVolts,
+        chargeAltVolts,
+      }));
 
-      const l3Voltage = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL3Volts")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const l1Current = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL1Current")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const l2Current = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL2Current")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const l3Current = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "genL3Current")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const engineFuelLevel = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "engFuelLevelUnits")
-          .map((item) => ({
-            timestamp: item.timestamp,
-            propertyValue: item.propertyValue,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const engineSpeed = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "engSpeedDisplay")
-          .map((item) => ({
-            timestamp: item.timestamp,
-            propertyValue: item.propertyValue,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const oilPress = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "engOilPress")
-          .map((item) => ({
-            timestamp: item.timestamp,
-            propertyValue: item.propertyValue,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const batteryVolts = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "engBatteryVolts")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-      const chargeAltVolts = generateEmptyDataPoints(
-        records
-          .filter((item) => item.gensetProperty.propertyName === "engChargeAltVolts")
-          .map((item) => ({
-            propertyValue: item.propertyValue,
-            timestamp: item.timestamp,
-            isAnomaly: item.isAnomaly,
-          }))
-      );
-
-     if (isInitialArchiveLoad) {
-  setStats((prev) => ({
-    ...prev,
-    l1Voltage,
-    l2Voltage,
-    l3Voltage,
-    l1Current,
-    l2Current,
-    l3Current,
-    engineFuelLevel,
-    engineSpeed,
-    oilPress,
-    batteryVolts,
-    chargeAltVolts,
-  }));
-
-  setIsInitialArchiveLoad(false);
-} else {
-  setStats((prev) => ({
-    ...prev,
-    l1Voltage: mergeUniqueByTimestamp(prev.l1Voltage, l1Voltage),
-    l2Voltage: mergeUniqueByTimestamp(prev.l2Voltage, l2Voltage),
-    l3Voltage: mergeUniqueByTimestamp(prev.l3Voltage, l3Voltage),
-    l1Current: mergeUniqueByTimestamp(prev.l1Current, l1Current),
-    l2Current: mergeUniqueByTimestamp(prev.l2Current, l2Current),
-    l3Current: mergeUniqueByTimestamp(prev.l3Current, l3Current),
-    engineFuelLevel: mergeUniqueByTimestamp(prev.engineFuelLevel, engineFuelLevel),
-    engineSpeed: mergeUniqueByTimestamp(prev.engineSpeed, engineSpeed),
-    oilPress: mergeUniqueByTimestamp(prev.oilPress, oilPress),
-    batteryVolts: mergeUniqueByTimestamp(prev.batteryVolts, batteryVolts),
-    chargeAltVolts: mergeUniqueByTimestamp(prev.chargeAltVolts, chargeAltVolts),
-  }));
-}
+      setIsInitialArchiveLoad(false);
     } else {
-     
+      setStats((prev) => ({
+        ...prev,
+        l1Voltage: mergeUniqueByTimestamp(prev.l1Voltage, l1Voltage),
+        l2Voltage: mergeUniqueByTimestamp(prev.l2Voltage, l2Voltage),
+        l3Voltage: mergeUniqueByTimestamp(prev.l3Voltage, l3Voltage),
+        l1Current: mergeUniqueByTimestamp(prev.l1Current, l1Current),
+        l2Current: mergeUniqueByTimestamp(prev.l2Current, l2Current),
+        l3Current: mergeUniqueByTimestamp(prev.l3Current, l3Current),
+        engineFuelLevel: mergeUniqueByTimestamp(prev.engineFuelLevel, engineFuelLevel),
+        engineSpeed: mergeUniqueByTimestamp(prev.engineSpeed, engineSpeed),
+        oilPress: mergeUniqueByTimestamp(prev.oilPress, oilPress),
+        batteryVolts: mergeUniqueByTimestamp(prev.batteryVolts, batteryVolts),
+        chargeAltVolts: mergeUniqueByTimestamp(prev.chargeAltVolts, chargeAltVolts),
+      }));
     }
   } catch (error) {
   
@@ -337,8 +304,7 @@ const getPdmReportData = async (page = 1) => {
 
 useEffect(() => {
   (async () => {
-    await getArchiveReportData();
-    await getPdmReportData();
+    await Promise.all([getArchiveReportData(), getPdmReportData()]);
   })();
 }, []);
 

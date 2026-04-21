@@ -15,7 +15,6 @@ import { DateTime } from "luxon";
 import { useMemo } from "react";
 import { GenericAnimatedModal } from "../GenericAnimatedModal";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, TimeScale);
 
 const AnomalyGraphModal = ({ isOpen, onClose, graphData = [], selectedEntry }) => {
 

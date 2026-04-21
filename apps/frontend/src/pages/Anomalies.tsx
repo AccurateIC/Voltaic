@@ -4,21 +4,26 @@ import { AnomalyNotificationTable } from "../components/Anomalies/AnomalyNotific
 import { StatGroup } from "../components/Anomalies/StatGroup";
 import { FaFilter } from "react-icons/fa6";
 import { AnomalyCountByTimeChart } from "../components/Anomalies/AnomalyCountByTimeRangeChart";
-import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { anomalyStatisticsQueryKey } from "../hooks/archiveQueryKeys";
+import { useAnomalyStatisticsQuery } from "../hooks/useAnomalyStatisticsQuery";
+import { useGensetPropertiesQuery } from "../hooks/useGensetPropertiesQuery";
 import Skeleton from "../components/Skeleton";
 import { useMessageBus } from "../lib/MessageBus";
 import { TransmitChannels } from "../lib/TransmitChannels";
 
 // types
 type TimeRange = "*" | "1d" | "1w" | "1m";
+
 interface AnomalyCombinedFilterProps {
-  setTimeRangeFilter: (value: TimeRange) => void;
+  // eslint-disable-next-line no-unused-vars -- callback parameter names document the API
+  setTimeRangeFilter(timeRange: TimeRange): void;
   timeRange: TimeRange;
 
   selectedProperties: string[];
-  setSelectedProperties: (value: string[]) => void;
+  // eslint-disable-next-line no-unused-vars -- callback parameter names document the API
+  setSelectedProperties(properties: string[]): void;
 
   allGensetProperties: string[];
 }
@@ -91,23 +96,21 @@ const AnomalyCombinedFilter = ({
 
 
 export const Anomalies = () => {
+  const queryClient = useQueryClient();
   const {
     data: anomalyStatisticsData,
     isLoading: anomalyStatisticsIsLoading,
     isError: anomalyStatisticsIsError,
-    refetch: anomalyStatisticsRefetch,
-  } = useQuery({ queryKey: ["anomaly-statistics"], queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(), refetchInterval: 5000, refetchIntervalInBackground: false });
+  } = useAnomalyStatisticsQuery();
 
-  // Instantly refetch stats when backend broadcasts a new archive entry
-  // Charts have their own useMessageBus(ARCHIVE, refetch) subscriptions
   useMessageBus(TransmitChannels.ARCHIVE, () => {
-    anomalyStatisticsRefetch();
+    void queryClient.invalidateQueries({ queryKey: anomalyStatisticsQueryKey });
   });
 const {
   data: allGensetPropertiesData,
   isLoading: allGensetPropertiesIsLoading,
   isError: allGensetPropertiesIsError,
-} = useQuery({ queryKey: ["all-genset-properties"], queryFn: () => tuyau.property.getAll.$get().unwrap(), refetchInterval: 30000 });
+} = useGensetPropertiesQuery();
 
 const [timeRangeFilter, setTimeRangeFilter] = useState<TimeRange>("*");
 const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
@@ -164,10 +167,14 @@ if (anomalyStatisticsIsLoading || allGensetPropertiesIsLoading || !anomalyStatis
       <section className="flex-none h-auto md:h-192 w-full gap-4 flex flex-col md:flex-row">
         <div className="w-full md:w-1/2 gap-4 flex flex-col">
           <div className="w-full bg-base-200 h-[250px] md:h-1/2 rounded-lg shadow min-h-[200px]">
-            <AnomalyCountByPropertyChart timeDuration={timeRangeFilter} />
+            <AnomalyCountByPropertyChart timeDuration={timeRangeFilter} statistics={anomalyStatisticsData} />
           </div>
           <div className="w-full bg-base-200 h-[250px] md:h-1/2 rounded-lg shadow min-h-[200px]">
-            <AnomalyCountByTimeChart timeDuration={timeRangeFilter} selectedProperties={selectedProperties} />
+            <AnomalyCountByTimeChart
+              timeDuration={timeRangeFilter}
+              selectedProperties={selectedProperties}
+              statistics={anomalyStatisticsData}
+            />
           </div>
         </div>
 
@@ -180,7 +187,9 @@ if (anomalyStatisticsIsLoading || allGensetPropertiesIsLoading || !anomalyStatis
       <section className="w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg-grid-cols-3 gap-4">
           {count.map((item) => (
-            <div className="bg-base-200 shadow rounded-lg aspect-video p-4">{item}</div>
+            <div key={item} className="bg-base-200 shadow rounded-lg aspect-video p-4">
+              {item}
+            </div>
           ))}
         </div>
       </section>

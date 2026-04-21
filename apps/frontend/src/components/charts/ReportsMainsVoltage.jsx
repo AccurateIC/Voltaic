@@ -11,7 +11,6 @@ import {
   Legend,
 } from "chart.js";
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend);
 
 const backgroundPlugin = {
   id: "customBackground",

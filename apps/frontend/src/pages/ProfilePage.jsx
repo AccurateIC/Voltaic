@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tuyau } from "../lib/Tuyau";
+import { loggedInUserQueryKey, useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
+import { useRolesQuery } from "../hooks/useRolesQuery";
 
+const ChangePasswordPlaceholder = () => (
+  <div className="p-4 text-base-content/70 rounded-box border border-base-content/10 bg-base-200">
+    Password change is not available yet.
+  </div>
+);
+
+/* eslint-disable react/prop-types -- legacy JSX form; props are stable */
 const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserDetails((prev) => ({ ...prev, [name]: value }));
   };
-
-  const handleDeleteAccount = () => {};
 
   return (
     <fieldset className="fieldset flex flex-col h-full bg-base-200 text-base-content p-4 md:p-6 rounded-box w-full gap-6 border border-base-content/10">
@@ -100,7 +108,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
               <button
                 onClick={async () => {
                   
-                  const { data, error } = await tuyau.auth.hardDelete[userDetails.id].$delete();
+                  const { error } = await tuyau.auth.hardDelete[userDetails.id].$delete();
                   if (error) {
                     toast.error("Failed to delete account.");
                  
@@ -119,7 +127,7 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
                 }}
                 className="btn btn-error"
               >
-                Yes, I'm sure
+                Yes, I&apos;m sure
               </button>
             </form>
           </div>
@@ -128,8 +136,13 @@ const BasicDetails = ({ userDetails, setUserDetails, onSave, isLoading }) => {
     </fieldset>
   );
 };
+/* eslint-enable react/prop-types */
 
 const Profile = () => {
+  const queryClient = useQueryClient();
+  const { data: userData, isLoading: userQueryLoading, isError: userQueryError } = useLoggedInUserQuery();
+  const { data: roles, isLoading: rolesLoading } = useRolesQuery();
+
   const [activeTab, setActiveTab] = useState("basic");
   const [isLoading, setIsLoading] = useState(false);
   const [userDetails, setUserDetails] = useState({
@@ -150,39 +163,26 @@ const Profile = () => {
     }
   }, [userDetails, originalDetails]);
 
-  // Fetch user and role data
-  const getUserDetails = async () => {
-    setIsLoading(true);
-    try {
-      const { data: userData, error: userError } = await tuyau.auth.getLoggedInUser.$get();
-      if (userError) {
-        throw new Error("User authentication failed");
-      }
+  useEffect(() => {
+    if (!userData || !roles) return;
+    const userRole = roles.find((role) => role.id === userData.roleId);
+    const updatedDetails = {
+      id: userData.id,
+      firstName: userData.firstName || "",
+      lastName: userData.lastName || "",
+      email: userData.email || "",
+      role: userRole?.roleName || "",
+      profilePicture: userData.profilePicture || "",
+    };
+    setUserDetails(updatedDetails);
+    setOriginalDetails(updatedDetails);
+  }, [userData, roles]);
 
-      const { data: roles, error: roleError } = await tuyau.role.getAll.$get();
-      if (roleError) {
-        throw new Error("Failed to fetch roles");
-      }
-
-      const userRole = roles.find((role) => role.id === userData.roleId);
-      const updatedDetails = {
-        id: userData.id,
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        email: userData.email || "",
-        role: userRole?.roleName || "",
-        profilePicture: userData.profilePicture || "",
-      };
-
-      setUserDetails(updatedDetails);
-      setOriginalDetails(updatedDetails);
-    } catch (error) {
- 
+  useEffect(() => {
+    if (userQueryError) {
       toast.error("Failed to fetch user data");
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [userQueryError]);
 
   // Update profile (save changes)
   const saveProfileChanges = async () => {
@@ -195,12 +195,13 @@ const Profile = () => {
       const updatedData = { firstName, lastName, email };
 
       // Send updated data to backend
-      const { data, error } = await tuyau.auth.update.$patch(updatedData);
+      const { error } = await tuyau.auth.update.$patch(updatedData);
       if (error) {
         throw new Error(error.message || "Failed to save changes");
       }
 
       toast.success("Profile updated successfully!");
+      await queryClient.invalidateQueries({ queryKey: loggedInUserQueryKey });
       // Update original details to match current details
       setOriginalDetails({ ...userDetails });
       setHasChanges(false);
@@ -259,9 +260,7 @@ const Profile = () => {
   //   </fieldset>
   // );
 
-  useEffect(() => {
-    getUserDetails();
-  }, []); // Fetch user data on mount
+  const profileDataLoading = userQueryLoading || rolesLoading;
 
   return (
     <div className="h-full w-full flex flex-col gap-3 overflow-x-hidden">
@@ -297,10 +296,10 @@ const Profile = () => {
               userDetails={userDetails}
               setUserDetails={setUserDetails}
               onSave={saveProfileChanges}
-              isLoading={isLoading}
+              isLoading={isLoading || profileDataLoading}
             />
           ) : (
-            <ChangePassword />
+            <ChangePasswordPlaceholder />
           )}
         </div>
       </div>

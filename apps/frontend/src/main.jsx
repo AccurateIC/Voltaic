@@ -1,4 +1,5 @@
 import "./index.css";
+import "./chart/register";
 import { Toaster } from "sonner";
 import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
@@ -26,7 +27,8 @@ const RUL = lazy(() => import("./pages/RUL"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
+      // Fresh by default; hooks that should cache longer set `staleTime` explicitly (e.g. genset properties, session user).
+      staleTime: 0,
       refetchOnWindowFocus: false,
     },
   },

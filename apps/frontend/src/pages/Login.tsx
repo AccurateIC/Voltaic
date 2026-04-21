@@ -4,11 +4,13 @@ import { useNavigate } from "react-router";
 import { FaGoogle } from "react-icons/fa6";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { Eye, EyeOff } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { User } from "../types/auth.types";
 import { tuyau } from "../lib/Tuyau";
+import { loggedInUserQueryFn, loggedInUserQueryKey } from "../hooks/useLoggedInUserQuery";
+import { rolesQueryFn, rolesQueryKey } from "../hooks/useRolesQuery";
 import DotMatrixBackground from "../components/DotMatrixBackground";
 import { motion, AnimatePresence } from "motion/react";
-import { Modules } from "../config/extern";
 function withTimeout<T>(promise: Promise<T>, ms = 15000): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
@@ -27,7 +29,7 @@ interface InputFieldProps {
   type: string;
   placeholder: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
   autoComplete?: string;
 }
 
@@ -84,6 +86,7 @@ const InputField = ({ label, type, placeholder, value, onChange, autoComplete }:
 };
 
 const Login = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -93,25 +96,24 @@ const Login = () => {
   const [lastName, setLastName] = useState("");
 const isSubmitting = useRef(false);
   useEffect(() => {
-  const checkAuthentication = async () => {
-    // Skip API call entirely if no user stored locally
     const stored = localStorage.getItem("user");
     if (!stored) return;
 
-    try {
-      const { data, error } = await tuyau.auth.getLoggedInUser.$get();
-      if (error) return;
-      if (data) {
-        toast.success("User is already authenticated!");
-        navigate("/engine");
-      }
-    } catch (error) {
-      // silent fail
-    }
-  };
-
-  checkAuthentication();
-}, [navigate]);
+    queryClient
+      .fetchQuery({
+        queryKey: loggedInUserQueryKey,
+        queryFn: loggedInUserQueryFn,
+      })
+      .then((data) => {
+        if (data) {
+          toast.success("User is already authenticated!");
+          navigate("/engine");
+        }
+      })
+      .catch(() => {
+        // session invalid or offline — stay on login
+      });
+  }, [navigate, queryClient]);
 
 const handleAuth = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -124,9 +126,13 @@ setIsLoading(true);
     let roleIdForUserRole: string | undefined;
 
     if (isSignUp) {
-      const { data: roleData, error: roleError } = await tuyau.role.getAll.$get();
-
-      if (roleError) {
+      let roleData;
+      try {
+        roleData = await queryClient.fetchQuery({
+          queryKey: rolesQueryKey,
+          queryFn: rolesQueryFn,
+        });
+      } catch {
         toast.error("Failed to create account.");
         return;
       }
@@ -188,7 +194,7 @@ setIsLoading(true);
       console.error("ML notification error:", e?.message);
     });
 
-  } catch (error) {
+  } catch {
     toast.error(isSignUp ? "Failed to create account." : "Failed to log in.");
     setIsLoading(false);
     isSubmitting.current = false;

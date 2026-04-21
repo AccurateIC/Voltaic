@@ -1,21 +1,15 @@
 // frontend/src/components/charts/reports/AnomaliesByProperty.tsx
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, ChartOptions, ChartData } from "chart.js";
+import { ChartData, ChartOptions } from "chart.js";
 import { Pie } from "react-chartjs-2";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { tuyau } from "../../../lib/Tuyau";
+import type { DateTimeUnit } from "luxon";
+import { useAnomalyStatisticsQuery } from "../../../hooks/useAnomalyStatisticsQuery";
 import Skeleton from "../../Skeleton";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
-
-export const AnomaliesByProperty = ({ timeDuration }) => {
-  // hooks
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["anomaly-statistics"],
-    queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(),
-  });
+export const AnomaliesByProperty = ({ timeDuration }: { timeDuration: DateTimeUnit }) => {
+  const { data, isLoading } = useAnomalyStatisticsQuery();
 
   // state
   

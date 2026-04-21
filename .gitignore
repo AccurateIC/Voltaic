@@ -87,5 +87,6 @@ MY_NOTES.md
 my-notes/
 *.txt
 CLAUDE.md
+.cursor/
 android/
-
+graphify-out/

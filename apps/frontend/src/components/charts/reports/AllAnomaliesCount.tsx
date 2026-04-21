@@ -1,28 +1,11 @@
 // frontend/src/components/charts/reports/AllAnomaliesCount.tsx
-import { useQuery } from "@tanstack/react-query";
-import {
-  Chart as ChartJS,
-  ChartData,
-  ChartOptions,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Colors,
-} from "chart.js";
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors);
+import { ChartData, ChartOptions } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { tuyau } from "../../../lib/Tuyau";
+import { useAnomalyStatisticsQuery } from "../../../hooks/useAnomalyStatisticsQuery";
 import Skeleton from "../../Skeleton";
 
 export const AllAnomaliesCount = () => {
-  //hooks
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["archive", "get-anomaly-statistics"],
-    queryFn: () => tuyau.archive.getAnomalyStatistics.$get().unwrap(),
-  });
+  const { data, isLoading } = useAnomalyStatisticsQuery();
 
   if (isLoading || !data || !data.overall || Object.keys(data.overall).length === 0) {
     return <div className="w-full h-full p-2"><Skeleton type="chart" /></div>;

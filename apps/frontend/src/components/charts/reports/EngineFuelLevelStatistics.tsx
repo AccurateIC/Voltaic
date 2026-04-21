@@ -15,7 +15,6 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
-ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const EngineFuelLevelStatistics = ({ chartData }) => {
   if (!chartData) return <div className="flex items-center justify-center">N/A</div>;

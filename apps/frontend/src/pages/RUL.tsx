@@ -1,13 +1,14 @@
 // src/features/RUL/pages/RUL.tsx
 import { cn } from "../lib/Utils";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 
 import { RulChart } from "../components/charts/RulTrendChart";
-import { useQuery, UseMutationResult } from "@tanstack/react-query";
+import { UseMutationResult } from "@tanstack/react-query";
 import { useRulPrediction } from "../hooks/useRulPrediction";
+import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
+import { useFilteredHealthIndexJsonQuery, useRulDataJsonQuery } from "../hooks/useRulStaticJsonQueries";
 import { RulInputData, RulPrediction, RulResponse } from "../types/rul.types";
 import { SimulationSidebar } from "../components/RUL/SimulationSidebar";
-import { tuyau } from "../lib/Tuyau";
 import { toast } from "sonner";
 import Skeleton from "../components/Skeleton.jsx";
 
@@ -19,9 +20,9 @@ const fetchRulPrediction = async (
   rulInputData: Record<string, RulInputData[]>,
   loggedInUserData: LoggedInUser,
   getRulPrediction: UseMutationResult<RulResponse, Error, RulInputData, unknown>,
-  setRulPredPoints: React.Dispatch<React.SetStateAction<RulPrediction[]>>,
+  setRulPredPoints: Dispatch<SetStateAction<RulPrediction[]>>,
   count: number,
-  setCount: React.Dispatch<React.SetStateAction<number>>
+  setCount: Dispatch<SetStateAction<number>>
 ) => {
   const loggedInUserEmail = loggedInUserData.email;
 
@@ -60,7 +61,7 @@ const fetchRulPrediction = async (
         setRulPredPoints([]);
       },
     });
-  } catch (error) {
+  } catch {
     setRulPredPoints([]);
   }
 };
@@ -73,41 +74,15 @@ const RUL = () => {
     data: rulInputData,
     isLoading: isRulDataLoading,
     error: rulDataError,
-  } = useQuery<Record<string, RulInputData[]>>({
-    queryKey: ["rul-data"],
-    queryFn: async () => {
-      const res = await fetch("/data/rulData.json");
-      if (!res.ok) {
-        throw new Error("Failed to load RUL data");
-      }
-      return (await res.json()) as Record<string, RulInputData[]>;
-    },
-    staleTime: Infinity,
-  });
+  } = useRulDataJsonQuery();
 
-  const {
-    data: filteredHealthIndexData = [],
-    isLoading: isHealthIndexLoading,
-  } = useQuery<Array<{ Time_Hours: number; Predicted_Health_Index: number }>>({
-    queryKey: ["filtered-health-index"],
-    queryFn: async () => {
-      const res = await fetch("/data/filteredHealthIndexData.json");
-      if (!res.ok) throw new Error("Failed to load health index trend data");
-      return (await res.json()) as Array<{ Time_Hours: number; Predicted_Health_Index: number }>;
-    },
-    staleTime: Infinity,
-  });
+  const { data: filteredHealthIndexData = [], isLoading: isHealthIndexLoading } = useFilteredHealthIndexJsonQuery();
 
   const {
     data: loggedInUserData,
     error: loggedInUserError,
     isLoading,
-  } = useQuery({
-    queryKey: ["logged-in-user"],
-    queryFn: () => tuyau.auth.getLoggedInUser.$get().unwrap(),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  } = useLoggedInUserQuery();
 
   const initialRulState = {
     Predicted_Health_Index: 0,
@@ -132,7 +107,7 @@ const RUL = () => {
 
     lastSentUserRef.current = loggedInUserData.email;
     sendLoggedInUser.mutate(loggedInUserData as any);
-  }, [loggedInUserData, loggedInUserError]);
+  }, [loggedInUserData, loggedInUserError, sendLoggedInUser]);
 
   if (loggedInUserError) {
     toast.error("Failed to fetch logged in user");

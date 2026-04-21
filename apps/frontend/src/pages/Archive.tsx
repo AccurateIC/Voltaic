@@ -4,29 +4,33 @@ import { FaFilter } from "react-icons/fa6";
 import { useMessageBus } from "../lib/MessageBus";
 import { formatTimestamp } from "../lib/Utils";
 import "cally";
-import { type Archive } from "../types/archive.types";
+import type { Archive as ArchiveRow } from "../types/archive.types";
 import { tuyau } from "../lib/Tuyau";
 import Skeleton from "../components/Skeleton.jsx";
 import DynamicTable, { type DynamicTableColumn } from "../components/DynamicTable";
 import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useGensetPropertiesQuery } from "../hooks/useGensetPropertiesQuery";
 import { DateTime } from "luxon";
+import type { HTMLAttributes } from "react";
 import type { CalendarRangeProps, CalendarMonthProps } from "cally";
 import { TransmitChannels } from "../lib/TransmitChannels";
 import { BACKEND_BASE_URL } from "../config/backend";
 
 type MapEvents<T> = { [K in keyof T as K extends `on${infer E}` ? `on${Lowercase<E>}` : K]: T[K] };
 
+/* eslint-disable no-unused-vars -- `react` JSX namespace merge; nested names are type positions only */
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "calendar-month": MapEvents<CalendarMonthProps> & React.HTMLAttributes<HTMLElement>;
-      "calendar-range": MapEvents<CalendarRangeProps> & React.HTMLAttributes<HTMLElement>;
+      "calendar-month": MapEvents<CalendarMonthProps> & HTMLAttributes<HTMLElement>;
+      "calendar-range": MapEvents<CalendarRangeProps> & HTMLAttributes<HTMLElement>;
     }
   }
 }
+/* eslint-enable no-unused-vars */
 
-const excelify = async (data: Archive[]) => {
+const excelify = async (data: ArchiveRow[]) => {
   if (!data || data.length === 0) {
     toast.error("No data to export.");
     return false;
@@ -71,18 +75,16 @@ interface GetPaginatedArchiveDataFilters {
   page: number;
 }
 
-const Archive = () => {
+const ArchivePage = () => {
 const confirmAction = (message: string): boolean => {
   return window.confirm(message);
 };
-  const { data: allGensetPropertiesData, isLoading: allGensetPropertiesIsLoading, isError: allGensetPropertiesIsError } =
-    useQuery({
-      queryKey: ["genset-properties"],
-      queryFn: () => tuyau.property.getAll.$get().unwrap(),
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    });
-const [archiveData, setArchiveData] = useState<Archive[] | null>(null);
+  const {
+    data: allGensetPropertiesData,
+    isLoading: allGensetPropertiesIsLoading,
+    isError: allGensetPropertiesIsError,
+  } = useGensetPropertiesQuery();
+const [archiveData, setArchiveData] = useState<ArchiveRow[] | null>(null);
 const [paginationMetadata, setPaginationMetadata] = useState<any>();
 const [selectedIds, setSelectedIds] = useState<string[]>([]);
 const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
@@ -100,7 +102,7 @@ const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
     mutationFn: (requestFilters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(requestFilters),
     onSuccess: (paginatedData) => {
       if (paginatedData?.data) {
-        setArchiveData(paginatedData.data.data as unknown as Archive[]);
+        setArchiveData(paginatedData.data.data as unknown as ArchiveRow[]);
         setPaginationMetadata(paginatedData.data.meta);
       }
       setIsBackgroundRefresh(false); // always reset, even if data is empty
@@ -350,7 +352,7 @@ const anomalyFilter = useMemo(
     [isAnomalySelectAll, anomalyOptions, anomalousChecked, nonAnomalousChecked]
   );
 
-  const columns = useMemo<DynamicTableColumn<Archive>[]>(
+  const columns = useMemo<DynamicTableColumn<ArchiveRow>[]>(
     () => [
       {
         key: "serial",
@@ -443,7 +445,7 @@ const anomalyFilter = useMemo(
 
               mutateGetPropertyDataBetween(params, {
                 onSuccess: async (rawData: any) => {
-                  const data: Archive[] = Array.isArray(rawData)
+                  const data: ArchiveRow[] = Array.isArray(rawData)
                     ? rawData
                     : Array.isArray(rawData?.data)
                       ? rawData.data
@@ -505,4 +507,4 @@ const anomalyFilter = useMemo(
   );
 };
 
-export default Archive;
+export default ArchivePage;

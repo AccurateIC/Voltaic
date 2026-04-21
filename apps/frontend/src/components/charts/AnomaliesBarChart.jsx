@@ -10,7 +10,6 @@ import {
 } from "chart.js";
 
 // Register required components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export const AnomaliesBarChart = ({ labels, dataset }) => {
   // 🎯 Dynamic max calculation

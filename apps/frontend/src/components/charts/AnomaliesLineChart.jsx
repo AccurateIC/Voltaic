@@ -11,7 +11,6 @@ import {
   Title,
 } from "chart.js";
 
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, Title);
 
 // 🔁 Updated to include date as well
 const formatDateTime12Hour = (timestamp) => {

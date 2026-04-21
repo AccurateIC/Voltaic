@@ -14,7 +14,6 @@ import {
 import { Line } from "react-chartjs-2";
 import { RulPrediction } from "../../types/rul.types";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export function RulChart({
   currentRulPoint,

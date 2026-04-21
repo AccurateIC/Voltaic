@@ -1,90 +1,49 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-  ChartData,
-} from "chart.js";
+import { ChartData, ChartOptions } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { DateTime } from "luxon";
-import { tuyau } from "../../lib/Tuyau";
-import { useQuery } from "@tanstack/react-query";
-import { useMessageBus } from "../../lib/MessageBus";
-import { TransmitChannels } from "../../lib/TransmitChannels";
 import Skeleton from "../Skeleton";
+import type { AnomalyStatisticsForCharts } from "./AnomalyCountByPropertyChart";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface Props {
   timeDuration: "*" | "1d" | "1w" | "1m";
   selectedProperties: string[];
+  statistics: AnomalyStatisticsForCharts;
 }
 
-export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Props) => {
-  // const { data, isLoading, isError, refetch } = useQuery({
-  //   queryKey: ["archive", "get-anomaly-statistics"],
-  //   queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
-  //   refetchInterval: 5000,
-  // });
-  //---------------here is only one chnage-----
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["archive", "get-anomaly-statistics"],
-    queryFn: async () => await tuyau.archive.getAnomalyStatistics.$get(),
-    refetchInterval: 5000,
-    refetchIntervalInBackground: false,
-  });
-  //---------------upto here-------------------
-
-  useMessageBus(TransmitChannels.ARCHIVE, () => {
-    // Re-fetch data instantly when a new archive is inserted
-    refetch();
-  });
-
-  if (isError || data === undefined || data?.data === null || data.data.overall === null)
+export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties, statistics }: Props) => {
+  if (statistics === undefined || statistics?.overall === null)
     return <div className="h-full w-full flex items-center justify-center">N/A</div>;
 
-  if (isLoading || !data || !data.data || !data.data.byProperty || data.data.byProperty.length === 0) {
-    return <div className="w-full h-full"><Skeleton type="chart" /></div>;
-  }
-
-  if (isError || !data)
+  if (!statistics.byProperty || statistics.byProperty.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <span className="">N/A</span>
+      <div className="w-full h-full">
+        <Skeleton type="chart" />
       </div>
     );
+  }
 
-  // Filter data based on selected properties
   const filteredData =
     selectedProperties.length > 0
-      ? data.data.byProperty.filter((prop) => selectedProperties.includes(prop.readablePropertyName))
-      : data.data.byProperty;
+      ? statistics.byProperty.filter((prop) => selectedProperties.includes(prop.readablePropertyName))
+      : statistics.byProperty;
 
   let labels: string[] = [];
   let counts: number[] = [];
 
   switch (timeDuration) {
     case "*": {
-      // Group by months for all time
       const now = DateTime.now();
       const monthsData = new Map<string, number>();
 
-      // Initialize last 12 months
       for (let i = 11; i >= 0; i--) {
         const month = now.minus({ months: i });
         monthsData.set(month.toFormat("yyyy-MM"), 0);
       }
 
-      // Aggregate counts
-      filteredData.forEach((property: any) => {
-        // Here we'd need to modify the API to get monthly breakdowns
-        // For now, we'll just show total counts
+      filteredData.forEach((property) => {
         monthsData.forEach((_, month) => {
-          monthsData.set(month, (monthsData.get(month) || 0) + property.counts.total / 12);
+          monthsData.set(month, (monthsData.get(month) || 0) + property.total / 12);
         });
       });
 
@@ -94,18 +53,14 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
     }
 
     case "1m": {
-      // Group by weeks in current month
       const weeksInMonth = new Map<number, number>();
 
-      // Initialize weeks
       for (let week = 1; week <= 5; week++) {
         weeksInMonth.set(week, 0);
       }
 
-      // Aggregate counts
-      filteredData.forEach((property: any) => {
-        const monthlyCount = property.counts.month;
-        // Distribute monthly count across weeks (simplified)
+      filteredData.forEach((property) => {
+        const monthlyCount = property.month;
         weeksInMonth.forEach((_, week) => {
           weeksInMonth.set(week, (weeksInMonth.get(week) || 0) + monthlyCount / 4);
         });
@@ -117,21 +72,17 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
     }
 
     case "1w": {
-      // Group by days in current week
       const now = DateTime.now();
       const startOfWeek = now.startOf("week");
       const daysData = new Map<string, number>();
 
-      // Initialize days
       for (let i = 0; i < 7; i++) {
         const day = startOfWeek.plus({ days: i });
         daysData.set(day.toFormat("ccc"), 0);
       }
 
-      // Aggregate counts
-      filteredData.forEach((property: any) => {
-        const weeklyCount = property.counts.week;
-        // Distribute weekly count across days (simplified)
+      filteredData.forEach((property) => {
+        const weeklyCount = property.week;
         daysData.forEach((_, day) => {
           daysData.set(day, (daysData.get(day) || 0) + weeklyCount / 7);
         });
@@ -139,6 +90,12 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
 
       labels = Array.from(daysData.keys());
       counts = Array.from(daysData.values());
+      break;
+    }
+
+    case "1d": {
+      labels = filteredData.map((p) => p.readablePropertyName);
+      counts = filteredData.map((p) => p.today);
       break;
     }
   }
@@ -154,7 +111,9 @@ export const AnomalyCountByTimeChart = ({ timeDuration, selectedProperties }: Pr
             ? "This Month"
             : timeDuration === "1w"
               ? "This Week"
-              : timeDuration
+              : timeDuration === "1d"
+                ? "Last Day"
+                : timeDuration
           })`,
       },
       tooltip: { callbacks: { label: (context) => `Count: ${Math.round(context.parsed.y)}` } },

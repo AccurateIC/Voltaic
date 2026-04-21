@@ -32,6 +32,27 @@ const DotMatrixBackground = ({ className }: DotMatrixBackgroundProps) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dpr = Math.min(window.devicePixelRatio, 2);
+
+    if (reduceMotion) {
+      const paintStatic = () => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.fillStyle = "rgba(26, 26, 26, 1)";
+        ctx.fillRect(0, 0, width, height);
+      };
+      paintStatic();
+      window.addEventListener("resize", paintStatic);
+      return () => window.removeEventListener("resize", paintStatic);
+    }
+
     let currentDots: Dot[] = [];
     let currentMousePos = { x: 0, y: 0 };
 
@@ -40,9 +61,10 @@ const DotMatrixBackground = ({ className }: DotMatrixBackgroundProps) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      canvas.width = width * window.devicePixelRatio;
-      canvas.height = height * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
 

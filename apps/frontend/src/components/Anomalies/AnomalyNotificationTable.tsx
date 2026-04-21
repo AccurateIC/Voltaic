@@ -1,7 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { tuyau } from "../../lib/Tuyau";
-import { useMessageBus } from "../../lib/MessageBus";
-import { TransmitChannels } from "../../lib/TransmitChannels";
+import { useNotificationsPaginatedQuery } from "../../hooks/useNotificationsPaginatedQuery";
 import Skeleton from "../Skeleton";
 
 // Helper function to format UTC timestamp to local time
@@ -10,23 +7,13 @@ const formatToLocalTime = (utcTimestamp: string | null) => {
   try {
     const date = new Date(utcTimestamp);
     return date.toLocaleString();
-  } catch (error) {
+  } catch {
     return utcTimestamp; // Fallback to original if parsing fails
   }
 };
 
 export const AnomalyNotificationTable = () => {
-  const { data, isLoading, isFetching, isError, refetch } = useQuery({ 
-    queryKey: ["anomaly-notifications"], 
-    queryFn: () => tuyau.notification.getAll.$get(), 
-    refetchInterval: 5000, 
-    refetchIntervalInBackground: false 
-  });
-
-  // Refetch immediately when a notification event arrives (no debounce)
-  useMessageBus(TransmitChannels.NOTIFICATION, () => {
-    refetch();
-  });
+  const { data, isLoading, isFetching, isError } = useNotificationsPaginatedQuery(1);
 
   if (isError) {
     return <div className="h-full flex items-center justify-center">Failed to fetch anomalies</div>;

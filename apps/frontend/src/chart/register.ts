@@ -1,0 +1,30 @@
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Colors,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+  TimeSeriesScale,
+  Title,
+  Tooltip,
+} from "chart.js";
+
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Colors,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  TimeScale,
+  TimeSeriesScale,
+  Title,
+  Tooltip,
+);

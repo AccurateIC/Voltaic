@@ -15,7 +15,6 @@ import {
 } from "chart.js";
 import { DateTime } from "luxon";
 
-ChartJS.register(TimeSeriesScale, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export const OilPressureLineChart = ({ value }) => {
   const options: ChartOptions<"line"> = {

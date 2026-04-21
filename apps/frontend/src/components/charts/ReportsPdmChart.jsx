@@ -2,7 +2,6 @@ import React from "react";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip } from "chart.js";
 
-ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip);
 
 const ReportsPdmChart = () => {
   const labels = Array.from({ length: 150 }, (_, i) => `17:58:${45 + (i % 15)}`);
