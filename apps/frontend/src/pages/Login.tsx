@@ -11,6 +11,7 @@ import { loggedInUserQueryFn, loggedInUserQueryKey } from "../hooks/useLoggedInU
 import { rolesQueryFn, rolesQueryKey } from "../hooks/useRolesQuery";
 import DotMatrixBackground from "../components/DotMatrixBackground";
 import { motion, AnimatePresence } from "motion/react";
+import { BACKEND_BASE_URL } from "../config/backend";
 function withTimeout<T>(promise: Promise<T>, ms = 15000): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
@@ -164,17 +165,59 @@ setIsLoading(true);
       }
       user = data as unknown as User;
     } else {
-     const { data, error } = await withTimeout(
-  tuyau.auth.login.$post({
-    email: userData.email,
-    password: userData.password,
-  })
-);
-      if (error) {
-        throw new Error(`Login failed: ${error.status}`);
-      }
-      user = data as unknown as User;
-    }
+  const emailValue = email.trim();
+  const passwordValue = password.trim();
+
+  if (!emailValue && !passwordValue) {
+    throw new Error("Please enter your email and password.");
+  }
+
+  if (!emailValue) {
+    throw new Error("Please enter your email address.");
+  }
+
+  if (!passwordValue) {
+    throw new Error("Please enter your password.");
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(emailValue)) {
+    throw new Error("Please enter a valid email address.");
+  }
+
+  const { data, error } = await withTimeout(
+    tuyau.auth.login.$post({
+      email: emailValue,
+      password: passwordValue,
+    })
+  );
+
+  if (error) {
+    const status = Number(error.status);
+
+
+if (status === 401) {
+  const message =
+    (error as any)?.value?.message ||
+    "Incorrect email or password. Please try again.";
+  throw new Error(message);
+}
+
+if (status === 422) {
+  const message =
+    (error as any)?.value?.errors?.[0]?.message ||   // ✅ grabs the real validator message
+    "Please enter a valid email and password.";
+  throw new Error(message);
+}
+
+throw new Error("Unable to sign in. Please try again.");
+
+    throw new Error("Unable to sign in. Please try again.");
+  }
+
+  user = data as unknown as User;
+}
 
     localStorage.setItem("user", JSON.stringify(user));
 
@@ -184,7 +227,7 @@ setIsLoading(true);
 
     const notifyPayload = { ...user, logged_in: true };
 
-    fetch(`http://localhost:3333/ml/notify-login`, {
+   fetch(`${BACKEND_BASE_URL}/ml/notify-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(notifyPayload),
@@ -194,11 +237,15 @@ setIsLoading(true);
       console.error("ML notification error:", e?.message);
     });
 
-  } catch {
-    toast.error(isSignUp ? "Failed to create account." : "Failed to log in.");
-    setIsLoading(false);
-    isSubmitting.current = false;
-  }
+  } catch (error: any) {
+  toast.error(
+    error?.message ||
+      (isSignUp ? "Failed to create account." : "Failed to log in.")
+  );
+
+  setIsLoading(false);
+  isSubmitting.current = false;
+}
 };
 
  const handleGoogleSignIn = () => {
@@ -356,19 +403,25 @@ setIsLoading(true);
             </div>
 
             {/* Account Switch Link */}
-            <div className="text-center mt-4">
-              <motion.button
-  onClick={() => !isLoading && setIsSignUp(!isSignUp)}
-  disabled={isLoading}
-  className="text-base-content/90 hover:text-base-content font-medium underline-offset-4 hover:underline transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)" }}
-                whileHover={{}}
-                whileTap={{}}
-                transition={{ duration: 0.2 }}
-              >
-                {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
-              </motion.button>
-            </div>
+           {/* Account Switch Link */}
+<div className="text-center mt-4">
+  <motion.button
+    onClick={() => !isLoading && setIsSignUp(!isSignUp)}
+    disabled={isLoading}
+    className="text-base-content/90 hover:text-base-content font-medium underline-offset-4 hover:underline transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+    style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)" }}
+    whileHover={{}}
+    whileTap={{}}
+    transition={{ duration: 0.2 }}
+  >
+    {isSignUp ? "Already have an account? Sign In" : "New here? Create Account"}
+  </motion.button>
+
+  {/* Mobile + Tablet Only */}
+  <p className="text-xs text-base-content/55 mt-3 lg:hidden">
+    Version: 1.0
+  </p>
+</div>
           </div>
         </motion.div>
       </div>

@@ -69,12 +69,12 @@ const DynamicTable = <T,>({
 
   return (
     <div className="h-full w-full flex flex-col">
-      {(title || actions) && (
-        <div className="flex items-center justify-between">
-          <div className="text-2xl text-base-content font-semibold flex items-center mb-2">{title}</div>
-          <div className="flex gap-2 mb-2">{actions}</div>
-        </div>
-      )}
+    {(title || actions) && (
+<div className="flex flex-col gap-2 mb-2 lg:flex-row lg:items-center lg:justify-between">
+  <div className="text-2xl text-base-content font-semibold flex items-center shrink-0">{title}</div>
+ <div className="flex flex-row flex-wrap gap-2 w-full lg:w-auto justify-end">{actions}</div>
+</div>
+)}
 
       <div className="flex-1 rounded-box shadow-lg bg-base-200 text-base-200 overflow-hidden">
         <div className="overflow-y-auto h-full">

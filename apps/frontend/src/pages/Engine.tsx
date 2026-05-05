@@ -2,14 +2,19 @@
 import { useEffect, useMemo, useRef } from "react";
 import { type Archive } from "../types/archive.types";
 import GaugeComponent from "react-gauge-component";
-import { FaBatteryThreeQuarters, FaOilCan } from "react-icons/fa";
+import { FaBatteryThreeQuarters, FaOilCan, FaThermometerHalf } from "react-icons/fa";
 import { GiElectric } from "react-icons/gi";
-import { MdEnergySavingsLeaf } from "react-icons/md";
+import { MdEnergySavingsLeaf, MdCo2 } from "react-icons/md";
 import { cn } from "../lib/Utils";
 import { BACKEND_BASE_URL } from "../config/backend";
 import Skeleton from "../components/Skeleton";
 import { useLatestArchiveData } from "../hooks/useLatestArchiveData";
 import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
+
+
+
+
+
 
 const EngineRPM = ({ engineRpmDetails, isLoading }) => {
   if (isLoading || !engineRpmDetails || engineRpmDetails.length === 0) {
@@ -26,9 +31,8 @@ const EngineRPM = ({ engineRpmDetails, isLoading }) => {
   }
   const unit = engineRpmDetails[0]?.gensetProperty?.physicalQuantity?.unitSymbol;
 
-  // Change arc colors based on anomaly state
   const arcColors = isAnomaly ? [
-    { limit: 2500, color: "#EA4228", showTick: true } // Red when anomaly
+    { limit: 2500, color: "#EA4228", showTick: true }
   ] : [
     { limit: 500, color: "#5BE12C", showTick: true },
     { limit: 1000, color: "#F5CD19", showTick: true },
@@ -129,7 +133,7 @@ const VerticalFuelLevelIndicator = ({ fuelDetails, isLoading }) => {
         </h2>
         <div className="relative grow flex items-center py-4">
           <div className="relative w-24 h-64 md:h-80 flex items-center">
-  <div className={cn("relative w-14 md:w-16 h-full bg-base-300 rounded-full border border-base-content/20 mx-auto overflow-hidden transition-all duration-300",
+            <div className={cn("relative w-14 md:w-16 h-full bg-base-300 rounded-full border border-base-content/20 mx-auto overflow-hidden transition-all duration-300",
               isAnomaly && "border-red-400"
             )}>
               <div
@@ -149,9 +153,10 @@ const VerticalFuelLevelIndicator = ({ fuelDetails, isLoading }) => {
 };
 
 const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit, isAnomaly, isLoading }) => {
-  if (isLoading || propertyValue === undefined || propertyValue === null) {
+  if (isLoading) {
     return <div className="w-full h-full min-h-[200px]"><Skeleton type="stat" /></div>;
   }
+  const displayValue = (propertyValue === undefined || propertyValue === null) ? "--" : propertyValue;
   return (
     <div className={cn(
       "card h-full w-full shadow-sm transition-all duration-300",
@@ -178,7 +183,7 @@ const PropertyCard = ({ propertyName, propertyValue, PropertyIcon, propertyUnit,
             "font-bold text-3xl md:text-5xl text-cente",
             isAnomaly ? "text-red-100" : "text-base-content"
           )}>
-            {propertyValue} <span className="text-lg md:text-2xl font-normal block md:inline">{propertyUnit}</span>
+            {displayValue} <span className="text-lg md:text-2xl font-normal block md:inline">{propertyUnit}</span>
           </div>
         </div>
       </div>
@@ -191,7 +196,6 @@ const Engine = () => {
   const { data: sessionUser } = useLoggedInUserQuery();
   const mlNotifyOnce = useRef(false);
 
-  // ✅ 7.1 — single Map instead of 6 separate .filter() calls
   const dataMap = useMemo(() => {
     const map = new Map<string, Archive>();
     if (!latestData) return map;
@@ -201,16 +205,27 @@ const Engine = () => {
     return map;
   }, [latestData]);
 
-  const engineRpmData   = useMemo(() => { const e = dataMap.get("engSpeedDisplay");    return e ? [e] : []; }, [dataMap]);
-  const powerOutputData = useMemo(() => { const e = dataMap.get("genTotalVA");          return e ? [e] : []; }, [dataMap]);
-  const oilPressureData = useMemo(() => { const e = dataMap.get("engOilPress");         return e ? [e] : []; }, [dataMap]);
-  const altVoltageData  = useMemo(() => { const e = dataMap.get("engChargeAltVolts");   return e ? [e] : []; }, [dataMap]);
-  const batteryVoltageData = useMemo(() => { const e = dataMap.get("engBatteryVolts");  return e ? [e] : []; }, [dataMap]);
-  const fuelLevelData   = useMemo(() => { const e = dataMap.get("engFuelLevelUnits");   return e ? [e] : []; }, [dataMap]);
+  const engineRpmData      = useMemo(() => { const e = dataMap.get("engSpeedDisplay");    return e ? [e] : []; }, [dataMap]);
+  const powerOutputData    = useMemo(() => { const e = dataMap.get("genTotalVA");          return e ? [e] : []; }, [dataMap]);
+  const oilPressureData    = useMemo(() => { const e = dataMap.get("engOilPress");         return e ? [e] : []; }, [dataMap]);
+  const altVoltageData     = useMemo(() => { const e = dataMap.get("engChargeAltVolts");   return e ? [e] : []; }, [dataMap]);
+  const batteryVoltageData = useMemo(() => { const e = dataMap.get("engBatteryVolts");     return e ? [e] : []; }, [dataMap]);
+  const fuelLevelData      = useMemo(() => { const e = dataMap.get("engFuelLevelUnits");   return e ? [e] : []; }, [dataMap]);
+  // ── NEW: update property keys below to match your backend ──
+
+const temperatureData = useMemo(() => { 
+  const e = dataMap.get("temperature");   // ✅ MATCH DB
+  return e ? [e] : []; 
+}, [dataMap]);
+
+const co2Data = useMemo(() =>                    {
+  const e = dataMap.get("co2_ppm"); 
+  return e ? [e] : []; 
+}, [dataMap]);   
+
   useEffect(() => {
     if (!sessionUser || mlNotifyOnce.current) return;
     mlNotifyOnce.current = true;
-
     (async () => {
       try {
         await fetch(`${BACKEND_BASE_URL}/ml/notify-login`, {
@@ -225,101 +240,198 @@ const Engine = () => {
     })();
   }, [sessionUser]);
 
-  // Removed isLoading early return so that individual components show their proper skeletons
-
   return (
-    <div className="h-full w-full overflow-y-auto overflow-x-hidden p-4">
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-auto md:h-full">
-        {/* Main Gauges Area */}
-       <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Top Row */}
-          <EngineRPM
-            engineRpmDetails={engineRpmData}
-            isLoading={isLoading}
-          />
+    <div className="h-full w-full overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
+
+      {/* ── MOBILE ONLY (< md) ── single column, unchanged */}
+      <div className="flex flex-col gap-4 md:hidden">
+        <EngineRPM engineRpmDetails={engineRpmData} isLoading={isLoading} />
+        <PropertyCard
+          propertyName={powerOutputData[0]?.gensetProperty?.readablePropertyName || "Generator Power Output"}
+          propertyValue={powerOutputData[0]?.propertyValue}
+          PropertyIcon={MdEnergySavingsLeaf}
+          propertyUnit={powerOutputData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={powerOutputData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+        <VerticalFuelLevelIndicator fuelDetails={fuelLevelData} isLoading={isLoading} />
+        <PropertyCard
+          propertyName={temperatureData[0]?.gensetProperty?.readablePropertyName || "Temperature"}
+          propertyValue={temperatureData[0]?.propertyValue}
+          PropertyIcon={FaThermometerHalf}
+          propertyUnit={temperatureData[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "°C"}
+          isAnomaly={temperatureData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+        <PropertyCard
+          propertyName={oilPressureData[0]?.gensetProperty?.readablePropertyName || "Oil Pressure"}
+          propertyValue={oilPressureData[0]?.propertyValue}
+          PropertyIcon={FaOilCan}
+          propertyUnit={oilPressureData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={oilPressureData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+        <PropertyCard
+          propertyName={altVoltageData[0]?.gensetProperty?.readablePropertyName || "Alt Voltage"}
+          propertyValue={altVoltageData[0]?.propertyValue}
+          PropertyIcon={GiElectric}
+          propertyUnit={altVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={altVoltageData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+        <PropertyCard
+          propertyName={batteryVoltageData[0]?.gensetProperty?.readablePropertyName || "Battery Volts"}
+          propertyValue={batteryVoltageData[0]?.propertyValue}
+          PropertyIcon={FaBatteryThreeQuarters}
+          propertyUnit={batteryVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={batteryVoltageData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+        <PropertyCard
+          propertyName={co2Data[0]?.gensetProperty?.readablePropertyName || "CO₂"}
+          propertyValue={co2Data[0]?.propertyValue}
+          PropertyIcon={MdCo2}
+          propertyUnit={co2Data[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "ppm"}
+          isAnomaly={co2Data[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* ── TABLET ONLY (md → lg) ── 2 rows of 2, then new cards below */}
+      <div className="hidden md:flex lg:hidden flex-col gap-4 h-auto">
+        <div className="grid grid-cols-2 gap-4">
+          <EngineRPM engineRpmDetails={engineRpmData} isLoading={isLoading} />
           <PropertyCard
-            propertyName={
-              powerOutputData[0]
-                ?.gensetProperty?.readablePropertyName || "Generator Power Output"
-            }
-            propertyValue={
-              powerOutputData[0]
-                ?.propertyValue
-            }
+            propertyName={powerOutputData[0]?.gensetProperty?.readablePropertyName || "Generator Power Output"}
+            propertyValue={powerOutputData[0]?.propertyValue}
             PropertyIcon={MdEnergySavingsLeaf}
-            propertyUnit={
-              powerOutputData[0]
-                ?.gensetProperty.physicalQuantity.unitSymbol
-            }
+            propertyUnit={powerOutputData[0]?.gensetProperty.physicalQuantity.unitSymbol}
             isAnomaly={powerOutputData[0]?.isAnomaly || false}
             isLoading={isLoading}
           />
-
-          {/* Bottom Row - 3 small cards on desktop, 1 column on mobile */}
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <PropertyCard
-              propertyName={
-                oilPressureData[0]
-                  ?.gensetProperty?.readablePropertyName || "Oil Pressure"
-              }
-              propertyValue={
-                oilPressureData[0]
-                  ?.propertyValue
-              }
-              PropertyIcon={FaOilCan}
-              propertyUnit={
-                oilPressureData[0]
-                  ?.gensetProperty.physicalQuantity.unitSymbol
-              }
-              isAnomaly={oilPressureData[0]?.isAnomaly || false}
-              isLoading={isLoading}
-            />
-            <PropertyCard
-              propertyName={
-                altVoltageData[0]
-                  ?.gensetProperty?.readablePropertyName || "Alt Voltage"
-              }
-              propertyValue={
-                altVoltageData[0]
-                  ?.propertyValue
-              }
-              PropertyIcon={GiElectric}
-              propertyUnit={
-                altVoltageData[0]
-                  ?.gensetProperty.physicalQuantity.unitSymbol
-              }
-              isAnomaly={altVoltageData[0]?.isAnomaly || false}
-              isLoading={isLoading}
-            />
-            <PropertyCard
-              propertyName={
-                batteryVoltageData[0]
-                  ?.gensetProperty?.readablePropertyName || "Battery Volts"
-              }
-              propertyValue={
-                batteryVoltageData[0]
-                  ?.propertyValue
-              }
-              PropertyIcon={FaBatteryThreeQuarters}
-              propertyUnit={
-                batteryVoltageData[0]
-                  ?.gensetProperty.physicalQuantity.unitSymbol
-              }
-              isAnomaly={batteryVoltageData[0]?.isAnomaly || false}
-              isLoading={isLoading}
-            />
-          </div>
-
         </div>
-
-        {/* Side Area for Fuel */}
-        <div className="md:col-span-1">
-          <VerticalFuelLevelIndicator
-            fuelDetails={fuelLevelData}
+        <div className="grid grid-cols-2 gap-4">
+          <VerticalFuelLevelIndicator fuelDetails={fuelLevelData} isLoading={isLoading} />
+          <PropertyCard
+            propertyName={temperatureData[0]?.gensetProperty?.readablePropertyName || "Temperature"}
+            propertyValue={temperatureData[0]?.propertyValue}
+            PropertyIcon={FaThermometerHalf}
+            propertyUnit={temperatureData[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "°C"}
+            isAnomaly={temperatureData[0]?.isAnomaly || false}
+            isLoading={isLoading}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <PropertyCard
+            propertyName={oilPressureData[0]?.gensetProperty?.readablePropertyName || "Oil Pressure"}
+            propertyValue={oilPressureData[0]?.propertyValue}
+            PropertyIcon={FaOilCan}
+            propertyUnit={oilPressureData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+            isAnomaly={oilPressureData[0]?.isAnomaly || false}
+            isLoading={isLoading}
+          />
+          <PropertyCard
+            propertyName={altVoltageData[0]?.gensetProperty?.readablePropertyName || "Alt Voltage"}
+            propertyValue={altVoltageData[0]?.propertyValue}
+            PropertyIcon={GiElectric}
+            propertyUnit={altVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+            isAnomaly={altVoltageData[0]?.isAnomaly || false}
+            isLoading={isLoading}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <PropertyCard
+            propertyName={batteryVoltageData[0]?.gensetProperty?.readablePropertyName || "Battery Volts"}
+            propertyValue={batteryVoltageData[0]?.propertyValue}
+            PropertyIcon={FaBatteryThreeQuarters}
+            propertyUnit={batteryVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+            isAnomaly={batteryVoltageData[0]?.isAnomaly || false}
+            isLoading={isLoading}
+          />
+          <PropertyCard
+            propertyName={co2Data[0]?.gensetProperty?.readablePropertyName || "CO₂"}
+            propertyValue={co2Data[0]?.propertyValue}
+            PropertyIcon={MdCo2}
+            propertyUnit={co2Data[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "ppm"}
+            isAnomaly={co2Data[0]?.isAnomaly || false}
             isLoading={isLoading}
           />
         </div>
       </div>
+
+      {/* ── DESKTOP ONLY (≥ lg) ── 5 cols, 2 rows ── */}
+      <div className="hidden lg:grid grid-cols-5 grid-rows-2 gap-4 h-full">
+
+        {/* ── ROW 1 cols 1-2 ── Engine Speed wider for bigger gauge */}
+        <div className="col-span-2">
+          <EngineRPM engineRpmDetails={engineRpmData} isLoading={isLoading} />
+        </div>
+
+        {/* ── ROW 1 col 3 ── Generator Power Output */}
+        <PropertyCard
+          propertyName={powerOutputData[0]?.gensetProperty?.readablePropertyName || "Generator Power Output"}
+          propertyValue={powerOutputData[0]?.propertyValue}
+          PropertyIcon={MdEnergySavingsLeaf}
+          propertyUnit={powerOutputData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={powerOutputData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+        {/* ── ROW 1 col 4 ── Temperature (NEW) */}
+        <PropertyCard
+          propertyName={temperatureData[0]?.gensetProperty?.readablePropertyName || "Temperature"}
+          propertyValue={temperatureData[0]?.propertyValue}
+          PropertyIcon={FaThermometerHalf}
+          propertyUnit={temperatureData[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "°C"}
+          isAnomaly={temperatureData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+        {/* ── ROWS 1+2 col 5 ── Fuel Level — original vertical bar, spans both rows */}
+        <div className="row-span-2">
+          <VerticalFuelLevelIndicator fuelDetails={fuelLevelData} isLoading={isLoading} />
+        </div>
+
+        {/* ── ROW 2 col 1 ── Engine Oil Pressure */}
+        <PropertyCard
+          propertyName={oilPressureData[0]?.gensetProperty?.readablePropertyName || "Oil Pressure"}
+          propertyValue={oilPressureData[0]?.propertyValue}
+          PropertyIcon={FaOilCan}
+          propertyUnit={oilPressureData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={oilPressureData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+        <PropertyCard
+          propertyName={altVoltageData[0]?.gensetProperty?.readablePropertyName || "Alt Voltage"}
+          propertyValue={altVoltageData[0]?.propertyValue}
+          PropertyIcon={GiElectric}
+          propertyUnit={altVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={altVoltageData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+        <PropertyCard
+          propertyName={batteryVoltageData[0]?.gensetProperty?.readablePropertyName || "Battery Volts"}
+          propertyValue={batteryVoltageData[0]?.propertyValue}
+          PropertyIcon={FaBatteryThreeQuarters}
+          propertyUnit={batteryVoltageData[0]?.gensetProperty.physicalQuantity.unitSymbol}
+          isAnomaly={batteryVoltageData[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+        {/* ── ROW 2 col 4 ── CO₂ (NEW) */}
+        <PropertyCard
+          propertyName={co2Data[0]?.gensetProperty?.readablePropertyName || "CO₂"}
+          propertyValue={co2Data[0]?.propertyValue}
+          PropertyIcon={MdCo2}
+          propertyUnit={co2Data[0]?.gensetProperty?.physicalQuantity?.unitSymbol || "ppm"}
+          isAnomaly={co2Data[0]?.isAnomaly || false}
+          isLoading={isLoading}
+        />
+
+      </div>
+
     </div>
   );
 };

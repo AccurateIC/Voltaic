@@ -145,7 +145,7 @@ if (anomalyStatisticsIsLoading || allGensetPropertiesIsLoading || !anomalyStatis
 
   const count = [1, 2, 3, 4, 5];
   return (
-    <div className="flex flex-col gap-4 min-h-full">
+    <div className="flex flex-col gap-4 min-h-full px-4 py-4 md:px-6 md:py-5">
       <section>
         <div className="h-auto w-full">
           <StatGroup overallStatistics={anomalyStatisticsData || { timezone: "", overall: { today: 0, week: 0, month: 0, year: 0, total: 0 }, byProperty: [] }} isLoading={anomalyStatisticsIsLoading} />

@@ -409,13 +409,13 @@ const oilPressureData = useMemo(() => stats.oilPress, [stats.oilPress]);
   };
 
   return (
-    <div className="h-full w-full flex flex-col gap-3 overflow-x-hidden overflow-y-auto">
-      <div className="flex flex-wrap gap-3 justify-end">
-        <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
-          <div className="font-semibold text-sm whitespace-nowrap text-base-content/80">Properties</div>
-          <SelectAllCheckboxPopup
-            trigger={
-              <div tabIndex={0} role="button" className="btn btn-sm btn-outline min-w-[220px] justify-between">
+  <div className="h-full w-full flex flex-col gap-3 overflow-hidden px-4 py-4 md:px-6 md:py-5">
+    <div className="flex flex-wrap gap-3 justify-end shrink-0">
+  <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10 w-full lg:w-auto">
+    <div className="font-semibold text-sm whitespace-nowrap text-base-content/80">Properties</div>
+    <SelectAllCheckboxPopup
+      trigger={
+        <div tabIndex={0} role="button" className="btn btn-sm btn-outline w-full lg:min-w-[220px] lg:w-auto justify-between">
                 <span className="flex items-center gap-2">
                   <FaFilter />
                   {selectedProperties.length > 0 ? `${selectedProperties.length} selected` : "Select properties"}
@@ -445,8 +445,8 @@ const oilPressureData = useMemo(() => stats.oilPress, [stats.oilPress]);
         </div> */}
       </div>
 
-      <div className="pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+   <div className="flex-1 min-h-0 overflow-y-auto pb-2">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {renderChartCard(
             "Engine Fuel Level",
             "fuelLevel",

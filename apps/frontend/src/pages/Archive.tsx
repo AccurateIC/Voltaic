@@ -97,17 +97,20 @@ const [isBackgroundRefresh, setIsBackgroundRefresh] = useState(false);
     to: undefined,
   });
 
- const { mutate: mutatePaginatedData, isError, isPending } = useMutation({
-    mutationKey: ["archive", "get-paginated"],
-    mutationFn: (requestFilters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(requestFilters),
-    onSuccess: (paginatedData) => {
-      if (paginatedData?.data) {
-        setArchiveData(paginatedData.data.data as unknown as ArchiveRow[]);
-        setPaginationMetadata(paginatedData.data.meta);
-      }
-      setIsBackgroundRefresh(false); // always reset, even if data is empty
-    },
-  });
+const { mutate: mutatePaginatedData, isError, isPending } = useMutation({
+  mutationKey: ["archive", "get-paginated"],
+  mutationFn: (requestFilters: GetPaginatedArchiveDataFilters) => tuyau.archive.getPaginated.$post(requestFilters),
+  onSuccess: (paginatedData) => {
+    if (paginatedData?.data) {
+      setArchiveData(paginatedData.data.data as unknown as ArchiveRow[]);
+      setPaginationMetadata(paginatedData.data.meta);
+    }
+    setIsBackgroundRefresh(false);
+  },
+  onError: () => {
+    setIsBackgroundRefresh(false);
+  },
+});
 
  const { mutate: deleteArchive } = useMutation({
   mutationKey: ["archive", "delete"],
@@ -273,18 +276,18 @@ const timestampFilter = useMemo(
       widthClassName="w-auto"
       selectAllLabel="Select All"
       selectAllChecked={isPropertySelectAll}
-      onToggleSelectAll={(checked) => {
-        setFilters((prev) => ({
-          ...prev,
-          page: 1,
-          propertyNames: checked ? [] : propertyOptions.map((p) => p.value),
-        }));
-      }}
+  // inside propertyFilter
+// inside anomalyFilter
+onToggleSelectAll={(checked) => {
+  setIsBackgroundRefresh(true);
+  setFilters((prev) => ({ ...prev, page: 1, isAnomaly: checked ? undefined : true }));
+}}
       options={propertyOptions}
       getOptionChecked={(value) => isPropertySelectAll || propertySet.has(value)}
-      onToggleOption={(value, checked) => {
-        const allValues = propertyOptions.map((p) => p.value);
-        setFilters((prev) => {
+    onToggleOption={(value, checked) => {
+  setIsBackgroundRefresh(true);
+  const allValues = propertyOptions.map((p) => p.value);
+  setFilters((prev) => {
           const prevAll = (prev.propertyNames?.length ?? 0) === 0;
           const currentSet = new Set(prev.propertyNames ?? []);
           if (prevAll) {
@@ -320,22 +323,29 @@ const timestampFilter = useMemo(
   const isAnomalySelectAll = filters.isAnomaly === undefined;
 const anomalyFilter = useMemo(
     () => (
-      <SelectAllCheckboxPopup<AnomalyOptionValue>
-        trigger={
-          <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
-            <FaFilter size={24} />
-          </div>
-        }
-        widthClassName="w-64"
-        selectAllLabel="Select All"
+   <SelectAllCheckboxPopup<AnomalyOptionValue>
+  trigger={
+    <div tabIndex={0} role="button" className="btn btn-xs bg-base-100 text-base-content border-none">
+      <FaFilter size={24} />
+    </div>
+  }
+  widthClassName="w-64"
+  dropdownEnd={true}
+  selectAllLabel="Select All"
         selectAllChecked={isAnomalySelectAll}
-        onToggleSelectAll={(checked) => {
-          setFilters((prev) => ({ ...prev, page: 1, isAnomaly: checked ? undefined : true }));
-        }}
+     onToggleSelectAll={(checked) => {
+  setIsBackgroundRefresh(true);
+  setFilters((prev) => ({
+    ...prev,
+    page: 1,
+    propertyNames: checked ? [] : propertyOptions.map((p) => p.value),
+  }));
+}}
         options={anomalyOptions}
         getOptionChecked={(value) => (value === "anomalous" ? anomalousChecked : nonAnomalousChecked)}
-        onToggleOption={(value, checked) => {
-          const nextAnomalous = value === "anomalous" ? checked : anomalousChecked;
+       onToggleOption={(value, checked) => {
+  setIsBackgroundRefresh(true);
+  const nextAnomalous = value === "anomalous" ? checked : anomalousChecked;
           const nextNonAnomalous = value === "nonAnomalous" ? checked : nonAnomalousChecked;
           const nextIsAnomaly =
             nextAnomalous && nextNonAnomalous
@@ -418,70 +428,72 @@ const anomalyFilter = useMemo(
   );
 
   return (
-    <DynamicTable
-      title="Historical Genset Data"
-      actions={
-        <>
-          <button
-            onClick={async () => {
-              const params = {
-                from: filters.from,
-                to: filters.to,
-                properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
-              };
+    <div className="h-full w-full flex flex-col px-4 py-4 md:px-6 md:py-5">
+      <DynamicTable
+        title="Historical Genset Data"
+     actions={
+ <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+    <button
+      onClick={async () => {
+        const params = {
+          from: filters.from,
+          to: filters.to,
+          properties: (filters.propertyNames?.length ?? 0) > 0 ? filters.propertyNames : undefined,
+        };
 
-              if (params.from && params.to) {
-                const fromDate = new Date(params.from);
-                const toDate = new Date(params.to);
-                if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-                  toast.error("Invalid date format for export range.");
-                  return;
-                }
-                if (fromDate > toDate) {
-                  toast.error("'From' date must be earlier than or equal to 'To' date.");
-                  return;
-                }
-              }
+        if (params.from && params.to) {
+          const fromDate = new Date(params.from);
+          const toDate = new Date(params.to);
+          if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+            toast.error("Invalid date format for export range.");
+            return;
+          }
+          if (fromDate > toDate) {
+            toast.error("'From' date must be earlier than or equal to 'To' date.");
+            return;
+          }
+        }
 
-              mutateGetPropertyDataBetween(params, {
-                onSuccess: async (rawData: any) => {
-                  const data: ArchiveRow[] = Array.isArray(rawData)
-                    ? rawData
-                    : Array.isArray(rawData?.data)
-                      ? rawData.data
-                      : Array.isArray(rawData?.data?.data)
-                        ? rawData.data.data
-                        : [];
+        mutateGetPropertyDataBetween(params, {
+          onSuccess: async (rawData: any) => {
+            const data: ArchiveRow[] = Array.isArray(rawData)
+              ? rawData
+              : Array.isArray(rawData?.data)
+                ? rawData.data
+                : Array.isArray(rawData?.data?.data)
+                  ? rawData.data.data
+                  : [];
 
-                  if (!data.length) {
-                    toast.error("No data found to export!");
-                    return;
-                  }
+            if (!data.length) {
+              toast.error("No data found to export!");
+              return;
+            }
 
-                  const ok = await excelify(data);
-                  if (ok !== false) toast.success("Data successfully exported to Excel.");
-                },
-              });
-            }}
-            className="btn btn-primary"
-          >
-            Export to Excel
-          </button>
-          <button onClick={handleResetFilters} className="btn btn-primary">
-            Reset Filters
-          </button>
-          <button onClick={handleDeleteSelected} className="btn btn-error" disabled={selectedIds.length === 0}>
-            Delete Selected ({selectedIds.length})
-          </button>
-        <button
-  onClick={handleDeleteAllData}
-  className="btn btn-error btn-outline"
-  disabled={isDeleteAllPending}
->
-  {isDeleteAllPending ? "Deleting..." : "Delete All Data"}
-</button>
-        </>
-      }
+            const ok = await excelify(data);
+            if (ok !== false) toast.success("Data successfully exported to Excel.");
+          },
+        });
+      }}
+     className="btn btn-primary w-full md:w-auto"
+    >
+      
+      Export to Excel
+    </button>
+    <button onClick={handleResetFilters} className="btn btn-primary w-full md:w-auto">
+      Reset Filters
+    </button>
+    <button onClick={handleDeleteSelected} className="btn btn-error w-full md:w-auto" disabled={selectedIds.length === 0}>
+      Delete Selected ({selectedIds.length})
+    </button>
+    <button
+      onClick={handleDeleteAllData}
+      className="btn btn-error btn-outline w-full md:w-auto"
+      disabled={isDeleteAllPending}
+    >
+      {isDeleteAllPending ? "Deleting..." : "Delete All Data"}
+    </button>
+  </div>
+}
       columns={columns}
       data={archiveData ?? []}
      isLoading={!showArchiveError && (!showGensetPropsError && (isGensetPropsLoading || (isPending && !isBackgroundRefresh) || archiveData === null))}
@@ -504,6 +516,7 @@ const anomalyFilter = useMemo(
           : undefined
       }
     />
+    </div>
   );
 };
 

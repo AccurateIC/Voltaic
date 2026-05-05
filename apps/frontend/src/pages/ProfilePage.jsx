@@ -263,7 +263,7 @@ const Profile = () => {
   const profileDataLoading = userQueryLoading || rolesLoading;
 
   return (
-    <div className="h-full w-full flex flex-col gap-3 overflow-x-hidden">
+    <div className="h-full w-full flex flex-col gap-3 overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl md:text-2xl font-semibold leading-tight text-base-content">Profile Settings</h1>
       </div>

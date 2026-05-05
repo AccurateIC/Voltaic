@@ -39,7 +39,7 @@ export const Generator = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 h-full">
+ <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-4 lg:h-full px-4 py-4 md:px-6 md:py-5">
       <VoltageStatCard kind="voltage" name={"L1 Voltage"} value={stats.l1Voltage} isLoading={isLoading} />
       <VoltageStatCard kind="voltage" name={"L2 Voltage"} value={stats.l2Voltage} isLoading={isLoading} />
       <VoltageStatCard kind="voltage" name={"L3 Voltage"} value={stats.l3Voltage} isLoading={isLoading} />

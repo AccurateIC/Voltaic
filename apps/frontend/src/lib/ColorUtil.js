@@ -17,7 +17,7 @@ export const generateBaseColor = () => {
     { min: 80, max: 150 }, // Greens
     { min: 340, max: 360 }, // Soft reds
   ];
-
+      
   // Select a random range
   const selectedRange = colorRanges[Math.floor(Math.random() * colorRanges.length)];
   h = generateRandomNumber(selectedRange.min, selectedRange.max);

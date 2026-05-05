@@ -86,7 +86,7 @@ const ResetPdmDataButton = () => {
     
   };
   return (
-    <button className="btn btn-error" onClick={handleReset}>
+   <button className="btn btn-error w-full sm:w-auto" onClick={handleReset}>
       Reset PDM Data
     </button>
   );
@@ -505,7 +505,7 @@ const isPollingRef = useRef(false);
   });
 
   return (
-    <div className="flex flex-col w-full h-full gap-4 overflow-x-hidden">
+    <div className="flex flex-col w-full h-full gap-4 overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
       <div className="flex flex-col gap-4 shrink-0">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <h2 className="text-xl md:text-2xl font-semibold text-base-content">Predictive Maintenance</h2>

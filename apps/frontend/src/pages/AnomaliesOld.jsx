@@ -20,6 +20,7 @@ import Skeleton from "../components/Skeleton";
 import DynamicTable from "../components/DynamicTable";
 import SelectAllCheckboxPopup from "../components/SelectAllCheckboxPopup";
 import { BACKEND_BASE_URL } from "../config/backend";
+import { GenericAnimatedModal } from "../components/GenericAnimatedModal";
 export const AnomalyStatsCard = ({ icon, title, count, onClick }) => {
   const IconComponent =
     icon === "FaExclamationTriangle"
@@ -56,14 +57,14 @@ export const TimeRangeSelector = ({ value, onChange }) => {
   ];
 
   return (
-    <div className="flex flex-row items-center gap-2 sm:gap-3">
-      <label className="text-sm sm:text-base font-medium text-base-content/80">Time Range:</label>
-      <div className="dropdown dropdown-end">
-        <button
-          type="button"
-          tabIndex={0}
-          className="btn btn-sm btn-outline min-w-[112px] justify-between bg-base-100 normal-case font-medium"
-        >
+   <div className="flex flex-row items-center gap-2 sm:gap-3 w-full md:w-auto">
+  <label className="text-sm sm:text-base font-medium text-base-content/80 whitespace-nowrap">Time Range:</label>
+  <div className="dropdown dropdown-end flex-1 md:flex-none">
+    <button
+      type="button"
+      tabIndex={0}
+      className="btn btn-sm btn-outline w-full md:min-w-[112px] justify-between bg-base-100 normal-case font-medium"
+    >
           {timeRangeOptions.find((option) => option.value === value)?.label ?? "1 Month"}
           <span className="text-xs opacity-70">▼</span>
         </button>
@@ -89,10 +90,22 @@ export const PropertyFilter = ({ gensetProperties, selectedProperties, onPropert
   return (
     <SelectAllCheckboxPopup
       trigger={
-        <button type="button" tabIndex={0} className="btn btn-sm w-48 text-xs sm:btn-md sm:w-56 sm:text-base">
-          <FaFilter className="mr-1 sm:mr-2" />
-          {selectedProperties.length > 0 ? `${selectedProperties.length} Props` : "Properties"}
-        </button>
+  <button type="button" tabIndex={0} className="btn btn-sm w-full justify-between text-xs sm:btn-md md:w-56 sm:text-base">
+  <span className="flex items-center gap-2 min-w-0">
+    <FaFilter className="shrink-0" />
+    <span className="truncate">
+      {selectedProperties.length === 0
+        ? "Properties"
+        : selectedProperties.length === gensetProperties.length
+        ? "All Properties"
+        : gensetProperties
+            .filter((p) => selectedProperties.includes(p.propertyName))
+            .map((p) => p.readablePropertyName)
+            .join(", ")}
+    </span>
+  </span>
+  <span className="text-xs opacity-70 shrink-0">▼</span>
+</button>
       }
       widthClassName="w-[min(90vw,24rem)] max-w-[24rem]"
       selectAllChecked={gensetProperties.length > 0 && selectedProperties.length === gensetProperties.length}
@@ -243,6 +256,7 @@ const [notificationCounts, setNotificationCounts] = useState({
   const [resolvingId, setResolvingId] = useState(null);
   const [isResolvingAll, setIsResolvingAll] = useState(false);
   const [resolveProgress, setResolveProgress] = useState(0);
+const [chartModal, setChartModal] = useState(null); // null | "byProperty" | "byTime" | string (propertyName)
   const [lineEngFuleLavel, setLineEngFulLavel] = useState([]);
   const [engSpeedDisplay, setEngSpeedDisplay] = useState([]);
   const [engOilPress, setEngOilPress] = useState([]);
@@ -708,7 +722,7 @@ const currentNotifications = notifications; // already only current page from ba
  
 
   return (
-    <div className="bg-base-300 text-base-content h-full w-full flex flex-col gap-3 overflow-x-hidden">
+    <div className="bg-base-300 text-base-content h-full w-full flex flex-col gap-3 overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
 
      {isInitialLoading ? (
   <div className="flex flex-col gap-4 w-full h-full p-4">
@@ -738,24 +752,29 @@ const currentNotifications = notifications; // already only current page from ba
 <AnomalyStatsCard icon="FaCalendarWeek" title="Weekly Anomaly" count={anomalyData.week} />
 <AnomalyStatsCard icon="FaCalendarAlt" title="Monthly Anomaly" count={anomalyData.month} />
           </div>
-
-          {/* Filters & Resolve Button */}
-          <div className="flex items-center py-2 flex-wrap justify-end gap-2 sm:gap-4 sm:py-3">
-            <div className="flex gap-2 sm:gap-4 items-center">
-              <PropertyFilter
-                gensetProperties={gensetProperties}
-                selectedProperties={selectedProperties}
-                onPropertyChange={handlePropertyChange}
-                onToggleSelectAll={toggleSelectAll}
-              />
-            </div>
-            <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-            {unresolvedCount > 0 && (
-              <button
-                className="btn btn-warning btn-sm sm:btn-md text-base-content font-semibold"
-                onClick={handleResolveAll}
-                disabled={isResolvingAll}
-              >
+{/* Filters & Resolve Button */}
+<div className="flex flex-col md:flex-row md:items-center py-2 gap-2 sm:gap-4 sm:py-3 md:justify-end">
+  <div className="flex flex-col md:flex-row gap-2 md:gap-4 md:items-center w-full md:w-auto">
+    {/* Properties — full width on mobile */}
+    <div className="w-full md:w-auto">
+      <PropertyFilter
+        gensetProperties={gensetProperties}
+        selectedProperties={selectedProperties}
+        onPropertyChange={handlePropertyChange}
+        onToggleSelectAll={toggleSelectAll}
+      />
+    </div>
+    {/* Time Range — full width on mobile */}
+    <div className="w-full md:w-auto">
+      <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+    </div>
+  </div>
+  {unresolvedCount > 0 && (
+    <button
+      className="btn btn-warning btn-sm sm:btn-md text-base-content font-semibold w-full md:w-auto"
+      onClick={handleResolveAll}
+      disabled={isResolvingAll}
+    >
                 {isResolvingAll ? (
                   <>
                     <span className="loading loading-spinner loading-sm"></span>
@@ -800,16 +819,16 @@ const currentNotifications = notifications; // already only current page from ba
             </div>
 
             <div className="flex-1 min-h-0 w-full mt-2">
-              {activeTab === "chart1" && (
-                <div className="w-full h-full bg-base-200 rounded p-2 sm:p-3">
-                  <PropertyBarChart labels={labels} dataset={dataset} />
-                </div>
-              )}
-              {activeTab === "chart2" && (
-                <div className="w-full h-full bg-base-200 rounded p-2 sm:p-3">
-                  <AnomaliesBarChart labels={labels1} dataset={dataset1} />
-                </div>
-              )}
+            {activeTab === "chart1" && (
+  <div className="w-full h-full bg-base-200 rounded p-2 sm:p-3 cursor-pointer" onClick={() => setChartModal("byProperty")}>
+    <PropertyBarChart labels={labels} dataset={dataset} />
+  </div>
+)}
+           {activeTab === "chart2" && (
+  <div className="w-full h-full bg-base-200 rounded p-2 sm:p-3 cursor-pointer" onClick={() => setChartModal("byTime")}>
+    <AnomaliesBarChart labels={labels1} dataset={dataset1} />
+  </div>
+)}
               {activeTab === "table" && (
                 <div className="w-full h-full min-h-0 flex flex-col">
                   <AnomaliesTable
@@ -834,13 +853,12 @@ const currentNotifications = notifications; // already only current page from ba
           <div className="hidden md:grid grid-cols-2 gap-3 items-start min-h-0">
             {/* Left: all charts */}
             <div className="flex flex-col gap-3 min-w-0">
-              <div className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0">
-                <PropertyBarChart labels={labels} dataset={dataset} />
-              </div>
-
-              <div className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0">
-                <AnomaliesBarChart labels={labels1} dataset={dataset1} />
-              </div>
+           <div className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0 cursor-pointer" onClick={() => setChartModal("byProperty")}>
+  <PropertyBarChart labels={labels} dataset={dataset} />
+</div>
+<div className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0 cursor-pointer" onClick={() => setChartModal("byTime")}>
+  <AnomaliesBarChart labels={labels1} dataset={dataset1} />
+</div>
 
               {/* Default: only the two charts above.
                   When the user selects one or more properties, show one line-chart card per selected property. */}
@@ -849,10 +867,11 @@ const currentNotifications = notifications; // already only current page from ba
                 if (!series || series.length === 0) return null;
 
                 return (
-                  <div
-                    key={propertyName}
-                    className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0"
-                  >
+                 <div
+  key={propertyName}
+  className="aspect-video bg-base-200 rounded-lg overflow-hidden border border-base-content/5 shadow-sm min-w-0 cursor-pointer"
+  onClick={() => setChartModal(propertyName)}
+>
                     <AnomaliesLineChart value={series} />
                   </div>
                 );
@@ -878,41 +897,47 @@ const currentNotifications = notifications; // already only current page from ba
           </div>
 
           {/* Graph Modal */}
-          <AnomalyGraphModal
-            isOpen={showGraph}
-            onClose={() => setShowGraph(false)}
-            graphData={graphData}
-            selectedEntry={selectedEntry}
-          />
+       {/* Chart Fullscreen Modal — mobile */}
+<GenericAnimatedModal isOpen={chartModal !== null} onClose={() => setChartModal(null)}>
+  <div className="h-full w-full">
+    {chartModal === "byProperty" && <PropertyBarChart labels={labels} dataset={dataset} />}
+    {chartModal === "byTime" && <AnomaliesBarChart labels={labels1} dataset={dataset1} />}
+    {chartModal === "engFuelLevelUnits" && <AnomaliesLineChart value={lineEngFuleLavel} />}
+    {chartModal === "engSpeedDisplay" && <AnomaliesLineChart value={engSpeedDisplay} />}
+    {chartModal === "engOilPress" && <AnomaliesLineChart value={engOilPress} />}
+    {chartModal === "genL1Current" && <AnomaliesLineChart value={genL1Current} />}
+    {chartModal === "genTotalVA" && <AnomaliesLineChart value={genTotalVA} />}
+  </div>
+</GenericAnimatedModal>
 
           {/* Line charts grid (mobile only, desktop uses the 3rd chart section above) */}
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 mt-5 md:hidden">
-            {lineEngFuleLavel.length > 0 && (
-              <div className="w-full">
-                <AnomaliesLineChart value={lineEngFuleLavel} />
-              </div>
-            )}
-            {engSpeedDisplay.length > 0 && (
-              <div className="w-full">
-                <AnomaliesLineChart value={engSpeedDisplay} />
-              </div>
-            )}
-            {engOilPress.length > 0 && (
-              <div className="w-full">
-                <AnomaliesLineChart value={engOilPress} />
-              </div>
-            )}
-            {genL1Current.length > 0 && (
-              <div className="w-full">
-                <AnomaliesLineChart value={genL1Current} />
-              </div>
-            )}
-            {genTotalVA.length > 0 && (
-              <div className="w-full">
-                <AnomaliesLineChart value={genTotalVA} />
-              </div>
-            )}
-          </div>
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 mt-5 md:hidden">
+  {lineEngFuleLavel.length > 0 && (
+    <div className="w-full cursor-pointer" onClick={() => setChartModal("engFuelLevelUnits")}>
+      <AnomaliesLineChart value={lineEngFuleLavel} />
+    </div>
+  )}
+  {engSpeedDisplay.length > 0 && (
+    <div className="w-full cursor-pointer" onClick={() => setChartModal("engSpeedDisplay")}>
+      <AnomaliesLineChart value={engSpeedDisplay} />
+    </div>
+  )}
+  {engOilPress.length > 0 && (
+    <div className="w-full cursor-pointer" onClick={() => setChartModal("engOilPress")}>
+      <AnomaliesLineChart value={engOilPress} />
+    </div>
+  )}
+  {genL1Current.length > 0 && (
+    <div className="w-full cursor-pointer" onClick={() => setChartModal("genL1Current")}>
+      <AnomaliesLineChart value={genL1Current} />
+    </div>
+  )}
+  {genTotalVA.length > 0 && (
+    <div className="w-full cursor-pointer" onClick={() => setChartModal("genTotalVA")}>
+      <AnomaliesLineChart value={genTotalVA} />
+    </div>
+  )}
+</div>
         </>
       )}
     </div>

@@ -105,7 +105,7 @@ export const Reports = () => {
     (content: React.ReactNode, key: string) => (
       <div
         key={key}
-        className="aspect-video bg-base-200 cursor-pointer hover:shadow-lg transition-all rounded-lg overflow-hidden border border-base-content/5 shadow-sm"
+       className="h-72 lg:h-80 bg-base-200 cursor-pointer hover:shadow-lg transition-all rounded-lg overflow-hidden border border-base-content/5 shadow-sm"
         onClick={() => setModalChartKey(key)}
       >
         {content}
@@ -155,12 +155,12 @@ export const Reports = () => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full gap-3 overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+  <div className="flex flex-col h-full w-full gap-3 overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-xl md:text-2xl font-semibold leading-tight">Reports</h1>
 
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+         <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10 w-full sm:w-auto">
             {/* <div className="flex items-center gap-1 text-primary">
               <FaFilter size={13} />
               <span className="text-xs font-semibold uppercase tracking-wide">Filters</span>
@@ -170,7 +170,7 @@ export const Reports = () => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-sm btn-outline min-w-[112px] justify-between bg-base-100 normal-case font-medium"
+               className="btn btn-sm btn-outline w-full sm:min-w-[112px] justify-between bg-base-100 normal-case font-medium"
               >
                 {TIME_RANGE_OPTIONS.find((option) => option.value === timeDuration)?.label ?? "Month"}
                 <span className="text-xs opacity-70">▼</span>
@@ -195,7 +195,7 @@ export const Reports = () => {
             <span className="text-sm font-medium whitespace-nowrap text-base-content/80">Charts</span>
             <SelectAllCheckboxPopup<string>
               trigger={
-                <div tabIndex={0} className="select select-bordered select-sm min-w-[142px] bg-base-100 flex items-center cursor-pointer">
+                <div tabIndex={0}className="select select-bordered select-sm w-full sm:min-w-[142px] bg-base-100 flex items-center cursor-pointer">
                   {selectedCharts.length === ALL_CHART_KEYS.length ? "All Charts" : `${selectedCharts.length} Selected`}
                 </div>
               }
@@ -216,8 +216,8 @@ export const Reports = () => {
           </div>
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0 pb-2">
+      
         {selectedCharts.includes("anomaliesCount") &&
           modalChartKey !== "anomaliesCount" &&
           renderGraphCard(renderChartByKey("anomaliesCount"), "anomaliesCount")}

@@ -21,7 +21,7 @@ const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as con
 
 const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   const queryClient = useQueryClient();
   // ✅ LIGHTWEIGHT COUNT QUERY — self-polls every 10s, tiny 50-byte response.
   // NOT triggered by SSE invalidation (which caused the same spam bug as summary).
@@ -277,7 +277,7 @@ toast.success("All maintenance alerts resolved!");
       const toastId = toast.loading(`Clearing anomaly records from last ${period}...`);
 
       // API call to clear records
-      const response = await fetch(`http://localhost:3333/notification/clear`, {
+   const response = await fetch(`${BACKEND_BASE_URL}/notification/clear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -302,7 +302,7 @@ toast.success("All maintenance alerts resolved!");
       const toastId = toast.loading(`Clearing records from last ${period}...`);
 
       // API call to clear records
-      const response = await fetch(`http://localhost:3333/pdm/notification/clear`, {
+     const response = await fetch(`${BACKEND_BASE_URL}/pdm/notification/clear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -322,8 +322,23 @@ toast.success("All maintenance alerts resolved!");
   };
 
   return (
-  <nav className="bg-base-200 px-2 md:px-4 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-  <div /> {/* empty spacer to keep bell + profile on the right */}
+ <nav className="bg-base-200 px-2 md:px-4 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+  {/* Branding + Hamburger — mobile/tablet only */}
+<div className="flex items-center gap-2 lg:hidden">
+  <button className="flex flex-col gap-1.5 p-2" onClick={onMenuClick}>
+    <span className="block w-5 h-0.5 bg-base-content" />
+    <span className="block w-5 h-0.5 bg-base-content" />
+    <span className="block w-5 h-0.5 bg-base-content" />
+  </button>
+  <div className="h-8 w-8 rounded-sm bg-base-content/10 text-base-content flex items-center justify-center">
+    <LiaConnectdevelop size={28} />
+  </div>
+  <div>
+    <p className="text-lg font-bold leading-none text-base-content">NeuroGen</p>
+    <p className="text-[10px] text-base-content/55">Monitoring Suite</p>
+  </div>
+</div>
+<div className="hidden lg:block" /> {/* spacer for desktop only */}
       {/* navigate to engine page */}
      
 

@@ -11,7 +11,6 @@ import { FaPlug, FaFileAlt, FaBell, FaChevronDown, FaChevronRight } from "react-
 import { TbReportAnalytics } from "react-icons/tb";
 import { MdKeyboardArrowRight } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
-import { LuMoon } from "react-icons/lu";
 import { LiaConnectdevelop } from "react-icons/lia";
 import { useOptimisticLogout } from "../hooks/useOptimisticLogout";
 import { prefetchRouteChunk } from "../lib/prefetchRouteChunk";
@@ -35,13 +34,14 @@ const Tooltip = ({ label, collapsed }) => {
 };
 
 /* ── Single nav link ── */
-const SideBarLink = ({ to, name, Icon, collapsed }) => (
+const SideBarLink = ({ to, name, Icon, collapsed, onNavigate }) => (
   <li className="relative group">
     <NavLink
       to={to}
       end
       onMouseEnter={() => prefetchRouteChunk(to)}
       onFocus={() => prefetchRouteChunk(to)}
+      onClick={() => onNavigate?.()}
       className={({ isActive }) =>
         cn(
           "flex items-center rounded-sm transition-all duration-200",
@@ -116,88 +116,107 @@ const SideBarGroup = ({ name, Icon, children, routes = [], collapsed }) => {
 };
 
 /* ── Sidebar ── */
-const SideBar = ({ collapsed, setCollapsed }) => {
+const SideBar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   const expandedWidth = "w-[256px]";
   const collapsedWidth = "w-[88px]";
   const { logout, isLoggingOut } = useOptimisticLogout();
 
   return (
-    <aside
-      className={cn(
-        "fixed top-0 left-0 h-screen flex flex-col z-[70]",
-        "bg-base-200 text-base-content border-r border-base-content/10",
-        "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-visible",
-        collapsed ? collapsedWidth : expandedWidth
-      )}
-    >
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute right-0 top-13 translate-x-1/2 z-[80] flex h-6 w-6 items-center justify-center rounded-full bg-base-content text-base-100 shadow-md hover:opacity-90 transition"
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        <MdKeyboardArrowRight
-          size={18}
-          className={cn("transition-transform duration-300", collapsed ? "rotate-0" : "rotate-180")}
+    <>
+      {/* Mobile/tablet backdrop — clicking it closes the drawer */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] lg:hidden"
+          onClick={() => setMobileOpen(false)}
         />
-      </button>
+      )}
 
-      {/* ── Header ── */}
-      <div className={cn("border-b border-base-content/10", collapsed ? "px-2 py-3" : "px-2 py-3")}>
-        <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
-          <div className="h-9 w-9 rounded-sm bg-base-content/10 text-base-content flex items-center justify-center font-bold">
-            <LiaConnectdevelop size={48} />
-          </div>
-          {!collapsed && (
-            <div>
-              <p className="text-2xl font-bold leading-none text-base-content">NeuroGen</p>
-              <p className="text-xs text-base-content/55">Monitoring Suite</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Nav ── */}
-      <ul className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
-        <SideBarGroup
-          name="Genset"
-          Icon={ImPowerCord}
-          routes={["/engine", "/generator", "/mains"]}
-          collapsed={collapsed}
-        >
-          <SideBarLink to="/engine"    name="Engine"    Icon={FaGears} collapsed={false} />
-          <SideBarLink to="/generator" name="Generator" Icon={FaPlug}  collapsed={false} />
-          <SideBarLink to="/mains"     name="Mains"     Icon={FaPlug}  collapsed={false} />
-        </SideBarGroup>
-
-        <SideBarLink to="/live-data"     name="Live Data"  Icon={FaFileAlt}         collapsed={collapsed} />
-        <SideBarLink to="/anomalies-old" name="Anomalies"  Icon={RiAlertFill}       collapsed={collapsed} />
-        <SideBarLink to="/reports"       name="Reports"    Icon={TbReportAnalytics} collapsed={collapsed} />
-        <SideBarLink to="/alarms"        name="Alarms"     Icon={FaBell}            collapsed={collapsed} />
-
-        <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair} collapsed={collapsed} />
-        <SideBarLink to="/rul"     name="RUL"     Icon={GiLifeBar} collapsed={collapsed} />
-        <SideBarLink to="/archive" name="Archive" Icon={RxArchive} collapsed={collapsed} />
-      </ul>
-
-      {/* ── Footer ── */}
-      <div className="px-3 py-3 border-t border-base-content/10 flex-shrink-0">
+      <aside
+        className={cn(
+          "fixed top-0 left-0 h-screen flex flex-col z-[70]",
+          "bg-base-200 text-base-content border-r border-base-content/10",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-visible",
+          // hidden off-screen on mobile/tablet by default; slide in when mobileOpen
+          "translate-x-[-100%] lg:translate-x-0",
+          mobileOpen && "translate-x-0",
+          collapsed ? collapsedWidth : expandedWidth
+        )}
+      >
+        {/* Arrow collapse button — desktop only */}
         <button
-          type="button"
-          onClick={logout}
-          disabled={isLoggingOut}
-          className={cn(
-            "w-full rounded-xl transition-all duration-200",
-            "text-base-content/70 hover:bg-base-300 hover:text-base-content",
-            isLoggingOut && "pointer-events-none opacity-50",
-            collapsed ? "p-3 flex items-center justify-center" : "px-3 py-3 flex items-center gap-3"
-          )}
+          onClick={() => setCollapsed(!collapsed)}
+          className="hidden lg:flex absolute right-0 top-13 translate-x-1/2 z-[80] h-6 w-6 items-center justify-center rounded-full bg-base-content text-base-100 shadow-md hover:opacity-90 transition"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <FiLogOut size={18} />
-          {!collapsed && <span className="text-[15px] font-semibold">{isLoggingOut ? "Logging out..." : "Logout"}</span>}
+          <MdKeyboardArrowRight
+            size={18}
+            className={cn("transition-transform duration-300", collapsed ? "rotate-0" : "rotate-180")}
+          />
         </button>
 
-      </div>
-    </aside>
+        {/* ── Header ── */}
+        <div className={cn("border-b border-base-content/10", collapsed ? "px-2 py-3" : "px-2 py-3")}>
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
+            <div className="h-9 w-9 rounded-sm bg-base-content/10 text-base-content flex items-center justify-center font-bold">
+              <LiaConnectdevelop size={48} />
+            </div>
+            {!collapsed && (
+              <div>
+                <p className="text-2xl font-bold leading-none text-base-content">NeuroGen</p>
+                <p className="text-xs text-base-content/55">Monitoring Suite</p>
+              </div>
+            )}
+            {/* Close ✕ button — mobile/tablet only */}
+            <button
+              className="lg:hidden ml-auto p-1 rounded hover:bg-base-300 text-base-content/60 hover:text-base-content transition"
+              onClick={() => setMobileOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* ── Nav ── */}
+        <ul className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
+          <SideBarGroup
+            name="Genset"
+            Icon={ImPowerCord}
+            routes={["/engine", "/generator", "/mains"]}
+            collapsed={collapsed}
+          >
+            <SideBarLink to="/engine"    name="Engine"    Icon={FaGears} collapsed={false} onNavigate={() => setMobileOpen(false)} />
+            <SideBarLink to="/generator" name="Generator" Icon={FaPlug}  collapsed={false} onNavigate={() => setMobileOpen(false)} />
+            <SideBarLink to="/mains"     name="Mains"     Icon={FaPlug}  collapsed={false} onNavigate={() => setMobileOpen(false)} />
+          </SideBarGroup>
+
+          <SideBarLink to="/live-data"              name="Live Data"   Icon={FaFileAlt}         collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/anomalies-old"          name="Anomalies"   Icon={RiAlertFill}       collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/reports"                name="Reports"     Icon={TbReportAnalytics} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/alarms"                 name="Alarms"      Icon={FaBell}            collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair}      collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/rul"                    name="RUL"         Icon={GiLifeBar}         collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/archive"                name="Archive"     Icon={RxArchive}         collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+        </ul>
+
+        {/* ── Footer ── */}
+        <div className="px-3 py-3 border-t border-base-content/10 flex-shrink-0">
+          <button
+            type="button"
+            onClick={logout}
+            disabled={isLoggingOut}
+            className={cn(
+              "w-full rounded-xl transition-all duration-200",
+              "text-base-content/70 hover:bg-base-300 hover:text-base-content",
+              isLoggingOut && "pointer-events-none opacity-50",
+              collapsed ? "p-3 flex items-center justify-center" : "px-3 py-3 flex items-center gap-3"
+            )}
+          >
+            <FiLogOut size={18} />
+            {!collapsed && <span className="text-[15px] font-semibold">{isLoggingOut ? "Logging out..." : "Logout"}</span>}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

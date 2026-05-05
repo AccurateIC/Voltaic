@@ -10,27 +10,45 @@ export default class AuthController {
     return user;
   }
 
-  async getActive({}: HttpContext) {
+  async getActive({ }: HttpContext) {
     const users = await User.query().where("is_active", true);
     return users;
   }
 
-  async getAll({}: HttpContext): Promise<User[]> {
+  async getAll({ }: HttpContext): Promise<User[]> {
     return await User.all();
   }
 
   async register({ request, auth }: HttpContext) {
     const data = await request.validateUsing(createUserValidator);
     const user = await User.create(data);
-   logger.info({ isPersisted: user.$isPersisted }, "User persisted status");
+    logger.info({ isPersisted: user.$isPersisted }, "User persisted status");
     await auth.use("web").login(user);
     return user.serialize();
   }
 
-  async login({ request, auth }: HttpContext) {
+  async login({ request, auth, response }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator);
-    const user = await User.query().where("email", email).where("is_active", true).firstOrFail();
-    await User.verifyCredentials(email, password);
+
+    const user = await User.query()
+      .where("email", email)
+      .where("is_active", true)
+      .first();
+
+  if (!user) {
+  return response.status(401).json({
+    message: "Invalid credentials. Please try again.",
+  });
+}
+
+    try {
+      await User.verifyCredentials(email, password);
+    } catch {
+     return response.status(401).json({
+  message: "Invalid credentials. Please try again.",
+});
+    }
+
     await auth.use("web").login(user);
     return user.serialize();
   }
@@ -46,7 +64,7 @@ export default class AuthController {
     if (goog.hasError()) return goog.getError();
 
     const googUser = await goog.user();
-   logger.info({ googUser }, "Google OAuth user data");
+    logger.info({ googUser }, "Google OAuth user data");
 
     // save user data to database and
     // navigate to login page
@@ -61,7 +79,7 @@ export default class AuthController {
     } else {
       const userData = await createUserValidator.validate({
         email: googUser.email,
-       password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12),
+        password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12),
         firstName: googUser.name?.split(" ")[0],
         roleId: (await Role.findByOrFail("roleName", "user"))?.id,
         isActive: true,
@@ -69,7 +87,7 @@ export default class AuthController {
       user = await User.create(userData);
       await auth.use("web").login(user);
     }
-   return response.redirect(`${env.get("FRONTEND_URL")}/engine`);
+    return response.redirect(`${env.get("FRONTEND_URL")}/engine`);
   }
 
   async githubRedirect({ ally }: HttpContext) {
@@ -84,7 +102,7 @@ export default class AuthController {
     if (gh.hasError()) return gh.getError();
 
     const githubUser = await gh.user();
-  logger.info({ githubUser }, "GitHub OAuth user data");
+    logger.info({ githubUser }, "GitHub OAuth user data");
 
     // save user data to database and
     // navigate to login page

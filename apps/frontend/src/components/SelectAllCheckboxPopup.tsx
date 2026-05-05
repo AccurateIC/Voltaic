@@ -8,6 +8,7 @@ export type SelectAllOption<T extends string> = {
 export interface SelectAllCheckboxPopupProps<T extends string> {
   trigger: React.ReactNode;
   widthClassName?: string;
+  dropdownEnd?: boolean;
 
   selectAllLabel?: string;
   selectAllChecked: boolean;
@@ -21,6 +22,7 @@ export interface SelectAllCheckboxPopupProps<T extends string> {
 const SelectAllCheckboxPopup = <T extends string,>({
   trigger,
   widthClassName = "w-auto",
+  dropdownEnd = false,
   selectAllLabel = "Select All",
   selectAllChecked,
   onToggleSelectAll,
@@ -29,11 +31,11 @@ const SelectAllCheckboxPopup = <T extends string,>({
   onToggleOption,
 }: SelectAllCheckboxPopupProps<T>) => {
   return (
-    <div className="dropdown dropdown-end dropdown-bottom">
+   <div className={`dropdown dropdown-bottom w-full${dropdownEnd ? " dropdown-end" : ""}`}>
       {trigger}
       <div
         tabIndex={0}
-        className={`dropdown-content z-[60] bg-base-100 rounded-box shadow-xl border border-base-300 p-3 max-h-[70vh] overflow-y-auto ${widthClassName}`}
+       className={`dropdown-content z-[60] bg-base-100 rounded-box shadow-xl border border-base-300 p-3 max-h-[70vh] overflow-y-auto w-full md:${widthClassName}`}
       >
         <label className="flex items-center gap-2 cursor-pointer hover:bg-base-200 rounded px-1 py-1">
           <input

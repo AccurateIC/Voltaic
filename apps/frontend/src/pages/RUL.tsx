@@ -96,7 +96,7 @@ const RUL = () => {
   const countRef = useRef<number>(0);
   const [rulPredPoints, setRulPredPoints] = useState<RulPrediction[]>([initialRulState]);
   const [simulatedRul, setSimulatedRul] = useState<RulPrediction[]>([initialRulState]);
-
+const [isChartExpanded, setIsChartExpanded] = useState<boolean>(false);
   useEffect(() => {
     countRef.current = count;
   }, [count]);
@@ -128,7 +128,7 @@ const RUL = () => {
     primaryRulPoint?.Predicted_Health_Index != null ? Number(primaryRulPoint.Predicted_Health_Index) : null;
 
   return (
-    <div className="flex flex-col h-full w-full gap-3 overflow-x-hidden">
+    <div className="flex flex-col h-full w-full gap-3 overflow-x-hidden px-4 py-4 md:px-6 md:py-5">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div className="text-xl md:text-2xl font-semibold leading-tight">
           Remaining Useful Life
@@ -171,18 +171,49 @@ const RUL = () => {
             isSimulatorOpen ? "lg:w-2/3" : "w-full"
           )}
         >
-          <div className="h-[300px] md:h-full">
-            {(isLoading || isRulDataLoading || !rulInputData || Object.keys(rulInputData).length === 0 || getRulPrediction.isPending || rulPredPoints.length === 0) ? (
-               <Skeleton type="chart" />
-            ) : (
-               <RulChart
-                 currentRulPoint={rulPredPoints}
-                 simulatedRulPoint={simulatedRul}
-                 filteredHealthIndexData={filteredHealthIndexData}
-                 isHealthIndexLoading={isHealthIndexLoading}
-               />
-            )}
-          </div>
+       <div
+  className="h-[300px] md:h-full lg:cursor-default cursor-pointer relative"
+  onClick={() => window.innerWidth < 1024 && setIsChartExpanded(true)}
+>
+  {/* Tap hint badge — only on mobile/tablet */}
+  <div className="absolute top-2 right-2 z-10 lg:hidden">
+  
+  </div>
+
+  {(isLoading || isRulDataLoading || !rulInputData || Object.keys(rulInputData).length === 0 || getRulPrediction.isPending || rulPredPoints.length === 0) ? (
+     <Skeleton type="chart" />
+  ) : (
+     <RulChart
+       currentRulPoint={rulPredPoints}
+       simulatedRulPoint={simulatedRul}
+       filteredHealthIndexData={filteredHealthIndexData}
+       isHealthIndexLoading={isHealthIndexLoading}
+     />
+  )}
+</div>
+
+{/* Fullscreen modal — mobile/tablet only */}
+{isChartExpanded && (
+  <div className="fixed inset-0 z-50 bg-base-100 flex flex-col lg:hidden">
+    <div className="flex items-center justify-between px-4 py-3 border-b border-base-content/10 shrink-0">
+      <span className="font-semibold text-base">Health Index Deterioration</span>
+      <button
+        className="btn btn-sm btn-ghost"
+        onClick={() => setIsChartExpanded(false)}
+      >
+        ✕ Close
+      </button>
+    </div>
+    <div className="flex-1 min-h-0 p-2">
+      <RulChart
+        currentRulPoint={rulPredPoints}
+        simulatedRulPoint={simulatedRul}
+        filteredHealthIndexData={filteredHealthIndexData}
+        isHealthIndexLoading={isHealthIndexLoading}
+      />
+    </div>
+  </div>
+)}
         </div>
 
         <div className="w-full lg:w-auto">

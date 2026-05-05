@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Voltaic',
   webDir: 'apps/frontend/dist',
   server: {
-    hostname: '192.168.10.69',
+    hostname: '192.168.10.128',
     cleartext: true,
     androidScheme: 'http'
   },
@@ -15,3 +15,4 @@ const config: CapacitorConfig = {
 };
 
 export default config;
+ 
