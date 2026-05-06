@@ -33,6 +33,8 @@ origin: [
   "https://192.168.10.41/neurogen/",
   "https://192.168.10.41:5174",
   "https://aiserver-desktop.tailaf2c38.ts.net:5174",
+  "https://neurogen.neubodhi.in",
+  "https://neurogen.neubodhi.in:3334",
 ],
   methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
   headers: true,
