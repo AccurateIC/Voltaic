@@ -19,7 +19,6 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          debug: true
           script: |
             set -e
 
@@ -40,8 +39,8 @@ jobs:
             echo "NODE_ENV=${{ secrets.NODE_ENV }}"
             echo "SESSION_DRIVER=${{ secrets.SESSION_DRIVER }}"
             echo "APP_KEY=${{ secrets.APP_KEY }}"
-            echo "GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}"
-            echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}"
+            echo "GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}"
+            echo "GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}"
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
             echo "DB_HOST=${{ secrets.DB_HOST }}"
@@ -93,10 +92,29 @@ jobs:
             echo "──────────────────────────────────"
             echo " Verifying services"
             echo "──────────────────────────────────"
-            sudo systemctl is-active neurogen-frontend.service || exit 1
-            sudo systemctl is-active neurogen-backend.service || exit 1
-            sudo systemctl is-active anomaly_1phase.service || exit 1
-            sudo systemctl is-active pdm.service || exit 1
-            sudo systemctl is-active rul.service || exit 1
+            sleep 5
+
+            wait_for_service() {
+              local svc=$1
+              local retries=6
+              while [ $retries -gt 0 ]; do
+                if sudo systemctl is-active --quiet "$svc"; then
+                  echo "✅ $svc is active"
+                  return 0
+                fi
+                echo "⏳ Waiting for $svc..."
+                sleep 5
+                retries=$((retries - 1))
+              done
+              echo "❌ $svc failed to start"
+              sudo systemctl status "$svc"
+              return 1
+            }
+
+            wait_for_service neurogen-frontend.service
+            wait_for_service neurogen-backend.service
+            wait_for_service anomaly_1phase.service
+            wait_for_service pdm.service
+            wait_for_service rul.service
 
             echo "✅ Deployment complete!"
