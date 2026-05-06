@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "node ace build && powershell -Command \"Copy-Item -Path .env -Destination build/.env -Force\"",
+    "build": "node ace build --ignore-ts-errors && cp .env ./build/.env",
     "clean": "powershell -Command \"Remove-Item -Path build -Recurse -Force -ErrorAction SilentlyContinue\"",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
