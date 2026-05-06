@@ -49,9 +49,9 @@ export default await Env.create(new URL("../", import.meta.url), {
   DB_POOL_MAX: Env.schema.number.optional(),
   DB_POOL_ACQUIRE_TIMEOUT_MS: Env.schema.number.optional(),
   DB_POOL_IDLE_TIMEOUT_MS: Env.schema.number.optional(),
-  RUL_URL: Env.schema.string.optional(),
-  PDM_URL: Env.schema.string.optional(),
-  ANOMALY_URL: Env.schema.string.optional(),
-  ML_API_KEY: Env.schema.string.optional(),
+  RUL_URL: Env.schema.string(),
+  PDM_URL: Env.schema.string(),
+  ANOMALY_URL: Env.schema.string(),
+  ML_API_KEY: Env.schema.string(),
   FRONTEND_URL: Env.schema.string.optional(),
 });

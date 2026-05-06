@@ -10,7 +10,7 @@ import env from "#start/env";
  * Configure them in the backend .env file.
  */
 export const Modules = {
-  RUL: env.get("RUL_URL", "http://127.0.0.1:5000"),
-  PDM: env.get("PDM_URL", "http://127.0.0.1:5010"),
-  ANOMALY: env.get("ANOMALY_URL", "http://127.0.0.1:5011"),
+  RUL: env.get("RUL_URL"),
+  PDM: env.get("PDM_URL"),
+  ANOMALY: env.get("ANOMALY_URL"),
 };
