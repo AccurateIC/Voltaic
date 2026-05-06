@@ -1,0 +1,102 @@
+name: Deploy Neurogen to Azure VM
+
+on:
+  push:
+    branches:
+      - dev-Akash
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Azure VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_PORT }}
+          script: |
+            set -e
+
+            echo "──────────────────────────────────"
+            echo " Pulling latest code"
+            echo "──────────────────────────────────"
+            cd /home/Neurogenweb/projects/Neurogen_Web
+            git pull origin main
+
+            echo "──────────────────────────────────"
+            echo " Creating Backend .env"
+            echo "──────────────────────────────────"
+            {
+            echo "TZ=${{ vars.TZ }}"
+            echo "PORT=${{ vars.PORT }}"
+            echo "HOST=${{ vars.HOST }}"
+            echo "LOG_LEVEL=${{ vars.LOG_LEVEL }}"
+            echo "NODE_ENV=${{ vars.NODE_ENV }}"
+            echo "SESSION_DRIVER=${{ vars.SESSION_DRIVER }}"
+            echo "APP_KEY=${{ secrets.APP_KEY }}"
+            echo "GH_CLIENT_ID=${{ vars.GH_CLIENT_ID }}"
+            echo "GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}"
+            echo "GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}"
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            echo "DB_HOST=${{ vars.DB_HOST }}"
+            echo "DB_PORT=${{ vars.DB_PORT }}"
+            echo "DB_USER=${{ vars.DB_USER }}"
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+            echo "DB_DATABASE=${{ vars.DB_DATABASE }}"
+            echo "RUL_URL=${{ vars.RUL_URL }}"
+            echo "PDM_URL=${{ vars.PDM_URL }}"
+            echo "ANOMALY_URL=${{ vars.ANOMALY_URL }}"
+            echo "ML_API_KEY=${{ secrets.ML_API_KEY }}"
+            } > apps/backend/.env
+            chmod 600 apps/backend/.env
+
+            echo "──────────────────────────────────"
+            echo " Creating Frontend .env"
+            echo "──────────────────────────────────"
+            {
+            echo "VITE_BACKEND_URL=${{ vars.VITE_BACKEND_URL }}"
+            echo "VITE_RUL_API=${{ vars.RUL_URL }}"
+            echo "VITE_PDM_API=${{ vars.PDM_URL }}"
+            echo "VITE_ANOMALY_API=${{ vars.ANOMALY_URL }}"
+            } > apps/frontend/.env
+            chmod 600 apps/frontend/.env
+
+            echo "──────────────────────────────────"
+            echo " Installing dependencies"
+            echo "──────────────────────────────────"
+            pnpm install --frozen-lockfile
+
+            echo "──────────────────────────────────"
+            echo " Building project"
+            echo "──────────────────────────────────"
+            pnpm build
+
+            echo "──────────────────────────────────"
+            echo " Restarting Node.js Services"
+            echo "──────────────────────────────────"
+            sudo systemctl restart neurogen-frontend.service
+            sudo systemctl restart neurogen-backend.service
+
+            echo "──────────────────────────────────"
+            echo " Restarting ML Services"
+            echo "──────────────────────────────────"
+            sudo systemctl restart anomaly_1phase.service
+            sudo systemctl restart pdm.service
+            sudo systemctl restart rul.service
+
+            echo "──────────────────────────────────"
+            echo " Verifying services"
+            echo "──────────────────────────────────"
+            sudo systemctl is-active neurogen-frontend.service || exit 1
+            sudo systemctl is-active neurogen-backend.service || exit 1
+            sudo systemctl is-active anomaly_1phase.service || exit 1
+            sudo systemctl is-active pdm.service || exit 1
+            sudo systemctl is-active rul.service || exit 1
+
+            echo "✅ Deployment complete!"
