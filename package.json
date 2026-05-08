@@ -60,7 +60,8 @@
   "dependencies": {
     "@capacitor/android": "^8.1.0",
     "@capacitor/cli": "^8.1.0",
-    "@capacitor/core": "^8.1.0"
+    "@capacitor/core": "^8.1.0",
+    "cors": "^2.8.6"
   },
   "engines": {
     "node": ">=22.14.0",

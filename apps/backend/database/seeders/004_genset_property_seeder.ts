@@ -12,7 +12,7 @@ export default class extends BaseSeeder {
     const volume = await PhysicalQuantity.findByOrFail("quantityName", "volume"); // 6
     // const power = await PhysicalQuantity.findByOrFail("quantityName", "power"); // 7
     const apparentPower = await PhysicalQuantity.findByOrFail("quantityName", "apparent-power"); // 8
-
+const co2 = await PhysicalQuantity.findByOrFail("quantityName", "co2");
     await GensetProperty.createMany([
       { propertyName: "engTemp", physicalQuantityId: temperature.id, readablePropertyName: "Engine Temperature" },
       {
@@ -20,6 +20,11 @@ export default class extends BaseSeeder {
         physicalQuantityId: temperature.id,
         readablePropertyName: "Engine Oil Temperature",
       },
+      {
+  propertyName: "co2Level",
+  physicalQuantityId: co2.id,
+  readablePropertyName: "CO2 Level",
+},
       { propertyName: "engOilPress", physicalQuantityId: pressure.id, readablePropertyName: "Engine Oil Pressure" },
       { propertyName: "engFuelLevel", physicalQuantityId: volume.id, readablePropertyName: "Engine Fuel Level" },
       {

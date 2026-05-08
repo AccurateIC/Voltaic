@@ -13,6 +13,9 @@ export default class extends BaseSeeder {
       { id: randomUUID(), quantityName: "volume", unitName: "litre", unitSymbol: "L" }, // 6
       { id: randomUUID(), quantityName: "power", unitName: "watt", unitSymbol: "W" }, // 7
       { id: randomUUID(), quantityName: "apparent-power", unitName: "kilovolt-amperes", unitSymbol: "kVA" }, // 8
-    ]);
+      { id: randomUUID(), quantityName: "co2", unitName: "ppm", unitSymbol: "ppm" },
+]);
+   
+  
   }
 }
