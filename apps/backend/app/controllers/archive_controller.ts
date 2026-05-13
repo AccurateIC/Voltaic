@@ -133,11 +133,11 @@ async getAll({}: HttpContext) {
     
     const data = await getArchiveDataBetweenValidator.validate(queryParams);
     
-    const query = Archive.query()
-      .whereBetween("timestamp", [data.from, data.to])
-      .select("id", "timestamp", "propertyValue", "isAnomaly", "gensetPropertyId")
-      .orderBy("timestamp", "desc")
-      .preload("gensetProperty", (q) => q.preload("physicalQuantity"));
+const query = Archive.query()
+  .whereBetween("timestamp", [data.from, data.to])
+  .select("id", "timestamp", "propertyValue", "isAnomaly", "gensetPropertyId")
+  .preload("gensetProperty")
+  .orderBy("timestamp", "desc");
 
     // MODE 1: Load 1000 records only (FAST) ✅
     if (!loadAll) {

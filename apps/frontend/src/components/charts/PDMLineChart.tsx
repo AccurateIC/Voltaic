@@ -37,10 +37,14 @@ export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
       tooltip: {
         callbacks: {
           label: (context) => `Vibration: ${context.parsed.y}`,
-          title: (tooltipItems) => {
-            const dataPoint = tooltipItems[0].raw as { x: DateTime; y: number };
-            return dataPoint.x.toFormat("HH:mm:ss");
-          },
+         title: (tooltipItems) => {
+  const raw = tooltipItems[0].raw as { x: any; y: number };
+  const x = raw.x;
+  if (x && typeof x.toFormat === "function") return x.toFormat("HH:mm:ss");
+  if (typeof x === "number") return DateTime.fromMillis(x).toFormat("HH:mm:ss");
+  if (typeof x === "string") return DateTime.fromISO(x).toFormat("HH:mm:ss");
+  return String(x);
+},
         },
       },
       title: {
@@ -71,7 +75,7 @@ export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
         fill: false,
         label: "Vibration Data",
         data: value.map((item) => ({
-          x: DateTime.fromISO(item.timestamp).toISO(),
+        x: DateTime.fromISO(item.timestamp),
           y: item.actual
         })) as any,  // ✅ Move 'as any' here
         borderColor: "rgba(82, 120, 209, 1)",
@@ -87,7 +91,7 @@ export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
         data: value
           .filter((item) => item.hasNotification)
           .map((item) => ({
-            x: DateTime.fromISO(item.timestamp).toISO(),
+          x: DateTime.fromISO(item.timestamp),
             y: item.actual
           })) as any,
         borderColor: "rgba(255, 0, 0, 1)",

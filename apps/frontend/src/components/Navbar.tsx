@@ -17,12 +17,15 @@ import { AnomaliesModal } from "./AnomaliesModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMessageBus } from "../lib/MessageBus";
 import { TransmitChannels } from "../lib/TransmitChannels";
+import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
 const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as const;
 
 const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
 
 const Navbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
-  const queryClient = useQueryClient();
+ const queryClient = useQueryClient();
+const { data: loggedInUser } = useLoggedInUserQuery(); // 👈 add this
+const isAuthenticated = !!loggedInUser;               // 👈 add this
   // ✅ LIGHTWEIGHT COUNT QUERY — self-polls every 10s, tiny 50-byte response.
   // NOT triggered by SSE invalidation (which caused the same spam bug as summary).
   // refetchInterval drives the update; staleTime matches so no extra fetches fire.
@@ -35,11 +38,12 @@ const Navbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
       if (!res.ok) throw new Error("Failed to fetch notification count");
       return res.json() as Promise<{ anomaly: number; maintenance: number }>;
     },
-    staleTime: 9000,          // stay fresh for 9s — matches refetchInterval
-    refetchInterval: 10000,   // ✅ polls every 10s — only update trigger
+    staleTime: 10000,  // matches refetchInterval exactly
+refetchInterval: 10000, // ✅ polls every 10s — only update trigger
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
+    enabled: isAuthenticated,
   });
 
   // ✅ FULL SUMMARY QUERY — enabled:false means it NEVER auto-fetches.
@@ -117,19 +121,18 @@ const markNotificationAsReadMutation = useMutation({
  
   const detailsRef = useRef<HTMLDetailsElement | null>(null); // used to close notification dropdown when clicking outside
 
-  useMessageBus(TransmitChannels.NOTIFICATION, () => {
-    queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
-    if (detailsRef.current?.open) {
-      refetchSummary();
-    }
-  });
-
-  useMessageBus(TransmitChannels.PDM, () => {
-    queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
-    if (detailsRef.current?.open) {
-      refetchSummary();
-    }
-  });
+useMessageBus(TransmitChannels.NOTIFICATION, () => {
+  // notifications-count self-polls every 10s — no invalidation needed here
+  if (detailsRef.current?.open) {
+    refetchSummary();
+  }
+});
+ useMessageBus(TransmitChannels.PDM, () => {
+  // notifications-count self-polls every 10s — no need to invalidate on PDM events
+  if (detailsRef.current?.open) {
+    refetchSummary();
+  }
+});
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

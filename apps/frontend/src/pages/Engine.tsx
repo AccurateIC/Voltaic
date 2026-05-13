@@ -214,12 +214,12 @@ const Engine = () => {
   // ── NEW: update property keys below to match your backend ──
 
 const temperatureData = useMemo(() => { 
-  const e = dataMap.get("engTemp");
+  const e = dataMap.get("temperature");
   return e ? [e] : []; 
 }, [dataMap]);
 
 const co2Data = useMemo(() => {
-  const e = dataMap.get("engOilTemp");
+  const e = dataMap.get("co2_ppm");
   return e ? [e] : [];
 }, [dataMap]); 
 

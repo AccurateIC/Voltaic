@@ -1,33 +1,11 @@
 import { Navigate, useLocation } from "react-router";
-import { useState, useEffect } from "react";
 import Skeleton from "./Skeleton";
 import { toast } from "sonner";
-import { tuyau } from "../lib/Tuyau";
-
-const checkIfAuthenticated = async () => {
-  // Fast client-side gate: if local auth state is cleared, block immediately.
-  if (!localStorage.getItem("user")) return false;
-  const { data, error } = await tuyau.auth.getLoggedInUser.$get();
-  if (error) return false;
-  return true;
-};
+import { useLoggedInUserQuery } from "../hooks/useLoggedInUserQuery";
 
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setIsAuthenticated(await checkIfAuthenticated());
-      } catch (err) {
-  setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, []);
+  const { data: user, isLoading, isError } = useLoggedInUserQuery();
 
   if (isLoading) {
     return (
@@ -37,8 +15,12 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    toast.error("You're not authenticated. Please login first.");
+  if (isError || !user) {
+    // only show toast if user was previously on a protected page
+    if (localStorage.getItem("user")) {
+      toast.error("You're not authenticated. Please login first.");
+    }
+    localStorage.removeItem("user");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

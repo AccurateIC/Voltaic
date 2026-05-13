@@ -50,17 +50,10 @@ export const useMessageBus = (channel, callback) => {
   }, [callback]);
 
   useEffect(() => {
-    let unsubscribe;
-    if (callbackRef.current) {
-      const handler = (data) => {
-        if (callbackRef.current) callbackRef.current(data);
-      };
-      unsubscribe = messageBus.subscribe(channel, handler);
-    }
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [channel]);
+    const handler = (data) => callbackRef.current?.(data);
+    const unsubscribe = messageBus.subscribe(channel, handler);
+    return () => unsubscribe();
+  }, [channel]); // ✅ stable — only re-subscribes if channel changes
 
   return useCallback((data) => messageBus.publish(channel, data), [channel]);
 };

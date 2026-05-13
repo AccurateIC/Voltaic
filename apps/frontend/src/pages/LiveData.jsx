@@ -40,12 +40,12 @@ export const LiveData = () => {
 
   const [pdmData, setPdmData] = useState([]);
   
-  const [pdmErrorMessage, setPdmErrorMessage] = useState("");
+ 
 
   const archiveTimeoutRef = useRef(null);
   const pdmTimeoutRef = useRef(null);
   const [isInitialArchiveLoad, setIsInitialArchiveLoad] = useState(true);
-
+  const isInitialArchiveLoadRef = useRef(true);
   const [selectedChart, setSelectedChart] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -97,7 +97,7 @@ export const LiveData = () => {
 
   return [...emptyDataPoints, ...sortedData];
 };
-  useMessageBus("archive", (msg) => {
+useMessageBus("archive", (msg) => {
     if (!msg) return;
 
     if (archiveTimeoutRef.current) clearTimeout(archiveTimeoutRef.current);
@@ -105,7 +105,7 @@ export const LiveData = () => {
     archiveTimeoutRef.current = setTimeout(() => {
       getArchiveReportData();
       archiveTimeoutRef.current = null;
-    }, 2000);
+    }, 500); // was 2000
   });
 
   useMessageBus("pdm", (msg) => {
@@ -113,10 +113,10 @@ export const LiveData = () => {
 
     if (pdmTimeoutRef.current) clearTimeout(pdmTimeoutRef.current);
 
-    pdmTimeoutRef.current = setTimeout(() => {
+  pdmTimeoutRef.current = setTimeout(() => {
       getPdmReportData();
       pdmTimeoutRef.current = null;
-    }, 3000);
+    }, 500); // was 3000
   });
 
   // ✅ HELPER: Ensure data is always an array
@@ -128,18 +128,14 @@ export const LiveData = () => {
   };
 const mergeUniqueByTimestamp = (oldData, newData) => {
   const mergedMap = new Map();
-
-  oldData.forEach((item) => {
-    mergedMap.set(item.timestamp, item);
-  });
-
-  newData.forEach((item) => {
-    mergedMap.set(item.timestamp, item);
-  });
-
-  return Array.from(mergedMap.values()).sort(
+  oldData.forEach((item) => mergedMap.set(item.timestamp, item));
+  newData.forEach((item) => mergedMap.set(item.timestamp, item));
+  const merged = Array.from(mergedMap.values()).sort(
     (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
   );
+  // ✅ keep only last 15 minutes to prevent infinite memory growth
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  return merged.filter((item) => item.timestamp >= cutoff);
 };
   const PROPERTY_NAME_TO_BUCKET = {
     genL1Volts: "l1Voltage",
@@ -155,29 +151,13 @@ const mergeUniqueByTimestamp = (oldData, newData) => {
     engChargeAltVolts: "chargeAltVolts",
   };
 
-  const fetchAllArchiveRecordsBetween = async (from, to) => {
-    const merged = [];
-    let page = 1;
-    const pageSize = 1000;
-    for (;;) {
-      const { data, error } = await tuyau.archive.getBetween.$get({
-        query: { from, to, page: String(page), skipCount: "true" },
-      });
-      if (error) {
-        return merged;
-      }
-      const batch = ensureArray(data);
-      if (batch.length === 0) {
-        break;
-      }
-      merged.push(...batch);
-      if (batch.length < pageSize) {
-        break;
-      }
-      page += 1;
-    }
-    return merged;
-  };
+ const fetchAllArchiveRecordsBetween = async (from, to) => {
+  const { data, error } = await tuyau.archive.getBetween.$get({
+    query: { from, to, loadAll: "true" },
+  });
+  if (error) return [];
+  return ensureArray(data);
+};
 
   const groupRecordsIntoBuckets = (records) => {
     const buckets = {
@@ -195,7 +175,7 @@ const mergeUniqueByTimestamp = (oldData, newData) => {
     };
 
     for (const item of records) {
-      const propertyName = item?.gensetProperty?.propertyName;
+    const propertyName = item?.gensetProperty?.propertyName;
       const bucketKey = PROPERTY_NAME_TO_BUCKET[propertyName];
       if (!bucketKey) {
         continue;
@@ -214,10 +194,10 @@ const getArchiveReportData = async () => {
 const now = new Date();
 
 let from;
-if (isInitialArchiveLoad) {
-  from = new Date(now - 60 * 60 * 1000).toISOString(); // first load: last 1 hour only
+if (isInitialArchiveLoadRef.current) {
+  from = new Date(now - 15 * 60 * 1000).toISOString();
 } else {
-  from = new Date(now - 2 * 60 * 1000).toISOString(); // live update: last 2 minutes
+  from = new Date(now - 2 * 60 * 1000).toISOString();
 }
 
 const to = now.toISOString();
@@ -237,7 +217,7 @@ const to = now.toISOString();
     const batteryVolts = generateEmptyDataPoints(buckets.batteryVolts);
     const chargeAltVolts = generateEmptyDataPoints(buckets.chargeAltVolts);
 
-    if (isInitialArchiveLoad) {
+    if (isInitialArchiveLoadRef.current) {  // ✅ using ref
       setStats((prev) => ({
         ...prev,
         l1Voltage,
@@ -253,7 +233,8 @@ const to = now.toISOString();
         chargeAltVolts,
       }));
 
-      setIsInitialArchiveLoad(false);
+     isInitialArchiveLoadRef.current = false;
+setIsInitialArchiveLoad(false);
     } else {
       setStats((prev) => ({
         ...prev,
@@ -313,10 +294,12 @@ const batteryData = useMemo(() => {
   const chargeAltMap = new Map(stats.chargeAltVolts.map((item) => [item.timestamp, item]));
   return stats.batteryVolts.map((batteryItem) => {
     const chargeAltItem = chargeAltMap.get(batteryItem.timestamp);
-    return {
+   return {
       timestamp: batteryItem.timestamp,
       batteryVolts: batteryItem.propertyValue,
       chargeAltVolts: chargeAltItem ? chargeAltItem.propertyValue : null,
+      batteryIsAnomaly: batteryItem.isAnomaly,
+      chargeAltIsAnomaly: chargeAltItem ? chargeAltItem.isAnomaly : false,
     };
   });
 }, [stats.batteryVolts, stats.chargeAltVolts]);
@@ -325,7 +308,7 @@ const currentData = useMemo(() => {
   if (!stats.l1Current.length || !stats.l2Current.length || !stats.l3Current.length) return [];
   const l2CurrentMap = new Map(stats.l2Current.map((item) => [item.timestamp, item]));
   const l3CurrentMap = new Map(stats.l3Current.map((item) => [item.timestamp, item]));
-  return stats.l1Current.map((l1Item) => {
+return stats.l1Current.map((l1Item) => {
     const l2Item = l2CurrentMap.get(l1Item.timestamp);
     const l3Item = l3CurrentMap.get(l1Item.timestamp);
     return {
@@ -333,6 +316,9 @@ const currentData = useMemo(() => {
       L1: l1Item.propertyValue,
       L2: l2Item ? l2Item.propertyValue : null,
       L3: l3Item ? l3Item.propertyValue : null,
+      L1isAnomaly: l1Item.isAnomaly,
+      L2isAnomaly: l2Item ? l2Item.isAnomaly : false,
+      L3isAnomaly: l3Item ? l3Item.isAnomaly : false,
     };
   });
 }, [stats.l1Current, stats.l2Current, stats.l3Current]);
@@ -341,7 +327,7 @@ const voltageData = useMemo(() => {
   if (!stats.l1Voltage.length || !stats.l2Voltage.length || !stats.l3Voltage.length) return [];
   const l2VoltageMap = new Map(stats.l2Voltage.map((item) => [item.timestamp, item]));
   const l3VoltageMap = new Map(stats.l3Voltage.map((item) => [item.timestamp, item]));
-  return stats.l1Voltage.map((l1Item) => {
+ return stats.l1Voltage.map((l1Item) => {
     const l2Item = l2VoltageMap.get(l1Item.timestamp);
     const l3Item = l3VoltageMap.get(l1Item.timestamp);
     return {
@@ -349,6 +335,9 @@ const voltageData = useMemo(() => {
       L1: l1Item.propertyValue,
       L2: l2Item ? l2Item.propertyValue : null,
       L3: l3Item ? l3Item.propertyValue : null,
+      L1isAnomaly: l1Item.isAnomaly,
+      L2isAnomaly: l2Item ? l2Item.isAnomaly : false,
+      L3isAnomaly: l3Item ? l3Item.isAnomaly : false,
     };
   });
 }, [stats.l1Voltage, stats.l2Voltage, stats.l3Voltage]);

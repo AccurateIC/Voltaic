@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { DateTime } from "luxon";
@@ -41,10 +41,16 @@ interface VibrationData {
 }
 
 
-const ResetPdmDataButton = () => {
+const ResetPdmDataButton = ({ waitForGraph }: { waitForGraph: () => Promise<void> }) => {
   const queryClient = useQueryClient();
+ const [isResetting, setIsResetting] = useState(false);
+const handleReset = async () => {
+  if (isResetting) return;
+  
+  try {
+    setIsResetting(true);
+    toast.loading("Resetting PDM data...", { id: "reset-pdm" });
 
-  const handleReset = async () => {
     const user = await queryClient.fetchQuery({
       queryKey: loggedInUserQueryKey,
       queryFn: loggedInUserQueryFn,
@@ -54,42 +60,68 @@ const ResetPdmDataButton = () => {
     }
 
     // logout
-
     const sendUserToPdmServerResponse = await fetch(Modules.PDM + "/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...user, logged_in: false }),
+      signal: AbortSignal.timeout(8000),
     });
     if (!sendUserToPdmServerResponse.ok) {
-      // toast.error("Failed to send user details to PDM server");
-     
-      throw new Error("Failed to send logout notif to PDM server");
+      throw new Error("Failed to send logout to PDM server");
     }
-    
 
-    // delete pdm vibration data and  notification data
+    // delete pdm vibration data and notification data
     const { error } = await tuyau.pdm.delete.$delete();
     if (error) throw new Error("Failed to delete PDM Data");
-    // pdm data deleted
 
     // now we need to send login request to PDM server
-  
     const sendLogin = await fetch(Modules.PDM + "/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...user, logged_in: true }),
+      signal: AbortSignal.timeout(8000),
     });
     if (!sendLogin.ok) {
-      // toast.error("Failed to send user details to PDM server");
-      throw new Error("Failed to send logout notif to PDM server");
+      throw new Error("Failed to send login to PDM server");
     }
+
+    // ✅ Wait for graph to reload before showing success
+   toast.loading("Loading new graph data...", { id: "reset-pdm" });
+
+    await queryClient.refetchQueries({
+      queryKey: ["pdm"],
+      type: "active"
+    });
+
+    // ✅ Wait for graph to actually paint on screen
+    await waitForGraph();
+
+    // Graph is visible — now show success and re-enable button
+    toast.success("PDM data reset successfully!", { id: "reset-pdm" });
     
-  };
-  return (
-   <button className="btn btn-error w-full sm:w-auto" onClick={handleReset}>
-      Reset PDM Data
-    </button>
-  );
+  } catch (error: any) {
+    toast.error(error?.message || "Failed to reset PDM data", { id: "reset-pdm" });
+    console.error("Reset PDM error:", error);
+  } finally {
+    setIsResetting(false);  // Button enabled only after graph loads
+  }
+};
+return (
+  <button
+    className="btn btn-error w-full sm:w-auto"
+    onClick={handleReset}
+    disabled={isResetting}  // 👈 disable while loading
+  >
+    {isResetting ? (
+      <>
+        <span className="loading loading-spinner loading-sm"></span>
+        Resetting...
+      </>
+    ) : (
+      "Reset PDM Data"
+    )}
+  </button>
+);
 };
 
 const StatusCard = ({
@@ -142,10 +174,12 @@ const PdmGraph = ({
   actualPdmData,
   forecastedPdmData,
   maintenanceNotificationUnixSeconds,
+  onGraphReady,
 }: {
   actualPdmData: VibrationData[];
   forecastedPdmData: VibrationData[];
   maintenanceNotificationUnixSeconds: number[];
+  onGraphReady?: () => void;
 }) => {
   const getMillis = (ts: string | DateTime | any): number => {
     if (typeof ts === "string") return DateTime.fromISO(ts).toMillis();
@@ -163,7 +197,11 @@ const PdmGraph = ({
     () => new Set(maintenanceNotificationUnixSeconds),
     [maintenanceNotificationUnixSeconds],
   );
-
+useEffect(() => {
+    if (actualPdmData.length > 0) {
+      onGraphReady?.();
+    }
+  }, [actualPdmData]);
   // ── Find the latest timestamp across both datasets ──────────────────────
   const actualSorted = [...actualPdmData].sort((a, b) => getMillis(a.timestamp) - getMillis(b.timestamp));
   const forecastedSorted = [...forecastedPdmData].sort((a, b) => getMillis(a.timestamp) - getMillis(b.timestamp));
@@ -333,6 +371,14 @@ const Maintenance = () => {
   const [isLatestEntryError, setIsLatestEntryError] = useState(false);
 
   const [isPdmLoading, setIsPdmLoading] = useState(true);
+  const graphReadyResolverRef = useRef<(() => void) | null>(null);
+  const waitForGraph = useCallback((): Promise<void> => new Promise((resolve) => { graphReadyResolverRef.current = resolve; }), []);
+  const handleGraphReady = useCallback(() => {
+    if (graphReadyResolverRef.current) {
+      graphReadyResolverRef.current();
+      graphReadyResolverRef.current = null;
+    }
+  }, []);
   const [pdmError, setPdmError] = useState<MaintenanceNotification | null>(null);
 
  const pdmVibrationFetchSeqRef = useRef(0);
@@ -510,7 +556,7 @@ const isPollingRef = useRef(false);
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <h2 className="text-xl md:text-2xl font-semibold text-base-content">Predictive Maintenance</h2>
           <div className="w-full sm:w-auto">
-            <ResetPdmDataButton />
+        <ResetPdmDataButton waitForGraph={waitForGraph} />
           </div>
         </div>
         {/* Predictive Maintenance */}
@@ -561,10 +607,11 @@ const isPollingRef = useRef(false);
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <PdmGraph
+      <PdmGraph
               actualPdmData={actualPdmData}
               forecastedPdmData={forecastedPdmData}
               maintenanceNotificationUnixSeconds={maintenanceNotificationUnixSeconds}
+              onGraphReady={handleGraphReady}
             />
           </div>
         )}

@@ -15,14 +15,16 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
+import { useChartZoom } from "../../hooks/useChartZoom";
 
 // Register ChartJS components
 
 export const GeneratorVoltageLineChart = ({ value }) => {
+  const { chartRef, zoomOptions, handleZoom5Min, handleReset, handleZoomIn, handleZoomOut } = useChartZoom();
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
+ plugins: {
       legend: { position: "top", align: "center" },
       tooltip: {},
       title: {
@@ -31,21 +33,20 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         color: "rgba(255, 255, 255, 0.6)",
         font: { size: 18, weight: "bold" },
       },
+      ...zoomOptions.plugins,
     },
     scales: {
       x: {
         type: "timeseries",
         position: "bottom",
         title: { display: true, text: "Time ⟶", font: { size: 18, weight: "normal" } },
-        min: DateTime.now().minus({ hours: 1 }).toISO(),
-        max: DateTime.now().toISO(),
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
         ticks: { display: true },
       },
       y: {
         type: "linear",
         title: { display: true, text: "Voltage (V) ⟶", font: { size: 18, weight: "normal" } },
-        min: 0,
+        min: -10,
         grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
       },
     },
@@ -56,6 +57,18 @@ export const GeneratorVoltageLineChart = ({ value }) => {
   const l2Data = value.map((item) => ({ x: item.timestamp, y: item.L2 }));
   const l3Data = value.map((item) => ({ x: item.timestamp, y: item.L3 }));
 
+  const l1Radius = value.map((item) => item.L1isAnomaly || item.L1 === 0 ? 1.5: 0);
+  const l2Radius = value.map((item) => item.L2isAnomaly || item.L2 === 0 ? 1.5 : 0);
+  const l3Radius = value.map((item) => item.L3isAnomaly || item.L3 === 0 ? 1.5: 0);
+
+  const l1BgColors = value.map((item) => item.L1isAnomaly || item.L1 === 0 ? 'rgba(255, 0, 0, 0.8)' : 'rgba(82, 120, 209, 0.5)');
+  const l2BgColors = value.map((item) => item.L2isAnomaly || item.L2 === 0 ? 'rgba(255, 0, 0, 0.8)' : 'rgba(209, 120, 82, 0.5)');
+  const l3BgColors = value.map((item) => item.L3isAnomaly || item.L3 === 0 ? 'rgba(255, 0, 0, 0.8)' : 'rgba(82, 209, 120, 0.5)');
+
+  const l1BorderColors = value.map((item) => item.L1isAnomaly || item.L1 === 0 ? 'rgba(255, 0, 0, 1)' : 'rgba(82, 120, 209, 1)');
+  const l2BorderColors = value.map((item) => item.L2isAnomaly || item.L2 === 0 ? 'rgba(255, 0, 0, 1)' : 'rgba(209, 120, 82, 1)');
+  const l3BorderColors = value.map((item) => item.L3isAnomaly || item.L3 === 0 ? 'rgba(255, 0, 0, 1)' : 'rgba(82, 209, 120, 1)');
+
   const data: ChartData<"line"> = {
     datasets: [
       {
@@ -65,7 +78,9 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         borderColor: "rgba(82, 120, 209, 1)",
         backgroundColor: "rgba(82, 120, 209, 0.5)",
         pointStyle: "circle",
-        pointRadius: 3,
+        pointRadius: l1Radius,
+        pointBackgroundColor: l1BgColors,
+        pointBorderColor: l1BorderColors,
         pointHoverRadius: 5,
         pointHitRadius: 10,
         borderWidth: 2,
@@ -77,7 +92,9 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         borderColor: "rgba(209, 120, 82, 1)",
         backgroundColor: "rgba(209, 120, 82, 0.5)",
         pointStyle: "circle",
-        pointRadius: 3,
+        pointRadius: l2Radius,
+        pointBackgroundColor: l2BgColors,
+        pointBorderColor: l2BorderColors,
         pointHoverRadius: 5,
         pointHitRadius: 10,
         borderWidth: 2,
@@ -89,7 +106,9 @@ export const GeneratorVoltageLineChart = ({ value }) => {
         borderColor: "rgba(82, 209, 120, 1)",
         backgroundColor: "rgba(82, 209, 120, 0.5)",
         pointStyle: "circle",
-        pointRadius: 3,
+        pointRadius: l3Radius,
+        pointBackgroundColor: l3BgColors,
+        pointBorderColor: l3BorderColors,
         pointHoverRadius: 5,
         pointHitRadius: 10,
         borderWidth: 2,
@@ -97,7 +116,19 @@ export const GeneratorVoltageLineChart = ({ value }) => {
     ],
   };
 
-  return <Line options={options} data={data} />;
+  return (
+    <div className="flex flex-col h-full w-full">
+      <div className="flex-1 min-h-0">
+        <Line ref={chartRef} options={options} data={data} />
+      </div>
+      <div className="flex items-center justify-center gap-2 py-2 flex-wrap">
+        <button className="btn btn-xs btn-outline" onClick={handleZoomIn}>Zoom In +</button>
+        <button className="btn btn-xs btn-outline" onClick={handleZoomOut}>Zoom Out -</button>
+        <button className="btn btn-xs btn-outline" onClick={handleZoom5Min}>5 Min</button>
+        <button className="btn btn-xs btn-error" onClick={handleReset}>Reset</button>
+      </div>
+    </div>
+  );
 };
 
 export default GeneratorVoltageLineChart;

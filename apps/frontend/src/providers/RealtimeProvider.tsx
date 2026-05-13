@@ -23,14 +23,14 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
       queryClient.invalidateQueries({ queryKey: ["archive"] });
     });
     const unsub2 = notifSub.onMessage(() => {
-      messageBus.publish(TransmitChannels.NOTIFICATION, { source: "sse" });
-      queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
-    });
+  messageBus.publish(TransmitChannels.NOTIFICATION, { source: "sse" });
+  // Navbar handles invalidation via useMessageBus(NOTIFICATION)
+});
 
     const unsub3 = pdmSub.onMessage(() => {
       messageBus.publish(TransmitChannels.PDM, { source: "sse" });
       queryClient.invalidateQueries({ queryKey: ["pdm"] });
-      queryClient.invalidateQueries({ queryKey: ["notifications-count"] });
+      // notifications-count is handled by Navbar's own useMessageBus(PDM) listener
     });
 
     return () => {

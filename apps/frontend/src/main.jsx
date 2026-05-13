@@ -35,14 +35,19 @@ const queryClient = new QueryClient({
 });
 
 createRoot(document.getElementById("root")).render(
-  <QueryClientProvider client={queryClient}>
-    <RealtimeProvider>
-      <BrowserRouter>
-        <Toaster richColors={true} />
-        <Suspense fallback={<Skeleton type="card" />}>
-          <Routes>
-            <Route index element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+ <QueryClientProvider client={queryClient}>
+  <BrowserRouter>
+    <Toaster richColors={true} />
+    <Suspense fallback={<Skeleton type="card" />}>
+      <Routes>
+        <Route index element={<Login />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <RealtimeProvider>   {/* ✅ only mounts when authenticated */}
+              <Layout />
+            </RealtimeProvider>
+          </ProtectedRoute>
+        }>
               <Route path="engine" element={<Engine />} />
               <Route path="generator" element={<Generator />} />
               <Route path="mains" element={<Mains />} />
@@ -59,7 +64,6 @@ createRoot(document.getElementById("root")).render(
             <Route path="/login" element={<Login />} />
           </Routes>
         </Suspense>
-      </BrowserRouter>
-    </RealtimeProvider>
+     </BrowserRouter>
   </QueryClientProvider>
 );
