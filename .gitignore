@@ -90,3 +90,5 @@ CLAUDE.md
 .cursor/
 android/
 graphify-out/
+*.save
+apps/systemctl
