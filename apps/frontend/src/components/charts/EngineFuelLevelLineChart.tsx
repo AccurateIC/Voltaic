@@ -17,7 +17,7 @@ import { DateTime } from "luxon";
 import { useChartZoom } from "../../hooks/useChartZoom";
 // Register ChartJS components
 
-export const EngineFuelLevelLineChart = ({ fuelLevelData }) => {
+export const EngineFuelLevelLineChart = ({ fuelLevelData, showControls = false }) => {
   const { chartRef, zoomOptions, handleZoom5Min, handleReset, handleZoomIn, handleZoomOut } = useChartZoom();
 const options: ChartOptions<"line"> = {
     responsive: true,
@@ -102,32 +102,36 @@ const anomalyCount = fuelLevelData.filter((item) => item.isAnomaly).length;
       <div className="flex-1 min-h-0">
         <Line ref={chartRef} options={options} data={data} />
       </div>
-      <div className="flex items-center justify-center gap-2 py-2 flex-wrap">
-        <button
-          className="btn btn-xs btn-outline"
-          onClick={handleZoomIn}
-        >
-          Zoom In +
-        </button>
-        <button
-          className="btn btn-xs btn-outline"
-          onClick={handleZoomOut}
-        >
-          Zoom Out -
-        </button>
-        <button
-          className="btn btn-xs btn-outline"
-          onClick={handleZoom5Min}
-        >
-          5 Min
-        </button>
-        <button
-          className="btn btn-xs btn-error"
-          onClick={handleReset}
-        >
-          Reset
-        </button>
-      </div>
+      {showControls && (
+        <div className="flex items-center justify-center gap-1 px-3 py-2 bg-base-300 border-t border-base-content/10">
+          <div className="flex items-center bg-base-100 rounded border border-base-content/20 overflow-hidden">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-cyan-400 hover:bg-cyan-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              + Zoom In
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoomOut(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-cyan-400 hover:bg-cyan-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              - Zoom Out
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoom5Min(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-amber-400 hover:bg-amber-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              5 Min
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleReset(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-red-400 hover:bg-red-400/10 transition-colors tracking-wider uppercase"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

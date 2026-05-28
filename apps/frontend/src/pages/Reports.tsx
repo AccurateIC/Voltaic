@@ -159,14 +159,14 @@ export const Reports = () => {
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-xl md:text-2xl font-semibold leading-tight">Reports</h1>
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+     <div className="flex flex-row items-center gap-2 w-full sm:w-auto flex-nowrap">
          <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10 w-full sm:w-auto">
             {/* <div className="flex items-center gap-1 text-primary">
               <FaFilter size={13} />
               <span className="text-xs font-semibold uppercase tracking-wide">Filters</span>
             </div> */}
             <span className="text-sm font-medium whitespace-nowrap text-base-content/80">Time Range</span>
-            <div className="dropdown dropdown-end">
+           <div className="dropdown dropdown-end dropdown-top">
               <div
                 tabIndex={0}
                 role="button"
@@ -191,15 +191,15 @@ export const Reports = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10">
+         <div className="flex items-center gap-1 rounded-box px-2 py-1 bg-base-100/70 border border-base-content/10 whitespace-nowrap">
             <span className="text-sm font-medium whitespace-nowrap text-base-content/80">Charts</span>
             <SelectAllCheckboxPopup<string>
               trigger={
-                <div tabIndex={0}className="select select-bordered select-sm w-full sm:min-w-[142px] bg-base-100 flex items-center cursor-pointer">
+               <div tabIndex={0} className="select select-bordered select-sm w-auto min-w-[120px] bg-base-100 flex items-center cursor-pointer relative">
                   {selectedCharts.length === ALL_CHART_KEYS.length ? "All Charts" : `${selectedCharts.length} Selected`}
                 </div>
               }
-              widthClassName="w-[min(90vw,24rem)] max-w-[24rem]"
+             widthClassName="w-64 max-w-[90vw] overflow-x-hidden"
               selectAllChecked={selectedCharts.length === ALL_CHART_KEYS.length}
               onToggleSelectAll={(checked) => setSelectedCharts(checked ? ALL_CHART_KEYS : [])}
               options={ALL_CHART_KEYS.map((key) => ({

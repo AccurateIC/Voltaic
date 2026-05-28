@@ -497,15 +497,9 @@ if (apiKey !== env.get("ML_API_KEY")) {
 async deleteAll({ response, auth }: HttpContext) {
   await auth.authenticate();
   try {
-    const deletedCount = await db.transaction(async (trx) => {
-      // first delete all related notifications
-      await Notification.query({ client: trx }).delete();
-
-      // then delete all archive records
-      const deletedRows = await Archive.query({ client: trx }).delete();
-
-      return deletedRows;
-    });
+    await db.rawQuery('DELETE FROM notifications');
+const result = await db.rawQuery('DELETE FROM archives');
+const deletedCount = result.rowCount ?? 0;
 
     transmit.broadcast("archive", {
       message: "all archive records deleted",
