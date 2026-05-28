@@ -9,14 +9,13 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "/generator": () => import("../pages/Generator.tsx"),
   "/mains": () => import("../pages/Mains.tsx"),
   "/live-data": () => import("../pages/LiveData.jsx"),
-  "/anomalies-old": () => import("../pages/AnomaliesOld.jsx"),
+  "/anomalies": () => import("../pages/Anomalies.jsx"),
   "/reports": () => import("../pages/Reports"),
   "/alarms": () => import("../pages/Alarms.jsx"),
   "/predictive-maintenance": () => import("../pages/Maintenance"),
   "/rul": () => import("../pages/RUL"),
   "/profile": () => import("../pages/ProfilePage.jsx"),
   "/archive": () => import("../pages/Archive"),
-  "/anomalies": () => import("../pages/Anomalies"),
 };
 
 /**

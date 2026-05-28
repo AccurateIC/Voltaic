@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EngineFuelLevelLineChart } from "../components/charts/EngineFuelLevelLineChart.tsx";
 import { EngineSpeedLineChart } from "../components/charts/EngineSpeedLineChart.tsx";
 import { GeneratorVoltageLineChart } from "../components/charts/GeneratorVoltageLineChart.tsx";
@@ -46,7 +46,8 @@ export const LiveData = () => {
   const pdmTimeoutRef = useRef(null);
   const [isInitialArchiveLoad, setIsInitialArchiveLoad] = useState(true);
   const isInitialArchiveLoadRef = useRef(true);
-  const [selectedChart, setSelectedChart] = useState(null);
+ const [selectedChart, setSelectedChart] = useState(null);
+const [activeChart, setActiveChart] = useState(null); // for inline toolbar
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [selectedProperties, setSelectedProperties] = useState([
@@ -385,13 +386,18 @@ const oilPressureData = useMemo(() => stats.oilPress, [stats.oilPress]);
     const canOpenModal = dependsOnArchiveLoad ? !isInitialArchiveLoad && hasData : hasData;
 
     return (
-      <div className={chartCardClass} onClick={() => canOpenModal && handleChartClick(chartType)}>
+  <div className={chartCardClass} onClick={() => {
+    if (!canOpenModal) return;
+   handleChartClick(chartType) // toggle
+  }}>
         {showLoading ? (
           <div className="flex-1 w-full p-2">
             <Skeleton type="chart" />
           </div>
         ) : (
-          <div className="flex-1 min-h-0">{chartNode}</div>
+         <div className="flex-1 min-h-0">
+ {chartNode}
+</div>
         )}
       </div>
     );
@@ -468,13 +474,13 @@ const oilPressureData = useMemo(() => stats.oilPress, [stats.oilPress]);
 
       <GenericAnimatedModal isOpen={isModalOpen} onClose={handleCloseModal}>
         <div className="h-full w-full">
-          {selectedChart === "fuelLevel" && <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} />}
-          {selectedChart === "engineSpeed" && <EngineSpeedLineChart value={engineSpeedData} />}
-          {selectedChart === "generatorCurrent" && <GeneratorCurrentLineChart value={currentData} />}
-          {selectedChart === "generatorVoltage" && <GeneratorVoltageLineChart value={voltageData} />}
-          {selectedChart === "oilPressure" && <OilPressureLineChart value={oilPressureData} />}
-          {selectedChart === "batteryCharge" && <BatteryChargeLineChart value={batteryData} />}
-          {selectedChart === "pdm" && <PDMLineChart value={pdmDataForGraph} />}
+          {selectedChart === "fuelLevel" && <EngineFuelLevelLineChart fuelLevelData={fuelLevelData} showControls={true} />}
+          {selectedChart === "engineSpeed" && <EngineSpeedLineChart value={engineSpeedData} showControls={true} />}
+          {selectedChart === "generatorCurrent" && <GeneratorCurrentLineChart value={currentData} showControls={true} />}
+          {selectedChart === "generatorVoltage" && <GeneratorVoltageLineChart value={voltageData} showControls={true} />}
+          {selectedChart === "oilPressure" && <OilPressureLineChart value={oilPressureData} showControls={true} />}
+          {selectedChart === "batteryCharge" && <BatteryChargeLineChart value={batteryData} showControls={true} />}
+          {selectedChart === "pdm" && <PDMLineChart value={pdmDataForGraph} showControls={true} />}
         </div>
       </GenericAnimatedModal>
     </div>

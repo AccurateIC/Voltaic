@@ -76,8 +76,10 @@ interface GetPaginatedArchiveDataFilters {
 }
 
 const ArchivePage = () => {
-const confirmAction = (message: string): boolean => {
-  return window.confirm(message);
+const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+const showConfirm = (message: string, onConfirm: () => void) => {
+  setConfirmModal({ message, onConfirm });
 };
   const {
     data: allGensetPropertiesData,
@@ -145,16 +147,20 @@ const { mutate: deleteAllArchive, isPending: isDeleteAllPending } = useMutation(
     }
     return res.json();
   },
-  onSuccess: () => {
-    toast.success("All data deleted successfully");
+  onMutate: () => {
     setArchiveData([]);
     setSelectedIds([]);
+    setPaginationMetadata(undefined);
+  },
+  onSuccess: () => {
+    toast.success("All data deleted successfully");
     setFilters((prev) => ({ ...prev, page: 1 }));
     mutatePaginatedData({ ...filters, page: 1 });
   },
   onError: (error: any) => {
     console.error("Delete all error:", error);
     toast.error(`Delete all failed: ${error?.message ?? "Unknown error"}`);
+    mutatePaginatedData(filters); // restore data if delete failed
   },
 });
   useEffect(() => {
@@ -198,20 +204,23 @@ const { mutate: deleteAllArchive, isPending: isDeleteAllPending } = useMutation(
     setFilters({ page: 1, propertyNames: [], isAnomaly: undefined, from: undefined, to: undefined });
   };
 
-  const handleDeleteSelected = () => {
-    if (selectedIds.length === 0) {
-      toast.error("No rows selected");
-      return;
-    }
-    const confirmed = confirmAction(`Are you sure you want to delete ${selectedIds.length} record(s)? This action cannot be undone.`);
-    if (confirmed) deleteArchive(selectedIds);
-  };
+ const handleDeleteSelected = () => {
+  if (selectedIds.length === 0) {
+    toast.error("No rows selected");
+    return;
+  }
+  showConfirm(
+    `Are you sure you want to delete ${selectedIds.length} record(s)? This action cannot be undone.`,
+    () => deleteArchive(selectedIds)
+  );
+};
 
-  const handleDeleteAllData = () => {
-    const confirmed = confirmAction("Are you sure you want to delete ALL records? This action cannot be undone.");
-    if (confirmed) deleteAllArchive();
-  };
-
+ const handleDeleteAllData = () => {
+  showConfirm(
+    "Are you sure you want to delete ALL records? This action cannot be undone.",
+    () => deleteAllArchive()
+  );
+};
   const isGensetPropsLoading = allGensetPropertiesIsLoading || !allGensetPropertiesData;
   const showArchiveError = isError;
   const showGensetPropsError = allGensetPropertiesIsError;
@@ -490,7 +499,14 @@ const anomalyFilter = useMemo(
       className="btn btn-error btn-outline w-full md:w-auto"
       disabled={isDeleteAllPending}
     >
-      {isDeleteAllPending ? "Deleting..." : "Delete All Data"}
+     {isDeleteAllPending ? (
+        <>
+          <span className="loading loading-spinner loading-xs" />
+          Deleting...
+        </>
+      ) : (
+        "Delete All Data"
+      )}
     </button>
   </div>
 }
@@ -516,6 +532,32 @@ const anomalyFilter = useMemo(
           : undefined
       }
     />
+  {confirmModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Are you sure?</h3>
+            <p className="py-4 text-base-content opacity-70">{confirmModal.message}</p>
+            <div className="modal-action">
+              <button
+                className="btn btn-ghost"
+                onClick={() => setConfirmModal(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-error"
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal(null);
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setConfirmModal(null)} />
+        </div>
+      )}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-luxon";
 import { DateTime } from "luxon";
+import { useChartZoom } from "../../hooks/useChartZoom";
 interface VibrationDataPoint {
   timestamp: string;
   value: number;
@@ -26,7 +27,8 @@ interface VibrationDataPoint {
 
 // Register ChartJS components
 
-export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
+export const PDMLineChart = ({ value, showControls = false }: { value: VibrationDataPoint[]; showControls?: boolean }) => {
+  const { chartRef, zoomOptions, handleZoom5Min, handleReset, handleZoomIn, handleZoomOut } = useChartZoom();
   // const value = value.slice(-2000);
 
   const options: ChartOptions<"line"> = {
@@ -53,6 +55,7 @@ export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
         color: "rgba(255, 255, 255, 0.6)",
         font: { size: 18, weight: "bold" },
       },
+      ...zoomOptions.plugins,
     },
     scales: {
       x: {
@@ -104,7 +107,43 @@ export const PDMLineChart = ({ value }: { value: VibrationDataPoint[] }) => {
     ],
   };
 
-  return <Line options={options} data={data} />;
+  return (
+    <div className="flex flex-col h-full w-full">
+      <div className="flex-1 min-h-0">
+        <Line ref={chartRef} options={options} data={data} />
+      </div>
+      {showControls && (
+        <div className="flex items-center justify-center gap-1 px-3 py-2 bg-base-300 border-t border-base-content/10">
+          <div className="flex items-center bg-base-100 rounded border border-base-content/20 overflow-hidden">
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-cyan-400 hover:bg-cyan-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              + Zoom In
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoomOut(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-cyan-400 hover:bg-cyan-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              - Zoom Out
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleZoom5Min(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-amber-400 hover:bg-amber-400/10 border-r border-base-content/20 transition-colors tracking-wider uppercase"
+            >
+              5 Min
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleReset(); }}
+              className="px-3 py-1.5 text-xs font-mono font-semibold text-red-400 hover:bg-red-400/10 transition-colors tracking-wider uppercase"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default PDMLineChart;

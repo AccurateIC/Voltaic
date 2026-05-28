@@ -23,9 +23,9 @@ const primaryTab = { ANOMALIES: "Anomalies", MAINTENANCE: "Maintenance" } as con
 const secondaryTab = { RESOLVED: "Resolved", UNRESOLVED: "Unresolved" } as const;
 
 const Navbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
- const queryClient = useQueryClient();
-const { data: loggedInUser } = useLoggedInUserQuery(); // 👈 add this
-const isAuthenticated = !!loggedInUser;               // 👈 add this
+  const queryClient = useQueryClient();
+  const { data: loggedInUser } = useLoggedInUserQuery(); // 👈 add this
+  const isAuthenticated = !!loggedInUser;               // 👈 add this
   // ✅ LIGHTWEIGHT COUNT QUERY — self-polls every 10s, tiny 50-byte response.
   // NOT triggered by SSE invalidation (which caused the same spam bug as summary).
   // refetchInterval drives the update; staleTime matches so no extra fetches fire.
@@ -38,8 +38,8 @@ const isAuthenticated = !!loggedInUser;               // 👈 add this
       if (!res.ok) throw new Error("Failed to fetch notification count");
       return res.json() as Promise<{ anomaly: number; maintenance: number }>;
     },
-    staleTime: 10000,  // matches refetchInterval exactly
-refetchInterval: 10000, // ✅ polls every 10s — only update trigger
+    staleTime: 3000,
+    refetchInterval: 3000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
@@ -61,10 +61,10 @@ refetchInterval: 10000, // ✅ polls every 10s — only update trigger
     enabled: false, // ✅ never auto-fetches — only fetched when dropdown opens
   });
 
- const resolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.resolved ?? []).slice(0, 20);
-const unresolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.unresolved ?? []).slice(0, 20);
-const pdmResolvedNotifications = (notificationsSummary?.maintenance?.resolved ?? []).slice(0, 20);
-const pdmUnresolvedNotifications = (notificationsSummary?.maintenance?.unresolved ?? []).slice(0, 20);
+  const resolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.resolved ?? []).slice(0, 20);
+  const unresolvedAnomalyNotificationsData = (notificationsSummary?.anomaly?.unresolved ?? []).slice(0, 20);
+  const pdmResolvedNotifications = (notificationsSummary?.maintenance?.resolved ?? []).slice(0, 20);
+  const pdmUnresolvedNotifications = (notificationsSummary?.maintenance?.unresolved ?? []).slice(0, 20);
 
   // ✅ Bell badge counts: prefer real-time count query; fall back to summary array length
   // This ensures the badge updates every 5 seconds via SSE even without opening the dropdown
@@ -72,67 +72,67 @@ const pdmUnresolvedNotifications = (notificationsSummary?.maintenance?.unresolve
   const unresolvedMaintenanceCount = notificationCount?.maintenance ?? pdmUnresolvedNotifications.length;
 
   // ✅ CORRECT: Call mutations at top level (not in event handlers!)
-const markNotificationAsReadMutation = useMutation({
-  mutationKey: ["anomaly", "notification", "read"],
-  mutationFn: (notificationId: string) => tuyau.notification.read({ id: notificationId }).$patch(),
-  onSuccess: (_, notificationId) => {
-    queryClient.setQueryData(["notifications-summary"], (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        anomaly: {
-          ...old.anomaly,
-          unresolved: old.anomaly.unresolved.filter((n: any) => n.id !== notificationId),
-          resolved: [...old.anomaly.resolved, 
+  const markNotificationAsReadMutation = useMutation({
+    mutationKey: ["anomaly", "notification", "read"],
+    mutationFn: (notificationId: string) => tuyau.notification.read({ id: notificationId }).$patch(),
+    onSuccess: (_, notificationId) => {
+      queryClient.setQueryData(["notifications-summary"], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          anomaly: {
+            ...old.anomaly,
+            unresolved: old.anomaly.unresolved.filter((n: any) => n.id !== notificationId),
+            resolved: [...old.anomaly.resolved,
             old.anomaly.unresolved.find((n: any) => n.id === notificationId)
-          ].filter(Boolean),
-        },
-      };
-    });
-  },
-});
+            ].filter(Boolean),
+          },
+        };
+      });
+    },
+  });
 
   const markPdmNotificationAsReadMutation = useMutation({
-  mutationKey: ["pdm", "notification", "read"],
-  mutationFn: (pdmNotificationId: string) => tuyau.pdm.notification.read({ id: pdmNotificationId }).$patch(),
-  onSuccess: (_, pdmNotificationId) => {
-    queryClient.setQueryData(["notifications-summary"], (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        maintenance: {
-          ...old.maintenance,
-          unresolved: old.maintenance.unresolved.filter((n: any) => n.id !== pdmNotificationId),
-          resolved: [...old.maintenance.resolved,
+    mutationKey: ["pdm", "notification", "read"],
+    mutationFn: (pdmNotificationId: string) => tuyau.pdm.notification.read({ id: pdmNotificationId }).$patch(),
+    onSuccess: (_, pdmNotificationId) => {
+      queryClient.setQueryData(["notifications-summary"], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          maintenance: {
+            ...old.maintenance,
+            unresolved: old.maintenance.unresolved.filter((n: any) => n.id !== pdmNotificationId),
+            resolved: [...old.maintenance.resolved,
             old.maintenance.unresolved.find((n: any) => n.id === pdmNotificationId)
-          ].filter(Boolean),
-        },
-      };
-    });
-  },
-});
+            ].filter(Boolean),
+          },
+        };
+      });
+    },
+  });
 
   const [activeTab, setActiveTab] = useState(primaryTab.ANOMALIES);
   const [activeSecondaryTab, setActiveSecondaryTab] = useState(secondaryTab.UNRESOLVED);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [showAnomaliesModal, setShowAnomaliesModal] = useState(false);
 
-  
- 
+
+
   const detailsRef = useRef<HTMLDetailsElement | null>(null); // used to close notification dropdown when clicking outside
 
-useMessageBus(TransmitChannels.NOTIFICATION, () => {
-  // notifications-count self-polls every 10s — no invalidation needed here
-  if (detailsRef.current?.open) {
-    refetchSummary();
-  }
-});
- useMessageBus(TransmitChannels.PDM, () => {
-  // notifications-count self-polls every 10s — no need to invalidate on PDM events
-  if (detailsRef.current?.open) {
-    refetchSummary();
-  }
-});
+  useMessageBus(TransmitChannels.NOTIFICATION, () => {
+    // notifications-count self-polls every 10s — no invalidation needed here
+    if (detailsRef.current?.open) {
+      refetchSummary();
+    }
+  });
+  useMessageBus(TransmitChannels.PDM, () => {
+    // notifications-count self-polls every 10s — no need to invalidate on PDM events
+    if (detailsRef.current?.open) {
+      refetchSummary();
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -147,7 +147,7 @@ useMessageBus(TransmitChannels.NOTIFICATION, () => {
     };
   }, []);
 
- const handleMarkPdmNotificationAsRead = (pdmNotificationId: string) => {
+  const handleMarkPdmNotificationAsRead = (pdmNotificationId: string) => {
     // ✅ instantly remove from UI
     queryClient.setQueryData(["notifications-summary"], (old: any) => {
       if (!old) return old;
@@ -176,7 +176,7 @@ useMessageBus(TransmitChannels.NOTIFICATION, () => {
       },
     });
   };
-const handleMarkNotificationAsRead = (notificationId: string) => {
+  const handleMarkNotificationAsRead = (notificationId: string) => {
     // ✅ instantly remove from UI
     queryClient.setQueryData(["notifications-summary"], (old: any) => {
       if (!old) return old;
@@ -205,7 +205,7 @@ const handleMarkNotificationAsRead = (notificationId: string) => {
       },
     });
   };
- const handleResolveAllAnomalies = async () => {
+  const handleResolveAllAnomalies = async () => {
     if (!unresolvedAnomalyNotificationsData || unresolvedAnomalyNotificationsData.length === 0) {
       toast.info("No unresolved anomalies");
       return;
@@ -214,7 +214,7 @@ const handleMarkNotificationAsRead = (notificationId: string) => {
     const count = unresolvedAnomalyNotificationsData.length;
 
     // ✅ Optimistically clear UI and badge count immediately
-   // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
+    // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
     queryClient.setQueryData(["notifications-count"], (old: any) => {
       if (!old) return old;
       return { ...old, anomaly: Math.max(0, old.anomaly - count) };
@@ -231,8 +231,8 @@ const handleMarkNotificationAsRead = (notificationId: string) => {
         });
       }
 
-   toast.dismiss(toastId);
-toast.success("All anomalies resolved!");
+      toast.dismiss(toastId);
+      toast.success("All anomalies resolved!");
       refetchSummary(); // only refetch once after ALL are done, not per notification
     } catch (error: any) {
       toast.error("Failed to resolve all anomalies");
@@ -240,7 +240,7 @@ toast.success("All anomalies resolved!");
   };
 
   // ✅ NEW: Resolve all unresolved PDM notifications
- const handleResolveAllPdm = async () => {
+  const handleResolveAllPdm = async () => {
     if (!pdmUnresolvedNotifications || pdmUnresolvedNotifications.length === 0) {
       toast.info("No unresolved maintenance alerts");
       return;
@@ -249,7 +249,7 @@ toast.success("All anomalies resolved!");
     const count = pdmUnresolvedNotifications.length;
 
     // ✅ Optimistically clear UI and badge count immediately
-  // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
+    // ✅ Only drop the badge count instantly — don't touch the list to avoid blink
     queryClient.setQueryData(["notifications-count"], (old: any) => {
       if (!old) return old;
       return { ...old, maintenance: Math.max(0, old.maintenance - count) };
@@ -266,8 +266,8 @@ toast.success("All anomalies resolved!");
         });
       }
 
- toast.dismiss(toastId);
-toast.success("All maintenance alerts resolved!");  
+      toast.dismiss(toastId);
+      toast.success("All maintenance alerts resolved!");
       refetchSummary(); // only refetch once after ALL are done
     } catch (error: any) {
       toast.error("Failed to resolve all maintenance alerts");
@@ -280,7 +280,7 @@ toast.success("All maintenance alerts resolved!");
       const toastId = toast.loading(`Clearing anomaly records from last ${period}...`);
 
       // API call to clear records
-   const response = await fetch(`${BACKEND_BASE_URL}/notification/clear`, {
+      const response = await fetch(`${BACKEND_BASE_URL}/notification/clear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -305,7 +305,7 @@ toast.success("All maintenance alerts resolved!");
       const toastId = toast.loading(`Clearing records from last ${period}...`);
 
       // API call to clear records
-     const response = await fetch(`${BACKEND_BASE_URL}/pdm/notification/clear`, {
+      const response = await fetch(`${BACKEND_BASE_URL}/pdm/notification/clear`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -325,25 +325,25 @@ toast.success("All maintenance alerts resolved!");
   };
 
   return (
- <nav className="bg-base-200 px-2 md:px-4 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-  {/* Branding + Hamburger — mobile/tablet only */}
-<div className="flex items-center gap-2 lg:hidden">
-  <button className="flex flex-col gap-1.5 p-2" onClick={onMenuClick}>
-    <span className="block w-5 h-0.5 bg-base-content" />
-    <span className="block w-5 h-0.5 bg-base-content" />
-    <span className="block w-5 h-0.5 bg-base-content" />
-  </button>
-  <div className="h-8 w-8 rounded-sm bg-base-content/10 text-base-content flex items-center justify-center">
-    <LiaConnectdevelop size={28} />
-  </div>
-  <div>
-    <p className="text-lg font-bold leading-none text-base-content">NeuroGen</p>
-    <p className="text-[10px] text-base-content/55">Monitoring Suite</p>
-  </div>
-</div>
-<div className="hidden lg:block" /> {/* spacer for desktop only */}
+    <nav className="bg-base-200 px-2 md:px-4 py-2 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+      {/* Branding + Hamburger — mobile/tablet only */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <button className="flex flex-col gap-1.5 p-2" onClick={onMenuClick}>
+          <span className="block w-5 h-0.5 bg-base-content" />
+          <span className="block w-5 h-0.5 bg-base-content" />
+          <span className="block w-5 h-0.5 bg-base-content" />
+        </button>
+        <div className="h-8 w-8 rounded-sm bg-base-content/10 text-base-content flex items-center justify-center">
+          <LiaConnectdevelop size={28} />
+        </div>
+        <div>
+          <p className="text-lg font-bold leading-none text-base-content">NeuroGen</p>
+          <p className="text-[10px] text-base-content/55">Monitoring Suite</p>
+        </div>
+      </div>
+      <div className="hidden lg:block" /> {/* spacer for desktop only */}
       {/* navigate to engine page */}
-     
+
 
       <div className="flex items-center space-x-3">
         {/* --- DaisyUI Dropdown Structure --- */}
@@ -377,18 +377,16 @@ toast.success("All maintenance alerts resolved!");
               {/* Tabs */}
               <div className="tabs tabs-bordered px-2">
                 <button
-                  className={`tab tab-lifted flex-1 text-base-content ${
-                    activeTab === primaryTab.ANOMALIES ? "tab-active " : ""
-                  }`}
+                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === primaryTab.ANOMALIES ? "tab-active " : ""
+                    }`}
                   onClick={() => setActiveTab(primaryTab.ANOMALIES)}
                   onDoubleClick={() => setShowAnomaliesModal(true)}
                 >
                   <p
-                    className={` ${
-                      activeTab === primaryTab.ANOMALIES
-                        ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out"
-                        : ""
-                    }`}
+                    className={` ${activeTab === primaryTab.ANOMALIES
+                      ? "underline underline-offset-4 decoration-primary decoration-solid decoration-2 transition-all duration-200 ease-in-out"
+                      : ""
+                      }`}
                   >
                     {primaryTab.ANOMALIES}
                   </p>
@@ -399,9 +397,8 @@ toast.success("All maintenance alerts resolved!");
                   )}
                 </button>
                 <button
-                  className={`tab tab-lifted flex-1 text-base-content ${
-                    activeTab === primaryTab.MAINTENANCE ? "tab-active" : ""
-                  }`}
+                  className={`tab tab-lifted flex-1 text-base-content ${activeTab === primaryTab.MAINTENANCE ? "tab-active" : ""
+                    }`}
                   onClick={() => {
                     setActiveTab(primaryTab.MAINTENANCE);
                     setActiveSecondaryTab(secondaryTab.UNRESOLVED);
@@ -409,11 +406,10 @@ toast.success("All maintenance alerts resolved!");
                   onDoubleClick={() => setShowMaintenanceModal(true)}
                 >
                   <p
-                    className={` ${
-                      activeTab === primaryTab.MAINTENANCE
-                        ? "underline underline-offset-4 decoration-error decoration-solid decoration-2 transition-all duration-200 ease-in-out"
-                        : ""
-                    }`}
+                    className={` ${activeTab === primaryTab.MAINTENANCE
+                      ? "underline underline-offset-4 decoration-error decoration-solid decoration-2 transition-all duration-200 ease-in-out"
+                      : ""
+                      }`}
                   >
                     {primaryTab.MAINTENANCE}
                   </p>
@@ -448,7 +444,7 @@ toast.success("All maintenance alerts resolved!");
               </div>
 
               {/* Notifications Content */}
-         {/* ✅ Sticky Resolve button — outside scrollable area so it never scrolls away */}
+              {/* ✅ Sticky Resolve button — outside scrollable area so it never scrolls away */}
               {activeSecondaryTab === secondaryTab.UNRESOLVED && (
                 <div className="px-2 pb-2">
                   {activeTab === primaryTab.ANOMALIES && unresolvedAnomalyNotificationsData.length > 0 && (
@@ -577,7 +573,7 @@ toast.success("All maintenance alerts resolved!");
                         <p>No new unresolved maintenance alerts</p>
                       </div>
                     ) : (
-         <>
+                      <>
                         {/* Button moved outside scrollable div above */}
                         {pdmUnresolvedNotifications.map((pdmNotif) => (
                           <div

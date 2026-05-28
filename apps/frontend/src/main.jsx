@@ -12,7 +12,6 @@ import { RealtimeProvider } from "./providers/RealtimeProvider";
 const Login = lazy(() => import("./pages/Login"));
 const Engine = lazy(() => import("./pages/Engine"));
 const Layout = lazy(() => import("./components/Layout.jsx"));
-const AnomaliesOld = lazy(() => import("./pages/AnomaliesOld.jsx"));
 const LiveData = lazy(() => import("./pages/LiveData.jsx").then(m => ({ default: m.LiveData })));
 const Maintenance = lazy(() => import("./pages/Maintenance"));
 const Generator = lazy(() => import("./pages/Generator.tsx").then(m => ({ default: m.Generator })));
@@ -20,7 +19,7 @@ const Mains = lazy(() => import("./pages/Mains.tsx").then(m => ({ default: m.Mai
 const Alarms = lazy(() => import("./pages/Alarms.jsx"));
 const Archive = lazy(() => import("./pages/Archive"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage.jsx"));
-const Anomalies = lazy(() => import("./pages/Anomalies").then(m => ({ default: m.Anomalies })));
+const Anomalies = lazy(() => import("./pages/Anomalies.jsx"));
 const Reports = lazy(() => import("./pages/Reports").then(m => ({ default: m.Reports })));
 const RUL = lazy(() => import("./pages/RUL"));
 
@@ -52,7 +51,6 @@ createRoot(document.getElementById("root")).render(
               <Route path="generator" element={<Generator />} />
               <Route path="mains" element={<Mains />} />
               <Route path="live-data" element={<LiveData />} />
-              <Route path="anomalies-old" element={<AnomaliesOld />} />
               <Route path="reports" element={<Reports />} />
               <Route path="alarms" element={<Alarms />} />
               <Route path="predictive-maintenance" element={<Maintenance />} />

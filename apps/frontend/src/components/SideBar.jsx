@@ -190,7 +190,7 @@ const SideBar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           </SideBarGroup>
 
           <SideBarLink to="/live-data"              name="Live Data"   Icon={FaFileAlt}         collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
-          <SideBarLink to="/anomalies-old"          name="Anomalies"   Icon={RiAlertFill}       collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
+          <SideBarLink to="/anomalies"             name="Anomalies"   Icon={RiAlertFill}       collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
           <SideBarLink to="/reports"                name="Reports"     Icon={TbReportAnalytics} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
           <SideBarLink to="/alarms"                 name="Alarms"      Icon={FaBell}            collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
           <SideBarLink to="/predictive-maintenance" name="Maintenance" Icon={GiAutoRepair}      collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
